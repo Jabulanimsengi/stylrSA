@@ -1,0 +1,48 @@
+# --- General / Workspace ---
+# Ignore dependency directories
+node_modules/
+
+# Ignore environment variables
+# These files contain secrets and should never be committed.
+.env
+.env.*
+!.env.example
+
+# Ignore log files, crash reports, and temporary files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor configuration files
+.vscode/
+.idea/
+
+
+# --- Backend - NestJS ---
+# Ignore compiled TypeScript output
+/backend/dist/
+/backend/*.tsbuildinfo
+
+# Ignore test coverage reports
+/backend/coverage/
+
+
+# --- Frontend - Next.js ---
+# Ignore build output
+/frontend/.next/
+/frontend/out/
+
+# Ignore Vercel deployment-specific folder
+/frontend/.vercel/
+
+# Ignore Next.js build cache
+/frontend/.swc/
+
+# Ignore test coverage reports
+/frontend/coverage/
