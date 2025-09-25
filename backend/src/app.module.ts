@@ -1,0 +1,30 @@
+// backend/src/app.module.ts
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { SalonsModule } from './salons/salons.module';
+import { ServicesModule } from './services/services.module';
+import { BookingsModule } from './bookings/bookings.module';
+import { ConfigModule } from '@nestjs/config';
+import { AdminModule } from './admin/admin.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    SalonsModule,
+    ServicesModule,
+    BookingsModule,
+    AdminModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
