@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,82 +23,87 @@ enum ApprovalStatus {
 // MODELS / TABLES
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  firstName     String
-  lastName      String
-  role          UserRole  @default(CLIENT)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  salon         Salon?    // A user can own one salon
-  reviews       Review[]  // A user can write many reviews
-  bookings      Booking[] // A user can have many bookings
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole  @default(CLIENT)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  salon     Salon?    // A user can own one salon
+  reviews   Review[]  // A user can write many reviews
+  bookings  Booking[] // A user can have many bookings
 }
 
 model Salon {
-  id                String          @id @default(cuid())
-  name              String
-  backgroundImage   String?
-  province          String
-  city              String
-  town              String
-  offersMobile      Boolean         @default(false)
-  mobileFee         Float?
-  approvalStatus    ApprovalStatus  @default(PENDING)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  id              String         @id @default(cuid())
+  name            String
+  backgroundImage String?
+  province        String
+  city            String
+  town            String
+  offersMobile    Boolean        @default(false)
+  mobileFee       Float?
+  approvalStatus  ApprovalStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
-  ownerId           String          @unique
-  owner             User            @relation(fields: [ownerId], references: [id])
-
-  services          Service[]
-  reviews           Review[]
-  bookings          Booking[]
+  ownerId         String         @unique
+  owner           User           @relation(fields: [ownerId], references: [id])
+  
+  services        Service[]
+  reviews         Review[]
+  bookings        Booking[]
 }
 
 model Service {
-  id            String          @id @default(cuid())
-  title         String
-  description   String
-  price         Float
-  images        String[] // An array of image URLs
+  id             String         @id @default(cuid())
+  title          String
+  description    String
+  price          Float
+  images         String[] // An array of image URLs
   approvalStatus ApprovalStatus @default(PENDING)
-
-  salonId       String
-  salon         Salon           @relation(fields: [salonId], references: [id])
-
-  bookings      Booking[]
+  
+  salonId        String
+  salon          Salon          @relation(fields: [salonId], references: [id])
+  
+  bookings       Booking[]
 }
 
 model Review {
-  id            String    @id @default(cuid())
-  rating        Int       // Rating from 1 to 5
-  comment       String
+  id             String         @id @default(cuid())
+  rating         Int
+  comment        String
   approvalStatus ApprovalStatus @default(PENDING)
-  createdAt     DateTime  @default(now())
+  createdAt      DateTime       @default(now())
 
-  userId        String
-  author        User      @relation(fields: [userId], references: [id])
+  userId         String
+  author         User           @relation(fields: [userId], references: [id])
 
-  salonId       String
-  salon         Salon     @relation(fields: [salonId], references: [id])
+  salonId        String
+  salon          Salon          @relation(fields: [salonId], references: [id])
+
+  bookingId      String         @unique
+  booking        Booking        @relation(fields: [bookingId], references: [id])
 }
 
 model Booking {
-  id            String    @id @default(cuid())
-  bookingDate   DateTime
-  isMobile      Boolean
-  totalCost     Float
-  createdAt     DateTime  @default(now())
+  id          String   @id @default(cuid())
+  bookingDate DateTime
+  isMobile    Boolean
+  totalCost   Float
+  createdAt   DateTime @default(now())
 
-  userId        String
-  client        User      @relation(fields: [userId], references: [id])
+  userId      String
+  client      User     @relation(fields: [userId], references: [id])
+  
+  salonId     String
+  salon       Salon    @relation(fields: [salonId], references: [id])
 
-  salonId       String
-  salon         Salon     @relation(fields: [salonId], references: [id])
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
 
-  serviceId     String
-  service       Service   @relation(fields: [serviceId], references: [id])
+  review      Review?
 }

@@ -48,6 +48,7 @@ export class BookingsService {
         service: {
           select: { title: true }, // Select only the service title
         },
+        review: { select: { id: true } },
       },
       orderBy: {
         bookingDate: 'desc', // Show the most recent bookings first

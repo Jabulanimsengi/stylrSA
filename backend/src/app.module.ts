@@ -11,6 +11,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './admin/admin.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     BookingsModule,
     AdminModule,
     CloudinaryModule,
+    ReviewsModule, // Listed only once
   ],
   controllers: [AppController],
   providers: [AppService],
