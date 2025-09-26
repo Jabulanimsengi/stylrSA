@@ -20,6 +20,12 @@ enum ApprovalStatus {
   REJECTED
 }
 
+enum BookingType {
+  ONSITE
+  MOBILE
+  BOTH
+}
+
 // MODELS / TABLES
 
 model User {
@@ -32,9 +38,9 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   
-  salon     Salon?    // A user can own one salon
-  reviews   Review[]  // A user can write many reviews
-  bookings  Booking[] // A user can have many bookings
+  salon     Salon?
+  reviews   Review[]
+  bookings  Booking[]
 }
 
 model Salon {
@@ -46,6 +52,8 @@ model Salon {
   town            String
   offersMobile    Boolean        @default(false)
   mobileFee       Float?
+  bookingType     BookingType    @default(ONSITE)
+  operatingHours  Json?
   approvalStatus  ApprovalStatus @default(PENDING)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -63,7 +71,7 @@ model Service {
   title          String
   description    String
   price          Float
-  images         String[] // An array of image URLs
+  images         String[]
   approvalStatus ApprovalStatus @default(PENDING)
   
   salonId        String

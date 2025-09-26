@@ -1,4 +1,3 @@
-// backend/src/admin/admin.controller.ts
 import { Controller, Patch, Param, Body, UseGuards, Get } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -37,5 +36,18 @@ export class AdminController {
     @Body() dto: UpdateServiceStatusDto,
   ) {
     return this.adminService.updateSalonStatus(salonId, dto);
+  }
+
+  @Get('reviews/pending')
+  getPendingReviews() {
+    return this.adminService.getPendingReviews();
+  }
+
+  @Patch('reviews/:reviewId/status')
+  updateReviewStatus(
+    @Param('reviewId') reviewId: string,
+    @Body() dto: UpdateServiceStatusDto,
+  ) {
+    return this.adminService.updateReviewStatus(reviewId, dto);
   }
 }

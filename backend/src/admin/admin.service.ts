@@ -1,4 +1,3 @@
-// backend/src/admin/admin.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
@@ -15,11 +14,9 @@ export class AdminService {
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },
     });
-
     if (!service) {
       throw new NotFoundException('Service not found.');
     }
-
     return this.prisma.service.update({
       where: { id: serviceId },
       data: { approvalStatus: dto.approvalStatus },
@@ -40,14 +37,35 @@ export class AdminService {
   async getPendingServices() {
     return this.prisma.service.findMany({
       where: { approvalStatus: ApprovalStatus.PENDING },
-      include: { salon: { select: { name: true } } }, // Include salon name for context
+      include: { salon: { select: { name: true } } },
     });
   }
 
   async getPendingSalons() {
     return this.prisma.salon.findMany({
       where: { approvalStatus: ApprovalStatus.PENDING },
-      include: { owner: { select: { email: true } } }, // Include owner email for context
+      include: { owner: { select: { email: true } } },
+    });
+  }
+
+  async getPendingReviews() {
+    return this.prisma.review.findMany({
+      where: { approvalStatus: ApprovalStatus.PENDING },
+      include: {
+        author: { select: { firstName: true, lastName: true } },
+        salon: { select: { name: true } },
+      },
+    });
+  }
+
+  async updateReviewStatus(reviewId: string, dto: UpdateServiceStatusDto) {
+    const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
+    if (!review) {
+      throw new NotFoundException('Review not found.');
+    }
+    return this.prisma.review.update({
+      where: { id: reviewId },
+      data: { approvalStatus: dto.approvalStatus },
     });
   }
 }

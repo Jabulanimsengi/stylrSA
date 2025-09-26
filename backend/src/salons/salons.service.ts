@@ -1,4 +1,3 @@
-// backend/src/salons/salons.service.ts
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSalonDto } from './dto/create-salon.dto';
@@ -27,6 +26,8 @@ export class SalonsService {
           town: dto.town,
           offersMobile: dto.offersMobile,
           mobileFee: dto.mobileFee,
+          bookingType: dto.bookingType,
+          operatingHours: dto.operatingHours,
         },
       });
 
@@ -66,6 +67,15 @@ export class SalonsService {
   async findOne(id: string) {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
+      include: {
+        reviews: {
+          where: { approvalStatus: ApprovalStatus.APPROVED },
+          include: {
+            author: { select: { firstName: true, lastName: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
     });
     if (!salon) {
       throw new NotFoundException('Salon not found.');

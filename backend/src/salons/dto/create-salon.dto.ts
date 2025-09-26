@@ -1,11 +1,12 @@
-// backend/src/salons/dto/create-salon.dto.ts
+import { BookingType } from '@prisma/client';
 import {
   IsBoolean,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
-  Min,
 } from 'class-validator';
 
 export class CreateSalonDto {
@@ -30,7 +31,14 @@ export class CreateSalonDto {
   offersMobile?: boolean;
 
   @IsNumber()
-  @Min(0)
   @IsOptional()
   mobileFee?: number;
+
+  @IsEnum(BookingType)
+  @IsOptional()
+  bookingType?: BookingType;
+
+  @IsObject()
+  @IsOptional()
+  operatingHours?: any;
 }

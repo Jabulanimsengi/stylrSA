@@ -1,6 +1,14 @@
-// frontend/src/types/index.ts
-
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  author: {
+    firstName: string;
+    lastName: string;
+  };
+}
 
 export interface Salon {
   id: string;
@@ -13,6 +21,9 @@ export interface Salon {
   mobileFee: number | null;
   approvalStatus: ApprovalStatus;
   ownerId: string;
+  reviews?: Review[];
+  bookingType: 'ONSITE' | 'MOBILE' | 'BOTH';
+  operatingHours: { [key: string]: string } | null;
 }
 
 export interface Service {
@@ -27,7 +38,7 @@ export interface Service {
 
 export interface Booking {
   id: string;
-  bookingDate: string; // ISO date string
+  bookingDate: string;
   isMobile: boolean;
   totalCost: number;
   salon: {
