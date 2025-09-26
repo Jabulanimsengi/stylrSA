@@ -1,20 +1,17 @@
-// frontend/src/app/page.tsx
 import Link from 'next/link';
+import styles from './HomePage.module.css';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-5xl font-extrabold text-ghost-white tracking-tight">
+    <main className={styles.container}>
+      <div className={styles.textCenter}>
+        <h1 className={styles.title}>
           Online Hair Salon Marketplace
         </h1>
-        <p className="mt-4 text-xl text-slate-gray">
+        <p className={styles.subtitle}>
           Your one-stop platform for salon services.
         </p>
-        <Link
-          href="/salons"
-          className="mt-10 inline-block bg-vivid-cyan text-gunmetal font-bold py-3 px-8 rounded-lg text-lg hover:opacity-90 transition-opacity duration-300"
-        >
+        <Link href="/salons" className="btn btn-secondary" style={{ marginTop: '2.5rem' }}>
           Explore Salons Now
         </Link>
       </div>

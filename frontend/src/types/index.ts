@@ -24,3 +24,16 @@ export interface Service {
   approvalStatus: ApprovalStatus;
   salonId: string;
 }
+
+export interface Booking {
+  id: string;
+  bookingDate: string; // ISO date string
+  isMobile: boolean;
+  totalCost: number;
+  salon: {
+    name: string;
+  };
+  service: {
+    title: string;
+  };
+}

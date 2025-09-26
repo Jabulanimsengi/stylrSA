@@ -1,0 +1,83 @@
+/* frontend/src/app/admin/AdminPage.module.css */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--primary-plum);
+  margin-bottom: 2rem;
+}
+.tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid var(--secondary-blush);
+  margin-bottom: 2rem;
+}
+.tabButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-charcoal);
+  border-bottom: 3px solid transparent;
+  opacity: 0.7;
+}
+.activeTab {
+  color: var(--primary-plum);
+  border-bottom: 3px solid var(--primary-plum);
+  opacity: 1;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.listItem {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--secondary-blush);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.info h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--primary-plum);
+}
+.info p {
+  color: #718096;
+  margin: 0.25rem 0 0 0;
+}
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+.approveButton, .rejectButton {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  color: var(--white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.approveButton:hover, .rejectButton:hover {
+  opacity: 0.85;
+}
+.approveButton {
+  background-color: var(--accent-green);
+}
+.rejectButton {
+  background-color: var(--error-red);
+}

@@ -1,7 +1,7 @@
 // backend/src/bookings/bookings.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateBookingDto } from '../../dto/create-booking.dto';
+import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
 export class BookingsService {
@@ -33,6 +33,24 @@ export class BookingsService {
         bookingDate: new Date(dto.bookingDate),
         isMobile: dto.isMobile,
         totalCost: totalCost,
+      },
+    });
+  }
+
+  // Find all bookings for a specific user
+  async findAllForUser(clientId: string) {
+    return this.prisma.booking.findMany({
+      where: { userId: clientId },
+      include: {
+        salon: {
+          select: { name: true }, // Select only the salon name
+        },
+        service: {
+          select: { title: true }, // Select only the service title
+        },
+      },
+      orderBy: {
+        bookingDate: 'desc', // Show the most recent bookings first
       },
     });
   }

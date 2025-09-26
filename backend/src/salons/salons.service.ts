@@ -2,14 +2,13 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSalonDto } from './dto/create-salon.dto';
-import { ApprovalStatus, UserRole } from '@prisma/client';
+import { ApprovalStatus, Prisma, UserRole } from '@prisma/client';
 
 @Injectable()
 export class SalonsService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateSalonDto) {
-    // Check if the user already owns a salon
     const existingSalon = await this.prisma.salon.findUnique({
       where: { ownerId: userId },
     });
@@ -18,9 +17,7 @@ export class SalonsService {
       throw new ForbiddenException('You already own a salon.');
     }
 
-    // Use a transaction to ensure both operations succeed or fail together
     const salon = await this.prisma.$transaction(async (tx) => {
-      // 1. Create the salon
       const newSalon = await tx.salon.create({
         data: {
           ownerId: userId,
@@ -33,7 +30,6 @@ export class SalonsService {
         },
       });
 
-      // 2. Update the user's role to SALON_OWNER
       await tx.user.update({
         where: { id: userId },
         data: { role: UserRole.SALON_OWNER },
@@ -45,14 +41,28 @@ export class SalonsService {
     return salon;
   }
 
-  // Find all APPROVED salons (for public listing)
-  async findAllApproved() {
-    return this.prisma.salon.findMany({
-      where: { approvalStatus: ApprovalStatus.APPROVED },
-    });
+  async findAllApproved(filters: {
+    province?: string;
+    city?: string;
+    offersMobile?: string;
+  }) {
+    const where: Prisma.SalonWhereInput = {
+      approvalStatus: ApprovalStatus.APPROVED,
+    };
+
+    if (filters.province) {
+      where.province = { contains: filters.province, mode: 'insensitive' };
+    }
+    if (filters.city) {
+      where.city = { contains: filters.city, mode: 'insensitive' };
+    }
+    if (filters.offersMobile === 'true') {
+      where.offersMobile = true;
+    }
+
+    return this.prisma.salon.findMany({ where });
   }
 
-  // Find a single salon by its ID
   async findOne(id: string) {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
@@ -63,7 +73,6 @@ export class SalonsService {
     return salon;
   }
 
-  // Find the salon owned by the logged-in user
   async findMySalon(userId: string) {
     const salon = await this.prisma.salon.findUnique({
       where: { ownerId: userId },

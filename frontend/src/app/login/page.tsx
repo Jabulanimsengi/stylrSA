@@ -4,6 +4,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import styles from '../auth.module.css'; // Import the new CSS file
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -30,7 +31,7 @@ export default function LoginPage() {
 
       const data = await res.json();
       localStorage.setItem('access_token', data.access_token);
-      router.push('/dashboard'); // Redirect to dashboard on successful login
+      router.push('/dashboard');
 
     } catch (err: any) {
       setError(err.message);
@@ -40,60 +41,44 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-center text-gray-900">Sign In</h1>
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Sign In</h1>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="email" className={styles.label}>
               Email address
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
+              id="email" type="email" required value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className={styles.input}
             />
           </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+          <div className={styles.inputGroup}>
+            <label htmlFor="password" className={styles.label}>
               Password
             </label>
             <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
+              id="password" type="password" required value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className={styles.input}
             />
           </div>
-          {error && <p className="text-sm text-center text-red-500">{error}</p>}
+          {error && <p className={styles.errorMessage}>{error}</p>}
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full px-4 py-2 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="btn btn-primary"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
         </form>
-        <p className="text-sm text-center text-gray-600">
+        <p className={styles.footerText}>
           Don't have an account?{' '}
-          <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <Link href="/register" className={styles.footerLink}>
             Sign up
           </Link>
         </p>

@@ -10,6 +10,7 @@ import { ServicesModule } from './services/services.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './admin/admin.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AdminModule } from './admin/admin.module';
     ServicesModule,
     BookingsModule,
     AdminModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

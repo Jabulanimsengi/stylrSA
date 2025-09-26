@@ -1,5 +1,5 @@
 // backend/src/salons/salons.controller.ts
-import { Controller, Post, Body, UseGuards, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Param, Query } from '@nestjs/common';
 import { SalonsService } from './salons.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateSalonDto } from './dto/create-salon.dto';
@@ -10,27 +10,27 @@ import { User } from '@prisma/client';
 export class SalonsController {
   constructor(private readonly salonsService: SalonsService) {}
 
-  // GET /api/salons/mine (Get the logged-in user's salon)
   @UseGuards(AuthGuard('jwt'))
-  @Get('mine') // This route must come BEFORE '/:id' to be matched correctly
+  @Get('mine')
   findMySalon(@GetUser() user: User) {
     return this.salonsService.findMySalon(user.id);
   }
 
-  // POST /api/salons (Create a salon - already done)
   @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Body() createSalonDto: CreateSalonDto, @GetUser() user: User) {
     return this.salonsService.create(user.id, createSalonDto);
   }
 
-  // GET /api/salons (List all approved salons)
   @Get()
-  findAllApproved() {
-    return this.salonsService.findAllApproved();
+  findAllApproved(
+    @Query('province') province?: string,
+    @Query('city') city?: string,
+    @Query('offersMobile') offersMobile?: string,
+  ) {
+    return this.salonsService.findAllApproved({ province, city, offersMobile });
   }
 
-  // GET /api/salons/:id (Get a single salon's details)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.salonsService.findOne(id);
