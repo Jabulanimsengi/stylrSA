@@ -1,0 +1,87 @@
+/* frontend/src/app/chat/ChatLayout.module.css */
+.chatContainer {
+  display: grid;
+  /* --- CHANGE: Mobile-first, one column by default --- */
+  grid-template-columns: 1fr; 
+  height: calc(100vh - 78px);
+  background-color: var(--white);
+  color: var(--text-charcoal);
+  overflow: hidden; /* Prevent scrolling issues on mobile */
+}
+
+/* --- NEW: Media query for desktop screens --- */
+@media (min-width: 768px) {
+  .chatContainer {
+    grid-template-columns: 320px 1fr; /* Two columns on larger screens */
+  }
+}
+
+.sidebar {
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarHeader {
+  padding: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary-plum);
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.conversationList {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.conversationLink {
+  display: block;
+  padding: 1rem;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--text-charcoal);
+  cursor: pointer;
+}
+
+.conversationLink:hover {
+  background-color: #fafafa;
+}
+
+.activeConversation {
+  background-color: var(--secondary-blush);
+}
+
+.participantName {
+  font-weight: 600;
+}
+
+.lastMessage {
+  font-size: 0.9rem;
+  color: #718096;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.25rem;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* --- NEW: Mobile-specific classes to hide panels --- */
+.mobileHidden {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobileHidden {
+    display: flex; /* Or 'grid', depending on the element */
+  }
+  .desktopHidden {
+    display: none;
+  }
+}

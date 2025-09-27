@@ -47,6 +47,12 @@ export class SalonsController {
     return this.salonsService.updateMySalon(user.id, updateSalonDto);
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('mine/availability')
+  toggleAvailability(@GetUser() user: User) {
+    return this.salonsService.toggleAvailability(user.id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.salonsService.findOne(id);

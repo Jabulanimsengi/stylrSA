@@ -1,9 +1,10 @@
-// frontend/src/components/BookingModal.tsx
 'use client';
 
 import { useState } from 'react';
 import { Service, Salon } from '@/types';
 import DatePicker from 'react-datepicker';
+import { toast } from 'react-toastify';
+import styles from './BookingModal.module.css';
 
 interface BookingModalProps {
   salon: Salon;
@@ -52,6 +53,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
         const errData = await res.json();
         throw new Error(errData.message || 'Booking failed.');
       }
+      toast.success('Booking request sent! The salon will confirm shortly.');
       onBookingSuccess();
     } catch (err: any) {
       setError(err.message);
@@ -61,45 +63,44 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg p-8 w-full max-w-md text-gray-800">
-        <h2 className="text-2xl font-bold mb-4">Book: {service.title}</h2>
-        <div className="space-y-4">
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+        <h2 className={styles.title}>Book: {service.title}</h2>
+        <div className={styles.formContent}>
           <div>
-            <label className="block font-medium mb-1">Select Date & Time</label>
+            <label className={styles.label}>Select Date & Time</label>
             <DatePicker
               selected={bookingDate}
               onChange={(date) => setBookingDate(date)}
               showTimeSelect
               dateFormat="MMMM d, yyyy h:mm aa"
-              className="w-full p-2 border rounded-md"
+              className={styles.datePicker}
             />
           </div>
           {salon.offersMobile && (
-            <div className="flex items-center">
+            <div className={styles.checkboxGroup}>
               <input
                 type="checkbox"
                 id="isMobile"
                 checked={isMobile}
                 onChange={(e) => setIsMobile(e.target.checked)}
-                className="h-4 w-4 rounded"
               />
-              <label htmlFor="isMobile" className="ml-2">
+              <label htmlFor="isMobile">
                 Mobile Service (+R{salon.mobileFee?.toFixed(2)})
               </label>
             </div>
           )}
-          <div className="text-xl font-bold mt-4">
+          <div className={styles.total}>
             Total: R{totalCost.toFixed(2)}
           </div>
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className={styles.errorMessage}>{error}</p>}
         </div>
-        <div className="flex justify-end gap-4 mt-6">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
+        <div className={styles.buttonContainer}>
+          <button onClick={onClose} className="btn btn-secondary">Cancel</button>
           <button
             onClick={handleBooking}
             disabled={isLoading}
-            className="px-4 py-2 bg-vivid-cyan text-gunmetal font-bold rounded-md disabled:opacity-50"
+            className="btn btn-primary"
           >
             {isLoading ? 'Confirming...' : 'Confirm Booking'}
           </button>

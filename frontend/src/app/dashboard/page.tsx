@@ -8,6 +8,7 @@ import ServiceFormModal from '@/components/ServiceFormModal';
 import EditSalonModal from '@/components/EditSalonModal';
 import { useSocket } from '@/context/SocketContext';
 import Spinner from '@/components/Spinner';
+import { toast } from 'react-toastify';
 
 type DashboardBooking = Booking & { 
   client: { firstName: string, lastName: string },
@@ -109,6 +110,21 @@ export default function DashboardPage() {
     setSalon(updatedSalon);
     setIsEditSalonModalOpen(false);
   };
+  
+  const handleAvailabilityToggle = async () => {
+    if (!salon) return;
+    const token = localStorage.getItem('access_token');
+    setSalon(prev => ({ ...prev!, isAvailableNow: !prev!.isAvailableNow }));
+    try {
+      await fetch('http://localhost:3000/api/salons/mine/availability', {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      toast.error("Failed to update status.");
+      setSalon(prev => ({ ...prev!, isAvailableNow: !prev!.isAvailableNow }));
+    }
+  };
 
   const openServiceModalToAdd = () => { setEditingService(null); setIsServiceModalOpen(true); };
   const openServiceModalToEdit = (service: Service) => { setEditingService(service); setIsServiceModalOpen(true); };
@@ -140,14 +156,23 @@ export default function DashboardPage() {
       )}
       <div className={styles.container}>
         <header className={styles.header}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
+          <div className={styles.headerTop}>
+            <div className={styles.headerInfo}>
               <h1 className={styles.title}>My Dashboard</h1>
               <p className={styles.salonName}>{salon.name}</p>
             </div>
-            <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary">
-              Edit Profile
-            </button>
+            <div className={styles.headerActions}>
+              <div className={styles.availabilityToggle}>
+                <label className={styles.switch}>
+                  <input type="checkbox" checked={salon.isAvailableNow} onChange={handleAvailabilityToggle} />
+                  <span className={styles.slider}></span>
+                </label>
+                <strong>Available Now</strong>
+              </div>
+              <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary">
+                Edit Profile
+              </button>
+            </div>
           </div>
         </header>
 

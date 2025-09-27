@@ -1,4 +1,3 @@
-// frontend/src/hooks/useAuth.ts
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,33 +9,30 @@ interface DecodedToken {
   role: 'CLIENT' | 'SALON_OWNER' | 'ADMIN';
 }
 
+type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+
 export function useAuth() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const pathname = usePathname(); // Reruns effect on navigation
+  const pathname = usePathname();
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
       try {
         const decoded: DecodedToken = jwtDecode(token);
-        setIsLoggedIn(true);
-        setUserRole(decoded.role);
         setUserId(decoded.sub);
+        setUserRole(decoded.role);
+        setAuthStatus('authenticated');
       } catch (e) {
-        // Handle invalid token
-        setIsLoggedIn(false);
-        setUserRole(null);
-        setUserId(null);
+        setAuthStatus('unauthenticated');
         localStorage.removeItem('access_token');
       }
     } else {
-      setIsLoggedIn(false);
-      setUserRole(null);
-      setUserId(null);
+      setAuthStatus('unauthenticated');
     }
-  }, [pathname]); // Dependency on pathname ensures this check reruns on route changes
+  }, [pathname]);
 
-  return { isLoggedIn, userRole, userId };
+  return { authStatus, userRole, userId };
 }

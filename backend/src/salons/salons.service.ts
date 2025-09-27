@@ -3,10 +3,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSalonDto } from './dto/create-salon.dto';
 import { ApprovalStatus, Prisma, Salon, UserRole } from '@prisma/client';
 import { UpdateSalonDto } from './dto/update-salon.dto';
+import { EventsGateway } from 'src/events/events.gateway';
 
 @Injectable()
 export class SalonsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   async create(userId: string, dto: CreateSalonDto) {
     const existingSalon = await this.prisma.salon.findUnique({
@@ -122,7 +126,7 @@ export class SalonsService {
   }
   
   async updateMySalon(userId: string, dto: UpdateSalonDto) {
-    const salon = await this.findMySalon(userId); // Verifies ownership
+    const salon = await this.findMySalon(userId);
     return this.prisma.salon.update({
       where: { id: salon.id },
       data: dto,
@@ -138,5 +142,19 @@ export class SalonsService {
       ORDER BY distance;
     `;
     return result;
+  }
+  
+  async toggleAvailability(userId: string) {
+    const salon = await this.findMySalon(userId);
+    const updatedSalon = await this.prisma.salon.update({
+      where: { id: salon.id },
+      data: { isAvailableNow: !salon.isAvailableNow },
+    });
+    this.eventsGateway.emitToSalonRoom(
+      salon.id,
+      'availabilityUpdate',
+      { isAvailableNow: updatedSalon.isAvailableNow }
+    );
+    return updatedSalon;
   }
 }

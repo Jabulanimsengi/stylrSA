@@ -1,16 +1,16 @@
-// frontend/src/app/register/page.tsx
 'use client';
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import styles from '../auth.module.css'; // Import the same CSS file
+import styles from '../auth.module.css';
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('CLIENT');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function RegisterPage() {
       const res = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, password }),
+        body: JSON.stringify({ firstName, lastName, email, password, role }),
       });
 
       if (!res.ok) {
@@ -78,6 +78,17 @@ export default function RegisterPage() {
             <input id="password" type="password" required value={password} minLength={8}
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input} />
+          </div>
+
+          <div className={styles.roleSelector}>
+            <div className={styles.roleOption}>
+              <input type="radio" id="roleClient" name="role" value="CLIENT" checked={role === 'CLIENT'} onChange={(e) => setRole(e.target.value)} />
+              <label htmlFor="roleClient">I'm a Client (booking services)</label>
+            </div>
+            <div className={styles.roleOption}>
+              <input type="radio" id="roleOwner" name="role" value="SALON_OWNER" checked={role === 'SALON_OWNER'} onChange={(e) => setRole(e.target.value)} />
+              <label htmlFor="roleOwner">I'm a Service Provider (listing services)</label>
+            </div>
           </div>
 
           {error && <p className={styles.errorMessage}>{error}</p>}

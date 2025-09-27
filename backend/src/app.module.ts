@@ -13,6 +13,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { EventsModule } from './events/events.module';
 import { ChatModule } from './chat/chat.module';
+import { LikesModule } from './likes/likes.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { ChatModule } from './chat/chat.module';
     ReviewsModule,
     EventsModule,
     ChatModule,
+    LikesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

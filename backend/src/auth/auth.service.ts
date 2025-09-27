@@ -1,4 +1,3 @@
-// backend/src/auth/auth.service.ts
 import {
   ConflictException,
   Injectable,
@@ -19,7 +18,6 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -28,10 +26,8 @@ export class AuthService {
       throw new ConflictException('Email already in use.');
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Save the new user to the database
     try {
       const user = await this.prisma.user.create({
         data: {
@@ -39,19 +35,19 @@ export class AuthService {
           password: hashedPassword,
           firstName: dto.firstName,
           lastName: dto.lastName,
+          role: dto.role || 'CLIENT', // Use role from DTO, default to CLIENT
         },
       });
 
-      // Don't return the password
       const { password, ...result } = user;
       return result;
     } catch (error) {
+      console.error(error);
       throw new InternalServerErrorException();
     }
   }
 
   async login(dto: LoginDto) {
-    // Find the user by email
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -60,14 +56,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Compare passwords
     const isPasswordMatching = await bcrypt.compare(dto.password, user.password);
 
     if (!isPasswordMatching) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate JWT payload
     const payload = { sub: user.id, email: user.email, role: user.role };
 
     return {

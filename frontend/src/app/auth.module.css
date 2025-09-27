@@ -92,3 +92,26 @@
 .footerLink:hover {
   text-decoration: underline;
 }
+
+.roleSelector {
+  border: 1px solid var(--secondary-blush-dark);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+.roleOption {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.roleOption:first-of-type {
+  margin-bottom: 0.75rem;
+}
+.roleOption input {
+  height: 1rem;
+  width: 1rem;
+  accent-color: var(--primary-plum);
+}
+.roleOption label {
+  font-weight: 500;
+}

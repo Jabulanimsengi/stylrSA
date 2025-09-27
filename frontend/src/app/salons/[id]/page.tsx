@@ -9,7 +9,8 @@ import Spinner from '@/components/Spinner';
 import { useAuth } from '@/hooks/useAuth';
 import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
-import ImageLightbox from '@/components/ImageLightbox';
+import { toast } from 'react-toastify';
+import { useSocket } from '@/context/SocketContext';
 
 async function getSalonDetails(id: string): Promise<Salon | null> {
   try {
@@ -36,7 +37,8 @@ async function getSalonServices(id: string): Promise<Service[]> {
 export default function SalonProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { isLoggedIn } = useAuth();
+  const { userId } = useAuth();
+  const socket = useSocket();
   
   const [salon, setSalon] = useState<Salon | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -56,19 +58,61 @@ export default function SalonProfilePage() {
       }
       setIsLoading(false);
     }
-    fetchData();
+    if (params.id) {
+      fetchData();
+    }
   }, [params.id]);
 
+  useEffect(() => {
+    if (socket && params.id) {
+      socket.emit('joinSalonRoom', params.id);
+      socket.on('availabilityUpdate', (data: { isAvailableNow: boolean }) => {
+        setSalon(prev => prev ? { ...prev, isAvailableNow: data.isAvailableNow } : null);
+      });
+      return () => {
+        socket.emit('leaveSalonRoom', params.id);
+        socket.off('availabilityUpdate');
+      };
+    }
+  }, [socket, params.id]);
+
   const handleBookNowClick = (service: Service) => {
-    if (!isLoggedIn) {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
       router.push('/login');
     } else {
       setSelectedService(service);
     }
   };
 
-  const handleSendMessageClick = () => {
-    alert('Chat feature coming soon!');
+  const handleSendMessageClick = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    if (!salon || !userId) return;
+    if (userId === salon.ownerId) {
+      toast.error("You cannot message your own salon.");
+      return;
+    }
+    try {
+      const res = await fetch('http://localhost:3000/api/chat/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ recipientId: salon.ownerId }),
+      });
+      if (!res.ok) throw new Error('Failed to start conversation.');
+      const conversation = await res.json();
+      router.push(`/chat/${conversation.id}`);
+    } catch (error) {
+      console.error(error);
+      toast.error('Could not start chat. Please try again.');
+    }
   };
 
   const formatBookingType = (type: string) => {
@@ -85,13 +129,13 @@ export default function SalonProfilePage() {
 
   return (
     <>
-      {selectedService && isLoggedIn && (
+      {selectedService && (
         <BookingModal
           salon={salon}
           service={selectedService}
           onClose={() => setSelectedService(null)}
           onBookingSuccess={() => {
-            alert('Booking successful!');
+            toast.success('Booking request sent! The salon will confirm shortly.');
             setSelectedService(null);
           }}
         />
@@ -101,6 +145,11 @@ export default function SalonProfilePage() {
           <div className={styles.heroOverlay}>
             <h1 className={styles.heroTitle}>{salon.name}</h1>
             <p className={styles.heroLocation}>{salon.town}, {salon.city}</p>
+            {salon.isAvailableNow && (
+              <div className={styles.availabilityIndicator}>
+                Available for Bookings Now
+              </div>
+            )}
           </div>
         </div>
         
@@ -108,7 +157,7 @@ export default function SalonProfilePage() {
           <div className={styles.profileLayout}>
             {/* Main Content Column */}
             <div className={styles.mainContent}>
-              <section>
+              <section id="services-section">
                 <h2 className={styles.sectionTitle}>Services</h2>
                 <div className={styles.servicesGrid}>
                   {services

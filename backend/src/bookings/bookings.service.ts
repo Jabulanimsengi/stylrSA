@@ -16,11 +16,9 @@ export class BookingsService {
       where: { id: dto.serviceId },
       include: { salon: true },
     });
-
     if (!service) {
       throw new NotFoundException('Service not found.');
     }
-
     let totalCost = service.price;
     if (dto.isMobile) {
       if (!service.salon.offersMobile || service.salon.mobileFee === null) {
@@ -28,7 +26,6 @@ export class BookingsService {
       }
       totalCost += service.salon.mobileFee;
     }
-
     const newBooking = await this.prisma.booking.create({
       data: {
         userId: clientId,
@@ -39,17 +36,23 @@ export class BookingsService {
         totalCost: totalCost,
         status: BookingStatus.PENDING,
       },
-      include: { 
+      include: {
         client: { select: { firstName: true } },
-        service: { select: { title: true } } 
+        service: { select: { title: true } },
+      },
+    });
+    
+    // Create notification for salon owner
+    await this.prisma.notification.create({
+      data: {
+        recipientId: service.salon.ownerId,
+        message: `You have a new booking request from ${newBooking.client.firstName} for ${newBooking.service.title}.`,
+        bookingId: newBooking.id,
       },
     });
 
-    this.eventsGateway.emitToUser(
-      service.salon.ownerId,
-      'newBooking',
-      newBooking,
-    );
+    this.eventsGateway.emitToUser(service.salon.ownerId, 'newNotification', {});
+    this.eventsGateway.emitToUser(service.salon.ownerId, 'newBooking', newBooking);
 
     return newBooking;
   }
@@ -62,24 +65,31 @@ export class BookingsService {
   ) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { salon: true },
+      include: { 
+        salon: true,
+        service: { select: { title: true } }
+      },
     });
     if (!booking) throw new NotFoundException('Booking not found.');
-
     if (userRole !== UserRole.SALON_OWNER || booking.salon.ownerId !== userId) {
       throw new ForbiddenException('You are not authorized to update this booking.');
     }
-
     const updatedBooking = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status },
     });
 
-    this.eventsGateway.emitToUser(
-      booking.userId,
-      'bookingUpdate',
-      updatedBooking,
-    );
+    // Create notification for the client
+    await this.prisma.notification.create({
+      data: {
+        recipientId: booking.userId,
+        message: `Your booking for ${booking.service.title} has been ${status.toLowerCase()}.`,
+        bookingId: updatedBooking.id,
+      },
+    });
+
+    this.eventsGateway.emitToUser(booking.userId, 'newNotification', {});
+    this.eventsGateway.emitToUser(booking.userId, 'bookingUpdate', updatedBooking);
 
     return updatedBooking;
   }

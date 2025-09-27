@@ -1,10 +1,37 @@
-// backend/src/chat/chat.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ChatService {
   constructor(private prisma: PrismaService) {}
+
+  async findOrCreateConversation(userOneId: string, userTwoId: string) {
+    if (userOneId === userTwoId) {
+      throw new Error("Cannot create a conversation with oneself.");
+    }
+
+    // Check if a conversation between these two specific users already exists
+    let conversation = await this.prisma.conversation.findFirst({
+      where: {
+        AND: [
+          { participants: { some: { id: userOneId } } },
+          { participants: { some: { id: userTwoId } } },
+        ],
+      },
+    });
+
+    // If no conversation is found, create a new one
+    if (!conversation) {
+      conversation = await this.prisma.conversation.create({
+        data: {
+          participants: {
+            connect: [{ id: userOneId }, { id: userTwoId }],
+          },
+        },
+      });
+    }
+    return conversation;
+  }
 
   async getConversations(userId: string) {
     return this.prisma.conversation.findMany({
@@ -20,15 +47,42 @@ export class ChatService {
           take: 1, // Get only the last message for the preview
         },
       },
+      orderBy: {
+        updatedAt: 'desc',
+      }
     });
   }
 
-  async getMessages(conversationId: string, userId: string) {
-    // Verify user is part of the conversation
+  async getConversationById(conversationId: string, userId: string) {
     const conversation = await this.prisma.conversation.findFirst({
-      where: { id: conversationId, participants: { some: { id: userId } } },
+      where: {
+        id: conversationId,
+        participants: { some: { id: userId } },
+      },
+      include: {
+        participants: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+      },
     });
-    if (!conversation) return null;
+    if (!conversation) {
+      throw new UnauthorizedException("Conversation not found or you're not a participant.");
+    }
+    return conversation;
+  }
+
+  async getMessages(conversationId: string, userId: string) {
+    // Verify user is part of the conversation to ensure privacy
+    const conversation = await this.prisma.conversation.findFirst({
+      where: { 
+        id: conversationId, 
+        participants: { some: { id: userId } } 
+      },
+    });
+
+    if (!conversation) {
+      throw new UnauthorizedException("You are not part of this conversation.");
+    }
 
     return this.prisma.message.findMany({
       where: { conversationId },

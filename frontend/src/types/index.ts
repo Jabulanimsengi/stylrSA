@@ -26,6 +26,7 @@ export interface Salon {
   operatingHours: { [key: string]: string } | null;
   avgRating?: number;
   operatingDays?: string[];
+  isAvailableNow?: boolean;
 }
 
 export interface Service {
@@ -36,6 +37,8 @@ export interface Service {
   images: string[];
   approvalStatus: ApprovalStatus;
   salonId: string;
+  likeCount: number;
+  isLikedByCurrentUser?: boolean;
 }
 
 export interface Booking {
@@ -55,4 +58,31 @@ export interface Booking {
     firstName: string;
     lastName: string;
   };
+}
+
+export interface ChatParticipant {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  body: string;
+  createdAt: string;
+  senderId: string;
+  conversationId: string;
+}
+
+export interface Conversation {
+  id: string;
+  participants: ChatParticipant[];
+  messages: ChatMessage[];
+}
+
+export interface Notification {
+  id: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
 }
