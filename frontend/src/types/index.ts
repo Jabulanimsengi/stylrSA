@@ -24,6 +24,8 @@ export interface Salon {
   reviews?: Review[];
   bookingType: 'ONSITE' | 'MOBILE' | 'BOTH';
   operatingHours: { [key: string]: string } | null;
+  avgRating?: number;
+  operatingDays?: string[];
 }
 
 export interface Service {
@@ -48,4 +50,9 @@ export interface Booking {
     title: string;
   };
   review: { id: string } | null;
+  status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED';
+  client: {
+    firstName: string;
+    lastName: string;
+  };
 }

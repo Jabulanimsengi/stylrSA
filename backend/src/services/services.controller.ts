@@ -1,4 +1,3 @@
-// backend/src/services/services.controller.ts
 import {
   Controller,
   Post,
@@ -18,30 +17,29 @@ import { User } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 
-@Controller('api') // Using a common root for different route structures
-export class ServicesController {
+// This new controller will handle all public-facing service routes
+@Controller('api')
+export class PublicServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
-  // GET /api/salons/:salonId/services
   @Get('salons/:salonId/services')
   findAllForSalon(@Param('salonId') salonId: string) {
     return this.servicesService.findAllForSalon(salonId);
   }
 
-  // POST /api/salons/:salonId/services
-  @UseGuards(AuthGuard('jwt'))
-  @Post('salons/:salonId/services')
-  create(
-    @Param('salonId') salonId: string,
-    @GetUser() user: User,
-    @Body() createServiceDto: CreateServiceDto,
-  ) {
-    return this.servicesService.create(user.id, salonId, createServiceDto);
+  @Get('services/featured')
+  findFeatured() {
+    return this.servicesService.findFeatured();
   }
+}
 
-  // PATCH /api/services/:serviceId
+
+@Controller('api/services')
+export class ServicesController {
+  constructor(private readonly servicesService: ServicesService) {}
+
   @UseGuards(AuthGuard('jwt'))
-  @Patch('services/:serviceId')
+  @Patch(':serviceId')
   update(
     @Param('serviceId') serviceId: string,
     @GetUser() user: User,
@@ -50,10 +48,9 @@ export class ServicesController {
     return this.servicesService.update(user.id, serviceId, updateServiceDto);
   }
 
-  // DELETE /api/services/:serviceId
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete('services/:serviceId')
+  @Delete(':serviceId')
   remove(@Param('serviceId') serviceId: string, @GetUser() user: User) {
     return this.servicesService.remove(user.id, serviceId);
   }

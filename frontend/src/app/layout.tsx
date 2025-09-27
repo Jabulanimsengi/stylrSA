@@ -2,14 +2,14 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar'; // Import the Navbar
+import 'react-toastify/dist/ReactToastify.css'; // Add toastify CSS
+import { ToastContainer } from 'react-toastify'; // Import toast container
+import { SocketProvider } from '@/context/SocketContext'; // Import our provider
+import Navbar from '@/components/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'SalonDirect',
-  description: 'Your one-stop platform for salon services.',
-};
+export const metadata: Metadata = { /* ... */ };
 
 export default function RootLayout({
   children,
@@ -19,8 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Navbar /> {/* Add the Navbar here */}
-        <main>{children}</main>
+        <SocketProvider> {/* Wrap everything */}
+          <Navbar />
+          <main>{children}</main>
+          <ToastContainer position="bottom-right" theme="colored" /> {/* Add container */}
+        </SocketProvider>
       </body>
     </html>
   );

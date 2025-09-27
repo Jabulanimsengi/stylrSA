@@ -14,8 +14,10 @@
   border-radius: 0.5rem;
   padding: 2rem;
   width: 100%;
-  max-width: 32rem;
+  max-width: 42rem; /* Wider for more fields */
   color: var(--text-charcoal);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .title {
@@ -37,89 +39,46 @@
   margin-bottom: 0.5rem;
 }
 
-.input, .textarea {
+.input, .textarea, .select {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #CBD5E0;
   border-radius: 0.375rem;
   font-family: inherit;
   font-size: 1rem;
+  background-color: var(--white); /* Ensure select is white */
 }
 
-.textarea {
-  min-height: 100px;
-  resize: vertical;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.25rem;
 }
 
-.fileInputGroup {
-  margin-top: 0.5rem;
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-/* --- FIX IS HERE --- */
-.fileInputLabel {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background-color: var(--secondary-coral); /* Ensures it's visible by default */
-  color: var(--white);
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
+.fullWidth {
+  grid-column: 1 / -1;
 }
 
-.fileInputLabel:hover {
-  background-color: #E53E3E; /* A darker coral/red */
+.subheading {
+  font-weight: 600;
+  color: var(--primary-plum);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  border-top: 1px solid var(--secondary-blush);
+  padding-top: 1rem;
 }
 
-.fileInput {
-  display: none; /* Hides the default browser input */
-}
-/* --- END OF FIX --- */
-
-.fileName {
-  margin-left: 1rem;
-  font-style: italic;
-  font-size: 0.9rem;
-  color: #718096;
-}
-
-.imagePreviewContainer {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
-.imageWrapper {
-  position: relative;
-}
-
-.imagePreview {
-  width: 5rem;
-  height: 5rem;
-  object-fit: cover;
-  border-radius: 0.25rem;
-  border: 1px solid #E2E8F0;
-}
-
-.removeImageButton {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 24px;
-  height: 24px;
-  background-color: #E53E3E;
-  color: white;
-  border: 2px solid white;
-  border-radius: 50%;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
+.hoursGrid {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0.5rem 1rem;
   align-items: center;
-  justify-content: center;
-  line-height: 1;
 }
 
 .errorMessage {

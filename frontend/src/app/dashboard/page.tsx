@@ -1,32 +1,47 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Salon, Service, ApprovalStatus } from '@/types';
+import { Salon, Service, ApprovalStatus, Booking } from '@/types';
 import { useRouter } from 'next/navigation';
 import styles from './Dashboard.module.css';
 import ServiceFormModal from '@/components/ServiceFormModal';
+import EditSalonModal from '@/components/EditSalonModal';
+import { useSocket } from '@/context/SocketContext';
+import Spinner from '@/components/Spinner';
+
+type DashboardBooking = Booking & { 
+  client: { firstName: string, lastName: string },
+  status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED'
+};
 
 export default function DashboardPage() {
   const [salon, setSalon] = useState<Salon | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [bookings, setBookings] = useState<DashboardBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [isEditSalonModalOpen, setIsEditSalonModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const router = useRouter();
+  const socket = useSocket();
 
   useEffect(() => {
-    async function fetchDashboardData() {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
 
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      const headers = { Authorization: `Bearer ${token}` };
       try {
-        const salonRes = await fetch('http://localhost:3000/api/salons/mine', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [salonRes, servicesRes, bookingsRes] = await Promise.all([
+          fetch('http://localhost:3000/api/salons/mine', { headers }),
+          fetch('http://localhost:3000/api/salons/mine/services', { headers }),
+          fetch('http://localhost:3000/api/salons/mine/bookings', { headers }),
+        ]);
 
         if (salonRes.status === 401) {
           router.push('/login');
@@ -34,23 +49,27 @@ export default function DashboardPage() {
         }
         if (!salonRes.ok) throw new Error('Could not fetch your salon data. Have you created a salon profile?');
         
-        const salonData: Salon = await salonRes.json();
-        setSalon(salonData);
-
-        const servicesRes = await fetch(`http://localhost:3000/api/salons/${salonData.id}/services`);
-        if (!servicesRes.ok) throw new Error('Could not fetch services.');
-        const servicesData: Service[] = await servicesRes.json();
-        setServices(servicesData);
-
+        setSalon(await salonRes.json());
+        setServices(await servicesRes.json());
+        setBookings(await bookingsRes.json());
       } catch (err: any) {
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
     fetchDashboardData();
   }, [router]);
+  
+  useEffect(() => {
+    if (socket) {
+      socket.on('newBooking', (newBooking: DashboardBooking) => {
+        setBookings(prev => [newBooking, ...prev]);
+      });
+      return () => { socket.off('newBooking'); };
+    }
+  }, [socket]);
 
   const handleSaveService = (savedService: Service) => {
     if (editingService) {
@@ -58,13 +77,11 @@ export default function DashboardPage() {
     } else {
       setServices([...services, savedService]);
     }
-    closeModal();
+    closeServiceModal();
   };
   
   const handleDeleteService = async (serviceId: string) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this service?')) return;
     const token = localStorage.getItem('access_token');
     try {
       const res = await fetch(`http://localhost:3000/api/services/${serviceId}`, {
@@ -78,20 +95,24 @@ export default function DashboardPage() {
     }
   };
 
-  const openModalToAdd = () => {
-    setEditingService(null);
-    setIsModalOpen(true);
+  const handleBookingStatusUpdate = async (bookingId: string, status: 'CONFIRMED' | 'DECLINED') => {
+    const token = localStorage.getItem('access_token');
+    await fetch(`http://localhost:3000/api/bookings/${bookingId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status }),
+    });
+    setBookings(bookings.map(b => b.id === bookingId ? { ...b, status } : b));
+  };
+  
+  const handleSalonUpdate = (updatedSalon: Salon) => {
+    setSalon(updatedSalon);
+    setIsEditSalonModalOpen(false);
   };
 
-  const openModalToEdit = (service: Service) => {
-    setEditingService(service);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingService(null);
-  };
+  const openServiceModalToAdd = () => { setEditingService(null); setIsServiceModalOpen(true); };
+  const openServiceModalToEdit = (service: Service) => { setEditingService(service); setIsServiceModalOpen(true); };
+  const closeServiceModal = () => { setIsServiceModalOpen(false); setEditingService(null); };
   
   const getStatusClass = (status: ApprovalStatus) => {
     if (status === 'APPROVED') return styles.statusApproved;
@@ -99,68 +120,81 @@ export default function DashboardPage() {
     return styles.statusRejected;
   };
 
-  if (isLoading) {
-    return <div style={{ color: 'var(--white)', textAlign: 'center', padding: '2rem' }}>Loading your dashboard...</div>;
-  }
+  if (isLoading) return <Spinner />;
+  if (error) return <div className="error">{error}</div>;
+  if (!salon) return <div className="notFound">You have not created a salon profile yet.</div>;
 
-  if (error) {
-    return <div style={{ color: '#E53E3E', textAlign: 'center', padding: '2rem' }}>{error}</div>;
-  }
-
-  if (!salon) {
-    return <div style={{ color: 'var(--white)', textAlign: 'center', padding: '2rem' }}>You have not created a salon profile yet.</div>;
-  }
+  const pendingBookings = bookings.filter(b => b.status === 'PENDING');
 
   return (
     <>
-      {isModalOpen && (
-        <ServiceFormModal
-          salonId={salon.id}
-          initialData={editingService}
-          onClose={closeModal}
-          onSave={handleSaveService}
+      {isServiceModalOpen && (
+        <ServiceFormModal salonId={salon.id} initialData={editingService} onClose={closeServiceModal} onSave={handleSaveService} />
+      )}
+      {isEditSalonModalOpen && (
+        <EditSalonModal 
+          salon={salon} 
+          onClose={() => setIsEditSalonModalOpen(false)}
+          onSave={handleSalonUpdate}
         />
       )}
       <div className={styles.container}>
-        <h1 className={styles.title}>My Dashboard</h1>
-        <h2 className={styles.salonName}>{salon.name}</h2>
-        <p className={styles.salonLocation}>{salon.city}, {salon.province}</p>
-
-        <div className={styles.contentCard}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
-            <h3 className={styles.servicesTitle}>Your Services</h3>
-            <button
-              onClick={openModalToAdd}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: 'var(--secondary-coral)',
-                color: 'var(--white)',
-                fontWeight: 'bold',
-                borderRadius: '0.375rem',
-                cursor: 'pointer',
-                border: 'none',
-              }}
-            >
-              + Add Service
+        <header className={styles.header}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 className={styles.title}>My Dashboard</h1>
+              <p className={styles.salonName}>{salon.name}</p>
+            </div>
+            <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary">
+              Edit Profile
             </button>
           </div>
-          <div className={styles.servicesList}>
-            {services.map((service) => (
-              <div key={service.id} className={styles.serviceItem}>
-                <div>
-                  <h4 className={styles.serviceTitle}>{service.title}</h4>
-                  <p className={styles.servicePrice}>R{service.price.toFixed(2)}</p>
+        </header>
+
+        <div className={styles.contentGrid}>
+          <div className={styles.contentCard}>
+            <div className={styles.cardHeader}>
+              <h3 className={styles.cardTitle}>Pending Bookings ({pendingBookings.length})</h3>
+            </div>
+            <div className={styles.list}>
+              {pendingBookings.length > 0 ? pendingBookings.map(booking => (
+                <div key={booking.id} className={styles.listItem}>
+                  <div className={styles.listItemInfo}>
+                    <p><strong>{booking.service.title}</strong> for {booking.client.firstName}</p>
+                    <p className={styles.date}>{new Date(booking.bookingDate).toLocaleString('en-ZA')}</p>
+                  </div>
+                  <div className={styles.actions}>
+                    <button onClick={() => handleBookingStatusUpdate(booking.id, 'CONFIRMED')} className={styles.approveButton}>Accept</button>
+                    <button onClick={() => handleBookingStatusUpdate(booking.id, 'DECLINED')} className={styles.rejectButton}>Decline</button>
+                  </div>
                 </div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                  <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>
-                    {service.approvalStatus}
-                  </span>
-                  <button onClick={() => openModalToEdit(service)} style={{background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary-blue)'}}>Edit</button>
-                  <button onClick={() => handleDeleteService(service.id)} style={{background: 'none', border: 'none', cursor: 'pointer', color: '#E53E3E'}}>Delete</button>
+              )) : <p>No pending bookings.</p>}
+            </div>
+          </div>
+
+          <div className={styles.contentCard}>
+            <div className={styles.cardHeader}>
+              <h3 className={styles.cardTitle}>Your Services</h3>
+              <button onClick={openServiceModalToAdd} className="btn btn-primary">
+                + Add Service
+              </button>
+            </div>
+            <div className={styles.list}>
+              {services.length > 0 ? services.map((service) => (
+                <div key={service.id} className={styles.listItem}>
+                  <div className={styles.listItemInfo}>
+                    <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
+                  </div>
+                  <div className={styles.actions}>
+                    <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>
+                      {service.approvalStatus}
+                    </span>
+                    <button onClick={() => openServiceModalToEdit(service)} className={styles.editButton}>Edit</button>
+                    <button onClick={() => handleDeleteService(service.id)} className={styles.deleteButton}>Delete</button>
+                  </div>
                 </div>
-              </div>
-            ))}
-            {services.length === 0 && <p>You haven't added any services yet.</p>}
+              )) : <p>You haven't added any services yet.</p>}
+            </div>
           </div>
         </div>
       </div>

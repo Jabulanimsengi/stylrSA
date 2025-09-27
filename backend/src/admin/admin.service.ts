@@ -59,13 +59,28 @@ export class AdminService {
   }
 
   async updateReviewStatus(reviewId: string, dto: UpdateServiceStatusDto) {
-    const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
-    if (!review) {
-      throw new NotFoundException('Review not found.');
-    }
-    return this.prisma.review.update({
+    const updatedReview = await this.prisma.review.update({
       where: { id: reviewId },
       data: { approvalStatus: dto.approvalStatus },
     });
+
+    if (updatedReview.approvalStatus === ApprovalStatus.APPROVED) {
+      const salonReviews = await this.prisma.review.findMany({
+        where: {
+          salonId: updatedReview.salonId,
+          approvalStatus: ApprovalStatus.APPROVED,
+        },
+      });
+      const avgRating =
+        salonReviews.reduce((acc, review) => acc + review.rating, 0) /
+        salonReviews.length;
+
+      await this.prisma.salon.update({
+        where: { id: updatedReview.salonId },
+        data: { avgRating: parseFloat(avgRating.toFixed(2)) },
+      });
+    }
+
+    return updatedReview;
   }
 }

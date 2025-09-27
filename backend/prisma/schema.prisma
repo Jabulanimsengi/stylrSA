@@ -26,21 +26,30 @@ enum BookingType {
   BOTH
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
+  COMPLETED
+}
+
 // MODELS / TABLES
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  firstName String
-  lastName  String
-  role      UserRole  @default(CLIENT)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          UserRole  @default(CLIENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   
-  salon     Salon?
-  reviews   Review[]
-  bookings  Booking[]
+  salon         Salon?
+  reviews       Review[]
+  bookings      Booking[]
+  conversations Conversation[]
+  sentMessages  Message[]      @relation("Sender")
 }
 
 model Salon {
@@ -54,6 +63,10 @@ model Salon {
   mobileFee       Float?
   bookingType     BookingType    @default(ONSITE)
   operatingHours  Json?
+  latitude        Float?
+  longitude       Float?
+  avgRating       Float          @default(0)
+  operatingDays   String[]
   approvalStatus  ApprovalStatus @default(PENDING)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -73,6 +86,8 @@ model Service {
   price          Float
   images         String[]
   approvalStatus ApprovalStatus @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   
   salonId        String
   salon          Salon          @relation(fields: [salonId], references: [id])
@@ -98,11 +113,12 @@ model Review {
 }
 
 model Booking {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   bookingDate DateTime
   isMobile    Boolean
   totalCost   Float
-  createdAt   DateTime @default(now())
+  createdAt   DateTime      @default(now())
+  status      BookingStatus @default(PENDING)
 
   userId      String
   client      User     @relation(fields: [userId], references: [id])
@@ -114,4 +130,26 @@ model Booking {
   service     Service  @relation(fields: [serviceId], references: [id])
 
   review      Review?
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  participants User[]
+  messages     Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  body           String
+  createdAt      DateTime     @default(now())
+  read           Boolean      @default(false)
+
+  sender         User         @relation("Sender", fields: [senderId], references: [id])
+  senderId       String
+  
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String
 }

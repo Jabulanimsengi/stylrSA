@@ -1,69 +1,88 @@
 .container {
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 1024px; /* Makes the layout narrower and more compact */
+  margin: 0 auto;
   padding: 2rem;
-  background-color: var(--primary-blue);
-  min-height: calc(100vh - 73px); /* Adjust for navbar height */
 }
 
-.title, .salonName, .salonLocation {
-  color: var(--white);
+.header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--secondary-blush);
+  padding-bottom: 1.5rem;
 }
 
 .title {
   font-size: 2.25rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  color: var(--primary-plum);
+  margin: 0;
 }
 
 .salonName {
-  font-size: 1.875rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-charcoal);
+  margin-top: 0.25rem;
 }
 
-.salonLocation {
-  color: var(--slate-gray);
-  margin-bottom: 2rem;
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
 }
 
 .contentCard {
   background-color: var(--white);
-  color: var(--text-dark);
+  color: var(--text-charcoal);
   padding: 1.5rem;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  border: 1px solid var(--secondary-blush);
 }
 
-.servicesTitle {
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.cardTitle {
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--primary-blue);
+  color: var(--primary-plum);
+  margin: 0;
 }
 
-.servicesList {
+.list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.serviceItem {
-  border: 1px solid #E2E8F0;
-  padding: 1rem;
-  border-radius: 0.375rem;
+.listItem {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 1rem;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
-.serviceTitle {
-  font-size: 1.25rem;
-  font-weight: 500;
+.listItemInfo p {
+  margin: 0;
 }
 
-.servicePrice {
-  color: #4A5568;
+.date {
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0; /* Prevents wrapping on small screens */
 }
 
 .statusBadge {
@@ -86,4 +105,32 @@
 .statusRejected {
   background-color: #FED7D7;
   color: #822727;
+}
+
+.editButton, .deleteButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: underline;
+  padding: 0;
+}
+.editButton { color: var(--primary-plum); }
+.deleteButton { color: var(--error-red); }
+
+.approveButton, .rejectButton {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  color: var(--white);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.approveButton {
+  background-color: var(--accent-green);
+}
+
+.rejectButton {
+  background-color: var(--error-red);
 }

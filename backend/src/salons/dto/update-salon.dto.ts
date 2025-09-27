@@ -1,35 +1,33 @@
 import { BookingType } from '@prisma/client';
 import {
   IsArray,
-  IsBoolean,
   IsEnum,
-  IsNotEmpty,
   IsNumber,
   IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
 
-export class CreateSalonDto {
+export class UpdateSalonDto {
   @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsString()
-  @IsNotEmpty()
-  province: string;
-
-  @IsString()
-  @IsNotEmpty()
-  city: string;
-
-  @IsString()
-  @IsNotEmpty()
-  town: string;
-
-  @IsBoolean()
   @IsOptional()
-  offersMobile?: boolean;
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  backgroundImage?: string;
+
+  @IsString()
+  @IsOptional()
+  province?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
+  
+  @IsString()
+  @IsOptional()
+  town?: string;
 
   @IsNumber()
   @IsOptional()
@@ -42,17 +40,9 @@ export class CreateSalonDto {
   @IsObject()
   @IsOptional()
   operatingHours?: any;
-
+  
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   operatingDays?: string[];
-
-  @IsNumber()
-  @IsOptional()
-  latitude?: number;
-
-  @IsNumber()
-  @IsOptional()
-  longitude?: number;
 }

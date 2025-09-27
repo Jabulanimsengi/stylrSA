@@ -3,6 +3,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { Service } from '@/types';
 import styles from './ServiceFormModal.module.css';
+import { toast } from 'react-toastify';
 
 interface ServiceFormModalProps {
   salonId: string;
@@ -33,11 +34,12 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      if ((e.target.files.length + existingImages.length) > 3) {
-        alert('You can upload a maximum of 3 images.');
+      const newFiles = Array.from(e.target.files);
+      if ((newFiles.length + existingImages.length + files.length) > 3) {
+        alert('You can have a maximum of 3 images in total.');
         return;
       }
-      setFiles(Array.from(e.target.files));
+      setFiles(prev => [...prev, ...newFiles]);
     }
   };
 
@@ -45,17 +47,15 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
     setExistingImages(existingImages.filter(url => url !== imageUrlToRemove));
   };
 
+  const handleRemoveNewFile = (fileIndex: number) => {
+    setFiles(files.filter((_, index) => index !== fileIndex));
+  };
+
   const uploadImages = async (): Promise<string[]> => {
     const token = localStorage.getItem('access_token');
     const uploadedUrls: string[] = [];
-
-    const sigRes = await fetch('http://localhost:3000/api/cloudinary/signature', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!sigRes.ok) {
-      throw new Error('Could not get upload permission.');
-    }
-
+    const sigRes = await fetch('http://localhost:3000/api/cloudinary/signature', { headers: { Authorization: `Bearer ${token}` } });
+    if (!sigRes.ok) throw new Error('Could not get upload permission.');
     const { signature, timestamp } = await sigRes.json();
     const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
 
@@ -65,12 +65,8 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
       formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
       formData.append('timestamp', String(timestamp));
       formData.append('signature', signature);
-
       const uploadRes = await fetch(url, { method: 'POST', body: formData });
-      if (!uploadRes.ok) {
-        throw new Error('Image upload failed.');
-      }
-      
+      if (!uploadRes.ok) throw new Error('Image upload failed.');
       const uploadData = await uploadRes.json();
       uploadedUrls.push(uploadData.secure_url);
     }
@@ -93,29 +89,20 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
         const newUrls = await uploadImages();
         imageUrls = [...existingImages, ...newUrls];
       }
-
-      const apiEndpoint = isEditMode
-        ? `http://localhost:3000/api/services/${initialData?.id}`
-        : `http://localhost:3000/api/salons/${salonId}/services`;
-      
+      const apiEndpoint = isEditMode ? `http://localhost:3000/api/services/${initialData?.id}` : `http://localhost:3000/api/salons/${salonId}/services`;
       const method = isEditMode ? 'PATCH' : 'POST';
-
       const res = await fetch(apiEndpoint, {
         method: method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          title, description, price: parseFloat(price), images: imageUrls,
-        }),
+        body: JSON.stringify({ title, description, price: parseFloat(price), images: imageUrls }),
       });
-
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.message || `Failed to ${isEditMode ? 'update' : 'add'} service.`);
       }
-
       const savedService = await res.json();
+      toast.success('Service submitted! It is now awaiting admin approval.');
       onSave(savedService);
-
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -142,18 +129,35 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
           </div>
           <div>
             <label className={styles.label}>Upload Images (up to 3 total)</label>
-            <input type="file" multiple accept="image/*" onChange={handleFileChange} className={styles.fileInput} />
+            <div className={styles.fileInputGroup}>
+              <label htmlFor="file-upload" className={styles.fileInputLabel}>
+                Choose Files
+              </label>
+              <input 
+                id="file-upload" 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                onChange={handleFileChange} 
+                className={styles.fileInput} 
+              />
+              {files.length > 0 && <span className={styles.fileName}>{files.length} new file(s) selected</span>}
+            </div>
           </div>
+          
           <div className={styles.imagePreviewContainer}>
             {existingImages.map(url => (
               <div key={url} className={styles.imageWrapper}>
                 <img src={url} alt="Existing" className={styles.imagePreview} />
-                <button type="button" onClick={() => handleRemoveExistingImage(url)} className={styles.removeImageButton}>
-                  &times;
-                </button>
+                <button type="button" onClick={() => handleRemoveExistingImage(url)} className={styles.removeImageButton}>&times;</button>
               </div>
             ))}
-            {files.length > 0 && Array.from(files).map(file => <img key={file.name} src={URL.createObjectURL(file)} alt="Preview" className={styles.imagePreview} />)}
+            {files.map((file, index) => (
+              <div key={index} className={styles.imageWrapper}>
+                <img src={URL.createObjectURL(file)} alt="Preview" className={styles.imagePreview} />
+                <button type="button" onClick={() => handleRemoveNewFile(index)} className={styles.removeImageButton}>&times;</button>
+              </div>
+            ))}
           </div>
 
           {error && <p className={styles.errorMessage}>{error}</p>}

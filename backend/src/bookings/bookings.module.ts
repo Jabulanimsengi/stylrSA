@@ -1,9 +1,10 @@
-// backend/src/bookings/bookings.module.ts
 import { Module } from '@nestjs/common';
 import { BookingsController } from './bookings.controller';
 import { BookingsService } from './bookings.service';
+import { EventsModule } from 'src/events/events.module';
 
 @Module({
+  imports: [EventsModule],
   controllers: [BookingsController],
   providers: [BookingsService],
 })

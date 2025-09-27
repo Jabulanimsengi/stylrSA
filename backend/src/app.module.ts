@@ -1,4 +1,3 @@
-// backend/src/app.module.ts
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,6 +11,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './admin/admin.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { EventsModule } from './events/events.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -26,7 +27,9 @@ import { ReviewsModule } from './reviews/reviews.module';
     BookingsModule,
     AdminModule,
     CloudinaryModule,
-    ReviewsModule, // Listed only once
+    ReviewsModule,
+    EventsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
