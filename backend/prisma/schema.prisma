@@ -68,6 +68,8 @@ model Salon {
   longitude       Float?
   avgRating       Float          @default(0)
   operatingDays   String[]
+  contactEmail    String?
+  phoneNumber     String?
   isAvailableNow  Boolean        @default(false)
   approvalStatus  ApprovalStatus @default(PENDING)
   createdAt       DateTime       @default(now())

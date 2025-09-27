@@ -1,9 +1,7 @@
-// frontend/src/app/page.tsx
 import Link from 'next/link';
 import styles from './HomePage.module.css';
 import { Service } from '@/types';
 
-// Define a more specific type for the fetched data
 type FeaturedService = Service & { salon: { id: string, name: string } };
 
 async function getFeaturedServices(): Promise<FeaturedService[]> {
@@ -47,6 +45,9 @@ export default async function Home() {
                   alt={service.title}
                   className={styles.cardImage}
                 />
+                <div className={styles.imageOverlay}>
+                  View More
+                </div>
                 <div className={styles.cardContent}>
                   <h3 className={styles.cardTitle}>{service.title}</h3>
                   <p className={styles.cardSalonName}>by {service.salon.name}</p>

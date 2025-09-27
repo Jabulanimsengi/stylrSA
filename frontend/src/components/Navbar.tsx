@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
@@ -8,10 +9,7 @@ import styles from './Navbar.module.css';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
 import { FaBell, FaEnvelope } from 'react-icons/fa';
-
-interface DecodedToken {
-  role: 'CLIENT' | 'SALON_OWNER' | 'ADMIN';
-}
+import { useAuth } from '@/hooks/useAuth';
 
 interface Notification {
   id: string;
@@ -21,11 +19,10 @@ interface Notification {
 }
 
 export default function Navbar() {
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { authStatus, userRole } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
   const socket = useSocket();
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -34,49 +31,35 @@ export default function Navbar() {
   const fetchNotifications = async () => {
     const token = localStorage.getItem('access_token');
     if (!token) return;
-    const res = await fetch('http://localhost:3000/api/notifications', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (res.ok) {
-      setNotifications(await res.json());
+    try {
+      const res = await fetch('http://localhost:3000/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setNotifications(await res.json());
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
     }
   };
-
-  // Check auth status on route changes
+  
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      try {
-        const decodedToken: DecodedToken = jwtDecode(token);
-        setUserRole(decodedToken.role);
-      } catch (error) {
-        localStorage.removeItem('access_token');
-        setUserRole(null);
-      }
-    } else {
-      setUserRole(null);
-    }
-  }, [pathname]);
-
-  // Fetch notifications when user logs in
-  useEffect(() => {
-    if (userRole) {
+    if (authStatus === 'authenticated') {
       fetchNotifications();
     }
-  }, [userRole]);
+  }, [authStatus]);
 
-  // Listen for socket events
   useEffect(() => {
     if (socket) {
-      socket.on('newNotification', () => {
+      const handleNewNotification = () => {
         toast.info("You have a new notification!");
         fetchNotifications();
-      });
+      };
+      socket.on('newNotification', handleNewNotification);
       return () => { socket.off('newNotification'); };
     }
   }, [socket]);
   
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
@@ -91,35 +74,43 @@ export default function Navbar() {
 
   const handleNotificationClick = async (notif: Notification) => {
     const token = localStorage.getItem('access_token');
+    // Mark as read on the backend
     await fetch(`http://localhost:3000/api/notifications/${notif.id}/read`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` }
     });
-    fetchNotifications(); // Refresh list to show it as "read"
+    // Update UI immediately and then close
+    fetchNotifications();
     setShowNotifications(false);
-    // TODO: Add router.push to the relevant booking/chat page later
+    // TODO: Navigate to the relevant booking or chat page based on the notification
   };
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
-    setUserRole(null);
+    // The useAuth hook will detect the change on navigation and update the state
     router.push('/');
-    router.refresh();
   };
 
   return (
     <nav className={styles.nav}>
       <Link href="/" className={styles.logo}>
-        SalonDirect
+        <Image 
+          src="/logo-transparent.png" 
+          alt="Salorify Logo" 
+          width={140} 
+          height={35} 
+          priority 
+        />
       </Link>
       <div className={styles.linksContainer}>
         <Link href="/salons" className={styles.link}>Salons</Link>
         
-        {userRole ? (
+        {authStatus === 'authenticated' ? (
           <>
             {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={styles.link}>Dashboard</Link>}
             {userRole === 'ADMIN' && <Link href="/admin" className={styles.link}>Admin</Link>}
             {userRole === 'CLIENT' && <Link href="/my-bookings" className={styles.link}>My Bookings</Link>}
+            
             <Link href="/chat" className={styles.iconButton} title="Messages"><FaEnvelope /></Link>
             
             <div ref={notificationRef}>

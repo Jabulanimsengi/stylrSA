@@ -27,6 +27,8 @@ export interface Salon {
   avgRating?: number;
   operatingDays?: string[];
   isAvailableNow?: boolean;
+  contactEmail?: string; // <-- ADD THIS
+  phoneNumber?: string;  // <-- ADD THIS
 }
 
 export interface Service {

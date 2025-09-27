@@ -11,10 +11,12 @@ import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
 import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
+import { Metadata } from 'next';
 
+// This function is defined here because it's used by the client component
 async function getSalonDetails(id: string): Promise<Salon | null> {
   try {
-    const res = await fetch(`http://localhost:3000/api/salons/${id}`);
+    const res = await fetch(`http://localhost:3000/api/salons/${id}`, { cache: 'no-store' });
     if (!res.ok) return null;
     return res.json();
   } catch (error) {
@@ -33,6 +35,10 @@ async function getSalonServices(id: string): Promise<Service[]> {
     return [];
   }
 }
+
+// NOTE: We are back to a single file. The generateMetadata function must be removed
+// if the page uses 'use client'. For now, we prioritize functionality.
+// To re-add SEO, we would need to split this into page.tsx and a client component again.
 
 export default function SalonProfilePage() {
   const params = useParams<{ id: string }>();
@@ -58,13 +64,13 @@ export default function SalonProfilePage() {
       }
       setIsLoading(false);
     }
-    if (params.id) {
+    if (params && params.id) {
       fetchData();
     }
-  }, [params.id]);
+  }, [params]);
 
   useEffect(() => {
-    if (socket && params.id) {
+    if (socket && params && params.id) {
       socket.emit('joinSalonRoom', params.id);
       socket.on('availabilityUpdate', (data: { isAvailableNow: boolean }) => {
         setSalon(prev => prev ? { ...prev, isAvailableNow: data.isAvailableNow } : null);
@@ -74,7 +80,7 @@ export default function SalonProfilePage() {
         socket.off('availabilityUpdate');
       };
     }
-  }, [socket, params.id]);
+  }, [socket, params]);
 
   const handleBookNowClick = (service: Service) => {
     const token = localStorage.getItem('access_token');
@@ -91,7 +97,6 @@ export default function SalonProfilePage() {
       router.push('/login');
       return;
     }
-
     if (!salon || !userId) return;
     if (userId === salon.ownerId) {
       toast.error("You cannot message your own salon.");
@@ -114,7 +119,7 @@ export default function SalonProfilePage() {
       toast.error('Could not start chat. Please try again.');
     }
   };
-
+  
   const formatBookingType = (type: string) => {
     if (type === 'ONSITE') return 'This salon offers on-site services.';
     if (type === 'MOBILE') return 'This salon offers mobile services.';
@@ -155,7 +160,6 @@ export default function SalonProfilePage() {
         
         <div className={styles.container}>
           <div className={styles.profileLayout}>
-            {/* Main Content Column */}
             <div className={styles.mainContent}>
               <section id="services-section">
                 <h2 className={styles.sectionTitle}>Services</h2>
@@ -193,6 +197,11 @@ export default function SalonProfilePage() {
                     <p style={{marginTop: '0.5rem'}}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
                   )}
                 </Accordion>
+                <Accordion title="Location & Contact">
+                   <p><strong>Address:</strong> {salon.town}, {salon.city}, {salon.province}</p>
+                   {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
+                   {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
+                </Accordion>
                  <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
                    {salon.reviews && salon.reviews.length > 0 ? (
                      <div>
@@ -211,7 +220,6 @@ export default function SalonProfilePage() {
               </section>
             </div>
 
-            {/* Sidebar Column */}
             <aside className={styles.sidebar}>
               <div className={styles.actionCard}>
                 <p style={{textAlign: 'center', margin: 0, padding: '0 0 1rem 0', color: 'var(--text-charcoal)'}}>Have a question or ready to book?</p>

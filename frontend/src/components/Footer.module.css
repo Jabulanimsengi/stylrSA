@@ -1,0 +1,39 @@
+/* frontend/src/components/Footer.module.css */
+.footer {
+  background-color: var(--primary-plum);
+  color: var(--white);
+  padding: 2rem;
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.content {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.details {
+  margin: 0;
+  color: var(--secondary-blush);
+}
+
+.details a {
+  color: var(--secondary-blush);
+  text-decoration: none;
+}
+
+.details a:hover {
+  text-decoration: underline;
+}
+
+.copyright {
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: var(--slate-gray);
+}

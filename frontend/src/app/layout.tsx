@@ -1,15 +1,18 @@
-// frontend/src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import 'react-toastify/dist/ReactToastify.css'; // Add toastify CSS
-import { ToastContainer } from 'react-toastify'; // Import toast container
-import { SocketProvider } from '@/context/SocketContext'; // Import our provider
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import { SocketProvider } from '@/context/SocketContext';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = { /* ... */ };
+export const metadata: Metadata = {
+  title: 'SalonDirect',
+  description: 'Your one-stop platform for salon services.',
+};
 
 export default function RootLayout({
   children,
@@ -19,10 +22,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SocketProvider> {/* Wrap everything */}
-          <Navbar />
-          <main>{children}</main>
-          <ToastContainer position="bottom-right" theme="colored" /> {/* Add container */}
+        <SocketProvider>
+          <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <Navbar />
+            <main style={{ flexGrow: 1 }}>{children}</main>
+            <ToastContainer position="bottom-right" theme="colored" />
+            <Footer />
+          </div>
         </SocketProvider>
       </body>
     </html>
