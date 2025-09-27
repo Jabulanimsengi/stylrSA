@@ -29,6 +29,14 @@ export class UpdateSalonDto {
   @IsOptional()
   town?: string;
 
+  @IsString()
+  @IsOptional()
+  contactEmail?: string;
+
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
+
   @IsNumber()
   @IsOptional()
   mobileFee?: number;

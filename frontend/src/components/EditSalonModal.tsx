@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, FormEvent } from 'react'; // Added React import
+import React, { useState, FormEvent } from 'react';
 import { Salon } from '@/types';
 import styles from './EditSalonModal.module.css';
 import { toast } from 'react-toastify';
@@ -22,14 +22,24 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
     bookingType: salon.bookingType || 'ONSITE',
     mobileFee: salon.mobileFee || 0,
     operatingHours: salon.operatingHours || {},
+    contactEmail: salon.contactEmail || '',
+    phoneNumber: salon.phoneNumber || '',
   });
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // --- THIS IS THE FIX ---
+  // The handleChange function now correctly converts number inputs.
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+
+    // If the input is a number type, parse it, otherwise use the string value
+    const finalValue = type === 'number' ? parseFloat(value) || 0 : value;
+
+    setFormData({ ...formData, [name]: finalValue });
   };
+  // --- END OF FIX ---
   
   const handleHoursChange = (day: string, value: string) => {
     setFormData(prev => ({
@@ -49,23 +59,18 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
 
   const uploadImage = async (): Promise<string | null> => {
     if (!file) return null;
-
     const token = localStorage.getItem('access_token');
     const sigRes = await fetch('http://localhost:3000/api/cloudinary/signature', { headers: { Authorization: `Bearer ${token}` } });
     if (!sigRes.ok) throw new Error('Could not get upload permission.');
-    
     const { signature, timestamp } = await sigRes.json();
     const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
-    
     const uploadFormData = new FormData();
     uploadFormData.append('file', file);
     uploadFormData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
     uploadFormData.append('timestamp', String(timestamp));
     uploadFormData.append('signature', signature);
-
     const uploadRes = await fetch(url, { method: 'POST', body: uploadFormData });
     if (!uploadRes.ok) throw new Error('Image upload failed.');
-    
     const uploadData = await uploadRes.json();
     return uploadData.secure_url;
   };
@@ -85,7 +90,7 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
       }
       
       finalData.operatingDays = Object.keys(finalData.operatingHours).filter(
-        day => finalData.operatingHours[day] && finalData.operatingHours[day].toLowerCase() !== 'closed'
+        day => finalData.operatingHours[day] && finalData.operatingHours[day].toLowerCase().trim() !== 'closed'
       );
 
       const res = await fetch('http://localhost:3000/api/salons/mine', {
@@ -97,11 +102,12 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
       if (!res.ok) throw new Error('Failed to update profile.');
       
       const updatedSalon = await res.json();
-      toast.success('Profile updated successfully!');
+      toast.success('Profile update submitted for re-approval!');
       onSave(updatedSalon);
 
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Failed to update profile.");
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +130,14 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
             <div>
               <label className={styles.label}>City</label>
               <input name="city" value={formData.city} onChange={handleChange} className={styles.input} />
+            </div>
+             <div>
+              <label className={styles.label}>Contact Email</label>
+              <input name="contactEmail" type="email" value={formData.contactEmail} onChange={handleChange} className={styles.input} />
+            </div>
+             <div>
+              <label className={styles.label}>Phone Number</label>
+              <input name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange} className={styles.input} />
             </div>
             <div>
               <label className={styles.label}>Service Type</label>

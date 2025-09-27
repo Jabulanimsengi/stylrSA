@@ -1,10 +1,14 @@
-// frontend/src/app/login/page.tsx
 'use client';
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import styles from '../auth.module.css'; // Import the new CSS file
+import styles from '../auth.module.css';
+import { jwtDecode } from 'jwt-decode'; // Import the decoder
+
+interface DecodedToken {
+  role: 'CLIENT' | 'SALON_OWNER' | 'ADMIN';
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -30,8 +34,24 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
-      localStorage.setItem('access_token', data.access_token);
-      router.push('/dashboard');
+      const token = data.access_token;
+      localStorage.setItem('access_token', token);
+
+      // --- THIS IS THE FIX ---
+      // 1. Decode the token to find the user's role
+      const decodedToken: DecodedToken = jwtDecode(token);
+      const userRole = decodedToken.role;
+
+      // 2. Redirect based on the role
+      if (userRole === 'SALON_OWNER') {
+        router.push('/dashboard');
+      } else if (userRole === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        // Default for CLIENTs is to go to the salon listing
+        router.push('/salons');
+      }
+      // --- End of Fix ---
 
     } catch (err: any) {
       setError(err.message);

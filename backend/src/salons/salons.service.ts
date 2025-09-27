@@ -127,9 +127,15 @@ export class SalonsService {
   
   async updateMySalon(userId: string, dto: UpdateSalonDto) {
     const salon = await this.findMySalon(userId);
+    const dataToUpdate: Prisma.SalonUpdateInput = { ...dto };
+    
+    if (salon.approvalStatus === ApprovalStatus.APPROVED) {
+      dataToUpdate.approvalStatus = ApprovalStatus.PENDING;
+    }
+
     return this.prisma.salon.update({
       where: { id: salon.id },
-      data: dto,
+      data: dataToUpdate,
     });
   }
 

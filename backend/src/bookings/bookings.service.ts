@@ -36,7 +36,7 @@ export class BookingsService {
         totalCost: totalCost,
         status: BookingStatus.PENDING,
       },
-      include: {
+      include: { 
         client: { select: { firstName: true } },
         service: { select: { title: true } },
       },

@@ -5,10 +5,27 @@ import { CreateSalonDto } from './dto/create-salon.dto';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 import { UpdateSalonDto } from './dto/update-salon.dto';
+import { ServicesService } from 'src/services/services.service'; // <-- Import ServicesService
+import { CreateServiceDto } from 'src/services/dto/create-service.dto'; // <-- Import the DTO
 
 @Controller('api/salons')
 export class SalonsController {
-  constructor(private readonly salonsService: SalonsService) {}
+  constructor(
+    private readonly salonsService: SalonsService,
+    private readonly servicesService: ServicesService, // <-- Inject ServicesService
+  ) {}
+
+  // --- NEW ENDPOINT FOR CREATING A SERVICE ---
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':salonId/services')
+  createService(
+    @Param('salonId') salonId: string,
+    @GetUser() user: User,
+    @Body() createServiceDto: CreateServiceDto,
+  ) {
+    return this.servicesService.create(user.id, salonId, createServiceDto);
+  }
+  // --- END OF NEW ENDPOINT ---
 
   @UseGuards(AuthGuard('jwt'))
   @Get('mine')

@@ -1,4 +1,3 @@
-// frontend/src/app/my-bookings/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,6 +11,7 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reviewingBookingId, setReviewingBookingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const router = useRouter();
 
   const fetchBookings = async () => {
@@ -32,11 +32,11 @@ export default function MyBookingsPage() {
 
   useEffect(() => {
     fetchBookings();
-  }, []); // Run only once on mount
+  }, []);
 
   const handleReviewSubmitted = () => {
     setReviewingBookingId(null);
-    fetchBookings(); // Re-fetch bookings to update the status
+    fetchBookings();
   };
   
   const formatDate = (dateString: string) => {
@@ -44,6 +44,20 @@ export default function MyBookingsPage() {
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   };
+
+  const getStatusClass = (status: Booking['status']) => {
+    switch(status) {
+      case 'PENDING': return styles.statusPending;
+      case 'CONFIRMED': return styles.statusConfirmed;
+      case 'DECLINED': return styles.statusDeclined;
+      case 'COMPLETED': return styles.statusCompleted;
+      default: return '';
+    }
+  };
+
+  const upcomingBookings = bookings.filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED');
+  const pastBookings = bookings.filter(b => b.status === 'COMPLETED' || b.status === 'DECLINED');
+  const bookingsToShow = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
 
   if (isLoading) return <Spinner />;
 
@@ -58,25 +72,34 @@ export default function MyBookingsPage() {
       )}
       <div className={styles.container}>
         <h1 className={styles.title}>My Bookings</h1>
-        {bookings.length === 0 ? (
-          <p>You have no bookings yet.</p>
+
+        <div className={styles.tabs}>
+          <button onClick={() => setActiveTab('upcoming')} className={`${styles.tabButton} ${activeTab === 'upcoming' ? styles.activeTab : ''}`}>
+            Upcoming ({upcomingBookings.length})
+          </button>
+          <button onClick={() => setActiveTab('past')} className={`${styles.tabButton} ${activeTab === 'past' ? styles.activeTab : ''}`}>
+            Past ({pastBookings.length})
+          </button>
+        </div>
+
+        {bookingsToShow.length === 0 ? (
+          <p>You have no {activeTab} bookings.</p>
         ) : (
           <div className={styles.list}>
-            {bookings.map(booking => (
+            {bookingsToShow.map(booking => (
               <div key={booking.id} className={styles.card}>
+                <span className={`${styles.statusBadge} ${getStatusClass(booking.status)}`}>{booking.status}</span>
                 <h4>{booking.service.title}</h4>
                 <p>at <strong>{booking.salon.name}</strong></p>
                 <p>Date: {formatDate(booking.bookingDate)}</p>
                 <p>Cost: <strong>R{booking.totalCost.toFixed(2)}</strong></p>
-                {booking.isMobile && <span className={styles.tag}>Mobile Service</span>}
                 <div style={{ marginTop: '1rem' }}>
-                  {booking.review ? (
-                    <span className={styles.reviewedBadge}>Reviewed</span>
-                  ) : new Date(booking.bookingDate) < new Date() ? (
+                  {booking.status === 'COMPLETED' && !booking.review && (
                     <button onClick={() => setReviewingBookingId(booking.id)} className="btn btn-secondary">
                       Leave a Review
                     </button>
-                  ) : null}
+                  )}
+                  {booking.review && <span className={styles.reviewedBadge}>Reviewed</span>}
                 </div>
               </div>
             ))}

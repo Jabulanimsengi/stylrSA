@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, FormEvent } from 'react';
 import { Salon, Service, ApprovalStatus, Booking } from '@/types';
 import { useRouter } from 'next/navigation';
 import styles from './Dashboard.module.css';
@@ -10,20 +10,71 @@ import { useSocket } from '@/context/SocketContext';
 import Spinner from '@/components/Spinner';
 import { toast } from 'react-toastify';
 
+// Sub-component for creating a new salon profile
+function CreateSalonProfileModal({ onClose, onSave }: { onClose: () => void, onSave: (salon: Salon) => void }) {
+  const [name, setName] = useState('');
+  const [province, setProvince] = useState('');
+  const [city, setCity] = useState('');
+  const [town, setTown] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const token = localStorage.getItem('access_token');
+    try {
+      const res = await fetch('http://localhost:3000/api/salons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name, province, city, town, offersMobile: false }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to create profile.");
+      }
+      toast.success("Profile created! It is now pending admin approval.");
+      onSave(await res.json());
+    } catch (error) {
+      toast.error("Failed to create profile.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+        <h2 className={styles.cardTitle}>Create Your Salon Profile</h2>
+        <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem'}}>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Salon Name" required className={styles.input} />
+          <input value={province} onChange={e => setProvince(e.target.value)} placeholder="Province" required className={styles.input} />
+          <input value={city} onChange={e => setCity(e.target.value)} placeholder="City" required className={styles.input} />
+          <input value={town} onChange={e => setTown(e.target.value)} placeholder="Town/Suburb" required className={styles.input} />
+          <div style={{display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem'}}>
+            <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
+            <button type="submit" disabled={isLoading} className="btn btn-primary">{isLoading ? 'Creating...' : 'Create Profile'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 type DashboardBooking = Booking & { 
   client: { firstName: string, lastName: string },
   status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED'
 };
 
 export default function DashboardPage() {
-  const [salon, setSalon] = useState<Salon | null>(null);
+  const [salon, setSalon] = useState<Salon | null | undefined>(undefined);
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<DashboardBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isEditSalonModalOpen, setIsEditSalonModalOpen] = useState(false);
+  const [isCreateSalonModalOpen, setIsCreateSalonModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
   const router = useRouter();
   const socket = useSocket();
 
@@ -33,24 +84,24 @@ export default function DashboardPage() {
       router.push('/login');
       return;
     }
-
     const fetchDashboardData = async () => {
       setIsLoading(true);
       const headers = { Authorization: `Bearer ${token}` };
       try {
-        const [salonRes, servicesRes, bookingsRes] = await Promise.all([
-          fetch('http://localhost:3000/api/salons/mine', { headers }),
-          fetch('http://localhost:3000/api/salons/mine/services', { headers }),
-          fetch('http://localhost:3000/api/salons/mine/bookings', { headers }),
-        ]);
-
-        if (salonRes.status === 401) {
-          router.push('/login');
+        const salonRes = await fetch('http://localhost:3000/api/salons/mine', { headers });
+        if (salonRes.status === 404) {
+          setSalon(null);
+          setIsLoading(false);
           return;
         }
-        if (!salonRes.ok) throw new Error('Could not fetch your salon data. Have you created a salon profile?');
-        
-        setSalon(await salonRes.json());
+        if (salonRes.status === 401) { router.push('/login'); return; }
+        if (!salonRes.ok) throw new Error('Could not fetch your salon data.');
+        const salonData = await salonRes.json();
+        setSalon(salonData);
+        const [servicesRes, bookingsRes] = await Promise.all([
+          fetch(`http://localhost:3000/api/salons/mine/services`, { headers }),
+          fetch(`http://localhost:3000/api/salons/mine/bookings`, { headers }),
+        ]);
         setServices(await servicesRes.json());
         setBookings(await bookingsRes.json());
       } catch (err: any) {
@@ -59,7 +110,6 @@ export default function DashboardPage() {
         setIsLoading(false);
       }
     };
-
     fetchDashboardData();
   }, [router]);
   
@@ -67,6 +117,7 @@ export default function DashboardPage() {
     if (socket) {
       socket.on('newBooking', (newBooking: DashboardBooking) => {
         setBookings(prev => [newBooking, ...prev]);
+        toast.info(`New booking request for ${newBooking.service.title}!`);
       });
       return () => { socket.off('newBooking'); };
     }
@@ -91,8 +142,9 @@ export default function DashboardPage() {
       });
       if (!res.ok) throw new Error('Failed to delete service.');
       setServices(services.filter(s => s.id !== serviceId));
+      toast.success("Service deleted.");
     } catch (err) {
-      alert('Error deleting service.');
+      toast.error('Error deleting service.');
     }
   };
 
@@ -136,11 +188,62 @@ export default function DashboardPage() {
     return styles.statusRejected;
   };
 
-  if (isLoading) return <Spinner />;
-  if (error) return <div className="error">{error}</div>;
-  if (!salon) return <div className="notFound">You have not created a salon profile yet.</div>;
+  if (isLoading || salon === undefined) return <Spinner />;
+  if (error) return <div className={styles.container}><p style={{ color: 'var(--error-red)' }}>{error}</p></div>;
 
+  if (!salon) {
+    return (
+      <>
+        {isCreateSalonModalOpen && (
+          <CreateSalonProfileModal 
+            onClose={() => setIsCreateSalonModalOpen(false)}
+            onSave={(newSalon) => {
+              setSalon(newSalon);
+              setIsCreateSalonModalOpen(false);
+            }}
+          />
+        )}
+        <div className={styles.welcomeContainer}>
+          <div className={styles.welcomeCard}>
+            <h2 className={styles.cardTitle}>Welcome, Service Provider!</h2>
+            <p>Your profile is not yet complete. Create your public salon profile to start adding services and accepting bookings.</p>
+            <div style={{marginTop: '1.5rem'}}>
+              <button onClick={() => setIsCreateSalonModalOpen(true)} className="btn btn-primary">
+                Create Your Salon Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+  
   const pendingBookings = bookings.filter(b => b.status === 'PENDING');
+  const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED');
+  const pastBookings = bookings.filter(b => b.status === 'COMPLETED' || b.status === 'DECLINED');
+
+  const renderBookingsList = (list: DashboardBooking[]) => {
+    if (list.length === 0) return <p>No bookings in this category.</p>;
+    return list.map(booking => (
+      <div key={booking.id} className={styles.listItem}>
+        <div className={styles.listItemInfo}>
+          <p><strong>{booking.service.title}</strong> for {booking.client.firstName}</p>
+          <p className={styles.date}>{new Date(booking.bookingDate).toLocaleString('en-ZA')}</p>
+        </div>
+        {booking.status === 'PENDING' && (
+          <div className={styles.actions}>
+            <button onClick={() => handleBookingStatusUpdate(booking.id, 'CONFIRMED')} className={styles.approveButton}>Accept</button>
+            <button onClick={() => handleBookingStatusUpdate(booking.id, 'DECLINED')} className={styles.rejectButton}>Decline</button>
+          </div>
+        )}
+      </div>
+    ));
+  };
+  
+  let bookingsToShow;
+  if (activeBookingTab === 'pending') bookingsToShow = renderBookingsList(pendingBookings);
+  else if (activeBookingTab === 'confirmed') bookingsToShow = renderBookingsList(confirmedBookings);
+  else bookingsToShow = renderBookingsList(pastBookings);
 
   return (
     <>
@@ -179,21 +282,15 @@ export default function DashboardPage() {
         <div className={styles.contentGrid}>
           <div className={styles.contentCard}>
             <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>Pending Bookings ({pendingBookings.length})</h3>
+              <h3 className={styles.cardTitle}>Manage Bookings</h3>
+            </div>
+            <div className={styles.tabs}>
+              <button onClick={() => setActiveBookingTab('pending')} className={`${styles.tabButton} ${activeBookingTab === 'pending' ? styles.activeTab : ''}`}>Pending ({pendingBookings.length})</button>
+              <button onClick={() => setActiveBookingTab('confirmed')} className={`${styles.tabButton} ${activeBookingTab === 'confirmed' ? styles.activeTab : ''}`}>Confirmed ({confirmedBookings.length})</button>
+              <button onClick={() => setActiveBookingTab('past')} className={`${styles.tabButton} ${activeBookingTab === 'past' ? styles.activeTab : ''}`}>Past ({pastBookings.length})</button>
             </div>
             <div className={styles.list}>
-              {pendingBookings.length > 0 ? pendingBookings.map(booking => (
-                <div key={booking.id} className={styles.listItem}>
-                  <div className={styles.listItemInfo}>
-                    <p><strong>{booking.service.title}</strong> for {booking.client.firstName}</p>
-                    <p className={styles.date}>{new Date(booking.bookingDate).toLocaleString('en-ZA')}</p>
-                  </div>
-                  <div className={styles.actions}>
-                    <button onClick={() => handleBookingStatusUpdate(booking.id, 'CONFIRMED')} className={styles.approveButton}>Accept</button>
-                    <button onClick={() => handleBookingStatusUpdate(booking.id, 'DECLINED')} className={styles.rejectButton}>Decline</button>
-                  </div>
-                </div>
-              )) : <p>No pending bookings.</p>}
+              {bookingsToShow}
             </div>
           </div>
 

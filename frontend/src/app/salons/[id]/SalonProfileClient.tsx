@@ -12,6 +12,7 @@ import ServiceCard from '@/components/ServiceCard';
 import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
 
+// Data fetching functions are placed here for the client component to use
 async function getSalonDetails(id: string): Promise<Salon | null> {
   try {
     const res = await fetch(`http://localhost:3000/api/salons/${id}`, { cache: 'no-store' });
@@ -57,13 +58,13 @@ export default function SalonProfileClient({ params }: { params: { id: string } 
       }
       setIsLoading(false);
     }
-    if (params.id) {
+    if (params && params.id) {
       fetchData();
     }
-  }, [params.id]);
+  }, [params]);
 
   useEffect(() => {
-    if (socket && params.id) {
+    if (socket && params && params.id) {
       socket.emit('joinSalonRoom', params.id);
       socket.on('availabilityUpdate', (data: { isAvailableNow: boolean }) => {
         setSalon(prev => prev ? { ...prev, isAvailableNow: data.isAvailableNow } : null);
@@ -73,7 +74,7 @@ export default function SalonProfileClient({ params }: { params: { id: string } 
         socket.off('availabilityUpdate');
       };
     }
-  }, [socket, params.id]);
+  }, [socket, params]);
 
   const handleBookNowClick = (service: Service) => {
     const token = localStorage.getItem('access_token');
@@ -186,9 +187,14 @@ export default function SalonProfileClient({ params }: { params: { id: string } 
                 </Accordion>
                 <Accordion title="Service Type">
                   <p>{formatBookingType(salon.bookingType)}</p>
-                  {salon.offersMobile && salon.mobileFee && (
+                  {salon.offersMobile && salon.mobileFee !== null && (
                     <p style={{marginTop: '0.5rem'}}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
                   )}
+                </Accordion>
+                <Accordion title="Location & Contact">
+                   <p><strong>Address:</strong> {salon.town}, {salon.city}, {salon.province}</p>
+                   {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
+                   {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
                 </Accordion>
                  <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
                    {salon.reviews && salon.reviews.length > 0 ? (
