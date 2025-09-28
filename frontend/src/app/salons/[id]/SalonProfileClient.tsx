@@ -213,24 +213,7 @@ export default function SalonProfileClient({ params }: { params: { id: string } 
                 </Accordion>
               </section>
             </div>
-
-            <aside className={styles.sidebar}>
-              <div className={styles.actionCard}>
-                <p style={{textAlign: 'center', margin: 0, padding: '0 0 1rem 0', color: 'var(--text-charcoal)'}}>Have a question or ready to book?</p>
-                <button 
-                  onClick={() => document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="btn btn-primary"
-                >
-                  Book an Appointment
-                </button>
-                <button 
-                  onClick={handleSendMessageClick} 
-                  className="btn btn-secondary"
-                >
-                  Send a Message
-                </button>
-              </div>
-            </aside>
+            {/* The sidebar has been removed from here */}
           </div>
         </div>
       </div>

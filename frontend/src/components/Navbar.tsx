@@ -7,7 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
-import { FaBell, FaEnvelope } from 'react-icons/fa';
+import { FaBell, FaEnvelope, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Notification {
@@ -21,7 +21,9 @@ export default function Navbar() {
   const { authStatus, userRole } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for mobile menu
   const router = useRouter();
+  const pathname = usePathname(); // Hook to get current path
   const socket = useSocket();
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -85,8 +87,11 @@ export default function Navbar() {
     if (window.confirm('Are you sure you want to log out?')) {
       localStorage.removeItem('access_token');
       router.push('/');
+      setIsMenuOpen(false); // Close mobile menu on logout
     }
   };
+
+  const closeMobileMenu = () => setIsMenuOpen(false);
 
   return (
     <nav className={styles.nav}>
@@ -99,40 +104,49 @@ export default function Navbar() {
           priority 
         />
       </Link>
-      <div className={styles.linksContainer}>
-        <Link href="/salons" className={styles.link}>Salons</Link>
+
+      {/* Hamburger Menu Button */}
+      <div className={styles.hamburger} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        {isMenuOpen ? <FaTimes /> : <FaBars />}
+      </div>
+
+      {/* Links Container */}
+      <div className={`${styles.linksContainer} ${isMenuOpen ? styles.mobileMenuOpen : ''}`}>
+        <Link href="/salons" className={`${styles.link} ${pathname === '/salons' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Salons</Link>
         
         {authStatus === 'authenticated' ? (
           <>
-            <Link href="/my-bookings" className={styles.link}>My Bookings</Link>
-            {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={styles.link}>Dashboard</Link>}
-            {userRole === 'ADMIN' && <Link href="/admin" className={styles.link}>Admin</Link>}
+            <Link href="/my-bookings" className={`${styles.link} ${pathname === '/my-bookings' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Bookings</Link>
+            {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={`${styles.link} ${pathname === '/dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Dashboard</Link>}
+            {userRole === 'ADMIN' && <Link href="/admin" className={`${styles.link} ${pathname === '/admin' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Admin</Link>}
             
-            <Link href="/chat" className={styles.iconButton} title="Messages"><FaEnvelope /></Link>
-            
-            <div ref={notificationRef}>
-              <button onClick={() => setShowNotifications(!showNotifications)} className={styles.iconButton} title="Notifications">
-                <FaBell />
-                {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-              </button>
-              {showNotifications && (
-                <div className={styles.dropdown}>
-                  <div className={styles.dropdownHeader}>Notifications</div>
-                  {notifications.length > 0 ? notifications.map(notif => (
-                    <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}>
-                      {notif.message}
-                    </div>
-                  )) : <div className={styles.noNotifications}>No notifications yet.</div>}
-                </div>
-              )}
+            <div className={styles.mobileAuthActions}>
+              <Link href="/chat" className={styles.iconButton} title="Messages" onClick={closeMobileMenu}><FaEnvelope /></Link>
+              
+              <div ref={notificationRef} className={styles.notificationWrapper}>
+                <button onClick={() => setShowNotifications(!showNotifications)} className={styles.iconButton} title="Notifications">
+                  <FaBell />
+                  {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+                </button>
+                {showNotifications && (
+                  <div className={styles.dropdown}>
+                    <div className={styles.dropdownHeader}>Notifications</div>
+                    {notifications.length > 0 ? notifications.map(notif => (
+                      <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}>
+                        {notif.message}
+                      </div>
+                    )) : <div className={styles.noNotifications}>No notifications yet.</div>}
+                  </div>
+                )}
+              </div>
+              <button onClick={handleLogout} className="btn btn-ghost">Logout</button>
             </div>
-            <button onClick={handleLogout} className="btn btn-ghost">Logout</button>
           </>
         ) : (
-          <>
-            <Link href="/login" className={styles.link}>Login</Link>
-            <button onClick={() => router.push('/register')} className="btn btn-primary">Sign Up</button>
-          </>
+          <div className={styles.mobileAuthActions}>
+            <Link href="/login" className={styles.link} onClick={closeMobileMenu}>Login</Link>
+            <button onClick={() => { router.push('/register'); closeMobileMenu(); }} className="btn btn-primary">Sign Up</button>
+          </div>
         )}
       </div>
     </nav>

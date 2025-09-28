@@ -6,6 +6,11 @@
   align-items: center;
   border-bottom: 1px solid var(--light-silver);
   height: 78px;
+  position: sticky; /* Makes the navbar sticky */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* Ensures it stays on top of other content */
 }
 
 .logo {
@@ -21,6 +26,7 @@
   width: auto;
 }
 
+/* Base styles for the links container */
 .linksContainer {
   display: flex;
   gap: 0.5rem;
@@ -35,10 +41,25 @@
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   transition: color 0.2s, background-color 0.2s;
+  border-bottom: 2px solid transparent;
 }
 
 .link:hover {
   color: var(--primary-pink);
+}
+
+.activeLink {
+  color: var(--primary-pink);
+  border-bottom: 2px solid var(--primary-pink);
+}
+
+
+/* Hamburger Menu Icon */
+.hamburger {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--dark-gray);
 }
 
 .iconButton {
@@ -75,10 +96,14 @@
   justify-content: center;
 }
 
+.notificationWrapper {
+  position: relative;
+}
+
 .dropdown {
   position: absolute;
-  top: 70px;
-  right: 1rem;
+  top: 60px; /* Adjusted position */
+  right: 0;
   width: 350px;
   background-color: var(--white);
   border-radius: 0.5rem;
@@ -119,4 +144,43 @@
   padding: 2rem;
   text-align: center;
   color: var(--text-muted);
+}
+
+.mobileAuthActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Responsive Styles for Mobile */
+@media (max-width: 992px) { /* Adjust breakpoint as needed */
+  .linksContainer {
+    display: none; /* Hide desktop links */
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: 78px; /* Height of the navbar */
+    left: 0;
+    width: 100%;
+    background-color: var(--white);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .mobileMenuOpen {
+    display: flex; /* Show mobile menu when active */
+  }
+
+  .hamburger {
+    display: block; /* Show hamburger icon */
+  }
+  
+  .mobileAuthActions {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--light-silver);
+  }
 }

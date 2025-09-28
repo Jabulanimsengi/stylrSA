@@ -14,7 +14,7 @@
 }
 .imageContainer {
   width: 100%;
-  height: 180px;
+  height: 150px; /* Reduced height for a more compact look */
   overflow: hidden;
   cursor: pointer;
   position: relative;
@@ -52,7 +52,7 @@
   margin-top: 0.5rem;
 }
 .content {
-  padding: 1rem;
+  padding: 0.75rem; /* Reduced padding */
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@
   white-space: nowrap;
 }
 .description {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem; /* Adjusted margin */
   font-size: 0.9rem;
   color: var(--text-body);
   line-height: 1.5;
@@ -103,8 +103,8 @@
   align-self: flex-start;
 }
 .footer {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
+  margin-top: 1rem; /* Reduced margin */
+  padding-top: 0.75rem; /* Reduced padding */
   border-top: 1px solid var(--light-silver);
   display: flex;
   justify-content: space-between;
@@ -135,5 +135,5 @@
 }
 .actions {
   display: flex;
-  gap: 0.75rem; /* Increased gap for buttons */
+  gap: 0.75rem;
 }

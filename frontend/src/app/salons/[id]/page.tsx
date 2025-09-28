@@ -36,10 +36,6 @@ async function getSalonServices(id: string): Promise<Service[]> {
   }
 }
 
-// NOTE: We are back to a single file. The generateMetadata function must be removed
-// if the page uses 'use client'. For now, we prioritize functionality.
-// To re-add SEO, we would need to split this into page.tsx and a client component again.
-
 export default function SalonProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -219,24 +215,7 @@ export default function SalonProfilePage() {
                 </Accordion>
               </section>
             </div>
-
-            <aside className={styles.sidebar}>
-              <div className={styles.actionCard}>
-                <p style={{textAlign: 'center', margin: 0, padding: '0 0 1rem 0', color: 'var(--text-charcoal)'}}>Have a question or ready to book?</p>
-                <button 
-                  onClick={() => document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="btn btn-primary"
-                >
-                  Book an Appointment
-                </button>
-                <button 
-                  onClick={handleSendMessageClick} 
-                  className="btn btn-secondary"
-                >
-                  Send a Message
-                </button>
-              </div>
-            </aside>
+            {/* The sidebar action card has been removed */}
           </div>
         </div>
       </div>

@@ -28,14 +28,12 @@
   margin-top: 0.5rem;
 }
 .container {
-  max-width: 900px;
+  max-width: 1280px; /* Widened container for better layout */
   margin: 2rem auto;
   padding: 0 2rem;
 }
 .profileLayout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
+  display: block; /* Removed grid layout as sidebar is gone */
 }
 .mainContent {
   display: flex;
@@ -52,8 +50,7 @@
 }
 .servicesGrid {
   display: grid;
-  /* Updated to better handle compact cards */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Adjusted for compact cards */
   gap: 1.5rem;
 }
 .actionButtonsContainer {
