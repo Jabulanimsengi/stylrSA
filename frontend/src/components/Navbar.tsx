@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
 import styles from './Navbar.module.css';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
@@ -74,21 +73,19 @@ export default function Navbar() {
 
   const handleNotificationClick = async (notif: Notification) => {
     const token = localStorage.getItem('access_token');
-    // Mark as read on the backend
     await fetch(`http://localhost:3000/api/notifications/${notif.id}/read`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` }
     });
-    // Update UI immediately and then close
     fetchNotifications();
     setShowNotifications(false);
-    // TODO: Navigate to the relevant booking or chat page based on the notification
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    // The useAuth hook will detect the change on navigation and update the state
-    router.push('/');
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('access_token');
+      router.push('/');
+    }
   };
 
   return (
@@ -107,9 +104,9 @@ export default function Navbar() {
         
         {authStatus === 'authenticated' ? (
           <>
+            <Link href="/my-bookings" className={styles.link}>My Bookings</Link>
             {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={styles.link}>Dashboard</Link>}
             {userRole === 'ADMIN' && <Link href="/admin" className={styles.link}>Admin</Link>}
-            {userRole === 'CLIENT' && <Link href="/my-bookings" className={styles.link}>My Bookings</Link>}
             
             <Link href="/chat" className={styles.iconButton} title="Messages"><FaEnvelope /></Link>
             
@@ -129,12 +126,12 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-            <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
+            <button onClick={handleLogout} className="btn btn-ghost">Logout</button>
           </>
         ) : (
           <>
             <Link href="/login" className={styles.link}>Login</Link>
-            <Link href="/register" className={styles.link}>Register</Link>
+            <button onClick={() => router.push('/register')} className="btn btn-primary">Sign Up</button>
           </>
         )}
       </div>

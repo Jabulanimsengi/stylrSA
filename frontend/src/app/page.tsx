@@ -7,7 +7,7 @@ type FeaturedService = Service & { salon: { id: string, name: string } };
 async function getFeaturedServices(): Promise<FeaturedService[]> {
   try {
     const res = await fetch('http://localhost:3000/api/services/featured', {
-      next: { revalidate: 60 }, // Re-fetch data every 60 seconds
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     return res.json();
@@ -24,16 +24,15 @@ export default async function Home() {
     <main>
       <div className={styles.hero}>
         <h1 className={styles.title}>
-          Discover & Book Amazing Hair Services
+          Find & Book Your Perfect Look
         </h1>
         <p className={styles.subtitle}>
-          Your one-stop platform for finding and booking the best hair care professionals in your area.
+          The premier hub for discovering and connecting with top-tier beauty professionals in South Africa.
         </p>
-        <Link href="/salons" className="btn btn-secondary" style={{ marginTop: '2.5rem' }}>
-          Explore All Salons
+        <Link href="/salons" className="btn btn-primary" style={{ marginTop: '2.5rem' }}>
+          Explore Salons
         </Link>
       </div>
-
       <section className={styles.featuredSection}>
         <h2 className={styles.featuredTitle}>Featured Services</h2>
         {featuredServices.length > 0 ? (
