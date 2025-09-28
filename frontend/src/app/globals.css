@@ -16,13 +16,24 @@
   --text-body: #4A4A4A;
   --text-muted: #7C7C7C;
   --text-inverse: var(--white);
+  
+  /* Link Color */
+  --link-color: var(--primary-pink);
+  --link-hover: #E62654;
 
   /* 3. Button Colors */
   --btn-primary-bg: var(--primary-pink);
   --btn-primary-hover: #E62654;
   --btn-primary-active: #C81F47;
+  --btn-primary-disabled-bg: var(--soft-pastel-pink);
+  --btn-primary-disabled-text: var(--text-muted);
+
   --btn-secondary-bg: var(--muted-teal);
   --btn-secondary-hover: #2E9687;
+  
+  --btn-ghost-border: var(--dark-gray);
+  --btn-ghost-text: var(--dark-gray);
+  --btn-ghost-hover-bg: var(--warm-beige);
 
   /* 4. Alert Colors */
   --alert-success-bg: #CDEDEA;
@@ -44,12 +55,12 @@ body {
 }
 
 a {
-  color: var(--primary-pink);
+  color: var(--link-color);
   text-decoration: none;
   transition: color 0.2s;
 }
 a:hover {
-  color: var(--btn-primary-hover);
+  color: var(--link-hover);
 }
 
 /* --- GLOBAL BUTTON STYLES --- */
@@ -79,9 +90,9 @@ a:hover {
   border-color: var(--btn-primary-active);
 }
 .btn-primary:disabled {
-  background-color: var(--soft-pastel-pink);
-  border-color: var(--soft-pastel-pink);
-  color: var(--text-muted);
+  background-color: var(--btn-primary-disabled-bg);
+  border-color: var(--btn-primary-disabled-bg);
+  color: var(--btn-primary-disabled-text);
   cursor: not-allowed;
 }
 
@@ -97,10 +108,9 @@ a:hover {
 
 .btn-ghost {
   background-color: transparent;
-  border-color: var(--dark-gray);
-  color: var(--dark-gray);
+  border-color: var(--btn-ghost-border);
+  color: var(--btn-ghost-text);
 }
 .btn-ghost:hover {
-  background-color: var(--warm-beige);
-  color: var(--dark-gray);
+  background-color: var(--btn-ghost-hover-bg);
 }
