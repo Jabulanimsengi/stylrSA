@@ -7,8 +7,8 @@ import { UserRole } from '@prisma/client';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
 
 @Controller('api/admin')
-@UseGuards(AuthGuard('jwt'), RolesGuard) // Protect all routes in this controller
-@Roles(UserRole.ADMIN) // Restrict to ADMIN role only
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles(UserRole.ADMIN)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -25,17 +25,17 @@ export class AdminController {
   @Patch('services/:serviceId/status')
   updateServiceStatus(
     @Param('serviceId') serviceId: string,
-    @Body() dto: UpdateServiceStatusDto,
+    @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateServiceStatus(serviceId, dto);
+    return this.adminService.updateServiceStatus(serviceId, approvalStatus);
   }
 
   @Patch('salons/:salonId/status')
   updateSalonStatus(
     @Param('salonId') salonId: string,
-    @Body() dto: UpdateServiceStatusDto,
+    @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateSalonStatus(salonId, dto);
+    return this.adminService.updateSalonStatus(salonId, approvalStatus);
   }
 
   @Get('reviews/pending')
@@ -46,8 +46,8 @@ export class AdminController {
   @Patch('reviews/:reviewId/status')
   updateReviewStatus(
     @Param('reviewId') reviewId: string,
-    @Body() dto: UpdateServiceStatusDto,
+    @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateReviewStatus(reviewId, dto);
+    return this.adminService.updateReviewStatus(reviewId, approvalStatus);
   }
 }

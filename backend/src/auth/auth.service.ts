@@ -4,6 +4,7 @@ import { LoginDto, RegisterDto } from './dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,7 @@ export class AuthService {
         password: hashedPassword,
         firstName: dto.firstName,
         lastName: dto.lastName,
-        role: dto.role,
+        role: dto.role || UserRole.CLIENT,
       },
     });
     const { password, ...result } = user;

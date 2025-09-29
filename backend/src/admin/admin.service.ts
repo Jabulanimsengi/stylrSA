@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ApprovalStatus } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
@@ -12,7 +13,7 @@ export class AdminService {
     });
   }
 
-  async updateSalonStatus(salonId: string, status: string) {
+  async updateSalonStatus(salonId: string, status: ApprovalStatus) {
     return this.prisma.salon.update({
       where: { id: salonId },
       data: { approvalStatus: status },
@@ -26,9 +27,35 @@ export class AdminService {
     });
   }
 
-  async updateServiceStatus(serviceId: string, status: string) {
+  async updateServiceStatus(serviceId: string, status: ApprovalStatus) {
     return this.prisma.service.update({
       where: { id: serviceId },
+      data: { approvalStatus: status },
+    });
+  }
+
+  async getPendingReviews() {
+    return this.prisma.review.findMany({
+      where: { approvalStatus: 'PENDING' },
+      include: {
+        author: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        salon: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateReviewStatus(reviewId: string, status: ApprovalStatus) {
+    return this.prisma.review.update({
+      where: { id: reviewId },
       data: { approvalStatus: status },
     });
   }
