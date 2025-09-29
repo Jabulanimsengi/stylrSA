@@ -1,33 +1,27 @@
-import { Controller, Post, Body, UseGuards, Get, Patch, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Param, Patch } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
-import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from 'src/auth/decorator/get-user.decorator';
-import { User, BookingStatus } from '@prisma/client';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { JwtGuard } from '../auth/guard/jwt.guard';
+import { GetUser } from '../auth/decorator/get-user.decorator';
+import { User } from '@prisma/client';
 
-@Controller('api/bookings')
+@UseGuards(JwtGuard)
+@Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() createBookingDto: CreateBookingDto, @GetUser() user: User) {
+  create(@GetUser() user: User, @Body() createBookingDto: CreateBookingDto) {
     return this.bookingsService.create(user.id, createBookingDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get('mine')
-  findAllForUser(@GetUser() user: User) {
-    return this.bookingsService.findAllForUser(user.id);
+  @Get('my-bookings')
+  getMyBookings(@GetUser() user: User) {
+    return this.bookingsService.getUserBookings(user.id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Patch(':id/status')
-  updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: BookingStatus,
-    @GetUser() user: User,
-  ) {
-    return this.bookingsService.updateStatus(user.id, user.role, id, status);
+  updateBookingStatus(@GetUser() user: User, @Param('id') bookingId: string, @Body('status') status: string) {
+    return this.bookingsService.updateBookingStatus(user, bookingId, status);
   }
 }

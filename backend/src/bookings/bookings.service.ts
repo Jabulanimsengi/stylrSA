@@ -1,109 +1,50 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { BookingStatus, UserRole } from '@prisma/client';
-import { EventsGateway } from 'src/events/events.gateway';
+import { User, UserRole } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
-  constructor(
-    private prisma: PrismaService,
-    private eventsGateway: EventsGateway,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async create(clientId: string, dto: CreateBookingDto) {
-    const service = await this.prisma.service.findUnique({
-      where: { id: dto.serviceId },
-      include: { salon: true },
-    });
-    if (!service) {
-      throw new NotFoundException('Service not found.');
-    }
-    let totalCost = service.price;
-    if (dto.isMobile) {
-      if (!service.salon.offersMobile || service.salon.mobileFee === null) {
-        throw new Error('This salon does not offer mobile services.');
-      }
-      totalCost += service.salon.mobileFee;
-    }
-    const newBooking = await this.prisma.booking.create({
+  async create(userId: string, dto: CreateBookingDto) {
+    return this.prisma.booking.create({
       data: {
-        userId: clientId,
-        salonId: service.salonId,
-        serviceId: dto.serviceId,
-        bookingDate: new Date(dto.bookingDate),
-        isMobile: dto.isMobile,
-        totalCost: totalCost,
-        status: BookingStatus.PENDING,
-      },
-      include: { 
-        client: { select: { firstName: true } },
-        service: { select: { title: true } },
+        userId,
+        ...dto,
       },
     });
-    
-    // Create notification for salon owner
-    await this.prisma.notification.create({
-      data: {
-        recipientId: service.salon.ownerId,
-        message: `You have a new booking request from ${newBooking.client.firstName} for ${newBooking.service.title}.`,
-        bookingId: newBooking.id,
-      },
-    });
-
-    this.eventsGateway.emitToUser(service.salon.ownerId, 'newNotification', {});
-    this.eventsGateway.emitToUser(service.salon.ownerId, 'newBooking', newBooking);
-
-    return newBooking;
   }
 
-  async updateStatus(
-    userId: string,
-    userRole: UserRole,
-    bookingId: string,
-    status: BookingStatus,
-  ) {
+  async updateBookingStatus(user: User, bookingId: string, status: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { 
-        salon: true,
-        service: { select: { title: true } }
-      },
+      include: { salon: true },
     });
-    if (!booking) throw new NotFoundException('Booking not found.');
-    if (userRole !== UserRole.SALON_OWNER || booking.salon.ownerId !== userId) {
-      throw new ForbiddenException('You are not authorized to update this booking.');
+
+    if (!booking) {
+      throw new Error('Booking not found');
     }
-    const updatedBooking = await this.prisma.booking.update({
+
+    if (user.role !== UserRole.SALON_OWNER || booking.salon.ownerId !== user.id) {
+      throw new UnauthorizedException('You do not have permission to update this booking.');
+    }
+
+    return this.prisma.booking.update({
       where: { id: bookingId },
       data: { status },
     });
-
-    // Create notification for the client
-    await this.prisma.notification.create({
-      data: {
-        recipientId: booking.userId,
-        message: `Your booking for ${booking.service.title} has been ${status.toLowerCase()}.`,
-        bookingId: updatedBooking.id,
-      },
-    });
-
-    this.eventsGateway.emitToUser(booking.userId, 'newNotification', {});
-    this.eventsGateway.emitToUser(booking.userId, 'bookingUpdate', updatedBooking);
-
-    return updatedBooking;
   }
 
-  async findAllForUser(clientId: string) {
+  async getUserBookings(userId: string) {
     return this.prisma.booking.findMany({
-      where: { userId: clientId },
+      where: { userId },
       include: {
-        salon: { select: { name: true } },
-        service: { select: { title: true } },
-        review: { select: { id: true } },
+        salon: true,
+        service: true,
       },
       orderBy: {
-        bookingDate: 'desc',
+        bookingTime: 'desc',
       },
     });
   }
