@@ -22,6 +22,10 @@ export class CreateServiceDto {
   @IsNumber()
   @Min(0)
   price: number;
+  
+  @IsNumber()
+  @Min(0)
+  duration: number;
 
   @IsArray()
   @ArrayMaxSize(3) // As per your requirements

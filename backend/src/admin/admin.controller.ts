@@ -3,7 +3,7 @@ import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/guard/roles.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole, ApprovalStatus } from '@prisma/client';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
 
 @Controller('api/admin')
@@ -27,7 +27,7 @@ export class AdminController {
     @Param('serviceId') serviceId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateServiceStatus(serviceId, approvalStatus);
+    return this.adminService.updateServiceStatus(serviceId, approvalStatus as ApprovalStatus);
   }
 
   @Patch('salons/:salonId/status')
@@ -35,7 +35,7 @@ export class AdminController {
     @Param('salonId') salonId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateSalonStatus(salonId, approvalStatus);
+    return this.adminService.updateSalonStatus(salonId, approvalStatus as ApprovalStatus);
   }
 
   @Get('reviews/pending')
@@ -48,6 +48,6 @@ export class AdminController {
     @Param('reviewId') reviewId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateReviewStatus(reviewId, approvalStatus);
+    return this.adminService.updateReviewStatus(reviewId, approvalStatus as ApprovalStatus);
   }
 }

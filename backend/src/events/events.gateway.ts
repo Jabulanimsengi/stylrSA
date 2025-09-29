@@ -25,7 +25,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: Socket) {
-    // This is simplified; a robust solution would handle multiple sockets per user
     for (let [key, value] of this.connectedUsers.entries()) {
       if (value === client.id) {
         this.connectedUsers.delete(key);
@@ -39,26 +38,39 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const senderId = client.handshake.query.userId as string;
     let conversation = await this.prisma.conversation.findFirst({
       where: {
-        participants: { every: { id: { in: [senderId, payload.recipientId] } } },
+        AND: [
+          { user1Id: senderId },
+          { user2Id: payload.recipientId },
+        ],
       },
     });
+
+    if(!conversation) {
+      conversation = await this.prisma.conversation.findFirst({
+        where: {
+          AND: [
+            { user1Id: payload.recipientId },
+            { user2Id: senderId },
+          ],
+        },
+      });
+    }
+
     if (!conversation) {
       conversation = await this.prisma.conversation.create({
         data: {
-          participants: {
-            connect: [{ id: senderId }, { id: payload.recipientId }],
-          },
+          user1Id: senderId,
+          user2Id: payload.recipientId
         },
       });
     }
     const newMessage = await this.prisma.message.create({
       data: {
-        body: payload.body,
+        content: payload.body,
         senderId: senderId,
         conversationId: conversation.id,
       },
     });
-    // Send the new message to the recipient if they are connected
     this.server.to(payload.recipientId).emit('newMessage', newMessage);
   }
 

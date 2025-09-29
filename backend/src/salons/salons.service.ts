@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSalonDto } from './dto/create-salon.dto';
-import { ApprovalStatus, Prisma, Salon, User, UserRole } from '@prisma/client';
+import { ApprovalStatus, BookingType, Prisma, Salon, User, UserRole } from '@prisma/client';
 import { UpdateSalonDto } from './dto/update-salon.dto';
 import { EventsGateway } from 'src/events/events.gateway';
 
@@ -29,7 +29,7 @@ export class SalonsService {
           town: dto.town,
           offersMobile: dto.offersMobile,
           mobileFee: dto.mobileFee,
-          bookingType: dto.bookingType,
+          bookingType: dto.bookingType as any,
           operatingHours: dto.operatingHours,
           operatingDays: dto.operatingDays,
           latitude: dto.latitude,
@@ -130,7 +130,7 @@ export class SalonsService {
     return this.prisma.booking.findMany({
       where: { salonId: salon.id },
       include: {
-        client: { select: { firstName: true, lastName: true } },
+        user: { select: { firstName: true, lastName: true } },
         service: { select: { title: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -147,7 +147,7 @@ export class SalonsService {
   
   async updateMySalon(userId: string, dto: UpdateSalonDto) {
     const salon = await this.findMySalon(userId);
-    const dataToUpdate: Prisma.SalonUpdateInput = { ...dto };
+    const dataToUpdate: Prisma.SalonUpdateInput = { ...dto, bookingType: dto.bookingType as BookingType };
     
     if (salon.approvalStatus === ApprovalStatus.APPROVED) {
       dataToUpdate.approvalStatus = ApprovalStatus.PENDING;

@@ -7,7 +7,7 @@ export class NotificationsService {
 
   async getNotifications(userId: string) {
     return this.prisma.notification.findMany({
-      where: { recipientId: userId },
+      where: { userId: userId },
       orderBy: { createdAt: 'desc' },
       take: 20,
     });
@@ -15,8 +15,8 @@ export class NotificationsService {
 
   async markAsRead(notificationId: string, userId: string) {
     return this.prisma.notification.updateMany({
-      where: { id: notificationId, recipientId: userId },
-      data: { read: true },
+      where: { id: notificationId, userId: userId },
+      data: { isRead: true },
     });
   }
 }

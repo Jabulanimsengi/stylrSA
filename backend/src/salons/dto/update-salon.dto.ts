@@ -1,4 +1,3 @@
-import { BookingType } from '@prisma/client';
 import {
   IsArray,
   IsEnum,
@@ -41,9 +40,9 @@ export class UpdateSalonDto {
   @IsOptional()
   mobileFee?: number;
 
-  @IsEnum(BookingType)
+  @IsString()
   @IsOptional()
-  bookingType?: BookingType;
+  bookingType?: string;
 
   @IsObject()
   @IsOptional()

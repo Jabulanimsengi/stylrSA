@@ -1,17 +1,30 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { User, UserRole } from '@prisma/client';
+import { User, UserRole, BookingStatus } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateBookingDto) {
+    const service = await this.prisma.service.findUnique({
+      where: { id: dto.serviceId },
+    });
+
+    if (!service) {
+      throw new Error('Service not found');
+    }
+    const totalCost = service.price; 
+
     return this.prisma.booking.create({
       data: {
         userId,
-        ...dto,
+        salonId: service.salonId,
+        serviceId: dto.serviceId,
+        bookingTime: dto.bookingDate,
+        isMobile: dto.isMobile,
+        totalCost,
       },
     });
   }
@@ -32,7 +45,7 @@ export class BookingsService {
 
     return this.prisma.booking.update({
       where: { id: bookingId },
-      data: { status },
+      data: { status: status as BookingStatus },
     });
   }
 

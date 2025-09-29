@@ -14,19 +14,30 @@ export class ChatService {
     let conversation = await this.prisma.conversation.findFirst({
       where: {
         AND: [
-          { participants: { some: { id: userOneId } } },
-          { participants: { some: { id: userTwoId } } },
+          { user1Id: userOneId },
+          { user2Id: userTwoId },
         ],
       },
     });
+
+    if(!conversation) {
+      conversation = await this.prisma.conversation.findFirst({
+        where: {
+          AND: [
+            { user1Id: userTwoId },
+            { user2Id: userOneId },
+          ],
+        },
+      });
+    }
+
 
     // If no conversation is found, create a new one
     if (!conversation) {
       conversation = await this.prisma.conversation.create({
         data: {
-          participants: {
-            connect: [{ id: userOneId }, { id: userTwoId }],
-          },
+          user1Id: userOneId,
+          user2Id: userTwoId
         },
       });
     }
@@ -36,10 +47,16 @@ export class ChatService {
   async getConversations(userId: string) {
     return this.prisma.conversation.findMany({
       where: {
-        participants: { some: { id: userId } },
+        OR: [
+          { user1Id: userId },
+          { user2Id: userId },
+        ]
       },
       include: {
-        participants: {
+        user1: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        user2: {
           select: { id: true, firstName: true, lastName: true },
         },
         messages: {
@@ -57,10 +74,16 @@ export class ChatService {
     const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationId,
-        participants: { some: { id: userId } },
+        OR: [
+          { user1Id: userId },
+          { user2Id: userId },
+        ]
       },
       include: {
-        participants: {
+        user1: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        user2: {
           select: { id: true, firstName: true, lastName: true },
         },
       },
@@ -74,9 +97,12 @@ export class ChatService {
   async getMessages(conversationId: string, userId: string) {
     // Verify user is part of the conversation to ensure privacy
     const conversation = await this.prisma.conversation.findFirst({
-      where: { 
-        id: conversationId, 
-        participants: { some: { id: userId } } 
+      where: {
+        id: conversationId,
+        OR: [
+          { user1Id: userId },
+          { user2Id: userId },
+        ]
       },
     });
 
