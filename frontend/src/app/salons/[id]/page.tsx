@@ -180,54 +180,6 @@ export default function SalonProfilePage() {
   };
   
   const operatingDays = salon?.operatingHours ? Object.keys(salon.operatingHours) : [];
-  
-  // Structured Data for SEO
-  const generateStructuredData = () => {
-    if (!salon) return null;
-
-    const approvedServices = services.filter(s => s.approvalStatus === 'APPROVED');
-
-    const structuredData = {
-      '@context': 'https://schema.org',
-      '@type': 'HairSalon',
-      'name': salon.name,
-      'image': salon.backgroundImage || 'https://thesalonhub.com/logo-transparent.png', // Replace with your domain
-      '@id': `https://thesalonhub.com/salons/${salon.id}`, // Replace with your domain
-      'url': `https://thesalonhub.com/salons/${salon.id}`, // Replace with your domain
-      'telephone': salon.phoneNumber || '',
-      'email': salon.contactEmail || '',
-      'address': {
-        '@type': 'PostalAddress',
-        'streetAddress': salon.town,
-        'addressLocality': salon.city,
-        'addressRegion': salon.province,
-        'addressCountry': 'ZA'
-      },
-      'geo': {
-        '@type': 'GeoCoordinates',
-        'latitude': salon.latitude,
-        'longitude': salon.longitude
-      },
-      ...(salon.avgRating && salon.reviews && salon.reviews.length > 0 && {
-        'aggregateRating': {
-          '@type': 'AggregateRating',
-          'ratingValue': salon.avgRating,
-          'reviewCount': salon.reviews.length
-        }
-      }),
-      'makesOffer': approvedServices.map(service => ({
-        '@type': 'Offer',
-        'itemOffered': {
-          '@type': 'Service',
-          'name': service.title,
-          'description': service.description,
-        },
-        'price': service.price,
-        'priceCurrency': 'ZAR'
-      }))
-    };
-    return JSON.stringify(structuredData);
-  };
 
   if (isLoading) return <Spinner />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
@@ -245,11 +197,6 @@ export default function SalonProfilePage() {
         <meta property="og:image" content={salon.backgroundImage || '/logo-transparent.png'} />
         <meta property="og:url" content={`https://thesalonhub.com/salons/${salon.id}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <link rel="canonical" href={`https://thesalonhub.com/salons/${salon.id}`} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: generateStructuredData()! }}
-        />
       </Head>
 
       {selectedService && (
