@@ -13,23 +13,12 @@ export class ChatService {
     // Check if a conversation between these two specific users already exists
     let conversation = await this.prisma.conversation.findFirst({
       where: {
-        AND: [
-          { user1Id: userOneId },
-          { user2Id: userTwoId },
+        OR: [
+          { AND: [{ user1Id: userOneId }, { user2Id: userTwoId }] },
+          { AND: [{ user1Id: userTwoId }, { user2Id: userOneId }] },
         ],
       },
     });
-
-    if(!conversation) {
-      conversation = await this.prisma.conversation.findFirst({
-        where: {
-          AND: [
-            { user1Id: userTwoId },
-            { user2Id: userOneId },
-          ],
-        },
-      });
-    }
 
 
     // If no conversation is found, create a new one
@@ -45,7 +34,7 @@ export class ChatService {
   }
 
   async getConversations(userId: string) {
-    return this.prisma.conversation.findMany({
+    const conversations = await this.prisma.conversation.findMany({
       where: {
         OR: [
           { user1Id: userId },
@@ -60,6 +49,7 @@ export class ChatService {
           select: { id: true, firstName: true, lastName: true },
         },
         messages: {
+          select: { content: true },
           orderBy: { createdAt: 'desc' },
           take: 1, // Get only the last message for the preview
         },
@@ -68,6 +58,11 @@ export class ChatService {
         updatedAt: 'desc',
       }
     });
+
+    return conversations.map(c => ({
+      ...c,
+      participants: [c.user1, c.user2]
+    }))
   }
 
   async getConversationById(conversationId: string, userId: string) {

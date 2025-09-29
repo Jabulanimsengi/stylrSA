@@ -12,18 +12,16 @@ import Spinner from '@/components/Spinner';
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { authStatus, userId } = useAuth(); // Use the new authStatus from the upgraded hook
+  const { authStatus, userId } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const socket = useSocket();
 
-  // Check if a specific conversation URL is active (e.g., /chat/some-id)
   const isConversationActive = pathname.split('/').length > 2;
 
   const fetchConversations = useCallback(async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      // This check is a safeguard, but the useEffect below is the primary guard
       return;
     }
     const res = await fetch('http://localhost:3000/api/chat/conversations', {
@@ -36,7 +34,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
-    // This effect now correctly handles the auth lifecycle
     if (authStatus === 'unauthenticated') {
       router.push('/login');
     }
@@ -49,7 +46,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     if (socket) {
       const handleNewMessage = () => {
-        // Refetch conversations to get the latest message and order
         fetchConversations();
       };
       socket.on('newMessage', handleNewMessage);
@@ -61,7 +57,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     return convo.participants.find(p => p.id !== userId);
   };
 
-  // Show a spinner while the initial auth check is happening
   if (authStatus === 'loading') {
     return <Spinner />;
   }
@@ -83,7 +78,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                     {otherParticipant.firstName} {otherParticipant.lastName}
                   </p>
                   <p className={styles.lastMessage}>
-                    {convo.messages[0]?.body || '...'}
+                    {convo.messages[0]?.content || '...'}
                   </p>
                 </Link>
               )

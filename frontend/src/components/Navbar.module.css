@@ -201,3 +201,9 @@
       display: none;
   }
 }
+
+@media (min-width: 993px) {
+    .mobileIcons {
+        display: flex;
+    }
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { usePathname } from 'next/navigation';
 
@@ -11,7 +11,14 @@ interface DecodedToken {
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
-export function useAuth() {
+interface AuthState {
+  authStatus: AuthStatus;
+  userRole: string | null;
+  userId: string | null;
+  setAuthStatus: Dispatch<SetStateAction<AuthStatus>>;
+}
+
+export function useAuth(): AuthState {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -34,5 +41,5 @@ export function useAuth() {
     }
   }, [pathname]);
 
-  return { authStatus, userRole, userId };
+  return { authStatus, userRole, userId, setAuthStatus };
 }

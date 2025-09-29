@@ -44,6 +44,7 @@ export class BookingsService {
     
     // Emit real-time event
     this.eventsGateway.emitToUser(service.salon.ownerId, 'newNotification', { message: 'You have a new booking request!' });
+    this.eventsGateway.emitToUser(service.salon.ownerId, 'newBooking', booking);
 
 
     return booking;
@@ -52,7 +53,7 @@ export class BookingsService {
   async updateBookingStatus(user: User, bookingId: string, status: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { salon: true },
+      include: { salon: true, service: true },
     });
 
     if (!booking) {
@@ -71,12 +72,13 @@ export class BookingsService {
     // Create notification for the client
     await this.notificationsService.create(
       booking.userId,
-      `Your booking for ${booking.salon.name} has been ${status.toLowerCase()}.`,
+      `Your booking for ${booking.service.title} has been ${status.toLowerCase()}.`,
       `/my-bookings`
     );
     
     // Emit real-time event to the client
     this.eventsGateway.emitToUser(booking.userId, 'newNotification', { message: `Your booking status has been updated.` });
+    this.eventsGateway.emitToUser(booking.userId, 'bookingUpdate', updatedBooking);
 
     return updatedBooking;
   }

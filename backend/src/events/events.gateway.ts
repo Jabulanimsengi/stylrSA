@@ -42,23 +42,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const senderId = client.handshake.query.userId as string;
     let conversation = await this.prisma.conversation.findFirst({
       where: {
-        AND: [
-          { user1Id: senderId },
-          { user2Id: payload.recipientId },
+        OR: [
+          { AND: [{ user1Id: senderId }, { user2Id: payload.recipientId }] },
+          { AND: [{ user1Id: payload.recipientId }, { user2Id: senderId }] },
         ],
       },
     });
-
-    if(!conversation) {
-      conversation = await this.prisma.conversation.findFirst({
-        where: {
-          AND: [
-            { user1Id: payload.recipientId },
-            { user2Id: senderId },
-          ],
-        },
-      });
-    }
 
     if (!conversation) {
       conversation = await this.prisma.conversation.create({
@@ -86,6 +75,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Emit events
     this.server.to(payload.recipientId).emit('newMessage', newMessage);
     this.server.to(payload.recipientId).emit('newNotification', { message: 'You have a new message!' });
+    // Emit a message delivered event to the sender
+    this.server.to(senderId).emit('messageDelivered', { messageId: newMessage.id });
   }
 
   @SubscribeMessage('joinSalonRoom')

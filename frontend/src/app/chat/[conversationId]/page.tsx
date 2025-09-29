@@ -77,6 +77,7 @@ export default function ChatPage() {
       createdAt: new Date().toISOString(),
       senderId: userId,
       conversationId: params.conversationId,
+      delivered: false
     };
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
@@ -100,6 +101,9 @@ export default function ChatPage() {
         {messages.map((msg: any) => (
           <div key={msg.id} className={`${styles.messageBubble} ${msg.senderId === userId ? styles.sent : styles.received}`}>
             {msg.content}
+            {msg.senderId === userId && (
+              <span className={styles.tick}>{msg.delivered ? '✔✔' : '✔'}</span>
+            )}
           </div>
         ))}
         <div ref={messageEndRef} />

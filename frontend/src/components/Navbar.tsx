@@ -16,10 +16,11 @@ interface Notification {
   message: string;
   read: boolean;
   createdAt: string;
+  link?: string;
 }
 
 export default function Navbar() {
-  const { authStatus, userRole } = useAuth();
+  const { authStatus, userRole, setAuthStatus } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -83,6 +84,9 @@ export default function Navbar() {
     });
     fetchNotifications();
     setShowNotifications(false);
+    if(notif.link) {
+      router.push(notif.link)
+    }
   };
 
   const handleLogoutClick = () => {
@@ -92,6 +96,7 @@ export default function Navbar() {
   const confirmLogout = () => {
     localStorage.removeItem('access_token');
     setIsLogoutModalOpen(false);
+    setAuthStatus('unauthenticated');
     router.push('/');
     setIsMenuOpen(false);
   };

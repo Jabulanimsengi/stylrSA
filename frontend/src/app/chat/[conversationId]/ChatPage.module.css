@@ -13,6 +13,9 @@
   font-size: 1.1rem;
   color: var(--primary-plum);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 .messageStream {
   flex-grow: 1;
@@ -27,6 +30,7 @@
   padding: 0.75rem 1rem;
   border-radius: 1.25rem;
   line-height: 1.5;
+  position: relative;
 }
 .sent {
   background-color: var(--primary-plum);
@@ -65,4 +69,11 @@
   border-radius: 9999px;
   font-weight: 600;
   cursor: pointer;
+}
+.tick {
+  position: absolute;
+  bottom: 5px;
+  right: 10px;
+  font-size: 0.7rem;
+  color: #a0aec0;
 }

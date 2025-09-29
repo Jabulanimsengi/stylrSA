@@ -15,10 +15,18 @@ export class LikesService {
       await this.prisma.serviceLike.delete({
         where: { userId_serviceId: { userId, serviceId } },
       });
+      await this.prisma.service.update({
+        where: { id: serviceId },
+        data: { likeCount: { decrement: 1 } },
+      });
       return { liked: false };
     } else {
       await this.prisma.serviceLike.create({
         data: { userId, serviceId },
+      });
+      await this.prisma.service.update({
+        where: { id: serviceId },
+        data: { likeCount: { increment: 1 } },
       });
       return { liked: true };
     }

@@ -72,7 +72,7 @@ export interface ChatParticipant {
 
 export interface ChatMessage {
   id: string;
-  body: string;
+  content: string;
   createdAt: string;
   senderId: string;
   conversationId: string;
@@ -89,6 +89,7 @@ export interface Notification {
   message: string;
   read: boolean;
   createdAt: string;
+  link?: string;
 }
 
 export interface GalleryImage {
