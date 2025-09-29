@@ -15,7 +15,7 @@ export default function ChatPage() {
   const { userId } = useAuth();
   const socket = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [conversation, setConversation] = useState<any | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const messageEndRef = useRef<HTMLDivElement>(null);
@@ -63,7 +63,7 @@ export default function ChatPage() {
     e.preventDefault();
     if (newMessage.trim() === '' || !socket || !userId) return;
     
-    const recipient = conversation?.participants.find(p => p.id !== userId);
+    const recipient = conversation?.user1.id === userId ? conversation?.user2 : conversation?.user1;
     if (!recipient) return;
 
     socket.emit('sendMessage', {
@@ -71,9 +71,9 @@ export default function ChatPage() {
       body: newMessage,
     });
     
-    const tempMessage: ChatMessage = {
+    const tempMessage: any = {
       id: Date.now().toString(),
-      body: newMessage,
+      content: newMessage,
       createdAt: new Date().toISOString(),
       senderId: userId,
       conversationId: params.conversationId,
@@ -82,7 +82,7 @@ export default function ChatPage() {
     setNewMessage('');
   };
   
-  const otherParticipant = conversation?.participants.find(p => p.id !== userId);
+  const otherParticipant = conversation?.user1.id === userId ? conversation?.user2 : conversation?.user1;
 
   if (isLoading) return <Spinner />;
 
@@ -97,9 +97,9 @@ export default function ChatPage() {
         </span>
       </div>
       <div className={styles.messageStream}>
-        {messages.map(msg => (
+        {messages.map((msg: any) => (
           <div key={msg.id} className={`${styles.messageBubble} ${msg.senderId === userId ? styles.sent : styles.received}`}>
-            {msg.body}
+            {msg.content}
           </div>
         ))}
         <div ref={messageEndRef} />

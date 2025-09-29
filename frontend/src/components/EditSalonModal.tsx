@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { Salon } from '@/types';
 import styles from './EditSalonModal.module.css';
 import { toast } from 'react-toastify';
@@ -13,16 +13,14 @@ interface EditSalonModalProps {
 
 const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-// A new simple time picker component
 const TimePicker = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7am to 9pm
   const minutes = ['00', '30'];
-
-  const [hour, minute] = value.split(':');
+  const [hour, minute] = (value || '').split(':');
 
   return (
     <select
-      value={value}
+      value={value || ''}
       onChange={(e) => onChange(e.target.value)}
       className={styles.input}
     >
@@ -46,7 +44,7 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
     city: salon.city || '',
     town: salon.town || '',
     bookingType: salon.bookingType || 'ONSITE',
-    mobileFee: salon.mobileFee || 0,
+    mobileFee: salon.mobileFee || '',
     operatingHours: salon.operatingHours || {},
     contactEmail: salon.contactEmail || '',
     phoneNumber: salon.phoneNumber || '',
@@ -54,16 +52,16 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const isNewSalon = !salon.id;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    const finalValue = type === 'number' ? parseFloat(value) || 0 : value;
-    setFormData({ ...formData, [name]: finalValue });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
   
   const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
     setFormData(prev => {
-      const dayHours = prev.operatingHours[day] ? prev.operatingHours[day].split(' - ') : ['', ''];
+      const dayHours = (prev.operatingHours[day] || '').split(' - ');
       if (field === 'open') dayHours[0] = value;
       else dayHours[1] = value;
       
@@ -79,6 +77,20 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
     });
   };
 
+  const handleApplyToAll = () => {
+    const mondayHours = formData.operatingHours['monday'];
+    if (!mondayHours || mondayHours === 'Closed') {
+      toast.info("Please set Monday's hours first.");
+      return;
+    }
+    const newOperatingHours = { ...formData.operatingHours };
+    WEEKDAYS.forEach(day => {
+      newOperatingHours[day] = mondayHours;
+    });
+    setFormData(prev => ({ ...prev, operatingHours: newOperatingHours }));
+    toast.success("Monday's hours applied to all days!");
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
@@ -87,6 +99,11 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
 
   const uploadImage = async (): Promise<string | null> => {
     if (!file) return null;
+
+    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || !process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY) {
+      throw new Error("Cloudinary environment variables are not configured.");
+    }
+    
     const token = localStorage.getItem('access_token');
     const sigRes = await fetch('http://localhost:3000/api/cloudinary/signature', { headers: { Authorization: `Bearer ${token}` } });
     if (!sigRes.ok) throw new Error('Could not get upload permission.');
@@ -110,7 +127,10 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
     const token = localStorage.getItem('access_token');
 
     try {
-      let finalData: any = { ...formData };
+      let finalData: any = { 
+        ...formData,
+        mobileFee: parseFloat(String(formData.mobileFee)) || null
+      };
       
       if (file) {
         const imageUrl = await uploadImage();
@@ -120,22 +140,25 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
       finalData.operatingDays = Object.keys(finalData.operatingHours).filter(
         day => finalData.operatingHours[day] && finalData.operatingHours[day].toLowerCase().trim() !== 'closed'
       );
+      
+      const apiEndpoint = isNewSalon ? 'http://localhost:3000/api/salons' : 'http://localhost:3000/api/salons/mine';
+      const method = isNewSalon ? 'POST' : 'PATCH';
 
-      const res = await fetch('http://localhost:3000/api/salons/mine', {
-        method: 'PATCH',
+      const res = await fetch(apiEndpoint, {
+        method: method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(finalData),
       });
 
-      if (!res.ok) throw new Error('Failed to update profile.');
+      if (!res.ok) throw new Error(`Failed to ${isNewSalon ? 'create' : 'update'} profile.`);
       
-      const updatedSalon = await res.json();
-      toast.success('Profile update submitted for re-approval!');
-      onSave(updatedSalon);
+      const savedSalon = await res.json();
+      toast.success(`Profile ${isNewSalon ? 'created and submitted for approval!' : 'update submitted for re-approval!'}`);
+      onSave(savedSalon);
 
     } catch (err: any) {
       setError(err.message);
-      toast.error(err.message || "Failed to update profile.");
+      toast.error(err.message || `Failed to ${isNewSalon ? 'create' : 'update'} profile.`);
     } finally {
       setIsLoading(false);
     }
@@ -144,21 +167,25 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <h2 className={styles.title}>Edit Salon Profile</h2>
+        <h2 className={styles.title}>{isNewSalon ? 'Create Your Salon Profile' : 'Edit Salon Profile'}</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formScrollableContent}>
             <div className={styles.grid}>
               <div className={styles.fullWidth}>
                 <label className={styles.label}>Salon Name</label>
-                <input name="name" value={formData.name} onChange={handleChange} className={styles.input} />
+                <input name="name" value={formData.name} onChange={handleChange} className={styles.input} required />
               </div>
               <div>
                 <label className={styles.label}>Province</label>
-                <input name="province" value={formData.province} onChange={handleChange} className={styles.input} />
+                <input name="province" value={formData.province} onChange={handleChange} className={styles.input} required />
               </div>
               <div>
                 <label className={styles.label}>City</label>
-                <input name="city" value={formData.city} onChange={handleChange} className={styles.input} />
+                <input name="city" value={formData.city} onChange={handleChange} className={styles.input} required />
+              </div>
+              <div>
+                <label className={styles.label}>Town/Suburb</label>
+                <input name="town" value={formData.town} onChange={handleChange} className={styles.input} required />
               </div>
                <div>
                 <label className={styles.label}>Contact Email</label>
@@ -192,10 +219,15 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
               </div>
             </div>
 
-            <h3 className={styles.subheading}>Operating Hours</h3>
+            <div className={styles.subheadingContainer}>
+                <h3 className={styles.subheading}>Operating Hours</h3>
+                <button type="button" onClick={handleApplyToAll} className={styles.applyAllButton}>
+                  Apply to All Days
+                </button>
+            </div>
             <div className={styles.hoursGrid}>
               {WEEKDAYS.map(day => {
-                  const [open, close] = formData.operatingHours[day]?.split(' - ') || ['', ''];
+                  const [open, close] = (formData.operatingHours[day] || ' - ').split(' - ');
                   return (
                     <React.Fragment key={day}>
                       <label className={styles.label}>{day.charAt(0).toUpperCase() + day.slice(1)}</label>

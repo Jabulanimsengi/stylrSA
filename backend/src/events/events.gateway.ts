@@ -7,13 +7,17 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
   private connectedUsers: Map<string, string> = new Map();
 
   handleConnection(client: Socket) {
@@ -71,7 +75,17 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         conversationId: conversation.id,
       },
     });
+    
+    // Create notification for recipient
+    await this.notificationsService.create(
+      payload.recipientId,
+      `You have a new message.`,
+      `/chat/${conversation.id}`
+    );
+
+    // Emit events
     this.server.to(payload.recipientId).emit('newMessage', newMessage);
+    this.server.to(payload.recipientId).emit('newNotification', { message: 'You have a new message!' });
   }
 
   @SubscribeMessage('joinSalonRoom')

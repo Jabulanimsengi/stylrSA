@@ -6,7 +6,7 @@ import { GetUser } from '../auth/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 
 @UseGuards(JwtGuard)
-@Controller('bookings')
+@Controller('api/bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 

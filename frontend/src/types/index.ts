@@ -37,6 +37,7 @@ export interface Service {
   title: string;
   description: string;
   price: number;
+  duration: number; // Added this line
   images: string[];
   approvalStatus: ApprovalStatus;
   salonId: string;

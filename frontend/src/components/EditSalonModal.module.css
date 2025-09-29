@@ -141,3 +141,39 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+
+.subheadingContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  border-top: 1px solid var(--secondary-blush);
+  padding-top: 1rem;
+}
+
+.subheading {
+  font-weight: 600;
+  color: var(--primary-plum);
+  margin-bottom: 0.5rem;
+  border-top: none; /* Remove duplicate border */
+  padding-top: 0; /* Remove duplicate padding */
+  margin-top: 0;
+}
+
+.applyAllButton {
+  background-color: transparent;
+  color: var(--primary-pink);
+  border: 1px solid var(--primary-pink);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.applyAllButton:hover {
+  background-color: var(--primary-pink);
+  color: var(--white);
+}

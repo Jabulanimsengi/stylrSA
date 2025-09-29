@@ -16,6 +16,7 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [duration, setDuration] = useState(''); // New state for duration
   const [files, setFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -28,6 +29,7 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
       setTitle(initialData.title);
       setDescription(initialData.description);
       setPrice(String(initialData.price));
+      setDuration(String(initialData.duration)); // Set initial duration
       setExistingImages(initialData.images);
     }
   }, [isEditMode, initialData]);
@@ -94,7 +96,7 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
       const res = await fetch(apiEndpoint, {
         method: method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ title, description, price: parseFloat(price), images: imageUrls }),
+        body: JSON.stringify({ title, description, price: parseFloat(price), duration: parseInt(duration), images: imageUrls }),
       });
       if (!res.ok) {
         const errData = await res.json();
@@ -126,6 +128,10 @@ export default function ServiceFormModal({ salonId, initialData, onClose, onSave
           <div>
             <label className={styles.label}>Price (R)</label>
             <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required className={styles.input} />
+          </div>
+          <div>
+            <label className={styles.label}>Duration (minutes)</label>
+            <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} required className={styles.input} />
           </div>
           <div>
             <label className={styles.label}>Upload Images (up to 3 total)</label>

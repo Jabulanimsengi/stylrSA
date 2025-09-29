@@ -1,15 +1,22 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { User, UserRole, BookingStatus } from '@prisma/client';
+import { BookingStatus, User, UserRole } from '@prisma/client';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { EventsGateway } from 'src/events/events.gateway';
 
 @Injectable()
 export class BookingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   async create(userId: string, dto: CreateBookingDto) {
     const service = await this.prisma.service.findUnique({
       where: { id: dto.serviceId },
+      include: { salon: true },
     });
 
     if (!service) {
@@ -17,7 +24,7 @@ export class BookingsService {
     }
     const totalCost = service.price; 
 
-    return this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: {
         userId,
         salonId: service.salonId,
@@ -27,6 +34,19 @@ export class BookingsService {
         totalCost,
       },
     });
+    
+    // Create notification for salon owner
+    await this.notificationsService.create(
+      service.salon.ownerId,
+      `You have a new booking request for ${service.title}.`,
+      `/dashboard` // or a more specific link
+    );
+    
+    // Emit real-time event
+    this.eventsGateway.emitToUser(service.salon.ownerId, 'newNotification', { message: 'You have a new booking request!' });
+
+
+    return booking;
   }
 
   async updateBookingStatus(user: User, bookingId: string, status: string) {
@@ -43,10 +63,22 @@ export class BookingsService {
       throw new UnauthorizedException('You do not have permission to update this booking.');
     }
 
-    return this.prisma.booking.update({
+    const updatedBooking = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: status as BookingStatus },
     });
+
+    // Create notification for the client
+    await this.notificationsService.create(
+      booking.userId,
+      `Your booking for ${booking.salon.name} has been ${status.toLowerCase()}.`,
+      `/my-bookings`
+    );
+    
+    // Emit real-time event to the client
+    this.eventsGateway.emitToUser(booking.userId, 'newNotification', { message: `Your booking status has been updated.` });
+
+    return updatedBooking;
   }
 
   async getUserBookings(userId: string) {

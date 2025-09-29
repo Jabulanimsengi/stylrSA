@@ -13,13 +13,6 @@ import GalleryUploadModal from '@/components/GalleryUploadModal';
 import { FaTrash, FaHome, FaArrowLeft } from 'react-icons/fa';
 import Link from 'next/link';
 
-// A placeholder for the CreateSalonProfileModal component if it's in the same file
-const CreateSalonProfileModal = ({ onClose, onSave }: { onClose: () => void, onSave: (salon: Salon) => void }) => {
-  // Implementation of the modal would go here...
-  return <div>Create Salon Profile Modal</div>;
-};
-
-
 type DashboardBooking = Booking & {
   client: { firstName: string, lastName: string },
   status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED'
@@ -129,6 +122,11 @@ export default function DashboardPage() {
     setSalon(updatedSalon);
     setIsEditSalonModalOpen(false);
   };
+  
+  const handleSalonCreate = (newSalon: Salon) => {
+    setSalon(newSalon);
+    setIsCreateSalonModalOpen(false);
+  };
 
   const handleAvailabilityToggle = async () => {
     if (!salon) return;
@@ -181,6 +179,14 @@ export default function DashboardPage() {
 
   if (!salon) {
     return (
+        <>
+        {isCreateSalonModalOpen && (
+            <EditSalonModal
+              salon={{} as Salon}
+              onClose={() => setIsCreateSalonModalOpen(false)}
+              onSave={handleSalonCreate}
+            />
+        )}
         <div className={styles.welcomeContainer}>
           <div className={styles.welcomeCard}>
             <h2 className={styles.cardTitle}>Welcome, Service Provider!</h2>
@@ -192,6 +198,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        </>
     );
   }
 
