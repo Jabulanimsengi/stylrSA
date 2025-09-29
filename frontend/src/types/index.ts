@@ -26,9 +26,10 @@ export interface Salon {
   operatingHours: { [key: string]: string } | null;
   avgRating?: number;
   operatingDays?: string[];
-  isAvailableNow?: boolean;
+  isAvailableNow: boolean;
   contactEmail?: string;
   phoneNumber?: string;
+  isFavorited?: boolean; // New property
 }
 
 export interface Service {
@@ -87,4 +88,11 @@ export interface Notification {
   message: string;
   read: boolean;
   createdAt: string;
+}
+
+export interface GalleryImage {
+  id: string;
+  imageUrl: string;
+  caption: string | null;
+  salonId: string;
 }

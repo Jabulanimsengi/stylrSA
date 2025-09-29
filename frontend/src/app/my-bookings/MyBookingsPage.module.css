@@ -70,7 +70,7 @@
 .statusConfirmed { background-color: #C6F6D5; color: #22543D; }
 .statusDeclined { background-color: #FED7D7; color: #822727; }
 .statusCompleted { background-color: #E2E8F0; color: #4A5568; }
-.reviewedBadge { /* Add this if you don't have it */
+.reviewedBadge { 
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;

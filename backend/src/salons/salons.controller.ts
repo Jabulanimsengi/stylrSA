@@ -5,17 +5,16 @@ import { CreateSalonDto } from './dto/create-salon.dto';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 import { UpdateSalonDto } from './dto/update-salon.dto';
-import { ServicesService } from 'src/services/services.service'; // <-- Import ServicesService
-import { CreateServiceDto } from 'src/services/dto/create-service.dto'; // <-- Import the DTO
+import { ServicesService } from 'src/services/services.service';
+import { CreateServiceDto } from 'src/services/dto/create-service.dto';
 
 @Controller('api/salons')
 export class SalonsController {
   constructor(
     private readonly salonsService: SalonsService,
-    private readonly servicesService: ServicesService, // <-- Inject ServicesService
+    private readonly servicesService: ServicesService,
   ) {}
 
-  // --- NEW ENDPOINT FOR CREATING A SERVICE ---
   @UseGuards(AuthGuard('jwt'))
   @Post(':salonId/services')
   createService(
@@ -25,7 +24,6 @@ export class SalonsController {
   ) {
     return this.servicesService.create(user.id, salonId, createServiceDto);
   }
-  // --- END OF NEW ENDPOINT ---
 
   @UseGuards(AuthGuard('jwt'))
   @Get('mine')
@@ -43,11 +41,12 @@ export class SalonsController {
   findAllApproved(
     @Query('province') province?: string,
     @Query('city') city?: string,
+    @Query('service') service?: string,
     @Query('offersMobile') offersMobile?: string,
     @Query('sortBy') sortBy?: string,
     @Query('openOn') openOn?: string,
   ) {
-    return this.salonsService.findAllApproved({ province, city, offersMobile, sortBy, openOn });
+    return this.salonsService.findAllApproved({ province, city, service, offersMobile, sortBy, openOn });
   }
   
   @Get('nearby')
@@ -70,9 +69,10 @@ export class SalonsController {
     return this.salonsService.toggleAvailability(user.id);
   }
 
+  @UseGuards(AuthGuard(['jwt', 'anonymous']))
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.salonsService.findOne(id);
+  findOne(@Param('id') id: string, @GetUser() user: User | null) {
+    return this.salonsService.findOne(id, user);
   }
 
   @UseGuards(AuthGuard('jwt'))

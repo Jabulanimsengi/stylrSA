@@ -1,12 +1,12 @@
-// backend/src/auth/jwt.strategy.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { Strategy as AnonymousStrategyPassport } from 'passport-anonymous';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
@@ -36,4 +36,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const { password, ...result } = user;
     return result;
   }
+}
+
+@Injectable()
+export class AnonymousStrategy extends PassportStrategy(AnonymousStrategyPassport, 'anonymous') {
+    constructor() {
+        super();
+    }
+
+    async validate(): Promise<any> {
+      return null;
+    }
 }

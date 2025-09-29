@@ -9,6 +9,7 @@ import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
 import { FaBell, FaEnvelope, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
+import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
 
 interface Notification {
   id: string;
@@ -21,9 +22,10 @@ export default function Navbar() {
   const { authStatus, userRole } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for mobile menu
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const router = useRouter();
-  const pathname = usePathname(); // Hook to get current path
+  const pathname = usePathname();
   const socket = useSocket();
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -83,72 +85,84 @@ export default function Navbar() {
     setShowNotifications(false);
   };
 
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      localStorage.removeItem('access_token');
-      router.push('/');
-      setIsMenuOpen(false); // Close mobile menu on logout
-    }
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.removeItem('access_token');
+    setIsLogoutModalOpen(false);
+    router.push('/');
+    setIsMenuOpen(false);
   };
 
   const closeMobileMenu = () => setIsMenuOpen(false);
 
   return (
-    <nav className={styles.nav}>
-      <Link href="/" className={styles.logo}>
-        <Image 
-          src="/logo-transparent.png" 
-          alt="Salorify Logo" 
-          width={140} 
-          height={35} 
-          priority 
+    <>
+      {isLogoutModalOpen && (
+        <ConfirmationModal
+          message="Are you sure you want to log out?"
+          onConfirm={confirmLogout}
+          onCancel={() => setIsLogoutModalOpen(false)}
+          confirmText="Logout"
         />
-      </Link>
+      )}
+      <nav className={styles.nav}>
+        <Link href="/" className={styles.logo}>
+          <Image 
+            src="/logo-transparent.png" 
+            alt="Salorify Logo" 
+            width={140} 
+            height={35} 
+            priority 
+          />
+        </Link>
 
-      {/* Hamburger Menu Button */}
-      <div className={styles.hamburger} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        {isMenuOpen ? <FaTimes /> : <FaBars />}
-      </div>
+        <div className={styles.hamburger} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          {isMenuOpen ? <FaTimes /> : <FaBars />}
+        </div>
 
-      {/* Links Container */}
-      <div className={`${styles.linksContainer} ${isMenuOpen ? styles.mobileMenuOpen : ''}`}>
-        <Link href="/salons" className={`${styles.link} ${pathname === '/salons' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Salons</Link>
-        
-        {authStatus === 'authenticated' ? (
-          <>
-            <Link href="/my-bookings" className={`${styles.link} ${pathname === '/my-bookings' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Bookings</Link>
-            {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={`${styles.link} ${pathname === '/dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Dashboard</Link>}
-            {userRole === 'ADMIN' && <Link href="/admin" className={`${styles.link} ${pathname === '/admin' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Admin</Link>}
-            
-            <div className={styles.mobileAuthActions}>
-              <Link href="/chat" className={styles.iconButton} title="Messages" onClick={closeMobileMenu}><FaEnvelope /></Link>
+        <div className={`${styles.linksContainer} ${isMenuOpen ? styles.mobileMenuOpen : ''}`}>
+          <Link href="/salons" className={`${styles.link} ${pathname === '/salons' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Salons</Link>
+          
+          {authStatus === 'authenticated' ? (
+            <>
+              <Link href="/my-bookings" className={`${styles.link} ${pathname === '/my-bookings' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Bookings</Link>
+              <Link href="/my-favorites" className={`${styles.link} ${pathname === '/my-favorites' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Favorites</Link>
+              {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={`${styles.link} ${pathname === '/dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Dashboard</Link>}
+              {userRole === 'ADMIN' && <Link href="/admin" className={`${styles.link} ${pathname === '/admin' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Admin</Link>}
               
-              <div ref={notificationRef} className={styles.notificationWrapper}>
-                <button onClick={() => setShowNotifications(!showNotifications)} className={styles.iconButton} title="Notifications">
-                  <FaBell />
-                  {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-                </button>
-                {showNotifications && (
-                  <div className={styles.dropdown}>
-                    <div className={styles.dropdownHeader}>Notifications</div>
-                    {notifications.length > 0 ? notifications.map(notif => (
-                      <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}>
-                        {notif.message}
-                      </div>
-                    )) : <div className={styles.noNotifications}>No notifications yet.</div>}
-                  </div>
-                )}
+              <div className={styles.mobileAuthActions}>
+                <Link href="/chat" className={styles.iconButton} title="Messages" onClick={closeMobileMenu}><FaEnvelope /></Link>
+                
+                <div ref={notificationRef} className={styles.notificationWrapper}>
+                  <button onClick={() => setShowNotifications(!showNotifications)} className={styles.iconButton} title="Notifications">
+                    <FaBell />
+                    {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+                  </button>
+                  {showNotifications && (
+                    <div className={styles.dropdown}>
+                      <div className={styles.dropdownHeader}>Notifications</div>
+                      {notifications.length > 0 ? notifications.map(notif => (
+                        <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}>
+                          {notif.message}
+                        </div>
+                      )) : <div className={styles.noNotifications}>No notifications yet.</div>}
+                    </div>
+                  )}
+                </div>
+                <button onClick={handleLogoutClick} className="btn btn-ghost">Logout</button>
               </div>
-              <button onClick={handleLogout} className="btn btn-ghost">Logout</button>
+            </>
+          ) : (
+            <div className={styles.mobileAuthActions}>
+              <Link href="/login" className={styles.link} onClick={closeMobileMenu}>Login</Link>
+              <button onClick={() => { router.push('/register'); closeMobileMenu(); }} className="btn btn-primary">Sign Up</button>
             </div>
-          </>
-        ) : (
-          <div className={styles.mobileAuthActions}>
-            <Link href="/login" className={styles.link} onClick={closeMobileMenu}>Login</Link>
-            <button onClick={() => { router.push('/register'); closeMobileMenu(); }} className="btn btn-primary">Sign Up</button>
-          </div>
-        )}
-      </div>
-    </nav>
+          )}
+        </div>
+      </nav>
+    </>
   );
 }

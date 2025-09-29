@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSalonDto } from './dto/create-salon.dto';
-import { ApprovalStatus, Prisma, Salon, UserRole } from '@prisma/client';
+import { ApprovalStatus, Prisma, Salon, User, UserRole } from '@prisma/client';
 import { UpdateSalonDto } from './dto/update-salon.dto';
 import { EventsGateway } from 'src/events/events.gateway';
 
@@ -48,6 +48,7 @@ export class SalonsService {
   async findAllApproved(filters: {
     province?: string;
     city?: string;
+    service?: string;
     offersMobile?: string;
     sortBy?: string;
     openOn?: string;
@@ -63,6 +64,16 @@ export class SalonsService {
     if (filters.city) {
       where.city = { contains: filters.city, mode: 'insensitive' };
     }
+    if (filters.service) {
+      where.services = {
+        some: {
+          title: {
+            contains: filters.service,
+            mode: 'insensitive',
+          },
+        },
+      };
+    }
     if (filters.offersMobile === 'true') {
       where.offersMobile = true;
     }
@@ -76,7 +87,7 @@ export class SalonsService {
     return this.prisma.salon.findMany({ where, orderBy });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: User | null) {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
       include: {
@@ -92,7 +103,16 @@ export class SalonsService {
     if (!salon) {
       throw new NotFoundException('Salon not found.');
     }
-    return salon;
+
+    let isFavorited = false;
+    if (user && user.id) {
+      const favorite = await this.prisma.favorite.findUnique({
+        where: { userId_salonId: { userId: user.id, salonId: id } },
+      });
+      isFavorited = !!favorite;
+    }
+
+    return { ...salon, isFavorited };
   }
 
   async findMySalon(userId: string) {

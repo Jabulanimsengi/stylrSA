@@ -1,63 +1,63 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import styles from './HomePage.module.css';
-import { Service } from '@/types';
+import FilterBar from '@/components/FilterBar/FilterBar';
 
-type FeaturedService = Service & { salon: { id: string, name: string } };
+export default function HomePage() {
+  const router = useRouter();
 
-async function getFeaturedServices(): Promise<FeaturedService[]> {
-  try {
-    const res = await fetch('http://localhost:3000/api/services/featured', {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return [];
-    return res.json();
-  } catch (error) {
-    console.error("Failed to fetch featured services:", error);
-    return [];
-  }
-}
-
-export default async function Home() {
-  const featuredServices = await getFeaturedServices();
+  const handleSearch = (filters: any) => {
+    const query = new URLSearchParams(filters).toString();
+    router.push(`/salons?${query}`);
+  };
 
   return (
-    <main>
-      <div className={styles.hero}>
-        <h1 className={styles.title}>
-          Find & Book Your Perfect Look
-        </h1>
-        <p className={styles.subtitle}>
-          The premier hub for discovering and connecting with top-tier beauty professionals in South Africa.
-        </p>
-        <Link href="/salons" className="btn btn-primary" style={{ marginTop: '2.5rem' }}>
-          Explore Salons
-        </Link>
-      </div>
-      <section className={styles.featuredSection}>
-        <h2 className={styles.featuredTitle}>Featured Services</h2>
-        {featuredServices.length > 0 ? (
-          <div className={styles.servicesGrid}>
-            {featuredServices.map(service => (
-              <Link href={`/salons/${service.salon.id}`} key={service.id} className={styles.serviceCard}>
-                <img
-                  src={service.images[0] || 'https://via.placeholder.com/300x180'}
-                  alt={service.title}
-                  className={styles.cardImage}
-                />
-                <div className={styles.imageOverlay}>
-                  View More
-                </div>
-                <div className={styles.cardContent}>
-                  <h3 className={styles.cardTitle}>{service.title}</h3>
-                  <p className={styles.cardSalonName}>by {service.salon.name}</p>
-                </div>
-              </Link>
-            ))}
+    <div className={styles.container}>
+      {/* Hero Section */}
+      <section className={styles.hero}>
+        <div className={styles.heroOverlay}>
+          <h1 className={styles.heroTitle}>Find & Book Your Next Salon Visit</h1>
+          <p className={styles.heroSubtitle}>Discover top-rated salons and stylists near you.</p>
+          <div className={styles.filterContainer}>
+            <FilterBar onSearch={handleSearch} isHomePage={true} />
           </div>
-        ) : (
-          <p style={{textAlign: 'center'}}>No featured services available right now.</p>
-        )}
+          <div className={styles.heroActions}>
+            <Link href="/salons" className="btn btn-primary">
+              Explore Salons
+            </Link>
+          </div>
+        </div>
       </section>
-    </main>
+
+      {/* How It Works Section */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>How It Works</h2>
+        <div className={styles.grid}>
+          <div className={styles.card}>
+            <h3>1. Discover</h3>
+            <p>Search for salons by location, service, or availability.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>2. Book</h3>
+            <p>Choose your desired service and book an appointment in seconds.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>3. Enjoy</h3>
+            <p>Relax and enjoy your salon experience with confidence.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className={`${styles.section} ${styles.ctaSection}`}>
+        <h2 className={styles.sectionTitle}>Are You a Salon Owner?</h2>
+        <p>Join our platform to reach more clients and grow your business.</p>
+        <Link href="/register" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+          List Your Business
+        </Link>
+      </section>
+    </div>
   );
 }

@@ -1,0 +1,61 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; /* Higher than navbar */
+  padding: 1rem;
+}
+
+.modalContent {
+  background-color: var(--white);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 28rem;
+  color: var(--text-charcoal);
+  text-align: center;
+}
+
+.message {
+  font-size: 1.125rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; /* Higher than navbar */
+  padding: 1rem;
+}
+
+.modalContent {
+  background-color: var(--white);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 28rem;
+  color: var(--text-charcoal);
+  text-align: center;
+}
+
+.message {
+  font-size: 1.125rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}

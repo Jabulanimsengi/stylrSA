@@ -13,6 +13,32 @@ interface EditSalonModalProps {
 
 const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
+// A new simple time picker component
+const TimePicker = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
+  const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7am to 9pm
+  const minutes = ['00', '30'];
+
+  const [hour, minute] = value.split(':');
+
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={styles.input}
+    >
+      <option value="">Closed</option>
+      {hours.map(h => 
+        minutes.map(m => {
+          const time = `${String(h).padStart(2, '0')}:${m}`;
+          const displayHour = h > 12 ? h - 12 : h;
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          return <option key={time} value={time}>{`${displayHour}:${m} ${ampm}`}</option>;
+        })
+      )}
+    </select>
+  );
+};
+
 export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModalProps) {
   const [formData, setFormData] = useState({
     name: salon.name || '',
@@ -29,26 +55,28 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // --- THIS IS THE FIX ---
-  // The handleChange function now correctly converts number inputs.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-
-    // If the input is a number type, parse it, otherwise use the string value
     const finalValue = type === 'number' ? parseFloat(value) || 0 : value;
-
     setFormData({ ...formData, [name]: finalValue });
   };
-  // --- END OF FIX ---
   
-  const handleHoursChange = (day: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      operatingHours: {
-        ...prev.operatingHours,
-        [day]: value,
-      }
-    }));
+  const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
+    setFormData(prev => {
+      const dayHours = prev.operatingHours[day] ? prev.operatingHours[day].split(' - ') : ['', ''];
+      if (field === 'open') dayHours[0] = value;
+      else dayHours[1] = value;
+      
+      const newHours = (dayHours[0] && dayHours[1]) ? dayHours.join(' - ') : 'Closed';
+
+      return {
+        ...prev,
+        operatingHours: {
+          ...prev.operatingHours,
+          [day]: newHours,
+        }
+      };
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,65 +146,68 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
       <div className={styles.modalContent}>
         <h2 className={styles.title}>Edit Salon Profile</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.grid}>
-            <div className={styles.fullWidth}>
-              <label className={styles.label}>Salon Name</label>
-              <input name="name" value={formData.name} onChange={handleChange} className={styles.input} />
-            </div>
-            <div>
-              <label className={styles.label}>Province</label>
-              <input name="province" value={formData.province} onChange={handleChange} className={styles.input} />
-            </div>
-            <div>
-              <label className={styles.label}>City</label>
-              <input name="city" value={formData.city} onChange={handleChange} className={styles.input} />
-            </div>
-             <div>
-              <label className={styles.label}>Contact Email</label>
-              <input name="contactEmail" type="email" value={formData.contactEmail} onChange={handleChange} className={styles.input} />
-            </div>
-             <div>
-              <label className={styles.label}>Phone Number</label>
-              <input name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange} className={styles.input} />
-            </div>
-            <div>
-              <label className={styles.label}>Service Type</label>
-              <select name="bookingType" value={formData.bookingType} onChange={handleChange} className={styles.select}>
-                <option value="ONSITE">On-Site Only</option>
-                <option value="MOBILE">Mobile Only</option>
-                <option value="BOTH">Both On-Site & Mobile</option>
-              </select>
-            </div>
-            <div>
-              <label className={styles.label}>Mobile Fee (R)</label>
-              <input name="mobileFee" type="number" value={formData.mobileFee} onChange={handleChange} className={styles.input} 
-                disabled={formData.bookingType === 'ONSITE'}
-              />
-            </div>
-            <div className={styles.fullWidth}>
-              <label className={styles.label}>Background Image (for listing cards)</label>
-              <input type="file" accept="image/*" onChange={handleFileChange} />
-              {(file || salon.backgroundImage) && (
-                <img src={file ? URL.createObjectURL(file) : salon.backgroundImage!} alt="Profile preview" 
-                  style={{ width: '200px', height: '100px', objectFit: 'cover', marginTop: '1rem', borderRadius: '0.5rem' }} />
-              )}
-            </div>
-          </div>
-
-          <h3 className={styles.subheading}>Operating Hours</h3>
-          <div className={styles.hoursGrid}>
-            {WEEKDAYS.map(day => (
-              <React.Fragment key={day}>
-                <label className={styles.label}>{day.charAt(0).toUpperCase() + day.slice(1)}</label>
-                <input
-                  type="text"
-                  placeholder="e.g., 9am - 5pm or Closed"
-                  value={formData.operatingHours[day] || ''}
-                  onChange={(e) => handleHoursChange(day, e.target.value)}
-                  className={styles.input}
+          <div className={styles.formScrollableContent}>
+            <div className={styles.grid}>
+              <div className={styles.fullWidth}>
+                <label className={styles.label}>Salon Name</label>
+                <input name="name" value={formData.name} onChange={handleChange} className={styles.input} />
+              </div>
+              <div>
+                <label className={styles.label}>Province</label>
+                <input name="province" value={formData.province} onChange={handleChange} className={styles.input} />
+              </div>
+              <div>
+                <label className={styles.label}>City</label>
+                <input name="city" value={formData.city} onChange={handleChange} className={styles.input} />
+              </div>
+               <div>
+                <label className={styles.label}>Contact Email</label>
+                <input name="contactEmail" type="email" value={formData.contactEmail} onChange={handleChange} className={styles.input} />
+              </div>
+               <div>
+                <label className={styles.label}>Phone Number</label>
+                <input name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange} className={styles.input} />
+              </div>
+              <div>
+                <label className={styles.label}>Service Type</label>
+                <select name="bookingType" value={formData.bookingType} onChange={handleChange} className={styles.select}>
+                  <option value="ONSITE">On-Site Only</option>
+                  <option value="MOBILE">Mobile Only</option>
+                  <option value="BOTH">Both On-Site & Mobile</option>
+                </select>
+              </div>
+              <div>
+                <label className={styles.label}>Mobile Fee (R)</label>
+                <input name="mobileFee" type="number" value={formData.mobileFee} onChange={handleChange} className={styles.input} 
+                  disabled={formData.bookingType === 'ONSITE'}
                 />
-              </React.Fragment>
-            ))}
+              </div>
+              <div className={styles.fullWidth}>
+                <label className={styles.label}>Background Image (for listing cards)</label>
+                <input type="file" accept="image/*" onChange={handleFileChange} />
+                {(file || salon.backgroundImage) && (
+                  <img src={file ? URL.createObjectURL(file) : salon.backgroundImage!} alt="Profile preview" 
+                    style={{ width: '200px', height: '100px', objectFit: 'cover', marginTop: '1rem', borderRadius: '0.5rem' }} />
+                )}
+              </div>
+            </div>
+
+            <h3 className={styles.subheading}>Operating Hours</h3>
+            <div className={styles.hoursGrid}>
+              {WEEKDAYS.map(day => {
+                  const [open, close] = formData.operatingHours[day]?.split(' - ') || ['', ''];
+                  return (
+                    <React.Fragment key={day}>
+                      <label className={styles.label}>{day.charAt(0).toUpperCase() + day.slice(1)}</label>
+                      <div className={styles.timeRange}>
+                        <TimePicker value={open} onChange={value => handleHoursChange(day, 'open', value)} />
+                        <span>-</span>
+                        <TimePicker value={close} onChange={value => handleHoursChange(day, 'close', value)} />
+                      </div>
+                    </React.Fragment>
+                  );
+              })}
+            </div>
           </div>
 
           {error && <p className={styles.errorMessage}>{error}</p>}

@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Salon, Service } from '@/types';
+import Link from 'next/link';
+import { FaHome, FaArrowLeft, FaHeart } from 'react-icons/fa';
+import { Salon, Service, GalleryImage } from '@/types';
 import BookingModal from '@/components/BookingModal';
 import styles from './SalonProfile.module.css';
 import Spinner from '@/components/Spinner';
@@ -11,12 +13,14 @@ import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
 import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
-import { Metadata } from 'next';
 
-// This function is defined here because it's used by the client component
 async function getSalonDetails(id: string): Promise<Salon | null> {
+  const token = localStorage.getItem('access_token');
   try {
-    const res = await fetch(`http://localhost:3000/api/salons/${id}`, { cache: 'no-store' });
+    const res = await fetch(`http://localhost:3000/api/salons/${id}`, { 
+      cache: 'no-store',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (!res.ok) return null;
     return res.json();
   } catch (error) {
@@ -36,34 +40,47 @@ async function getSalonServices(id: string): Promise<Service[]> {
   }
 }
 
+async function getGalleryImages(salonId: string): Promise<GalleryImage[]> {
+  try {
+    const res = await fetch(`http://localhost:3000/api/gallery/salon/${salonId}`);
+    if (!res.ok) return [];
+    return res.json();
+  } catch (error) {
+    console.error('Failed to fetch gallery images:', error);
+    return [];
+  }
+}
+
 export default function SalonProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { userId } = useAuth();
+  const { authStatus, userId } = useAuth();
   const socket = useSocket();
   
   const [salon, setSalon] = useState<Salon | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
+  const fetchPageData = useCallback(async () => {
+    if (params.id) {
       setIsLoading(true);
-      if (params.id) {
-        const [salonData, servicesData] = await Promise.all([
-          getSalonDetails(params.id),
-          getSalonServices(params.id),
-        ]);
-        setSalon(salonData);
-        setServices(servicesData);
-      }
+      const [salonData, servicesData, galleryData] = await Promise.all([
+        getSalonDetails(params.id),
+        getSalonServices(params.id),
+        getGalleryImages(params.id),
+      ]);
+      setSalon(salonData);
+      setServices(servicesData);
+      setGalleryImages(galleryData);
       setIsLoading(false);
     }
-    if (params && params.id) {
-      fetchData();
-    }
-  }, [params]);
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchPageData();
+  }, [fetchPageData, authStatus]); // Rerun on auth status change to get correct favorite status
 
   useEffect(() => {
     if (socket && params && params.id) {
@@ -115,6 +132,37 @@ export default function SalonProfilePage() {
       toast.error('Could not start chat. Please try again.');
     }
   };
+
+  const handleToggleFavorite = async () => {
+    if (authStatus !== 'authenticated') {
+      toast.error('You must be logged in to favorite a salon.');
+      router.push('/login');
+      return;
+    }
+    if (!salon) return;
+
+    const token = localStorage.getItem('access_token');
+    try {
+      // Optimistic update
+      setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
+
+      const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salon.id}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (!res.ok) {
+        // Revert on failure
+        setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
+        throw new Error('Failed to update favorite status.');
+      }
+      
+      toast.success(salon.isFavorited ? 'Removed from favorites.' : 'Added to favorites!');
+
+    } catch (error) {
+      toast.error('Could not update favorites.');
+    }
+  };
   
   const formatBookingType = (type: string) => {
     if (type === 'ONSITE') return 'This salon offers on-site services.';
@@ -143,11 +191,23 @@ export default function SalonProfilePage() {
       )}
       <div>
         <div className={styles.hero} style={{ backgroundImage: `url(${salon.backgroundImage || 'https://via.placeholder.com/1200x400'})` }}>
+          <div className={styles.navButtons}>
+            <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+            <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+          </div>
           <div className={styles.heroOverlay}>
-            <h1 className={styles.heroTitle}>{salon.name}</h1>
+            <div className={styles.heroTitleContainer}>
+              <h1 className={styles.heroTitle}>{salon.name}</h1>
+              {authStatus === 'authenticated' && (
+                <button onClick={handleToggleFavorite} className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}>
+                  <FaHeart />
+                </button>
+              )}
+            </div>
             <p className={styles.heroLocation}>{salon.town}, {salon.city}</p>
-            {salon.isAvailableNow && (
+            {!!salon.isAvailableNow && (
               <div className={styles.availabilityIndicator}>
+                <span className={styles.availabilityDot}></span>
                 Available for Bookings Now
               </div>
             )}
@@ -175,6 +235,19 @@ export default function SalonProfilePage() {
 
               <section>
                 <h2 className={styles.sectionTitle}>Details</h2>
+                
+                {galleryImages.length > 0 && (
+                  <Accordion title="Gallery">
+                    <div className={styles.galleryGrid}>
+                      {galleryImages.map(image => (
+                        <div key={image.id} className={styles.galleryItem}>
+                          <img src={image.imageUrl} alt={image.caption || 'Salon work'} />
+                        </div>
+                      ))}
+                    </div>
+                  </Accordion>
+                )}
+
                 <Accordion title="Operating Hours">
                   {salon.operatingHours ? (
                     <ul>
@@ -215,7 +288,6 @@ export default function SalonProfilePage() {
                 </Accordion>
               </section>
             </div>
-            {/* The sidebar action card has been removed */}
           </div>
         </div>
       </div>

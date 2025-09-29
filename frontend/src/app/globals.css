@@ -2,7 +2,7 @@
 @import 'react-datepicker/dist/react-datepicker.css';
 
 :root {
-  /* 1. Brand & Base Colors */
+  /* ... (color variables remain the same) ... */
   --primary-pink: #FF2D5E;
   --dark-gray: #2F2F3A;
   --white: #FFFFFF;
@@ -11,32 +11,22 @@
   --muted-teal: #3AB7A5;
   --charcoal-black: #1C1C1E;
   --soft-pastel-pink: #F9D7E5;
-
-  /* 2. Text Colors */
   --text-primary: var(--dark-gray);
   --text-body: #4A4A4A;
   --text-muted: #7C7C7C;
   --text-inverse: var(--white);
-  
-  /* Link Color */
   --link-color: var(--primary-pink);
   --link-hover: #E62654;
-
-  /* 3. Button Colors */
   --btn-primary-bg: var(--primary-pink);
   --btn-primary-hover: #E62654;
   --btn-primary-active: #C81F47;
   --btn-primary-disabled-bg: var(--soft-pastel-pink);
   --btn-primary-disabled-text: var(--text-muted);
-
   --btn-secondary-bg: var(--muted-teal);
   --btn-secondary-hover: #2E9687;
-  
   --btn-ghost-border: var(--dark-gray);
   --btn-ghost-text: var(--dark-gray);
   --btn-ghost-hover-bg: var(--warm-beige);
-
-  /* 4. Alert Colors */
   --alert-success-bg: #CDEDEA;
   --alert-success-text: #25776C;
   --alert-error-bg: #FFD6DF;
@@ -85,6 +75,7 @@ a:hover {
 .btn-primary:hover {
   background-color: var(--btn-primary-hover);
   border-color: var(--btn-primary-hover);
+  color: var(--text-inverse);
 }
 .btn-primary:active {
   background-color: var(--btn-primary-active);
@@ -113,7 +104,8 @@ a:hover {
   color: var(--btn-ghost-text);
 }
 .btn-ghost:hover {
-  background-color: var(--btn-ghost-hover-bg);
+  background-color: var(--warm-beige);
+  color: var(--primary-pink); /* This is the fix */
 }
 
 /* This class prevents content from being hidden by the sticky navbar */
