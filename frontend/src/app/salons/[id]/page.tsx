@@ -13,11 +13,12 @@ import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
 import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
+import ImageLightbox from '@/components/ImageLightbox'; // Import the lightbox component
 
 async function getSalonDetails(id: string): Promise<Salon | null> {
   const token = localStorage.getItem('access_token');
   try {
-    const res = await fetch(`http://localhost:3000/api/salons/${id}`, { 
+    const res = await fetch(`http://localhost:3000/api/salons/${id}`, {
       cache: 'no-store',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -56,12 +57,14 @@ export default function SalonProfilePage() {
   const router = useRouter();
   const { authStatus, userId } = useAuth();
   const socket = useSocket();
-  
+
   const [salon, setSalon] = useState<Salon | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
 
   const fetchPageData = useCallback(async () => {
     if (params.id) {
@@ -80,13 +83,13 @@ export default function SalonProfilePage() {
 
   useEffect(() => {
     fetchPageData();
-  }, [fetchPageData, authStatus]); // Rerun on auth status change to get correct favorite status
+  }, [fetchPageData, authStatus]);
 
   useEffect(() => {
     if (socket && params && params.id) {
       socket.emit('joinSalonRoom', params.id);
       socket.on('availabilityUpdate', (data: { isAvailableNow: boolean }) => {
-        setSalon(prev => prev ? { ...prev, isAvailableNow: data.isAvailableNow } : null);
+        setSalon(prev => (prev ? { ...prev, isAvailableNow: data.isAvailableNow } : null));
       });
       return () => {
         socket.emit('leaveSalonRoom', params.id);
@@ -94,6 +97,11 @@ export default function SalonProfilePage() {
       };
     }
   }, [socket, params]);
+
+  const openLightbox = (index: number) => {
+    setLightboxStartIndex(index);
+    setIsLightboxOpen(true);
+  };
 
   const handleBookNowClick = (service: Service) => {
     const token = localStorage.getItem('access_token');
@@ -112,7 +120,7 @@ export default function SalonProfilePage() {
     }
     if (!salon || !userId) return;
     if (userId === salon.ownerId) {
-      toast.error("You cannot message your own salon.");
+      toast.error('You cannot message your own salon.');
       return;
     }
     try {
@@ -143,38 +151,37 @@ export default function SalonProfilePage() {
 
     const token = localStorage.getItem('access_token');
     try {
-      // Optimistic update
       setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
 
       const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salon.id}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (!res.ok) {
-        // Revert on failure
         setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
         throw new Error('Failed to update favorite status.');
       }
-      
-      toast.success(salon.isFavorited ? 'Removed from favorites.' : 'Added to favorites!');
 
+      toast.success(salon.isFavorited ? 'Removed from favorites.' : 'Added to favorites!');
     } catch (error) {
       toast.error('Could not update favorites.');
     }
   };
-  
+
   const formatBookingType = (type: string) => {
     if (type === 'ONSITE') return 'This salon offers on-site services.';
     if (type === 'MOBILE') return 'This salon offers mobile services.';
     if (type === 'BOTH') return 'This salon offers both on-site and mobile services.';
     return 'Not Specified';
   };
-  
+
   const operatingDays = salon?.operatingHours ? Object.keys(salon.operatingHours) : [];
 
   if (isLoading) return <Spinner />;
-  if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
+  if (!salon) return <div style={{ textAlign: 'center', padding: '2rem' }}>Salon not found.</div>;
+
+  const galleryImageUrls = galleryImages.map(img => img.imageUrl);
 
   return (
     <>
@@ -187,6 +194,13 @@ export default function SalonProfilePage() {
             toast.success('Booking request sent! The salon will confirm shortly.');
             setSelectedService(null);
           }}
+        />
+      )}
+      {isLightboxOpen && (
+        <ImageLightbox
+          images={galleryImageUrls}
+          startIndex={lightboxStartIndex}
+          onClose={() => setIsLightboxOpen(false)}
         />
       )}
       <div>
@@ -213,7 +227,7 @@ export default function SalonProfilePage() {
             )}
           </div>
         </div>
-        
+
         <div className={styles.container}>
           <div className={styles.profileLayout}>
             <div className={styles.mainContent}>
@@ -223,24 +237,24 @@ export default function SalonProfilePage() {
                   {services
                     .filter((s) => s.approvalStatus === 'APPROVED')
                     .map((service) => (
-                      <ServiceCard 
-                        key={service.id} 
-                        service={service} 
+                      <ServiceCard
+                        key={service.id}
+                        service={service}
                         onBookNow={handleBookNowClick}
                         onSendMessage={handleSendMessageClick}
                       />
-                  ))}
+                    ))}
                 </div>
               </section>
 
               <section>
                 <h2 className={styles.sectionTitle}>Details</h2>
-                
+
                 {galleryImages.length > 0 && (
                   <Accordion title="Gallery">
                     <div className={styles.galleryGrid}>
-                      {galleryImages.map(image => (
-                        <div key={image.id} className={styles.galleryItem}>
+                      {galleryImages.map((image, index) => (
+                        <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(index)}>
                           <img src={image.imageUrl} alt={image.caption || 'Salon work'} />
                         </div>
                       ))}
@@ -263,28 +277,28 @@ export default function SalonProfilePage() {
                 <Accordion title="Service Type">
                   <p>{formatBookingType(salon.bookingType)}</p>
                   {salon.offersMobile && salon.mobileFee && (
-                    <p style={{marginTop: '0.5rem'}}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
+                    <p style={{ marginTop: '0.5rem' }}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
                   )}
                 </Accordion>
                 <Accordion title="Location & Contact">
-                   <p><strong>Address:</strong> {salon.town}, {salon.city}, {salon.province}</p>
-                   {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
-                   {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
+                  <p><strong>Address:</strong> {salon.town}, {salon.city}, {salon.province}</p>
+                  {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
+                  {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
                 </Accordion>
-                 <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
-                   {salon.reviews && salon.reviews.length > 0 ? (
-                     <div>
-                       {salon.reviews.map(review => (
-                         <div key={review.id} style={{borderBottom: '1px dotted #ccc', paddingBottom: '1rem', marginBottom: '1rem'}}>
-                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                             <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
-                             <span style={{color: 'var(--accent-gold)'}}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
-                           </div>
-                           <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>"{review.comment}"</p>
-                         </div>
-                       ))}
-                     </div>
-                   ) : <p>No reviews yet.</p>}
+                <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
+                  {salon.reviews && salon.reviews.length > 0 ? (
+                    <div>
+                      {salon.reviews.map(review => (
+                        <div key={review.id} style={{ borderBottom: '1px dotted #ccc', paddingBottom: '1rem', marginBottom: '1rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
+                            <span style={{ color: 'var(--accent-gold)' }}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                          </div>
+                          <p style={{ fontStyle: 'italic', marginTop: '0.5rem' }}>"{review.comment}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <p>No reviews yet.</p>}
                 </Accordion>
               </section>
             </div>
