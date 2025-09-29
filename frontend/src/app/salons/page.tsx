@@ -15,7 +15,6 @@ export default function SalonsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Function to create an initial filters object from search params
   const getInitialFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
     return {
@@ -38,7 +37,6 @@ export default function SalonsPage() {
     let url = 'http://localhost:3000/api/salons';
     const query = new URLSearchParams();
 
-    // Handle geo-search from home page redirect
     if (filters.lat && filters.lon) {
        url = `http://localhost:3000/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
     } else {
@@ -64,7 +62,6 @@ export default function SalonsPage() {
     }
   }, []);
 
-  // Initial fetch using filters from URL
   useEffect(() => {
     fetchSalons(initialFilters);
   }, [initialFilters, fetchSalons]);
@@ -72,12 +69,13 @@ export default function SalonsPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <div className={styles.stickyHeader}>
         <div className={styles.navButtonsContainer}>
           <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
           <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
         </div>
         <h1 className={styles.title}>Explore Salons</h1>
+        <div className={styles.headerSpacer}></div>
       </div>
       
       <FilterBar onSearch={fetchSalons} initialFilters={initialFilters} />

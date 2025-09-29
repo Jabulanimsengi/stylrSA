@@ -10,7 +10,8 @@ import { useSocket } from '@/context/SocketContext';
 import Spinner from '@/components/Spinner';
 import { toast } from 'react-toastify';
 import GalleryUploadModal from '@/components/GalleryUploadModal';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaHome, FaArrowLeft } from 'react-icons/fa';
+import Link from 'next/link';
 
 // A placeholder for the CreateSalonProfileModal component if it's in the same file
 const CreateSalonProfileModal = ({ onClose, onSave }: { onClose: () => void, onSave: (salon: Salon) => void }) => {
@@ -19,7 +20,7 @@ const CreateSalonProfileModal = ({ onClose, onSave }: { onClose: () => void, onS
 };
 
 
-type DashboardBooking = Booking & { 
+type DashboardBooking = Booking & {
   client: { firstName: string, lastName: string },
   status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED'
 };
@@ -60,7 +61,7 @@ export default function DashboardPage() {
         if (!salonRes.ok) throw new Error('Could not fetch your salon data.');
         const salonData = await salonRes.json();
         setSalon(salonData);
-        
+
         const [servicesRes, bookingsRes, galleryRes] = await Promise.all([
           fetch(`http://localhost:3000/api/salons/mine/services`, { headers }),
           fetch(`http://localhost:3000/api/salons/mine/bookings`, { headers }),
@@ -78,7 +79,7 @@ export default function DashboardPage() {
     };
     fetchDashboardData();
   }, [router]);
-  
+
   useEffect(() => {
     if (socket) {
       socket.on('newBooking', (newBooking: DashboardBooking) => {
@@ -97,7 +98,7 @@ export default function DashboardPage() {
     }
     closeServiceModal();
   };
-  
+
   const handleDeleteService = async (serviceId: string) => {
     if (!window.confirm('Are you sure you want to delete this service?')) return;
     const token = localStorage.getItem('access_token');
@@ -123,12 +124,12 @@ export default function DashboardPage() {
     });
     setBookings(bookings.map(b => b.id === bookingId ? { ...b, status } : b));
   };
-  
+
   const handleSalonUpdate = (updatedSalon: Salon) => {
     setSalon(updatedSalon);
     setIsEditSalonModalOpen(false);
   };
-  
+
   const handleAvailabilityToggle = async () => {
     if (!salon) return;
     const token = localStorage.getItem('access_token');
@@ -148,7 +149,7 @@ export default function DashboardPage() {
     setGalleryImages([newImage, ...galleryImages]);
     setIsGalleryModalOpen(false);
   };
-  
+
   const handleDeleteImage = async (imageId: string) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
     const token = localStorage.getItem('access_token');
@@ -168,7 +169,7 @@ export default function DashboardPage() {
   const openServiceModalToAdd = () => { setEditingService(null); setIsServiceModalOpen(true); };
   const openServiceModalToEdit = (service: Service) => { setEditingService(service); setIsServiceModalOpen(true); };
   const closeServiceModal = () => { setIsServiceModalOpen(false); setEditingService(null); };
-  
+
   const getStatusClass = (status: ApprovalStatus) => {
     if (status === 'APPROVED') return styles.statusApproved;
     if (status === 'PENDING') return styles.statusPending;
@@ -193,7 +194,7 @@ export default function DashboardPage() {
         </div>
     );
   }
-  
+
   const pendingBookings = bookings.filter(b => b.status === 'PENDING');
   const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED');
   const pastBookings = bookings.filter(b => b.status === 'COMPLETED' || b.status === 'DECLINED');
@@ -215,7 +216,7 @@ export default function DashboardPage() {
       </div>
     ));
   };
-  
+
   let bookingsToShow;
   if (activeBookingTab === 'pending') bookingsToShow = renderBookingsList(pendingBookings);
   else if (activeBookingTab === 'confirmed') bookingsToShow = renderBookingsList(confirmedBookings);
@@ -227,24 +228,33 @@ export default function DashboardPage() {
         <ServiceFormModal salonId={salon.id} initialData={editingService} onClose={closeServiceModal} onSave={handleSaveService} />
       )}
       {isEditSalonModalOpen && (
-        <EditSalonModal 
-          salon={salon} 
+        <EditSalonModal
+          salon={salon}
           onClose={() => setIsEditSalonModalOpen(false)}
           onSave={handleSalonUpdate}
         />
       )}
        {isGalleryModalOpen && (
-        <GalleryUploadModal 
+        <GalleryUploadModal
           salonId={salon.id}
           onClose={() => setIsGalleryModalOpen(false)}
           onUpload={handleImageUpload}
         />
       )}
       <div className={styles.container}>
+      <div className={styles.stickyHeader}>
+        <div className={styles.navButtonsContainer}>
+            <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+            <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+        </div>
+        <h1 className={styles.title}>My Dashboard</h1>
+        <div className={styles.headerSpacer}></div>
+      </div>
+
+
         <header className={styles.header}>
           <div className={styles.headerTop}>
             <div className={styles.headerInfo}>
-              <h1 className={styles.title}>My Dashboard</h1>
               <p className={styles.salonName}>{salon.name}</p>
             </div>
             <div className={styles.headerActions}>
@@ -255,6 +265,9 @@ export default function DashboardPage() {
                 </label>
                 <strong>Available Now</strong>
               </div>
+              <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">
+                View My Salon
+              </Link>
               <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary">
                 Edit Profile
               </button>

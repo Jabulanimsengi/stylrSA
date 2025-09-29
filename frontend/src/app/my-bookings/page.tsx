@@ -6,6 +6,8 @@ import { Booking } from '@/types';
 import styles from './MyBookingsPage.module.css';
 import Spinner from '@/components/Spinner';
 import ReviewModal from '@/components/ReviewModal';
+import Link from 'next/link';
+import { FaHome, FaArrowLeft } from 'react-icons/fa';
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -38,7 +40,7 @@ export default function MyBookingsPage() {
     setReviewingBookingId(null);
     fetchBookings();
   };
-  
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-ZA', {
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -71,7 +73,14 @@ export default function MyBookingsPage() {
         />
       )}
       <div className={styles.container}>
-        <h1 className={styles.title}>My Bookings</h1>
+        <div className={styles.stickyHeader}>
+            <div className={styles.navButtonsContainer}>
+              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+            </div>
+            <h1 className={styles.title}>My Bookings</h1>
+            <div className={styles.headerSpacer}></div>
+        </div>
 
         <div className={styles.tabs}>
           <button onClick={() => setActiveTab('upcoming')} className={`${styles.tabButton} ${activeTab === 'upcoming' ? styles.activeTab : ''}`}>

@@ -31,7 +31,6 @@ export default function MyFavoritesPage() {
         }
 
         const data = await res.json();
-        // The API returns an array of { salon: Salon } objects
         setFavorites(data.map((fav: { salon: Salon }) => fav.salon));
       } catch (error) {
         console.error(error);
@@ -49,16 +48,13 @@ export default function MyFavoritesPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <div className={styles.stickyHeader}>
         <div className={styles.navButtonsContainer}>
-          <button onClick={() => router.back()} className={styles.navButton}>
-            <FaArrowLeft /> Back
-          </button>
-          <Link href="/" className={styles.navButton}>
-            <FaHome /> Home
-          </Link>
+            <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+            <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
         </div>
         <h1 className={styles.title}>My Favorite Salons</h1>
+        <div className={styles.headerSpacer}></div>
       </div>
 
       {favorites.length === 0 ? (

@@ -1,4 +1,3 @@
-/* frontend/src/app/admin/AdminPage.module.css */
 .container {
   max-width: 1280px;
   margin: 0 auto;
@@ -76,8 +75,8 @@
   opacity: 0.85;
 }
 .approveButton {
-  background-color: var(--accent-green);
+  background-color: var(--muted-teal);
 }
 .rejectButton {
-  background-color: var(--error-red);
+  background-color: var(--primary-pink);
 }

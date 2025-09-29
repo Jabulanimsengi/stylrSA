@@ -6,11 +6,11 @@
   align-items: center;
   border-bottom: 1px solid var(--light-silver);
   height: 78px;
-  position: sticky; /* Makes the navbar sticky */
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000; /* Ensures it stays on top of other content */
+  z-index: 1000;
 }
 
 .logo {
@@ -26,7 +26,6 @@
   width: auto;
 }
 
-/* Base styles for the links container */
 .linksContainer {
   display: flex;
   gap: 0.5rem;
@@ -53,8 +52,16 @@
   border-bottom: 2px solid var(--primary-pink);
 }
 
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
-/* Hamburger Menu Icon */
+.mobileIcons {
+  display: none; /* Hidden by default */
+}
+
 .hamburger {
   display: none;
   font-size: 1.5rem;
@@ -102,7 +109,7 @@
 
 .dropdown {
   position: absolute;
-  top: 60px; /* Adjusted position */
+  top: 60px;
   right: 0;
   width: 350px;
   background-color: var(--white);
@@ -153,13 +160,13 @@
 }
 
 /* Responsive Styles for Mobile */
-@media (max-width: 992px) { /* Adjust breakpoint as needed */
+@media (max-width: 992px) {
   .linksContainer {
-    display: none; /* Hide desktop links */
+    display: none;
     flex-direction: column;
     align-items: flex-start;
     position: absolute;
-    top: 78px; /* Height of the navbar */
+    top: 78px;
     left: 0;
     width: 100%;
     background-color: var(--white);
@@ -168,11 +175,17 @@
   }
 
   .mobileMenuOpen {
-    display: flex; /* Show mobile menu when active */
+    display: flex;
   }
 
   .hamburger {
-    display: block; /* Show hamburger icon */
+    display: block;
+  }
+
+  .mobileIcons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .mobileAuthActions {
@@ -182,5 +195,9 @@
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--light-silver);
+  }
+  
+  .linksContainer .iconButton {
+      display: none;
   }
 }

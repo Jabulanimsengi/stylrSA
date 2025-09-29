@@ -118,10 +118,34 @@ export default function Navbar() {
             priority 
           />
         </Link>
-
-        <div className={styles.hamburger} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? <FaTimes /> : <FaBars />}
+        
+        <div className={styles.navActions}>
+            {authStatus === 'authenticated' && (
+                <div className={styles.mobileIcons}>
+                    <Link href="/chat" className={styles.iconButton} title="Messages" onClick={closeMobileMenu}><FaEnvelope /></Link>
+                    <div ref={notificationRef} className={styles.notificationWrapper}>
+                      <button onClick={() => setShowNotifications(!showNotifications)} className={styles.iconButton} title="Notifications">
+                        <FaBell />
+                        {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+                      </button>
+                      {showNotifications && (
+                        <div className={styles.dropdown}>
+                          <div className={styles.dropdownHeader}>Notifications</div>
+                          {notifications.length > 0 ? notifications.map(notif => (
+                            <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}>
+                              {notif.message}
+                            </div>
+                          )) : <div className={styles.noNotifications}>No notifications yet.</div>}
+                        </div>
+                      )}
+                    </div>
+                </div>
+            )}
+            <div className={styles.hamburger} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <FaTimes /> : <FaBars />}
+            </div>
         </div>
+
 
         <div className={`${styles.linksContainer} ${isMenuOpen ? styles.mobileMenuOpen : ''}`}>
           <Link href="/salons" className={`${styles.link} ${pathname === '/salons' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Salons</Link>
@@ -134,24 +158,6 @@ export default function Navbar() {
               {userRole === 'ADMIN' && <Link href="/admin" className={`${styles.link} ${pathname === '/admin' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Admin</Link>}
               
               <div className={styles.mobileAuthActions}>
-                <Link href="/chat" className={styles.iconButton} title="Messages" onClick={closeMobileMenu}><FaEnvelope /></Link>
-                
-                <div ref={notificationRef} className={styles.notificationWrapper}>
-                  <button onClick={() => setShowNotifications(!showNotifications)} className={styles.iconButton} title="Notifications">
-                    <FaBell />
-                    {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-                  </button>
-                  {showNotifications && (
-                    <div className={styles.dropdown}>
-                      <div className={styles.dropdownHeader}>Notifications</div>
-                      {notifications.length > 0 ? notifications.map(notif => (
-                        <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}>
-                          {notif.message}
-                        </div>
-                      )) : <div className={styles.noNotifications}>No notifications yet.</div>}
-                    </div>
-                  )}
-                </div>
                 <button onClick={handleLogoutClick} className="btn btn-ghost">Logout</button>
               </div>
             </>
