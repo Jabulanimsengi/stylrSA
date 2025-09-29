@@ -1,3 +1,4 @@
+// frontend/src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -9,8 +10,31 @@ import Footer from '@/components/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SalonDirect',
-  description: 'Your one-stop platform for salon services.',
+  title: 'The Salon Hub - Find and Book Salon Appointments Online',
+  description: 'Your one-stop platform for discovering, booking, and managing salon services. Find the best salons and stylists near you.',
+  keywords: 'salon, booking, appointment, beauty, haircut, nails, stylist, hairdresser',
+  authors: [{ name: 'The Salon Hub Team' }],
+  openGraph: {
+    title: 'The Salon Hub - Find and Book Salon Appointments Online',
+    description: 'Your one-stop platform for discovering, booking, and managing salon services.',
+    url: 'https://thesalonhub.com', // Replace with your actual domain
+    siteName: 'The Salon Hub',
+    images: [
+      {
+        url: 'https://thesalonhub.com/logo-transparent.png', // Replace with a link to your logo
+        width: 800,
+        height: 600,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Salon Hub - Find and Book Salon Appointments Online',
+    description: 'Your one-stop platform for discovering, booking, and managing salon services.',
+    images: ['https://thesalonhub.com/logo-transparent.png'], // Replace with a link to your logo
+  },
 };
 
 export default function RootLayout({

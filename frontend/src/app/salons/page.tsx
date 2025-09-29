@@ -1,3 +1,4 @@
+// frontend/src/app/salons/page.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -90,7 +91,7 @@ export default function SalonsPage() {
             <Link href={`/salons/${salon.id}`} key={salon.id} className={styles.salonCard}>
               <img
                 src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
-                alt={salon.name}
+                alt={`A photo of ${salon.name}`}
                 className={styles.cardImage}
               />
               <div className={styles.cardContent}>
