@@ -4,9 +4,33 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './HomePage.module.css';
 import FilterBar from '@/components/FilterBar/FilterBar';
+import { useEffect, useState } from 'react';
+import { Service } from '@/types';
+import FeaturedServiceCard from '@/components/FeaturedServiceCard';
+import Spinner from '@/components/Spinner';
 
 export default function HomePage() {
   const router = useRouter();
+  const [featuredServices, setFeaturedServices] = useState<
+    (Service & { salon: { id: string; name: string } })[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedServices = async () => {
+      try {
+        const res = await fetch('http://localhost:3000/api/services/featured');
+        if (res.ok) {
+          setFeaturedServices(await res.json());
+        }
+      } catch (error) {
+        console.error('Failed to fetch featured services:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchFeaturedServices();
+  }, []);
 
   const handleSearch = (filters: any) => {
     const query = new URLSearchParams(filters).toString();
@@ -31,32 +55,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Featured Services Section */}
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>How It Works</h2>
-        <div className={styles.grid}>
-          <div className={styles.card}>
-            <h3>1. Discover</h3>
-            <p>Search for salons by location, service, or availability.</p>
+        <h2 className={styles.sectionTitle}>Featured Services</h2>
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <div className={styles.grid}>
+            {featuredServices.map((service) => (
+              <FeaturedServiceCard key={service.id} service={service} />
+            ))}
           </div>
-          <div className={styles.card}>
-            <h3>2. Book</h3>
-            <p>Choose your desired service and book an appointment in seconds.</p>
-          </div>
-          <div className={styles.card}>
-            <h3>3. Enjoy</h3>
-            <p>Relax and enjoy your salon experience with confidence.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className={`${styles.section} ${styles.ctaSection}`}>
-        <h2 className={styles.sectionTitle}>Are You a Salon Owner?</h2>
-        <p>Join our platform to reach more clients and grow your business.</p>
-        <Link href="/register" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-          List Your Business
-        </Link>
+        )}
       </section>
     </div>
   );
