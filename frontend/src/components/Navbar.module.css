@@ -33,6 +33,12 @@
 }
 
 .link {
+  /* Reset button styles and apply link styles */
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+
   color: var(--text-primary);
   text-decoration: none;
   font-size: 1rem;
@@ -59,7 +65,7 @@
 }
 
 .mobileIcons {
-  display: flex; /* Changed */
+  display: flex;
   align-items: center;
   gap: 0.5rem;
 }

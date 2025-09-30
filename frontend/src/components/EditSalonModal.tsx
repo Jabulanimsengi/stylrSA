@@ -16,7 +16,6 @@ const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'satur
 const TimePicker = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7am to 9pm
   const minutes = ['00', '30'];
-  const [hour, minute] = (value || '').split(':');
 
   return (
     <select
@@ -48,6 +47,8 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
     operatingHours: salon.operatingHours || {},
     contactEmail: salon.contactEmail || '',
     phoneNumber: salon.phoneNumber || '',
+    whatsapp: salon.whatsapp || '',
+    website: salon.website || '',
   });
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
@@ -61,19 +62,34 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
   
   const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
     setFormData(prev => {
-      const dayHours = (prev.operatingHours[day] || '').split(' - ');
-      if (field === 'open') dayHours[0] = value;
-      else dayHours[1] = value;
-      
-      const newHours = (dayHours[0] && dayHours[1]) ? dayHours.join(' - ') : 'Closed';
+        const currentHours = prev.operatingHours[day] === 'Closed' ? '' : prev.operatingHours[day] || '';
+        let [open, close] = currentHours.split(' - ');
 
-      return {
-        ...prev,
-        operatingHours: {
-          ...prev.operatingHours,
-          [day]: newHours,
+        if (field === 'open') {
+            open = value;
+        } else {
+            close = value;
         }
-      };
+
+        if (!value) {
+            return {
+                ...prev,
+                operatingHours: {
+                    ...prev.operatingHours,
+                    [day]: 'Closed',
+                }
+            };
+        }
+
+        const newHours = `${open || ''} - ${close || ''}`;
+
+        return {
+            ...prev,
+            operatingHours: {
+                ...prev.operatingHours,
+                [day]: newHours,
+            }
+        };
     });
   };
 
@@ -129,7 +145,9 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
     try {
       let finalData: any = { 
         ...formData,
-        mobileFee: parseFloat(String(formData.mobileFee)) || null
+        mobileFee: parseFloat(String(formData.mobileFee)) || null,
+        // FIX: Convert empty string to null for website to pass validation
+        website: formData.website === '' ? null : formData.website,
       };
       
       if (file) {
@@ -150,7 +168,14 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
         body: JSON.stringify(finalData),
       });
 
-      if (!res.ok) throw new Error(`Failed to ${isNewSalon ? 'create' : 'update'} profile.`);
+      if (!res.ok) {
+        const errData = await res.json();
+        // Provide a more specific error for validation issues
+        if (Array.isArray(errData.message)) {
+          throw new Error(errData.message.join(', '));
+        }
+        throw new Error(errData.message || `Failed to ${isNewSalon ? 'create' : 'update'} profile.`);
+      }
       
       const savedSalon = await res.json();
       toast.success(`Profile ${isNewSalon ? 'created and submitted for approval!' : 'update submitted for re-approval!'}`);
@@ -196,6 +221,14 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
                 <input name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange} className={styles.input} />
               </div>
               <div>
+                <label className={styles.label}>WhatsApp Number</label>
+                <input name="whatsapp" type="tel" value={formData.whatsapp} onChange={handleChange} className={styles.input} />
+              </div>
+              <div>
+                <label className={styles.label}>Website URL</label>
+                <input name="website" type="url" placeholder="https://example.com" value={formData.website} onChange={handleChange} className={styles.input} />
+              </div>
+              <div>
                 <label className={styles.label}>Service Type</label>
                 <select name="bookingType" value={formData.bookingType} onChange={handleChange} className={styles.select}>
                   <option value="ONSITE">On-Site Only</option>
@@ -227,7 +260,7 @@ export default function EditSalonModal({ salon, onClose, onSave }: EditSalonModa
             </div>
             <div className={styles.hoursGrid}>
               {WEEKDAYS.map(day => {
-                  const [open, close] = (formData.operatingHours[day] || ' - ').split(' - ');
+                  const [open, close] = (formData.operatingHours[day] === 'Closed' ? ['',''] : (formData.operatingHours[day] || ' - ').split(' - '));
                   return (
                     <React.Fragment key={day}>
                       <label className={styles.label}>{day.charAt(0).toUpperCase() + day.slice(1)}</label>

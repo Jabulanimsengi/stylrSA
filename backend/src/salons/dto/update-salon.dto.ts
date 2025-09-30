@@ -5,6 +5,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUrl,
 } from 'class-validator';
 
 export class UpdateSalonDto {
@@ -35,6 +36,14 @@ export class UpdateSalonDto {
   @IsString()
   @IsOptional()
   phoneNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  whatsapp?: string;
+
+  @IsUrl()
+  @IsOptional()
+  website?: string;
 
   @IsNumber()
   @IsOptional()

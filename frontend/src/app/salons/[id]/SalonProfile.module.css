@@ -205,3 +205,23 @@
     display: none; /* Hide the spacer on mobile */
   }
 }
+
+.mapContainer {
+  margin-top: 1.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--light-silver);
+}
+
+.loginPrompt {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--warm-beige);
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.loginPrompt a {
+  font-weight: 600;
+  text-decoration: underline;
+}

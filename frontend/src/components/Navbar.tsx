@@ -9,6 +9,7 @@ import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
 import { FaBell, FaEnvelope, FaBars, FaTimes, FaTrash } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthModal } from '@/context/AuthModalContext';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
 
 interface Notification {
@@ -21,6 +22,7 @@ interface Notification {
 
 export default function Navbar() {
   const { authStatus, userRole, setAuthStatus } = useAuth();
+  const { openModal } = useAuthModal();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -186,8 +188,8 @@ export default function Navbar() {
             </>
           ) : (
             <div className={styles.mobileAuthActions}>
-              <Link href="/login" className={styles.link} onClick={closeMobileMenu}>Login</Link>
-              <button onClick={() => { router.push('/register'); closeMobileMenu(); }} className="btn btn-primary">Sign Up</button>
+              <button onClick={() => { openModal('login'); closeMobileMenu(); }} className={styles.link}>Login</button>
+              <button onClick={() => { openModal('register'); closeMobileMenu(); }} className="btn btn-primary">Sign Up</button>
             </div>
           )}
         </div>

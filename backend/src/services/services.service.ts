@@ -1,4 +1,3 @@
-// backend/src/services/services.service.ts
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, ApprovalStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -29,6 +28,29 @@ export class ServicesService {
       },
     });
   }
+  
+  // NEW: Paginated method to get all approved services
+  async findAllApproved(page: number, pageSize: number) {
+    const skip = (page - 1) * pageSize;
+    const services = await this.prisma.service.findMany({
+      where: { approvalStatus: ApprovalStatus.APPROVED },
+      orderBy: { createdAt: 'desc' },
+      skip: skip,
+      take: pageSize,
+      include: {
+        salon: {
+          select: { name: true, id: true },
+        },
+      },
+    });
+    const totalServices = await this.prisma.service.count({ where: { approvalStatus: ApprovalStatus.APPROVED } });
+    return {
+      services,
+      totalPages: Math.ceil(totalServices / pageSize),
+      currentPage: page,
+    };
+  }
+
 
   async update(userId: string, serviceId: string, dto: UpdateServiceDto) {
     const service = await this.prisma.service.findUnique({

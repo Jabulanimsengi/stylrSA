@@ -4,8 +4,10 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastContainer } from 'react-toastify';
 import { SocketProvider } from '@/context/SocketContext';
+import { AuthModalProvider } from '@/context/AuthModalContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AuthModal from '@/components/AuthModal';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -46,12 +48,15 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SocketProvider>
-          <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Navbar />
-            <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
-            <ToastContainer position="bottom-right" theme="colored" />
-            <Footer />
-          </div>
+          <AuthModalProvider>
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              <Navbar />
+              <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
+              <ToastContainer position="bottom-right" theme="colored" />
+              <Footer />
+              <AuthModal />
+            </div>
+          </AuthModalProvider>
         </SocketProvider>
       </body>
     </html>

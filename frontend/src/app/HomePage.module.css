@@ -74,6 +74,12 @@
   margin-top: 2rem;
 }
 
+.endOfList {
+  margin-top: 2rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 /* Media Queries for larger screens */
 @media (min-width: 768px) {
   .hero {

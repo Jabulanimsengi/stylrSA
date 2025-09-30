@@ -29,7 +29,11 @@ export interface Salon {
   isAvailableNow: boolean;
   contactEmail?: string;
   phoneNumber?: string;
-  isFavorited?: boolean; // New property
+  whatsapp?: string;
+  website?: string;
+  isFavorited?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Service {
@@ -87,7 +91,7 @@ export interface Conversation {
 export interface Notification {
   id: string;
   message: string;
-  read: boolean;
+  isRead: boolean;
   createdAt: string;
   link?: string;
 }

@@ -1,0 +1,30 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.modalContent {
+  position: relative;
+  background-color: transparent; /* Card will provide the background */
+  border-radius: 0.5rem;
+  padding: 0; /* Remove padding */
+  width: 100%;
+  max-width: 28rem;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  z-index: 10;
+}

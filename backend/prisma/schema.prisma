@@ -38,6 +38,8 @@ model Salon {
   longitude       Float?
   contactEmail    String?
   phoneNumber     String?
+  whatsapp        String?        // New field
+  website         String?        // New field
   bookingType     BookingType    @default(ONSITE)
   offersMobile    Boolean        @default(false)
   mobileFee       Float?
@@ -96,7 +98,7 @@ model Booking {
   totalCost   Float
   status      BookingStatus @default(PENDING)
   createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  updatedAt   DateTime       @updatedAt
   userId      String
   user        User          @relation(fields: [userId], references: [id])
   salonId     String

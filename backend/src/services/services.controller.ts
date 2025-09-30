@@ -9,6 +9,9 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -30,6 +33,15 @@ export class PublicServicesController {
   @Get('services/featured')
   findFeatured() {
     return this.servicesService.findFeatured();
+  }
+
+  // NEW: Endpoint for all approved services with pagination
+  @Get('services')
+  findAllApproved(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(12), ParseIntPipe) pageSize: number,
+  ) {
+    return this.servicesService.findAllApproved(page, pageSize);
   }
 }
 

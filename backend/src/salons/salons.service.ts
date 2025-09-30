@@ -12,7 +12,6 @@ export class SalonsService {
     private eventsGateway: EventsGateway,
   ) {}
 
-  // ... (create, findAllApproved, findOne, findMySalon methods remain the same) ...
   async create(userId: string, dto: CreateSalonDto) {
     const existingSalon = await this.prisma.salon.findUnique({
       where: { ownerId: userId },
@@ -113,7 +112,13 @@ export class SalonsService {
       isFavorited = !!favorite;
     }
 
-    return { ...salon, isFavorited };
+    // Conditionally return contact info
+    if (user) {
+      return { ...salon, isFavorited };
+    } else {
+      const { contactEmail, phoneNumber, whatsapp, website, ...publicSalon } = salon as Salon & { whatsapp?: string, website?: string };
+      return { ...publicSalon, isFavorited };
+    }
   }
 
   async findMySalon(userId: string) {
@@ -137,7 +142,6 @@ export class SalonsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    // FIX: Map bookingTime to bookingDate for frontend consistency
     return bookings.map(booking => {
       const { user, bookingTime, ...rest } = booking;
       return { ...rest, bookingDate: bookingTime, client: user };

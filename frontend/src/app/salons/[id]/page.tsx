@@ -1,11 +1,10 @@
-// frontend/src/app/salons/[id]/page.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Head from 'next/head';
 import Link from 'next/link';
-import { FaHome, FaArrowLeft, FaHeart } from 'react-icons/fa';
+import { FaHome, FaArrowLeft, FaHeart, FaWhatsapp, FaGlobe } from 'react-icons/fa';
 import { Salon, Service, GalleryImage } from '@/types';
 import BookingModal from '@/components/BookingModal';
 import styles from './SalonProfile.module.css';
@@ -186,6 +185,10 @@ export default function SalonProfilePage() {
 
   const galleryImageUrls = galleryImages.map(img => img.imageUrl);
 
+  const mapSrc = salon.latitude && salon.longitude
+    ? `https://maps.google.com/maps?q=${salon.latitude},${salon.longitude}&hl=es;z=14&amp;output=embed`
+    : '';
+
   return (
     <>
       <Head>
@@ -299,8 +302,31 @@ export default function SalonProfilePage() {
                 </Accordion>
                 <Accordion title="Location & Contact">
                    <p><strong>Address:</strong> {salon.town}, {salon.city}, {salon.province}</p>
-                   {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
-                   {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
+                   {authStatus === 'authenticated' ? (
+                     <>
+                       {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
+                       {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
+                       {salon.whatsapp && <p><strong><FaWhatsapp /> WhatsApp:</strong> <a href={`https://wa.me/${salon.whatsapp}`} target="_blank" rel="noopener noreferrer">{salon.whatsapp}</a></p>}
+                       {salon.website && <p><strong><FaGlobe /> Website:</strong> <a href={salon.website} target="_blank" rel="noopener noreferrer">{salon.website}</a></p>}
+                       
+                       {mapSrc && (
+                         <div className={styles.mapContainer}>
+                           <iframe
+                             width="100%"
+                             height="300"
+                             style={{ border: 0, borderRadius: '0.5rem', marginTop: '1rem' }}
+                             loading="lazy"
+                             allowFullScreen
+                             src={mapSrc}>
+                           </iframe>
+                         </div>
+                       )}
+                     </>
+                   ) : (
+                     <p className={styles.loginPrompt}>
+                       <Link href="/login">Log in</Link> to view detailed contact information and map.
+                     </p>
+                   )}
                 </Accordion>
                  <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
                    {salon.reviews && salon.reviews.length > 0 ? (
