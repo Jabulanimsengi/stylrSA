@@ -99,11 +99,16 @@
   background-color: var(--white);
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--secondary-blush);
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid var(--light-silver); /* Changed border color */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); /* Enhanced shadow */
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Added transition */
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 .card h4 {
   font-size: 1.25rem;

@@ -59,7 +59,9 @@
 }
 
 .mobileIcons {
-  display: none; /* Hidden by default */
+  display: flex; /* Changed */
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .hamburger {
@@ -133,6 +135,10 @@
   border-bottom: 1px solid var(--light-silver);
   font-size: 0.9rem;
   cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .notificationItem:last-child {
@@ -145,6 +151,20 @@
 
 .notificationItem.unread {
   background-color: var(--soft-pastel-pink);
+}
+
+.deleteNotificationButton {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.deleteNotificationButton:hover {
+  color: var(--error-red);
 }
 
 .noNotifications {
@@ -181,12 +201,6 @@
   .hamburger {
     display: block;
   }
-
-  .mobileIcons {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
   
   .mobileAuthActions {
     flex-direction: column;
@@ -200,10 +214,4 @@
   .linksContainer .iconButton {
       display: none;
   }
-}
-
-@media (min-width: 993px) {
-    .mobileIcons {
-        display: flex;
-    }
 }

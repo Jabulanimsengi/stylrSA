@@ -1,18 +1,17 @@
 /* frontend/src/app/chat/ChatLayout.module.css */
 .chatContainer {
   display: grid;
-  /* --- CHANGE: Mobile-first, one column by default --- */
-  grid-template-columns: 1fr; 
+  grid-template-columns: 1fr; /* Mobile-first: one column */
   height: calc(100vh - 78px);
-  background-color: var(--white);
+  background-color: #f0f2f5; /* Light grey background for the whole container */
   color: var(--text-charcoal);
-  overflow: hidden; /* Prevent scrolling issues on mobile */
+  overflow: hidden;
 }
 
-/* --- NEW: Media query for desktop screens --- */
+/* Two columns on larger screens */
 @media (min-width: 768px) {
   .chatContainer {
-    grid-template-columns: 320px 1fr; /* Two columns on larger screens */
+    grid-template-columns: 320px 1fr; 
   }
 }
 
@@ -20,6 +19,7 @@
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
+  background-color: var(--white); /* Ensures sidebar is not transparent */
 }
 
 .sidebarHeader {
@@ -43,6 +43,8 @@
   border-bottom: 1px solid #f0f0f0;
   color: var(--text-charcoal);
   cursor: pointer;
+  transition: background-color 0.2s ease;
+  background-color: var(--white); /* Explicitly set background */
 }
 
 .conversationLink:hover {
@@ -72,14 +74,14 @@
   height: 100%;
 }
 
-/* --- NEW: Mobile-specific classes to hide panels --- */
+/* Mobile-specific classes to hide/show panels */
 .mobileHidden {
   display: none;
 }
 
 @media (min-width: 768px) {
   .mobileHidden {
-    display: flex; /* Or 'grid', depending on the element */
+    display: flex;
   }
   .desktopHidden {
     display: none;

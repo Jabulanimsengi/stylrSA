@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -27,6 +27,18 @@ export class NotificationsService {
     return this.prisma.notification.updateMany({
       where: { id: notificationId, userId: userId },
       data: { isRead: true },
+    });
+  }
+
+  async deleteNotification(notificationId: string, userId: string) {
+    const notification = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+    });
+    if (!notification || notification.userId !== userId) {
+      throw new ForbiddenException('Cannot delete this notification.');
+    }
+    return this.prisma.notification.delete({
+      where: { id: notificationId },
     });
   }
 }

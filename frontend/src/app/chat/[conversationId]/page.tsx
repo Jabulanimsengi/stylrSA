@@ -23,19 +23,28 @@ export default function ChatPage() {
   const fetchChatData = useCallback(async () => {
     setIsLoading(true);
     const token = localStorage.getItem('access_token');
+    if (!token) {
+        router.push('/login');
+        return;
+    }
     const headers = { Authorization: `Bearer ${token}` };
 
-    const [convoRes, messagesRes] = await Promise.all([
-      fetch(`http://localhost:3000/api/chat/conversations/details/${params.conversationId}`, { headers }),
-      fetch(`http://localhost:3000/api/chat/conversations/${params.conversationId}`, { headers }),
-    ]);
+    try {
+      const [convoRes, messagesRes] = await Promise.all([
+        fetch(`http://localhost:3000/api/chat/conversations/details/${params.conversationId}`, { headers }),
+        fetch(`http://localhost:3000/api/chat/conversations/${params.conversationId}`, { headers }),
+      ]);
 
-    if (convoRes.ok && messagesRes.ok) {
-      setConversation(await convoRes.json());
-      setMessages(await messagesRes.json());
+      if (convoRes.ok && messagesRes.ok) {
+        setConversation(await convoRes.json());
+        setMessages(await messagesRes.json());
+      }
+    } catch (error) {
+      console.error("Failed to fetch chat data:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  }, [params.conversationId]);
+  }, [params.conversationId, router]);
 
   useEffect(() => {
     if (params.conversationId) {
@@ -43,9 +52,15 @@ export default function ChatPage() {
     }
   }, [params.conversationId, fetchChatData]);
   
+  // FIX: Make scrolling smoother by ensuring it happens after the DOM updates.
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!isLoading) {
+      const timer = setTimeout(() => {
+        messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50); // A small delay ensures the DOM is ready for a smooth scroll.
+      return () => clearTimeout(timer);
+    }
+  }, [messages, isLoading]);
 
   useEffect(() => {
     if (socket) {
@@ -77,7 +92,7 @@ export default function ChatPage() {
       createdAt: new Date().toISOString(),
       senderId: userId,
       conversationId: params.conversationId,
-      delivered: false
+      delivered: false // Temp status
     };
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');

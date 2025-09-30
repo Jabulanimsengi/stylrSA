@@ -12,6 +12,7 @@ export class SalonsService {
     private eventsGateway: EventsGateway,
   ) {}
 
+  // ... (create, findAllApproved, findOne, findMySalon methods remain the same) ...
   async create(userId: string, dto: CreateSalonDto) {
     const existingSalon = await this.prisma.salon.findUnique({
       where: { ownerId: userId },
@@ -127,13 +128,19 @@ export class SalonsService {
 
   async findBookingsForMySalon(userId: string) {
     const salon = await this.findMySalon(userId);
-    return this.prisma.booking.findMany({
+    const bookings = await this.prisma.booking.findMany({
       where: { salonId: salon.id },
       include: {
         user: { select: { firstName: true, lastName: true } },
         service: { select: { title: true } },
       },
       orderBy: { createdAt: 'desc' },
+    });
+
+    // FIX: Map bookingTime to bookingDate for frontend consistency
+    return bookings.map(booking => {
+      const { user, bookingTime, ...rest } = booking;
+      return { ...rest, bookingDate: bookingTime, client: user };
     });
   }
 

@@ -8,6 +8,7 @@ import Spinner from '@/components/Spinner';
 import ReviewModal from '@/components/ReviewModal';
 import Link from 'next/link';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
+import { useSocket } from '@/context/SocketContext'; // Import useSocket
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -15,6 +16,7 @@ export default function MyBookingsPage() {
   const [reviewingBookingId, setReviewingBookingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const router = useRouter();
+  const socket = useSocket(); // Get socket instance
 
   const fetchBookings = async () => {
     setIsLoading(true);
@@ -23,11 +25,14 @@ export default function MyBookingsPage() {
       router.push('/login');
       return;
     }
-    const res = await fetch('http://localhost:3000/api/bookings/mine', {
+    const res = await fetch('http://localhost:3000/api/bookings/my-bookings', {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
-      setBookings(await res.json());
+      const data = await res.json();
+      // The backend now returns bookingTime, map it to bookingDate
+      const formattedData = data.map((b: any) => ({...b, bookingDate: b.bookingTime}));
+      setBookings(formattedData);
     }
     setIsLoading(false);
   };
@@ -35,6 +40,19 @@ export default function MyBookingsPage() {
   useEffect(() => {
     fetchBookings();
   }, []);
+
+  // FIX: Listen for real-time booking updates
+  useEffect(() => {
+    if (socket) {
+      const handleBookingUpdate = (updatedBooking: Booking) => {
+        fetchBookings(); // Refetch all bookings to get the latest state
+      };
+      socket.on('bookingUpdate', handleBookingUpdate);
+      return () => {
+        socket.off('bookingUpdate', handleBookingUpdate);
+      };
+    }
+  }, [socket]);
 
   const handleReviewSubmitted = () => {
     setReviewingBookingId(null);

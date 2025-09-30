@@ -7,14 +7,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
-import { FaBell, FaEnvelope, FaBars, FaTimes } from 'react-icons/fa';
+import { FaBell, FaEnvelope, FaBars, FaTimes, FaTrash } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
 
 interface Notification {
   id: string;
   message: string;
-  read: boolean;
+  isRead: boolean;
   createdAt: string;
   link?: string;
 }
@@ -30,7 +30,7 @@ export default function Navbar() {
   const socket = useSocket();
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const fetchNotifications = async () => {
     const token = localStorage.getItem('access_token');
@@ -78,16 +78,29 @@ export default function Navbar() {
 
   const handleNotificationClick = async (notif: Notification) => {
     const token = localStorage.getItem('access_token');
-    await fetch(`http://localhost:3000/api/notifications/${notif.id}/read`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    if (!notif.isRead) {
+      await fetch(`http://localhost:3000/api/notifications/${notif.id}/read`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    }
     fetchNotifications();
     setShowNotifications(false);
     if(notif.link) {
       router.push(notif.link)
     }
   };
+
+  const handleNotificationDelete = async (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation(); // Prevent the click from navigating
+    const token = localStorage.getItem('access_token');
+    await fetch(`http://localhost:3000/api/notifications/${notificationId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+  };
+
 
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
@@ -96,7 +109,9 @@ export default function Navbar() {
   const confirmLogout = () => {
     localStorage.removeItem('access_token');
     setIsLogoutModalOpen(false);
-    setAuthStatus('unauthenticated');
+    if (setAuthStatus) {
+      setAuthStatus('unauthenticated');
+    }
     router.push('/');
     setIsMenuOpen(false);
   };
@@ -137,8 +152,11 @@ export default function Navbar() {
                         <div className={styles.dropdown}>
                           <div className={styles.dropdownHeader}>Notifications</div>
                           {notifications.length > 0 ? notifications.map(notif => (
-                            <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}>
-                              {notif.message}
+                            <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.isRead ? styles.unread : ''}`}>
+                              <span>{notif.message}</span>
+                              <button onClick={(e) => handleNotificationDelete(e, notif.id)} className={styles.deleteNotificationButton}>
+                                <FaTrash />
+                              </button>
                             </div>
                           )) : <div className={styles.noNotifications}>No notifications yet.</div>}
                         </div>

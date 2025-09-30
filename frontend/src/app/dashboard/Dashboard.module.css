@@ -182,8 +182,15 @@ input:checked + .slider:before {
   padding: 1.5rem;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-  border: 1px solid var(--secondary-blush);
+  border: 1px solid var(--light-silver); /* Changed border color */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Added transition */
 }
+
+.contentCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
 
 .cardHeader {
   display: flex;

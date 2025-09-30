@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Patch, Param } from '@nestjs/common';
+import { Controller, Get, UseGuards, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
@@ -17,5 +17,11 @@ export class NotificationsController {
   @Patch(':id/read')
   markAsRead(@Param('id') id: string, @GetUser() user: User) {
     return this.notificationsService.markAsRead(id, user.id);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteNotification(@Param('id') id: string, @GetUser() user: User) {
+    return this.notificationsService.deleteNotification(id, user.id);
   }
 }
