@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/context/SocketContext';
 import { ChatMessage, Conversation } from '@/types';
 import styles from './ChatPage.module.css';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { FaArrowLeft } from 'react-icons/fa';
 
 export default function ChatPage() {
@@ -52,12 +52,11 @@ export default function ChatPage() {
     }
   }, [params.conversationId, fetchChatData]);
   
-  // FIX: Make scrolling smoother by ensuring it happens after the DOM updates.
   useEffect(() => {
     if (!isLoading) {
       const timer = setTimeout(() => {
         messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50); // A small delay ensures the DOM is ready for a smooth scroll.
+      }, 50); 
       return () => clearTimeout(timer);
     }
   }, [messages, isLoading]);
@@ -100,7 +99,7 @@ export default function ChatPage() {
   
   const otherParticipant = conversation?.user1.id === userId ? conversation?.user2 : conversation?.user1;
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <LoadingSpinner />;
 
   return (
     <div className={styles.chatWindow}>

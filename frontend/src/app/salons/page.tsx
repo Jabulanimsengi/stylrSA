@@ -1,4 +1,3 @@
-// frontend/src/app/salons/page.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -6,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import FilterBar from '@/components/FilterBar/FilterBar';
 
@@ -16,7 +15,7 @@ export default function SalonsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const getInitialFilters = () => {
+  const getInitialFilters = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
     return {
       province: params.get('province') || '',
@@ -28,7 +27,7 @@ export default function SalonsPage() {
       lat: params.get('lat') || null,
       lon: params.get('lon') || null,
     };
-  };
+  }, [searchParams]);
   
   const [initialFilters] = useState(getInitialFilters);
 
@@ -47,7 +46,10 @@ export default function SalonsPage() {
         if (filters.offersMobile) query.append('offersMobile', 'true');
         if (filters.sortBy) query.append('sortBy', filters.sortBy);
         if (filters.openOn) query.append('openOn', filters.openOn);
-        url = `http://localhost:3000/api/salons?${query.toString()}`;
+        const queryString = query.toString();
+        if (queryString) {
+            url = `http://localhost:3000/api/salons?${queryString}`;
+        }
     }
     
     try {
@@ -64,8 +66,8 @@ export default function SalonsPage() {
   }, []);
 
   useEffect(() => {
-    fetchSalons(initialFilters);
-  }, [initialFilters, fetchSalons]);
+    fetchSalons(getInitialFilters());
+  }, [getInitialFilters, fetchSalons]);
 
 
   return (
@@ -82,7 +84,7 @@ export default function SalonsPage() {
       <FilterBar onSearch={fetchSalons} initialFilters={initialFilters} />
 
       {isLoading ? (
-        <Spinner />
+        <LoadingSpinner />
       ) : salons.length === 0 ? (
         <p>No salons found matching your criteria.</p>
       ) : (

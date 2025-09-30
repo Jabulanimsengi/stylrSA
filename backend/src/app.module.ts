@@ -15,8 +15,9 @@ import { EventsModule } from './events/events.module';
 import { ChatModule } from './chat/chat.module';
 import { LikesModule } from './likes/likes.module';
 import { NotificationsModule } from './notifications/notifications.module';
-import { GalleryModule } from './gallery/gallery.module'; // Import the new module
+import { GalleryModule } from './gallery/gallery.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { LocationsModule } from './locations/locations.module';
 
 @Module({
   imports: [
@@ -36,8 +37,9 @@ import { FavoritesModule } from './favorites/favorites.module';
     ChatModule,
     LikesModule,
     NotificationsModule,
-    GalleryModule, 
-    FavoritesModule, // Add the new module here
+    GalleryModule,
+    FavoritesModule,
+    LocationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

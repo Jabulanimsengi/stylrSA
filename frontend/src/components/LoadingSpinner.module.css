@@ -1,18 +1,18 @@
-/* frontend/src/components/Spinner.module.css */
-
-.spinnerContainer {
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 4rem;
-  min-height: 300px;
+  z-index: 9999;
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 5px solid var(--secondary-blush);
-  border-bottom-color: var(--primary-plum);
+  width: 60px;
+  height: 60px;
+  border: 6px solid var(--light-silver); /* FIX: Used a defined variable for the track */
+  border-top-color: var(--primary-pink);   /* This is the spinning part */
   border-radius: 50%;
   display: inline-block;
   box-sizing: border-box;

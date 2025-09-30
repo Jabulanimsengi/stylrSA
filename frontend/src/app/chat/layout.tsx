@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import styles from './ChatLayout.module.css';
 import { useSocket } from '@/context/SocketContext';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -58,14 +58,14 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   };
 
   if (authStatus === 'loading') {
-    return <Spinner />;
+    return <LoadingSpinner />;
   }
 
   return (
     <div className={styles.chatContainer}>
       <aside className={`${styles.sidebar} ${isConversationActive ? styles.mobileHidden : ''}`}>
         <div className={styles.sidebarHeader}>Conversations</div>
-        {isLoading ? <Spinner /> : (
+        {isLoading ? <LoadingSpinner /> : (
           <div className={styles.conversationList}>
             {conversations.map(convo => {
               const otherParticipant = getOtherParticipant(convo);

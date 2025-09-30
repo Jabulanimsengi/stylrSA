@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import styles from './AdminPage.module.css';
 import { Salon, Service, ApprovalStatus, Review } from '@/types';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface DecodedToken { role: string; }
 
@@ -77,7 +77,7 @@ export default function AdminPage() {
     if (type === 'review') setPendingReviews(pendingReviews.filter(r => r.id !== id));
   };
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <LoadingSpinner />;
 
   return (
     <div className={styles.container}>

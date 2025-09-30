@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Booking } from '@/types';
 import styles from './MyBookingsPage.module.css';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import ReviewModal from '@/components/ReviewModal';
 import Link from 'next/link';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
@@ -41,7 +41,6 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, []);
 
-  // FIX: Listen for real-time booking updates
   useEffect(() => {
     if (socket) {
       const handleBookingUpdate = (updatedBooking: Booking) => {
@@ -79,7 +78,7 @@ export default function MyBookingsPage() {
   const pastBookings = bookings.filter(b => b.status === 'COMPLETED' || b.status === 'DECLINED');
   const bookingsToShow = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <LoadingSpinner />;
 
   return (
     <>

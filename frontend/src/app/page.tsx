@@ -7,7 +7,7 @@ import FilterBar from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Service } from '@/types';
 import FeaturedServiceCard from '@/components/FeaturedServiceCard';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 type ServiceWithSalon = Service & { salon: { id: string; name: string } };
 
@@ -19,7 +19,6 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const loader = useRef(null);
   
-  // FIX: Initialize the ref with null and update its type
   const observer = useRef<IntersectionObserver | null>(null);
 
   const fetchServices = useCallback(async (pageNum: number) => {
@@ -28,7 +27,6 @@ export default function HomePage() {
       const res = await fetch(`http://localhost:3000/api/services?page=${pageNum}&pageSize=12`);
       if (res.ok) {
         const data = await res.json();
-        // Prevent duplicate keys by using a Set
         setServices(prev => {
           const allServices = [...prev, ...data.services];
           const uniqueServices = Array.from(new Map(allServices.map(item => [item.id, item])).values());
@@ -47,12 +45,10 @@ export default function HomePage() {
     }
   }, []);
 
-  // Effect for the initial data fetch
   useEffect(() => {
     fetchServices(1);
   }, [fetchServices]);
 
-  // This callback will be executed when the loader element is visible
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const target = entries[0];
     if (target.isIntersecting && !isLoading && hasMore) {
@@ -60,7 +56,6 @@ export default function HomePage() {
     }
   }, [isLoading, hasMore, page, fetchServices]);
 
-  // Effect to set up the IntersectionObserver
   useEffect(() => {
     const option = {
       root: null,
@@ -89,6 +84,7 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
+      {isLoading && page === 1 && <LoadingSpinner />}
       <section className={styles.hero}>
         <div className={styles.heroOverlay}>
           <h1 className={styles.heroTitle}>Find & Book Your Next Salon Visit</h1>
@@ -107,9 +103,7 @@ export default function HomePage() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>
         
-        {isLoading && page === 1 ? (
-          <Spinner />
-        ) : (
+        {services.length > 0 && (
           <div className={styles.grid}>
             {services.map((service) => (
               <FeaturedServiceCard key={service.id} service={service} />
@@ -117,12 +111,8 @@ export default function HomePage() {
           </div>
         )}
         
-        {/* The loader element for the observer to watch */}
         <div ref={loader} />
         
-        {/* Show spinner only when loading subsequent pages */}
-        {isLoading && page > 1 && <Spinner />}
-
         {!hasMore && services.length > 0 && (
           <p className={styles.endOfList}>You've reached the end!</p>
         )}

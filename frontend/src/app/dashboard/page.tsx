@@ -7,7 +7,7 @@ import styles from './Dashboard.module.css';
 import ServiceFormModal from '@/components/ServiceFormModal';
 import EditSalonModal from '@/components/EditSalonModal';
 import { useSocket } from '@/context/SocketContext';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import GalleryUploadModal from '@/components/GalleryUploadModal';
 import { FaTrash, FaHome, FaArrowLeft } from 'react-icons/fa';
@@ -61,7 +61,8 @@ export default function DashboardPage() {
           fetch(`http://localhost:3000/api/gallery/salon/${salonData.id}`, { headers }),
         ]);
         setServices(await servicesRes.json());
-        setBookings(await bookingsRes.json());
+        const bookingsData = await bookingsRes.json();
+        setBookings(Array.isArray(bookingsData) ? bookingsData : []);
         setGalleryImages(await galleryRes.json());
 
       } catch (err: any) {
@@ -76,7 +77,10 @@ export default function DashboardPage() {
   useEffect(() => {
     if (socket) {
       socket.on('newBooking', (newBooking: DashboardBooking) => {
-        setBookings(prev => [newBooking, ...prev]);
+        setBookings(prev => {
+          const prevBookings = Array.isArray(prev) ? prev : [];
+          return [newBooking, ...prevBookings];
+        });
         toast.info(`New booking request for ${newBooking.service.title}!`);
       });
       return () => { socket.off('newBooking'); };
@@ -174,7 +178,7 @@ export default function DashboardPage() {
     return styles.statusRejected;
   };
 
-  if (isLoading || salon === undefined) return <Spinner />;
+  if (isLoading || salon === undefined) return <LoadingSpinner />;
   if (error) return <div className={styles.container}><p style={{ color: 'var(--error-red)' }}>{error}</p></div>;
 
   if (!salon) {

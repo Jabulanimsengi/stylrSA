@@ -8,7 +8,7 @@ import { FaHome, FaArrowLeft, FaHeart, FaWhatsapp, FaGlobe } from 'react-icons/f
 import { Salon, Service, GalleryImage } from '@/types';
 import BookingModal from '@/components/BookingModal';
 import styles from './SalonProfile.module.css';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
@@ -180,13 +180,13 @@ export default function SalonProfilePage() {
   
   const operatingDays = salon?.operatingHours ? Object.keys(salon.operatingHours) : [];
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <LoadingSpinner />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
 
   const galleryImageUrls = galleryImages.map(img => img.imageUrl);
 
   const mapSrc = salon.latitude && salon.longitude
-    ? `https://maps.google.com/maps?q=${salon.latitude},${salon.longitude}&hl=es;z=14&amp;output=embed`
+    ? `https://maps.google.com/maps?q=${salon.latitude},${salon.longitude}&hl=es;z=14&output=embed`
     : '';
 
   return (
@@ -194,7 +194,7 @@ export default function SalonProfilePage() {
       <Head>
         <title>{`${salon.name} - The Salon Hub`}</title>
         <meta name="description" content={`Find the best beauty services at ${salon.name} in ${salon.city}. Book online today!`} />
-        <meta name="keywords" content={`salon, ${salon.name}, ${salon.city}, beauty, haircut, nails, booking`} />
+        <meta name="keywords" content={`salon, ${salon.name}, ${salon.city}, beauty, haircut, nails, stylist, hairdresser`} />
         <meta property="og:title" content={`${salon.name} - The Salon Hub`} />
         <meta property="og:description" content={`Find the best beauty services at ${salon.name} in ${salon.city}. Book online today!`} />
         <meta property="og:image" content={salon.backgroundImage || '/logo-transparent.png'} />

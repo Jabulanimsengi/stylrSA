@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './MyFavoritesPage.module.css';
-import Spinner from '@/components/Spinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
 
@@ -43,7 +43,7 @@ export default function MyFavoritesPage() {
   }, [router]);
 
   if (isLoading) {
-    return <Spinner />;
+    return <LoadingSpinner />;
   }
 
   return (
