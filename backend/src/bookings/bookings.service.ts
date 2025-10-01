@@ -60,7 +60,7 @@ export class BookingsService {
       throw new Error('Booking not found');
     }
 
-    if (user.role !== UserRole.SALON_OWNER || booking.salon.ownerId !== user.id) {
+    if (user.role !== UserRole.ADMIN && booking.salon.ownerId !== user.id) {
       throw new UnauthorizedException('You do not have permission to update this booking.');
     }
 

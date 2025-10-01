@@ -129,8 +129,8 @@ export default function FilterBar({
         >
           <option value="">All Cities</option>
           {province &&
-            locations[province]?.map((c: string) => (
-              <option key={c} value={c}>
+            locations[province]?.map((c: string, index: number) => (
+              <option key={`${c}-${index}`} value={c}>
                 {c}
               </option>
             ))}

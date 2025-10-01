@@ -23,7 +23,7 @@ export class GalleryController {
     @Param('salonId') salonId: string,
     @Body() dto: CreateGalleryImageDto,
   ) {
-    return this.galleryService.addImage(user.id, salonId, dto);
+    return this.galleryService.addImage(user, salonId, dto);
   }
   
   // Delete an image from a gallery (Salon Owner)
@@ -34,6 +34,6 @@ export class GalleryController {
     @GetUser() user: User,
     @Param('imageId') imageId: string,
   ) {
-    return this.galleryService.deleteImage(user.id, imageId);
+    return this.galleryService.deleteImage(user, imageId);
   }
 }

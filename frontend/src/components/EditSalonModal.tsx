@@ -4,6 +4,8 @@ import React, { useState, FormEvent, useEffect } from 'react';
 import { Salon } from '@/types';
 import styles from './EditSalonModal.module.css';
 import { toast } from 'react-toastify';
+import { useAuth } from '@/hooks/useAuth';
+import { useSearchParams } from 'next/navigation';
 
 interface EditSalonModalProps {
   salon: Salon;
@@ -75,6 +77,9 @@ export default function EditSalonModal({
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const isNewSalon = !salon.id;
+  const { userRole } = useAuth();
+  const searchParams = useSearchParams();
+  const ownerId = userRole === 'ADMIN' ? searchParams.get('ownerId') : undefined;
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -210,10 +215,15 @@ export default function EditSalonModal({
           finalData.operatingHours[day] &&
           finalData.operatingHours[day].toLowerCase().trim() !== 'closed'
       );
-
-      const apiEndpoint = isNewSalon
+      
+      let apiEndpoint = isNewSalon
         ? 'http://localhost:3000/api/salons'
         : 'http://localhost:3000/api/salons/mine';
+
+      if (ownerId) {
+        apiEndpoint += `?ownerId=${ownerId}`;
+      }
+      
       const method = isNewSalon ? 'POST' : 'PATCH';
 
       const res = await fetch(apiEndpoint, {

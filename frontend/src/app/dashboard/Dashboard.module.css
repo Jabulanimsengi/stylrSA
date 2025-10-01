@@ -192,8 +192,8 @@ input:checked + .slider:before {
   padding: 1.5rem;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-  border: 1px solid var(--light-silver); /* Changed border color */
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Added transition */
+  border: 1px solid var(--light-silver);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .contentCard:hover {
@@ -218,30 +218,36 @@ input:checked + .slider:before {
   margin: 0;
 }
 
+/* --- BOOKING STYLES START --- */
 .tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
+  gap: 1rem;
   border-bottom: 1px solid var(--secondary-blush);
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .tabButton {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  background: #f8f8f8;
+  padding: 0.75rem 0.25rem;
+  border: none;
+  background: none;
   cursor: pointer;
-  border-radius: 0.375rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.tabButton:hover {
+  color: var(--primary-plum);
 }
 
 .activeTab {
-  background-color: var(--secondary-blush);
-  border-color: var(--primary-plum);
   color: var(--primary-plum);
+  border-bottom-color: var(--primary-plum);
 }
+/* --- BOOKING STYLES END --- */
+
 
 .list {
   display: flex;
@@ -249,9 +255,15 @@ input:checked + .slider:before {
   gap: 1rem;
 }
 
+.list p {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 0;
+}
+
 .listItem {
-  border-top: 1px solid #f0f0f0;
-  padding-top: 1rem;
+  border-bottom: 1px solid var(--light-silver);
+  padding-bottom: 1rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -259,9 +271,17 @@ input:checked + .slider:before {
   gap: 1rem;
 }
 
+.listItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+
 .listItemInfo p { margin: 0; }
-.date { font-size: 0.9rem; color: #718096; }
-.actions { display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+.listItemInfo strong { color: var(--dark-gray); }
+
+.date { font-size: 0.9rem; color: var(--text-muted); }
+.actions { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
 .statusBadge { padding: 0.25rem 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 9999px; }
 .statusApproved { background-color: #C6F6D5; color: #22543D; }
 .statusPending { background-color: #FEFCBF; color: #744210; }
@@ -269,12 +289,27 @@ input:checked + .slider:before {
 .editButton, .deleteButton { background: none; border: none; cursor: pointer; font-weight: 500; text-decoration: underline; padding: 0; }
 .editButton { color: var(--primary-plum); }
 .deleteButton { color: var(--error-red); }
-.approveButton, .rejectButton { padding: 0.5rem 1rem; border-radius: 0.375rem; border: none; color: var(--white); font-weight: 600; cursor: pointer; }
-.approveButton { background-color: var(--muted-teal); }
-.rejectButton { background-color: var(--error-red); }
-.bookingsList { display: flex; flex-direction: column; gap: 1rem; }
-.bookingItem { border-top: 1px solid #f0f0f0; padding-top: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; }
-.bookingActions { display: flex; gap: 0.5rem; }
+
+/* --- BOOKING BUTTON STYLES --- */
+.approveButton, .rejectButton { 
+  padding: 0.5rem 1rem; 
+  border-radius: 0.375rem; 
+  border: none; 
+  color: var(--white); 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: opacity 0.2s;
+}
+.approveButton:hover, .rejectButton:hover { 
+  opacity: 0.85;
+}
+.approveButton { 
+  background-color: var(--muted-teal); 
+}
+.rejectButton { 
+  background-color: var(--error-red); 
+}
+/* --- BOOKING STYLES END --- */
 
 .modalOverlay {
     position: fixed;

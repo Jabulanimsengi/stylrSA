@@ -6,18 +6,20 @@ import { jwtDecode } from 'jwt-decode';
 import styles from './AdminPage.module.css';
 import { Salon, Service, ApprovalStatus, Review } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import Link from 'next/link';
 
 interface DecodedToken { role: string; }
 
-type PendingSalon = Salon & { owner: { email: string } };
+type PendingSalon = Salon & { owner: { id: string; email: string } };
 type PendingService = Service & { salon: { name: string } };
 type PendingReview = Review & { salon: { name: string } };
 
 export default function AdminPage() {
   const [pendingSalons, setPendingSalons] = useState<PendingSalon[]>([]);
+  const [allSalons, setAllSalons] = useState<PendingSalon[]>([]); // New state for all salons
   const [pendingServices, setPendingServices] = useState<PendingService[]>([]);
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons'>('salons'); // Added 'all-salons' view
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -41,12 +43,14 @@ export default function AdminPage() {
     const fetchData = async () => {
       setIsLoading(true);
       const headers = { Authorization: `Bearer ${token}` };
-      const [salonsRes, servicesRes, reviewsRes] = await Promise.all([
+      const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes] = await Promise.all([
         fetch('http://localhost:3000/api/admin/salons/pending', { headers }),
+        fetch('http://localhost:3000/api/admin/salons/all', { headers }), // Fetch all salons
         fetch('http://localhost:3000/api/admin/services/pending', { headers }),
         fetch('http://localhost:3000/api/admin/reviews/pending', { headers }),
       ]);
-      setPendingSalons(await salonsRes.json());
+      setPendingSalons(await pendingSalonsRes.json());
+      setAllSalons(await allSalonsRes.json()); // Set all salons
       setPendingServices(await servicesRes.json());
       setPendingReviews(await reviewsRes.json());
       setIsLoading(false);
@@ -90,6 +94,12 @@ export default function AdminPage() {
           Pending Salons ({pendingSalons.length})
         </button>
         <button
+          onClick={() => setView('all-salons')}
+          className={`${styles.tabButton} ${view === 'all-salons' ? styles.activeTab : ''}`}
+        >
+          All Salons ({allSalons.length})
+        </button>
+        <button
           onClick={() => setView('services')}
           className={`${styles.tabButton} ${view === 'services' ? styles.activeTab : ''}`}
         >
@@ -112,6 +122,7 @@ export default function AdminPage() {
                 <p>Owner: {salon.owner.email}</p>
               </div>
               <div className={styles.actions}>
+                <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
                 <button onClick={() => handleUpdateStatus('salon', salon.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
                 <button onClick={() => handleUpdateStatus('salon', salon.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
               </div>
@@ -119,6 +130,20 @@ export default function AdminPage() {
           )) : <p>No pending salons.</p>
         )}
         
+        {view === 'all-salons' && (
+          allSalons.length > 0 ? allSalons.map(salon => (
+            <div key={salon.id} className={styles.listItem}>
+              <div className={styles.info}>
+                <h4>{salon.name}</h4>
+                <p>Owner: {salon.owner.email} | Status: {salon.approvalStatus}</p>
+              </div>
+              <div className={styles.actions}>
+                <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
+              </div>
+            </div>
+          )) : <p>No salons found.</p>
+        )}
+
         {view === 'services' && (
           pendingServices.length > 0 ? pendingServices.map(service => (
             <div key={service.id} className={styles.listItem}>

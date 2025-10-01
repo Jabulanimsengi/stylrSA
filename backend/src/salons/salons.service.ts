@@ -45,19 +45,21 @@ export class SalonsService {
     return salon;
   }
 
-  async findAllApproved(filters: {
-    province?: string;
-    city?: string;
-    service?: string;
-    offersMobile?: string;
-    sortBy?: string;
-    openOn?: string;
-  }) {
+  async findAllApproved(
+    filters: {
+      province?: string;
+      city?: string;
+      service?: string;
+      offersMobile?: string;
+      sortBy?: string;
+      openOn?: string;
+    },
+    user: User | null,
+  ) {
     const where: Prisma.SalonWhereInput = {
       approvalStatus: ApprovalStatus.APPROVED,
     };
-    let orderBy: Prisma.SalonOrderByWithRelationInput = {};
-
+    
     if (filters.province) {
       where.province = { contains: filters.province, mode: 'insensitive' };
     }
@@ -80,11 +82,36 @@ export class SalonsService {
     if (filters.openOn) {
       where.operatingDays = { has: filters.openOn };
     }
+
+    const options: Prisma.SalonFindManyArgs = { where };
     if (filters.sortBy === 'top_rated') {
-      orderBy = { avgRating: 'desc' };
+      options.orderBy = { avgRating: 'desc' };
     }
 
-    return this.prisma.salon.findMany({ where, orderBy });
+    const salons = await this.prisma.salon.findMany(options);
+
+    if (!user) {
+      return salons.map((salon) => ({ ...salon, isFavorited: false }));
+    }
+
+    const favoriteSalons = await this.prisma.favorite.findMany({
+      where: {
+        userId: user.id,
+        salonId: {
+          in: salons.map((s) => s.id),
+        },
+      },
+      select: {
+        salonId: true,
+      },
+    });
+
+    const favoriteSalonIds = new Set(favoriteSalons.map((f) => f.salonId));
+
+    return salons.map((salon) => ({
+      ...salon,
+      isFavorited: favoriteSalonIds.has(salon.id),
+    }));
   }
 
   async findOne(id: string, user: User | null) {
@@ -121,18 +148,19 @@ export class SalonsService {
     }
   }
 
-  async findMySalon(userId: string) {
+  async findMySalon(user: User, salonOwnerId?: string) {
+    const ownerId = (user.role === UserRole.ADMIN && salonOwnerId) ? salonOwnerId : user.id;
     const salon = await this.prisma.salon.findUnique({
-      where: { ownerId: userId },
+      where: { ownerId },
     });
     if (!salon) {
-      throw new NotFoundException('You do not own a salon.');
+      throw new NotFoundException('Salon not found.');
     }
     return salon;
   }
 
-  async findBookingsForMySalon(userId: string) {
-    const salon = await this.findMySalon(userId);
+  async findBookingsForMySalon(user: User, ownerId?: string) {
+    const salon = await this.findMySalon(user, ownerId);
     const bookings = await this.prisma.booking.findMany({
       where: { salonId: salon.id },
       include: {
@@ -148,16 +176,16 @@ export class SalonsService {
     });
   }
 
-  async findServicesForMySalon(userId: string) {
-    const salon = await this.findMySalon(userId);
+  async findServicesForMySalon(user: User, ownerId?: string) {
+    const salon = await this.findMySalon(user, ownerId);
     return this.prisma.service.findMany({
       where: { salonId: salon.id },
       orderBy: { createdAt: 'desc' },
     });
   }
   
-  async updateMySalon(userId: string, dto: UpdateSalonDto) {
-    const salon = await this.findMySalon(userId);
+  async updateMySalon(user: User, dto: UpdateSalonDto, ownerId?: string) {
+    const salon = await this.findMySalon(user, ownerId);
     const dataToUpdate: Prisma.SalonUpdateInput = { ...dto, bookingType: dto.bookingType as BookingType };
     
     if (salon.approvalStatus === ApprovalStatus.APPROVED) {
@@ -181,8 +209,8 @@ export class SalonsService {
     return result;
   }
   
-  async toggleAvailability(userId: string) {
-    const salon = await this.findMySalon(userId);
+  async toggleAvailability(user: User, ownerId?: string) {
+    const salon = await this.findMySalon(user, ownerId);
     const updatedSalon = await this.prisma.salon.update({
       where: { id: salon.id },
       data: { isAvailableNow: !salon.isAvailableNow },

@@ -57,13 +57,13 @@ export class ServicesController {
     @GetUser() user: User,
     @Body() updateServiceDto: UpdateServiceDto,
   ) {
-    return this.servicesService.update(user.id, serviceId, updateServiceDto);
+    return this.servicesService.update(user, serviceId, updateServiceDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':serviceId')
   remove(@Param('serviceId') serviceId: string, @GetUser() user: User) {
-    return this.servicesService.remove(user.id, serviceId);
+    return this.servicesService.remove(user, serviceId);
   }
 }

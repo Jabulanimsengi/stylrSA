@@ -12,6 +12,11 @@ import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('salons/all')
+  getAllSalons() {
+    return this.adminService.getAllSalons();
+  }
+
   @Get('services/pending')
   getPendingServices() {
     return this.adminService.getPendingServices();

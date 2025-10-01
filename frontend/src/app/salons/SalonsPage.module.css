@@ -66,10 +66,9 @@
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
   overflow: hidden;
-  text-decoration: none;
-  color: var(--text-charcoal);
   border: 1px solid var(--light-silver);
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  position: relative; /* Added for positioning the button */
 }
 .salonCard:hover {
   transform: translateY(-5px);
@@ -95,6 +94,46 @@
   color: var(--text-muted);
   margin-top: 0.25rem;
 }
+.salonLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* Updated styles for favorite button */
+.favoriteButton {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.4); /* Darker semi-transparent background */
+  color: white; /* White icon for better contrast */
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Slightly stronger shadow */
+}
+
+.favoriteButton:hover {
+  background-color: rgba(0, 0, 0, 0.6); /* Even darker on hover */
+  transform: scale(1.1);
+  color: var(--primary-pink); /* Pink on hover */
+}
+
+.favoriteButton.favorited {
+  color: var(--primary-pink);
+  background-color: white; /* Still white background, but now pink heart */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Keep shadow for consistency */
+}
+/* End of updated styles */
+
 
 @media (max-width: 768px) {
   .stickyHeader {

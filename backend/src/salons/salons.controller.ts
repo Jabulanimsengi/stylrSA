@@ -22,13 +22,13 @@ export class SalonsController {
     @GetUser() user: User,
     @Body() createServiceDto: CreateServiceDto,
   ) {
-    return this.servicesService.create(user.id, salonId, createServiceDto);
+    return this.servicesService.create(user, salonId, createServiceDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('mine')
-  findMySalon(@GetUser() user: User) {
-    return this.salonsService.findMySalon(user.id);
+  findMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+    return this.salonsService.findMySalon(user, ownerId);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -37,8 +37,10 @@ export class SalonsController {
     return this.salonsService.create(user.id, createSalonDto);
   }
 
+  @UseGuards(AuthGuard(['jwt', 'anonymous']))
   @Get()
   findAllApproved(
+    @GetUser() user: User | null,
     @Query('province') province?: string,
     @Query('city') city?: string,
     @Query('service') service?: string,
@@ -46,7 +48,7 @@ export class SalonsController {
     @Query('sortBy') sortBy?: string,
     @Query('openOn') openOn?: string,
   ) {
-    return this.salonsService.findAllApproved({ province, city, service, offersMobile, sortBy, openOn });
+    return this.salonsService.findAllApproved({ province, city, service, offersMobile, sortBy, openOn }, user);
   }
   
   @Get('nearby')
@@ -59,14 +61,14 @@ export class SalonsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('mine')
-  updateMySalon(@GetUser() user: User, @Body() updateSalonDto: UpdateSalonDto) {
-    return this.salonsService.updateMySalon(user.id, updateSalonDto);
+  updateMySalon(@GetUser() user: User, @Body() updateSalonDto: UpdateSalonDto, @Query('ownerId') ownerId?: string) {
+    return this.salonsService.updateMySalon(user, updateSalonDto, ownerId);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('mine/availability')
-  toggleAvailability(@GetUser() user: User) {
-    return this.salonsService.toggleAvailability(user.id);
+  toggleAvailability(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+    return this.salonsService.toggleAvailability(user, ownerId);
   }
 
   @UseGuards(AuthGuard(['jwt', 'anonymous']))
@@ -77,13 +79,13 @@ export class SalonsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('mine/bookings')
-  findBookingsForMySalon(@GetUser() user: User) {
-    return this.salonsService.findBookingsForMySalon(user.id);
+  findBookingsForMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+    return this.salonsService.findBookingsForMySalon(user, ownerId);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('mine/services')
-  findServicesForMySalon(@GetUser() user: User) {
-    return this.salonsService.findServicesForMySalon(user.id);
+  findServicesForMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+    return this.salonsService.findServicesForMySalon(user, ownerId);
   }
 }

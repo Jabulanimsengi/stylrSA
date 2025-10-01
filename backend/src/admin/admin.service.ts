@@ -13,6 +13,13 @@ export class AdminService {
     });
   }
 
+  async getAllSalons() {
+    return this.prisma.salon.findMany({
+      include: { owner: { select: { id: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async updateSalonStatus(salonId: string, status: ApprovalStatus) {
     return this.prisma.salon.update({
       where: { id: salonId },

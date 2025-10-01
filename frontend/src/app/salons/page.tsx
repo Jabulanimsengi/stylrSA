@@ -6,14 +6,21 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { FaHome, FaArrowLeft } from 'react-icons/fa';
+import { FaHome, FaArrowLeft, FaHeart } from 'react-icons/fa';
 import FilterBar from '@/components/FilterBar/FilterBar';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthModal } from '@/context/AuthModalContext';
+import { toast } from 'react-toastify';
+
+type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
 export default function SalonsPage() {
-  const [salons, setSalons] = useState<Salon[]>([]);
+  const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { authStatus } = useAuth();
+  const { openModal } = useAuthModal();
 
   const getInitialFilters = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -36,6 +43,8 @@ export default function SalonsPage() {
     setIsLoading(true);
     let url = 'http://localhost:3000/api/salons';
     const query = new URLSearchParams();
+    const token = localStorage.getItem('access_token');
+    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
     if (filters.lat && filters.lon) {
        url = `http://localhost:3000/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
@@ -53,7 +62,7 @@ export default function SalonsPage() {
     }
     
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { headers });
       if (!res.ok) throw new Error('Failed to fetch salons');
       const data = await res.json();
       setSalons(data);
@@ -67,7 +76,53 @@ export default function SalonsPage() {
 
   useEffect(() => {
     fetchSalons(getInitialFilters());
-  }, [getInitialFilters, fetchSalons]);
+  }, [getInitialFilters, fetchSalons, authStatus]);
+
+
+  const handleToggleFavorite = async (e: React.MouseEvent, salonId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (authStatus !== 'authenticated') {
+      toast.info('Please log in to add salons to your favorites.');
+      openModal('login');
+      return;
+    }
+
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    // Optimistic UI update
+    setSalons(prevSalons =>
+      prevSalons.map(salon =>
+        salon.id === salonId ? { ...salon, isFavorited: !salon.isFavorited } : salon
+      )
+    );
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salonId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update favorite status.');
+      }
+      
+      const { favorited } = await res.json();
+      const message = favorited ? 'Added to favorites!' : 'Removed from favorites.';
+      toast.success(message);
+
+    } catch (error) {
+      toast.error('Could not update favorites. Please try again.');
+      // Revert UI on error
+      setSalons(prevSalons =>
+        prevSalons.map(salon =>
+          salon.id === salonId ? { ...salon, isFavorited: !salon.isFavorited } : salon
+        )
+      );
+    }
+  };
 
 
   return (
@@ -90,17 +145,26 @@ export default function SalonsPage() {
       ) : (
         <div className={styles.salonGrid}>
           {salons.map((salon) => (
-            <Link href={`/salons/${salon.id}`} key={salon.id} className={styles.salonCard}>
-              <img
-                src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
-                alt={`A photo of ${salon.name}`}
-                className={styles.cardImage}
-              />
-              <div className={styles.cardContent}>
-                <h2 className={styles.cardTitle}>{salon.name}</h2>
-                <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
-              </div>
-            </Link>
+            <div key={salon.id} className={styles.salonCard}>
+               <button
+                onClick={(e) => handleToggleFavorite(e, salon.id)}
+                className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}
+                aria-label={salon.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <FaHeart />
+              </button>
+              <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
+                <img
+                  src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
+                  alt={`A photo of ${salon.name}`}
+                  className={styles.cardImage}
+                />
+                <div className={styles.cardContent}>
+                  <h2 className={styles.cardTitle}>{salon.name}</h2>
+                  <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       )}

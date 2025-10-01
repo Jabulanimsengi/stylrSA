@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, FormEvent } from 'react';
 import { Salon, Service, ApprovalStatus, Booking, GalleryImage } from '@/types';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './Dashboard.module.css';
 import ServiceFormModal from '@/components/ServiceFormModal';
 import EditSalonModal from '@/components/EditSalonModal';
@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import GalleryUploadModal from '@/components/GalleryUploadModal';
 import { FaTrash, FaHome, FaArrowLeft } from 'react-icons/fa';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 type DashboardBooking = Booking & {
   client: { firstName: string, lastName: string },
@@ -32,7 +33,11 @@ export default function DashboardPage() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const socket = useSocket();
+  const { userRole } = useAuth();
+
+  const ownerId = userRole === 'ADMIN' ? searchParams.get('ownerId') : undefined;
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -43,21 +48,28 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       const headers = { Authorization: `Bearer ${token}` };
+      const url = ownerId ? `http://localhost:3000/api/salons/mine?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine';
       try {
-        const salonRes = await fetch('http://localhost:3000/api/salons/mine', { headers });
+        const salonRes = await fetch(url, { headers });
         if (salonRes.status === 404) {
-          setSalon(null);
-          setIsLoading(false);
-          return;
+            // Only set salon to null if the user is not an admin viewing another dashboard
+            if (userRole !== 'ADMIN') {
+                setSalon(null);
+            }
+            setIsLoading(false);
+            return;
         }
         if (salonRes.status === 401) { router.push('/login'); return; }
         if (!salonRes.ok) throw new Error('Could not fetch your salon data.');
         const salonData = await salonRes.json();
         setSalon(salonData);
 
+        const servicesUrl = ownerId ? `http://localhost:3000/api/salons/mine/services?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine/services'
+        const bookingsUrl = ownerId ? `http://localhost:3000/api/salons/mine/bookings?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine/bookings'
+
         const [servicesRes, bookingsRes, galleryRes] = await Promise.all([
-          fetch(`http://localhost:3000/api/salons/mine/services`, { headers }),
-          fetch(`http://localhost:3000/api/salons/mine/bookings`, { headers }),
+          fetch(servicesUrl, { headers }),
+          fetch(bookingsUrl, { headers }),
           fetch(`http://localhost:3000/api/gallery/salon/${salonData.id}`, { headers }),
         ]);
         setServices(await servicesRes.json());
@@ -72,7 +84,7 @@ export default function DashboardPage() {
       }
     };
     fetchDashboardData();
-  }, [router]);
+  }, [router, ownerId, userRole]);
 
   useEffect(() => {
     if (socket) {
@@ -137,7 +149,8 @@ export default function DashboardPage() {
     const token = localStorage.getItem('access_token');
     setSalon(prev => ({ ...prev!, isAvailableNow: !prev!.isAvailableNow }));
     try {
-      await fetch('http://localhost:3000/api/salons/mine/availability', {
+      const url = ownerId ? `http://localhost:3000/api/salons/mine/availability?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine/availability';
+      await fetch(url, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -182,6 +195,10 @@ export default function DashboardPage() {
   if (error) return <div className={styles.container}><p style={{ color: 'var(--error-red)' }}>{error}</p></div>;
 
   if (!salon) {
+    // Prevent admin from seeing create salon page
+    if (userRole === 'ADMIN') {
+        return <div className={styles.container}><p>Salon not found for the specified owner.</p></div>;
+    }
     return (
         <>
         {isCreateSalonModalOpen && (
