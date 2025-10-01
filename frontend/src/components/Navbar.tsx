@@ -178,6 +178,7 @@ export default function Navbar() {
           {authStatus === 'authenticated' ? (
             <>
               <Link href="/my-bookings" className={`${styles.link} ${pathname === '/my-bookings' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Bookings</Link>
+              <Link href="/my-profile" className={`${styles.link} ${pathname === '/my-profile' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Profile</Link>
               <Link href="/my-favorites" className={`${styles.link} ${pathname === '/my-favorites' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Favorites</Link>
               {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={`${styles.link} ${pathname === '/dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Dashboard</Link>}
               {userRole === 'ADMIN' && <Link href="/admin" className={`${styles.link} ${pathname === '/admin' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Admin</Link>}
