@@ -16,7 +16,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 type DashboardBooking = Booking & {
   client: { firstName: string, lastName: string },
-  status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED'
+  status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED',
+  clientPhone?: string;
 };
 
 export default function DashboardPage() {
@@ -234,6 +235,7 @@ export default function DashboardPage() {
         <div className={styles.listItemInfo}>
           <p><strong>{booking.service.title}</strong> for {booking.client.firstName}</p>
           <p className={styles.date}>{new Date(booking.bookingDate).toLocaleString('en-ZA')}</p>
+          {booking.clientPhone && <p className={styles.date}>Contact: {booking.clientPhone}</p>}
         </div>
         {booking.status === 'PENDING' && (
           <div className={styles.actions}>

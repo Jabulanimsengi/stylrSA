@@ -22,7 +22,7 @@ export class BookingsService {
     if (!service) {
       throw new Error('Service not found');
     }
-    const totalCost = service.price; 
+    const totalCost = service.price;
 
     const booking = await this.prisma.booking.create({
       data: {
@@ -32,20 +32,20 @@ export class BookingsService {
         bookingTime: dto.bookingDate,
         isMobile: dto.isMobile,
         totalCost,
+        clientPhone: dto.clientPhone,
       },
     });
-    
+
     // Create notification for salon owner
     await this.notificationsService.create(
       service.salon.ownerId,
       `You have a new booking request for ${service.title}.`,
       `/dashboard` // or a more specific link
     );
-    
+
     // Emit real-time event
     this.eventsGateway.emitToUser(service.salon.ownerId, 'newNotification', { message: 'You have a new booking request!' });
     this.eventsGateway.emitToUser(service.salon.ownerId, 'newBooking', booking);
-
 
     return booking;
   }
@@ -75,7 +75,7 @@ export class BookingsService {
       `Your booking for ${booking.service.title} has been ${status.toLowerCase()}.`,
       `/my-bookings`
     );
-    
+
     // Emit real-time event to the client
     this.eventsGateway.emitToUser(booking.userId, 'newNotification', { message: `Your booking status has been updated.` });
     this.eventsGateway.emitToUser(booking.userId, 'bookingUpdate', updatedBooking);

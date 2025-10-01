@@ -13,7 +13,7 @@ export default function Register() {
   const [role, setRole] = useState('CLIENT');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { switchToLogin } = useAuthModal();
+  const { switchToLogin, closeModal } = useAuthModal();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -21,7 +21,7 @@ export default function Register() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/register', {
+      const res = await fetch('http://localhost:3000/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, password, role }),
@@ -29,11 +29,15 @@ export default function Register() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Registration failed.');
+        const message = Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message;
+        throw new Error(message || 'Registration failed.');
       }
 
-      toast.success('Registration successful! Please log in.');
-      switchToLogin();
+      const data = await res.json();
+      localStorage.setItem('access_token', data.accessToken);
+      toast.success('Registration successful! Welcome.');
+      closeModal();
+      window.location.reload(); // Reload to update auth state everywhere
 
     } catch (err: any) {
       setError(err.message);
@@ -78,11 +82,15 @@ export default function Register() {
           <div className={styles.roleSelector}>
             <div className={styles.roleOption}>
               <input type="radio" id="roleClient" name="role" value="CLIENT" checked={role === 'CLIENT'} onChange={(e) => setRole(e.target.value)} />
-              <label htmlFor="roleClient">I'm a Client (booking services)</label>
+              <label htmlFor="roleClient">I'm a Client</label>
             </div>
             <div className={styles.roleOption}>
               <input type="radio" id="roleOwner" name="role" value="SALON_OWNER" checked={role === 'SALON_OWNER'} onChange={(e) => setRole(e.target.value)} />
-              <label htmlFor="roleOwner">I'm a Service Provider (listing services)</label>
+              <label htmlFor="roleOwner">I'm a Service Provider</label>
+            </div>
+            <div className={styles.roleOption}>
+              <input type="radio" id="roleSeller" name="role" value="PRODUCT_SELLER" checked={role === 'PRODUCT_SELLER'} onChange={(e) => setRole(e.target.value)} />
+              <label htmlFor="roleSeller">I'm a Product Seller</label>
             </div>
           </div>
 
@@ -96,7 +104,7 @@ export default function Register() {
         </form>
         <p className={styles.footerText}>
           Already have an account?{' '}
-          <a href="#" onClick={switchToLogin} className={styles.footerLink}>
+          <a href="#" onClick={(e) => { e.preventDefault(); switchToLogin(); }} className={styles.footerLink}>
             Sign in
           </a>
         </p>

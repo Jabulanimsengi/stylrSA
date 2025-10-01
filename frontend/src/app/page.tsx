@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import styles from './HomePage.module.css';
 import FilterBar from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Service } from '@/types';
+import { Service, Salon } from '@/types';
 import FeaturedServiceCard from '@/components/FeaturedServiceCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
-type ServiceWithSalon = Service & { salon: { id: string; name: string } };
+type ServiceWithSalon = Service & { salon: { id: string; name: string, city: string, province: string } };
 
 export default function HomePage() {
   const router = useRouter();
@@ -112,6 +112,8 @@ export default function HomePage() {
         )}
         
         <div ref={loader} />
+
+        {isLoading && page > 1 && <div className={styles.spinnerContainer}><div className={styles.spinner}></div></div>}
         
         {!hasMore && services.length > 0 && (
           <p className={styles.endOfList}>You've reached the end!</p>

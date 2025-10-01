@@ -174,6 +174,7 @@ export default function Navbar() {
 
         <div className={`${styles.linksContainer} ${isMenuOpen ? styles.mobileMenuOpen : ''}`}>
           <Link href="/salons" className={`${styles.link} ${pathname === '/salons' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Salons</Link>
+          <Link href="/products" className={`${styles.link} ${pathname === '/products' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Products</Link>
           
           {authStatus === 'authenticated' ? (
             <>
@@ -181,6 +182,7 @@ export default function Navbar() {
               <Link href="/my-profile" className={`${styles.link} ${pathname === '/my-profile' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Profile</Link>
               <Link href="/my-favorites" className={`${styles.link} ${pathname === '/my-favorites' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Favorites</Link>
               {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={`${styles.link} ${pathname === '/dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Dashboard</Link>}
+              {userRole === 'PRODUCT_SELLER' && <Link href="/product-dashboard" className={`${styles.link} ${pathname === '/product-dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Product Dashboard</Link>}
               {userRole === 'ADMIN' && <Link href="/admin" className={`${styles.link} ${pathname === '/admin' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Admin</Link>}
               
               <div className={styles.mobileAuthActions}>

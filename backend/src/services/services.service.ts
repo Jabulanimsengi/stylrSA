@@ -39,7 +39,7 @@ export class ServicesService {
       take: pageSize,
       include: {
         salon: {
-          select: { name: true, id: true },
+          select: { name: true, id: true, city: true, province: true },
         },
       },
     });
@@ -99,7 +99,7 @@ export class ServicesService {
       take: 6,
       include: {
         salon: {
-          select: { name: true, id: true },
+          select: { name: true, id: true, city: true, province: true },
         },
       },
     });

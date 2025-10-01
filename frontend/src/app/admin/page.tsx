@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import styles from './AdminPage.module.css';
-import { Salon, Service, ApprovalStatus, Review } from '@/types';
+import { Salon, Service, ApprovalStatus, Review, Product } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 
@@ -13,13 +13,15 @@ interface DecodedToken { role: string; }
 type PendingSalon = Salon & { owner: { id: string; email: string } };
 type PendingService = Service & { salon: { name: string } };
 type PendingReview = Review & { salon: { name: string } };
+type PendingProduct = Product & { seller: { firstName: string, lastName: string } };
 
 export default function AdminPage() {
   const [pendingSalons, setPendingSalons] = useState<PendingSalon[]>([]);
   const [allSalons, setAllSalons] = useState<PendingSalon[]>([]); // New state for all salons
   const [pendingServices, setPendingServices] = useState<PendingService[]>([]);
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons'>('salons'); // Added 'all-salons' view
+  const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -43,28 +45,31 @@ export default function AdminPage() {
     const fetchData = async () => {
       setIsLoading(true);
       const headers = { Authorization: `Bearer ${token}` };
-      const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes] = await Promise.all([
+      const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes] = await Promise.all([
         fetch('http://localhost:3000/api/admin/salons/pending', { headers }),
         fetch('http://localhost:3000/api/admin/salons/all', { headers }), // Fetch all salons
         fetch('http://localhost:3000/api/admin/services/pending', { headers }),
         fetch('http://localhost:3000/api/admin/reviews/pending', { headers }),
+        fetch('http://localhost:3000/api/admin/products/pending', { headers }),
       ]);
       setPendingSalons(await pendingSalonsRes.json());
       setAllSalons(await allSalonsRes.json()); // Set all salons
       setPendingServices(await servicesRes.json());
       setPendingReviews(await reviewsRes.json());
+      setPendingProducts(await productsRes.json());
       setIsLoading(false);
     };
     fetchData();
   }, [router]);
 
-  const handleUpdateStatus = async (type: 'salon' | 'service' | 'review', id: string, status: ApprovalStatus) => {
+  const handleUpdateStatus = async (type: 'salon' | 'service' | 'review' | 'product', id: string, status: ApprovalStatus) => {
     const token = localStorage.getItem('access_token');
     let url = '';
     switch (type) {
       case 'salon': url = `http://localhost:3000/api/admin/salons/${id}/status`; break;
       case 'service': url = `http://localhost:3000/api/admin/services/${id}/status`; break;
       case 'review': url = `http://localhost:3000/api/admin/reviews/${id}/status`; break;
+      case 'product': url = `http://localhost:3000/api/admin/products/${id}/status`; break;
     }
 
     await fetch(url, {
@@ -79,6 +84,7 @@ export default function AdminPage() {
     if (type === 'salon') setPendingSalons(pendingSalons.filter(s => s.id !== id));
     if (type === 'service') setPendingServices(pendingServices.filter(s => s.id !== id));
     if (type === 'review') setPendingReviews(pendingReviews.filter(r => r.id !== id));
+    if (type === 'product') setPendingProducts(pendingProducts.filter(p => p.id !== id));
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -110,6 +116,12 @@ export default function AdminPage() {
           className={`${styles.tabButton} ${view === 'reviews' ? styles.activeTab : ''}`}
         >
           Pending Reviews ({pendingReviews.length})
+        </button>
+        <button
+          onClick={() => setView('products')}
+          className={`${styles.tabButton} ${view === 'products' ? styles.activeTab : ''}`}
+        >
+          Pending Products ({pendingProducts.length})
         </button>
       </div>
 
@@ -172,6 +184,21 @@ export default function AdminPage() {
               </div>
             </div>
           )) : <p>No pending reviews.</p>
+        )}
+        
+        {view === 'products' && (
+          pendingProducts.length > 0 ? pendingProducts.map(product => (
+            <div key={product.id} className={styles.listItem}>
+              <div className={styles.info}>
+                <h4>{product.name}</h4>
+                <p>Seller: {product.seller.firstName} {product.seller.lastName}</p>
+              </div>
+              <div className={styles.actions}>
+                <button onClick={() => handleUpdateStatus('product', product.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
+                <button onClick={() => handleUpdateStatus('product', product.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
+              </div>
+            </div>
+          )) : <p>No pending products.</p>
         )}
       </div>
     </div>

@@ -55,4 +55,17 @@ export class AdminController {
   ) {
     return this.adminService.updateReviewStatus(reviewId, approvalStatus as ApprovalStatus);
   }
+
+  @Get('products/pending')
+  getPendingProducts() {
+    return this.adminService.getPendingProducts();
+  }
+
+  @Patch('products/:productId/status')
+  updateProductStatus(
+    @Param('productId') productId: string,
+    @Body() { approvalStatus }: UpdateServiceStatusDto,
+  ) {
+    return this.adminService.updateProductStatus(productId, approvalStatus as ApprovalStatus);
+  }
 }

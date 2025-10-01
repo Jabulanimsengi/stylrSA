@@ -49,11 +49,24 @@ export interface Service {
   isLikedByCurrentUser?: boolean;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  images: string[];
+  isOnSale: boolean;
+  salePrice?: number;
+  approvalStatus: ApprovalStatus;
+  sellerId: string;
+}
+
 export interface Booking {
   id: string;
   bookingDate: string;
   isMobile: boolean;
   totalCost: number;
+  clientPhone?: string;
   salon: {
     name: string;
   };

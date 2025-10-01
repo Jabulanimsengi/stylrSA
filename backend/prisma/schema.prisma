@@ -17,6 +17,7 @@ model User {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   salons          Salon[]
+  products        Product[] // Relation to products
   bookings        Booking[]
   reviews         Review[]
   favorites       Favorite[]
@@ -38,8 +39,8 @@ model Salon {
   longitude       Float?
   contactEmail    String?
   phoneNumber     String?
-  whatsapp        String?        // New field
-  website         String?        // New field
+  whatsapp        String?
+  website         String?
   bookingType     BookingType    @default(ONSITE)
   offersMobile    Boolean        @default(false)
   mobileFee       Float?
@@ -74,6 +75,7 @@ model Service {
   likeCount      Int            @default(0)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+  promotions     Promotion[] // Relation to promotions
 }
 
 model Review {
@@ -98,14 +100,47 @@ model Booking {
   totalCost   Float
   status      BookingStatus @default(PENDING)
   createdAt   DateTime      @default(now())
-  updatedAt   DateTime       @updatedAt
+  updatedAt   DateTime      @updatedAt
   userId      String
   user        User          @relation(fields: [userId], references: [id])
   salonId     String
   salon       Salon         @relation(fields: [salonId], references: [id])
   serviceId   String
   service     Service       @relation(fields: [serviceId], references: [id])
+  clientPhone String?
   review      Review?
+}
+
+// New Model for Products
+model Product {
+  id             String         @id @default(uuid())
+  name           String
+  description    String
+  price          Float
+  images         String[]
+  isOnSale       Boolean        @default(false)
+  salePrice      Float?
+  approvalStatus ApprovalStatus @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  sellerId       String
+  seller         User           @relation(fields: [sellerId], references: [id])
+  promotions     Promotion[]
+}
+
+// New Model for Promotions
+model Promotion {
+  id                 String    @id @default(uuid())
+  description        String
+  discountPercentage Float
+  startDate          DateTime
+  endDate            DateTime
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  serviceId          String?
+  service            Service?  @relation(fields: [serviceId], references: [id])
+  productId          String?
+  product            Product?  @relation(fields: [productId], references: [id])
 }
 
 model Conversation {
@@ -176,6 +211,7 @@ enum UserRole {
   CLIENT
   SALON_OWNER
   ADMIN
+  PRODUCT_SELLER // New role
 }
 
 enum ApprovalStatus {

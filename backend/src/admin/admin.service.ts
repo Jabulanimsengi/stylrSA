@@ -66,4 +66,18 @@ export class AdminService {
       data: { approvalStatus: status },
     });
   }
+
+  async getPendingProducts() {
+    return this.prisma.product.findMany({
+      where: { approvalStatus: 'PENDING' },
+      include: { seller: { select: { firstName: true, lastName: true } } },
+    });
+  }
+
+  async updateProductStatus(productId: string, status: ApprovalStatus) {
+    return this.prisma.product.update({
+      where: { id: productId },
+      data: { approvalStatus: status },
+    });
+  }
 }

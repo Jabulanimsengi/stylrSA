@@ -16,6 +16,7 @@ interface BookingModalProps {
 export default function BookingModal({ salon, service, onClose, onBookingSuccess }: BookingModalProps) {
   const [bookingDate, setBookingDate] = useState<Date | null>(new Date());
   const [isMobile, setIsMobile] = useState(false);
+  const [clientPhone, setClientPhone] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -46,6 +47,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
           serviceId: service.id,
           bookingDate: bookingDate.toISOString(),
           isMobile,
+          clientPhone,
         }),
       });
 
@@ -75,6 +77,16 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
               showTimeSelect
               dateFormat="MMMM d, yyyy h:mm aa"
               className={styles.datePicker}
+            />
+          </div>
+          <div>
+            <label className={styles.label}>Your Contact Number</label>
+            <input
+              type="tel"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+              className={styles.datePicker} // Reusing styles
+              placeholder="e.g., 0821234567"
             />
           </div>
           {salon.offersMobile && (

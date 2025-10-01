@@ -5,7 +5,7 @@ import { Service } from '@/types';
 import styles from './FeaturedServiceCard.module.css';
 
 interface FeaturedServiceCardProps {
-  service: Service & { salon: { id: string; name: string } };
+  service: Service & { salon: { id: string; name: string; city: string; province: string } };
 }
 
 export default function FeaturedServiceCard({ service }: FeaturedServiceCardProps) {
@@ -19,6 +19,7 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
       <div className={styles.cardContent}>
         <h3 className={styles.cardTitle}>{service.title}</h3>
         <p className={styles.salonName}>{service.salon.name}</p>
+        <p className={styles.salonLocation}>{service.salon.city}, {service.salon.province}</p>
         <p className={styles.price}>R{service.price.toFixed(2)}</p>
       </div>
     </Link>

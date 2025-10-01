@@ -1,4 +1,3 @@
-// backend/src/auth/auth.controller.ts
 import {
   Controller,
   Post,
@@ -12,16 +11,16 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { AuthGuard } from '@nestjs/passport'; // <-- Import the Guard
-import { Request } from 'express'; // <-- Import Request type
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 
 @Controller('api/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  @Post('signup')
+  signup(@Body() dto: RegisterDto) {
+    return this.authService.signup(dto);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -30,11 +29,9 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  // 👇 This is our new protected route
-  @UseGuards(AuthGuard('jwt')) // This is the "bouncer"
+  @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   getProfile(@Req() req: Request) {
-    // Because of our JwtStrategy, the user object is now attached to the request
     return req.user;
   }
 }

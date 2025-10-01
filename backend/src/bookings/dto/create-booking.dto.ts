@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateBookingDto {
   @IsString()
@@ -11,4 +11,8 @@ export class CreateBookingDto {
 
   @IsBoolean()
   isMobile: boolean;
+
+  @IsString()
+  @IsOptional()
+  clientPhone?: string;
 }
