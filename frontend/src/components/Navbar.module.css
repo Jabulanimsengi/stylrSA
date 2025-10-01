@@ -2,8 +2,7 @@
   background-color: var(--white);
   padding: 1rem 2rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: center; /* Vertically center items */
   border-bottom: 1px solid var(--light-silver);
   height: 78px;
   position: sticky;
@@ -18,12 +17,20 @@
   display: flex;
   align-items: center;
   height: 100%;
+  margin-right: auto; /* FIX: Pushes everything else to the right */
 }
 
 .logo img {
   object-fit: contain;
   height: 90px;
   width: auto;
+}
+
+/* FIX: New wrapper for all right-aligned content */
+.navRight {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .linksContainer {
@@ -33,12 +40,10 @@
 }
 
 .link {
-  /* Reset button styles and apply link styles */
   background: none;
   border: none;
   cursor: pointer;
   font-family: inherit;
-
   color: var(--text-primary);
   text-decoration: none;
   font-size: 1rem;
@@ -75,6 +80,8 @@
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--dark-gray);
+  background: none;
+  border: none;
 }
 
 .iconButton {
@@ -124,7 +131,7 @@
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 100;
-  color: var(--text-charcoal);
+  color: var(--text-body);
   max-height: 400px;
   overflow-y: auto;
   border: 1px solid var(--light-silver);
@@ -156,7 +163,7 @@
 }
 
 .notificationItem.unread {
-  background-color: var(--soft-pastel-pink);
+  background-color: #fcefee;
 }
 
 .deleteNotificationButton {
@@ -170,7 +177,7 @@
 }
 
 .deleteNotificationButton:hover {
-  color: var(--error-red);
+  color: var(--alert-error-text);
 }
 
 .noNotifications {
@@ -183,6 +190,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.desktopOnly {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 /* Responsive Styles for Mobile */
@@ -208,6 +221,10 @@
     display: block;
   }
   
+  .desktopOnly {
+      display: none;
+  }
+  
   .mobileAuthActions {
     flex-direction: column;
     align-items: flex-start;
@@ -215,6 +232,7 @@
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--light-silver);
+    gap: 1rem;
   }
   
   .linksContainer .iconButton {
