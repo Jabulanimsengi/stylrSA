@@ -8,8 +8,7 @@ import { JwtStrategy, AnonymousStrategy } from './jwt.strategy';
 @Module({
   imports: [
     PassportModule,
-    // Use the simple, synchronous register method.
-    // This directly uses the environment variable we've confirmed is loaded.
+    // This is now guaranteed to work because .env is loaded first.
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '24h' },

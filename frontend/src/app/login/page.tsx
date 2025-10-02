@@ -34,7 +34,7 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
-      const token = data.access_token;
+      const token = data.accessToken;
       localStorage.setItem('access_token', token);
 
       // --- THIS IS THE FIX ---

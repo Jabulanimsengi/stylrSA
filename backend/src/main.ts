@@ -1,19 +1,15 @@
-// backend/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common'; // Import ValidationPipe
+import { ValidationPipe } from '@nestjs/common';
+import * as dotenv from 'dotenv';
+
+// Manually load environment variables from .env file at the very beginning
+dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // Add this line to enable validation globally
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-
-  // --- Add this line for debugging ---
-  console.log('Attempting to read JWT_SECRET:', process.env.JWT_SECRET);
-  // ------------------------------------
-
-  app.enableCors(); // Enable Cross-Origin Resource Sharing
+  app.enableCors();
   await app.listen(3000);
 }
 bootstrap();

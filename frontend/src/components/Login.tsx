@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import styles from '../app/auth.module.css';
 import { jwtDecode } from 'jwt-decode';
 import { useAuthModal } from '@/context/AuthModalContext';
-import Link from 'next/link';
 
 interface DecodedToken {
   role: 'CLIENT' | 'SALON_OWNER' | 'ADMIN';
@@ -36,7 +35,7 @@ export default function Login() {
       }
 
       const data = await res.json();
-      const token = data.access_token;
+      const token = data.accessToken;
       localStorage.setItem('access_token', token);
       
       const decodedToken: DecodedToken = jwtDecode(token);
@@ -82,11 +81,6 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input}
             />
-          </div>
-          <div className={styles.footerText} style={{textAlign: 'right', marginTop: 0}}>
-            <Link href="/forgot-password" className={styles.footerLink}>
-              Forgot Password?
-            </Link>
           </div>
           {error && <p className={styles.errorMessage}>{error}</p>}
           <div>
