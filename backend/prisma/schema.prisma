@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -8,56 +11,58 @@ generator client {
 }
 
 model User {
-  id              String         @id @default(uuid())
-  email           String         @unique
-  password        String
-  firstName       String
-  lastName        String
-  role            UserRole       @default(CLIENT)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  salons          Salon[]
-  products        Product[] // Relation to products
-  bookings        Booking[]
-  reviews         Review[]
-  favorites       Favorite[]
-  serviceLikes    ServiceLike[]
-  sentMessages    Message[]      @relation("SentMessages")
-  conversations1  Conversation[] @relation("User1Conversations")
-  conversations2  Conversation[] @relation("User2Conversations")
-  notifications   Notification[]
+  id                   String          @id @default(uuid())
+  email                String          @unique
+  password             String
+  firstName            String
+  lastName             String
+  role                 UserRole        @default(CLIENT)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  salons               Salon[]
+  products             Product[] // Relation to products
+  bookings             Booking[]
+  reviews              Review[]
+  favorites            Favorite[]
+  serviceLikes         ServiceLike[]
+  sentMessages         Message[]       @relation("SentMessages")
+  conversations1       Conversation[]  @relation("User1Conversations")
+  conversations2       Conversation[]  @relation("User2Conversations")
+  notifications        Notification[]
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
 }
 
 model Salon {
-  id              String         @id @default(uuid())
-  name            String
-  backgroundImage String?
-  province        String
-  city            String
-  town            String
-  latitude        Float?
-  longitude       Float?
-  contactEmail    String?
-  phoneNumber     String?
-  whatsapp        String?
-  website         String?
-  bookingType     BookingType    @default(ONSITE)
-  offersMobile    Boolean        @default(false)
-  mobileFee       Float?
-  isAvailableNow  Boolean        @default(false)
-  operatingHours  Json?
-  operatingDays   String[]
-  approvalStatus  ApprovalStatus @default(PENDING)
-  avgRating       Float          @default(0)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  ownerId         String         @unique
-  owner           User           @relation(fields: [ownerId], references: [id])
-  services        Service[]
-  bookings        Booking[]
-  reviews         Review[]
-  favorites       Favorite[]
-  gallery         GalleryImage[]
+  id                   String         @id @default(uuid())
+  name                 String
+  backgroundImage      String?
+  province             String
+  city                 String
+  town                 String
+  latitude             Float?
+  longitude            Float?
+  contactEmail         String?
+  phoneNumber          String?
+  whatsapp             String?
+  website              String?
+  bookingType          BookingType    @default(ONSITE)
+  offersMobile         Boolean        @default(false)
+  mobileFee            Float?
+  isAvailableNow       Boolean        @default(false)
+  operatingHours       Json?
+  operatingDays        String[]
+  approvalStatus       ApprovalStatus @default(PENDING)
+  avgRating            Float          @default(0)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  ownerId              String         @unique
+  owner                User           @relation(fields: [ownerId], references: [id])
+  services             Service[]
+  bookings             Booking[]
+  reviews              Review[]
+  favorites            Favorite[]
+  gallery              GalleryImage[]
 }
 
 model Service {

@@ -1,11 +1,17 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto';
 import * as argon from 'argon2';
 import * as bcrypt from 'bcrypt';
-import { Prisma, UserRole } from '@prisma/client';
+import { Prisma, User, UserRole } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -47,16 +53,10 @@ export class AuthService {
 
     let pwMatches = false;
     try {
-      // First, try verifying with Argon2
-      pwMatches = await argon.verify(user.password, dto.password);
-    } catch (argonError) {
-      // If Argon2 verification fails (e.g., hash is not an Argon2 hash),
-      // check if it's a bcrypt hash and try that.
-      try {
+      if (user.password.startsWith('$argon2')) {
+        pwMatches = await argon.verify(user.password, dto.password);
+      } else {
         pwMatches = await bcrypt.compare(dto.password, user.password);
-        
-        // If bcrypt verification is successful, we should re-hash the password
-        // with Argon2 and update it in the database for future logins.
         if (pwMatches) {
           const newHash = await argon.hash(dto.password);
           await this.prisma.user.update({
@@ -64,15 +64,76 @@ export class AuthService {
             data: { password: newHash },
           });
         }
-      } catch (bcryptError) {
-        // If both fail, the password is truly incorrect.
-        pwMatches = false;
       }
+    } catch (error) {
+      throw new ForbiddenException('Credentials incorrect');
     }
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
     return this.signToken(user.id, user.email, user.role);
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string, token: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('User with that email does not exist');
+    }
+
+    const resetToken = randomBytes(32).toString('hex');
+    const resetPasswordToken = await argon.hash(resetToken);
+    const resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+    await this.prisma.user.update({
+      where: { email },
+      data: {
+        resetPasswordToken,
+        resetPasswordExpires,
+      },
+    });
+
+    // In a real app, you'd email this token to the user
+    console.log(`Password reset token for ${email}: ${resetToken}`);
+
+    return {
+      message: 'Password reset token generated.',
+      token: resetToken, // For testing purposes, we return the token
+    };
+  }
+
+  async resetPassword(token: string, newPass: string): Promise<{ accessToken: string }> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        resetPasswordExpires: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    let userToUpdate: User | null = null;
+    for (const user of users) {
+      if (user.resetPasswordToken && await argon.verify(user.resetPasswordToken, token)) {
+        userToUpdate = user;
+        break;
+      }
+    }
+
+    if (!userToUpdate) {
+      throw new ForbiddenException('Password reset token is invalid or has expired');
+    }
+
+    const password = await argon.hash(newPass);
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userToUpdate.id },
+      data: {
+        password,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
+
+    return this.signToken(updatedUser.id, updatedUser.email, updatedUser.role);
   }
 
   async signToken(
@@ -81,11 +142,17 @@ export class AuthService {
     role: string,
   ): Promise<{ accessToken: string }> {
     const payload = { sub: userId, email, role };
-    const secret = this.config.get('JWT_SECRET');
-    const token = await this.jwt.signAsync(payload, {
-      expiresIn: '24h',
-      secret: secret,
-    });
-    return { accessToken: token };
+    
+    try {
+      // The secret is already configured in the JwtModule.
+      // We rely on the pre-configured JwtService instance.
+      const token = await this.jwt.signAsync(payload, {
+        expiresIn: '24h',
+      });
+      return { accessToken: token };
+    } catch (error) {
+        console.error('CRITICAL: Error signing token. Ensure JWT_SECRET is set correctly in .env and the auth module.', error);
+        throw new InternalServerErrorException('Could not create authentication token.');
+    }
   }
 }

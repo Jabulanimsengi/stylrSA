@@ -9,6 +9,10 @@ async function bootstrap() {
   // Add this line to enable validation globally
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
+  // --- Add this line for debugging ---
+  console.log('Attempting to read JWT_SECRET:', process.env.JWT_SECRET);
+  // ------------------------------------
+
   app.enableCors(); // Enable Cross-Origin Resource Sharing
   await app.listen(3000);
 }
