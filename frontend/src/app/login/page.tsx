@@ -4,11 +4,6 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../auth.module.css';
-import { jwtDecode } from 'jwt-decode'; // Import the decoder
-
-interface DecodedToken {
-  role: 'CLIENT' | 'SALON_OWNER' | 'ADMIN';
-}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,31 +22,15 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        credentials: 'include', // Important: send cookies with the request
       });
 
       if (!res.ok) {
         throw new Error('Login failed. Please check your credentials.');
       }
 
-      const data = await res.json();
-      const token = data.accessToken;
-      localStorage.setItem('access_token', token);
-
-      // --- THIS IS THE FIX ---
-      // 1. Decode the token to find the user's role
-      const decodedToken: DecodedToken = jwtDecode(token);
-      const userRole = decodedToken.role;
-
-      // 2. Redirect based on the role
-      if (userRole === 'SALON_OWNER') {
-        router.push('/dashboard');
-      } else if (userRole === 'ADMIN') {
-        router.push('/admin');
-      } else {
-        // Default for CLIENTs is to go to the salon listing
-        router.push('/salons');
-      }
-      // --- End of Fix ---
+      // The backend now handles the cookie, so we just need to redirect
+      router.push('/salons');
 
     } catch (err: any) {
       setError(err.message);

@@ -1,91 +1,99 @@
-import { Controller, Post, Body, UseGuards, Get, Param, Query, ParseFloatPipe, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { SalonsService } from './salons.service';
-import { AuthGuard } from '@nestjs/passport';
-import { CreateSalonDto } from './dto/create-salon.dto';
-import { GetUser } from 'src/auth/decorator/get-user.decorator';
-import { User } from '@prisma/client';
-import { UpdateSalonDto } from './dto/update-salon.dto';
-import { ServicesService } from 'src/services/services.service';
-import { CreateServiceDto } from 'src/services/dto/create-service.dto';
+import { CreateSalonDto, UpdateSalonDto } from './dto';
+import { GetUser } from '../auth/decorator/get-user.decorator'; // Corrected import path
+import { JwtGuard } from '../auth/guard/jwt.guard'; // Corrected import path
+import { User } from '@prisma/client'; // Corrected import
 
-@Controller('api/salons')
+@UseGuards(JwtGuard)
+@Controller('salons')
 export class SalonsController {
-  constructor(
-    private readonly salonsService: SalonsService,
-    private readonly servicesService: ServicesService,
-  ) {}
+  constructor(private readonly salonsService: SalonsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
-  @Post(':salonId/services')
-  createService(
-    @Param('salonId') salonId: string,
-    @GetUser() user: User,
-    @Body() createServiceDto: CreateServiceDto,
-  ) {
-    return this.servicesService.create(user, salonId, createServiceDto);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('mine')
-  findMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
-    return this.salonsService.findMySalon(user, ownerId);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() createSalonDto: CreateSalonDto, @GetUser() user: User) {
+  create(
+    @GetUser() user: User,
+    @Body() createSalonDto: CreateSalonDto,
+  ) {
     return this.salonsService.create(user.id, createSalonDto);
   }
 
-  @UseGuards(AuthGuard(['jwt', 'anonymous']))
-  @Get()
-  findAllApproved(
-    @GetUser() user: User | null,
-    @Query('province') province?: string,
-    @Query('city') city?: string,
-    @Query('service') service?: string,
-    @Query('offersMobile') offersMobile?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('openOn') openOn?: string,
-  ) {
-    return this.salonsService.findAllApproved({ province, city, service, offersMobile, sortBy, openOn }, user);
+  @Get('my-salon/:ownerId')
+  findMySalon(@GetUser() user: User, @Param('ownerId') ownerId: string) {
+    return this.salonsService.findMySalon(user, ownerId);
   }
-  
-  @Get('nearby')
-  findNearby(
-    @Query('lat', ParseFloatPipe) lat: number,
-    @Query('lon', ParseFloatPipe) lon: number,
+
+  @Get('approved')
+  findAllApproved(
+    @Query('province') province: string,
+    @Query('city') city: string,
+    @Query('service') service: string,
+    @Query('offersMobile') offersMobile: boolean,
+    @Query('sortBy') sortBy: string,
+    @Query('openOn') openOn: string,
+    @GetUser() user: User,
   ) {
+    return this.salonsService.findAllApproved(
+      { province, city, service, offersMobile, sortBy, openOn },
+      user,
+    );
+  }
+
+  @Get('nearby')
+  findNearby(@Query('lat') lat: number, @Query('lon') lon: number) {
     return this.salonsService.findNearby(lat, lon);
   }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Patch('mine')
-  updateMySalon(@GetUser() user: User, @Body() updateSalonDto: UpdateSalonDto, @Query('ownerId') ownerId?: string) {
-    return this.salonsService.updateMySalon(user, updateSalonDto, ownerId);
+  
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.salonsService.findOne(id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Patch('mine/availability')
-  toggleAvailability(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+  @Patch('my-salon/:ownerId')
+  updateMySalon(
+    @GetUser() user: User,
+    @Body() updateSalonDto: UpdateSalonDto,
+    @Param('ownerId') ownerId: string,
+  ) {
+    return this.salonsService.updateMySalon(user, updateSalonDto, ownerId);
+  }
+  
+  @Patch('my-salon/:ownerId/toggle-availability')
+  toggleAvailability(
+    @GetUser() user: User,
+    @Param('ownerId') ownerId: string,
+  ) {
     return this.salonsService.toggleAvailability(user, ownerId);
   }
 
-  @UseGuards(AuthGuard(['jwt', 'anonymous']))
-  @Get(':id')
-  findOne(@Param('id') id: string, @GetUser() user: User | null) {
-    return this.salonsService.findOne(id, user);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('mine/bookings')
-  findBookingsForMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+  @Get('my-salon/:ownerId/bookings')
+  findBookingsForMySalon(
+    @GetUser() user: User,
+    @Param('ownerId') ownerId: string,
+  ) {
     return this.salonsService.findBookingsForMySalon(user, ownerId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get('mine/services')
-  findServicesForMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+  @Get('my-salon/:ownerId/services')
+  findServicesForMySalon(
+    @GetUser() user: User,
+    @Param('ownerId') ownerId: string,
+  ) {
     return this.salonsService.findServicesForMySalon(user, ownerId);
+  }
+
+  @Delete(':id')
+  remove(@GetUser() user: User, @Param('id') id: string) {
+    return this.salonsService.remove(user, id);
   }
 }

@@ -1,107 +1,95 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, ApprovalStatus, User, UserRole } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable, ForbiddenException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class ServicesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(user: User, salonId: string, dto: CreateServiceDto) {
-    const salon = await this.prisma.salon.findUnique({ where: { id: salonId } });
-    if (!salon) {
-      throw new NotFoundException('Salon not found.');
-    }
-    if (user.role !== UserRole.ADMIN && salon.ownerId !== user.id) {
-      throw new ForbiddenException('You are not authorized to add services to this salon.');
-    }
-    return this.prisma.service.create({ data: { salonId, ...dto } });
-  }
-
-  // This method provides the public list of a salon's services
-  async findAllForSalon(salonId: string) {
-    return this.prisma.service.findMany({
-      where: { 
-        salonId: salonId,
-        approvalStatus: ApprovalStatus.APPROVED, // Only show approved services publicly
-      },
+  async create(user: User, dto: CreateServiceDto) {
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: dto.salonId },
     });
-  }
-  
-  // NEW: Paginated method to get all approved services
-  async findAllApproved(page: number, pageSize: number) {
-    const skip = (page - 1) * pageSize;
-    const services = await this.prisma.service.findMany({
-      where: { approvalStatus: ApprovalStatus.APPROVED },
-      orderBy: { createdAt: 'desc' },
-      skip: skip,
-      take: pageSize,
-      include: {
-        salon: {
-          select: { name: true, id: true, city: true, province: true },
-        },
-      },
-    });
-    const totalServices = await this.prisma.service.count({ where: { approvalStatus: ApprovalStatus.APPROVED } });
-    return {
-      services,
-      totalPages: Math.ceil(totalServices / pageSize),
-      currentPage: page,
-    };
+
+    if (!salon || salon.ownerId !== user.id) {
+      throw new ForbiddenException(
+        'You are not authorized to add a service to this salon',
+      );
+    }
+
+    return this.prisma.service.create({ data: dto });
   }
 
+  findAll() {
+    return this.prisma.service.findMany();
+  }
 
-  async update(user: User, serviceId: string, dto: UpdateServiceDto) {
+  findOne(id: string) {
+    return this.prisma.service.findUnique({ where: { id } });
+  }
+
+  async update(user: User, id: string, dto: UpdateServiceDto) {
     const service = await this.prisma.service.findUnique({
-      where: { id: serviceId },
+      where: { id },
       include: { salon: true },
     });
 
-    if (!service) {
-      throw new NotFoundException('Service not found.');
-    }
-    if (user.role !== UserRole.ADMIN && service.salon.ownerId !== user.id) {
-      throw new ForbiddenException('You are not authorized to modify this service.');
-    }
-
-    const dataToUpdate: Prisma.ServiceUpdateInput = { ...dto };
-
-    if (service.approvalStatus === ApprovalStatus.APPROVED) {
-      dataToUpdate.approvalStatus = ApprovalStatus.PENDING;
+    if (!service || service.salon.ownerId !== user.id) {
+      throw new ForbiddenException(
+        'You are not authorized to update this service',
+      );
     }
 
     return this.prisma.service.update({
-      where: { id: serviceId },
-      data: dataToUpdate,
+      where: { id },
+      data: dto,
     });
   }
 
-  async remove(user: User, serviceId: string) {
+  async remove(user: User, id: string) {
     const service = await this.prisma.service.findUnique({
-      where: { id: serviceId },
+      where: { id },
       include: { salon: true },
     });
 
-    if (!service) {
-      throw new NotFoundException('Service not found.');
+    if (!service || service.salon.ownerId !== user.id) {
+      throw new ForbiddenException(
+        'You are not authorized to delete this service',
+      );
     }
-    if (user.role !== UserRole.ADMIN && service.salon.ownerId !== user.id) {
-      throw new ForbiddenException('You are not authorized to delete this service.');
-    }
-    return this.prisma.service.delete({ where: { id: serviceId } });
+
+    return this.prisma.service.delete({ where: { id } });
+  }
+
+  async findAllForSalon(salonId: string) {
+    return this.prisma.service.findMany({
+      where: { salonId: salonId },
+    });
   }
 
   async findFeatured() {
     return this.prisma.service.findMany({
-      where: { approvalStatus: ApprovalStatus.APPROVED },
-      orderBy: { createdAt: 'desc' },
-      take: 6,
-      include: {
-        salon: {
-          select: { name: true, id: true, city: true, province: true },
-        },
+      take: 5,
+      orderBy: {
+        createdAt: 'desc',
       },
     });
+  }
+
+  async findAllApproved(page: number = 1, pageSize: number = 10) {
+    const services = await this.prisma.service.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      where: {
+        approvalStatus: 'APPROVED',
+      },
+      include: {
+        salon: true, // Include salon details with the service
+      }
+    });
+    // FIX: Return an object with a 'services' key
+    return { services };
   }
 }

@@ -3,12 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../app/auth.module.css';
-import { jwtDecode } from 'jwt-decode';
 import { useAuthModal } from '@/context/AuthModalContext';
-
-interface DecodedToken {
-  role: 'CLIENT' | 'SALON_OWNER' | 'ADMIN';
-}
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -28,28 +23,16 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        credentials: 'include', // Important: send cookies with the request
       });
 
       if (!res.ok) {
         throw new Error('Login failed. Please check your credentials.');
       }
 
-      const data = await res.json();
-      const token = data.accessToken;
-      localStorage.setItem('access_token', token);
-      
-      const decodedToken: DecodedToken = jwtDecode(token);
-      const userRole = decodedToken.role;
-
+      // Instead of decoding the token, we'll let the useAuth hook handle it
       closeModal();
-      
-      if (userRole === 'SALON_OWNER') {
-        router.push('/dashboard');
-      } else if (userRole === 'ADMIN') {
-        router.push('/admin');
-      } else {
-        router.push('/salons');
-      }
+      router.push('/salons'); // Redirect to a default page after login
 
     } catch (err: any) {
       setError(err.message);

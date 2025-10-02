@@ -1,35 +1,38 @@
-// backend/src/services/dto/create-service.dto.ts
 import {
-  ArrayMaxSize,
-  IsArray,
+  IsString,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
-  IsString,
-  IsUrl,
+  IsInt,
   Min,
+  MaxLength,
+  IsOptional,
+  IsUrl,
 } from 'class-validator';
 
 export class CreateServiceDto {
   @IsString()
   @IsNotEmpty()
-  title: string;
+  @MaxLength(100)
+  title: string; // Changed from 'name' to 'title'
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(500)
   description: string;
 
   @IsNumber()
   @Min(0)
   price: number;
-  
-  @IsNumber()
-  @Min(0)
-  duration: number;
 
-  @IsArray()
-  @ArrayMaxSize(3) // As per your requirements
-  @IsUrl({}, { each: true }) // Validates that each item in the array is a URL
+  @IsInt()
+  @Min(1)
+  duration: number; // Duration in minutes
+
+  @IsString()
+  @IsNotEmpty()
+  salonId: string;
+
   @IsOptional()
-  images?: string[];
+  @IsUrl()
+  imageUrl?: string;
 }

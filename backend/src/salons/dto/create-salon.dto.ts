@@ -1,57 +1,115 @@
 import {
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsObject,
-  IsOptional,
   IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  IsNumber,
+  Min,
+  Max,
+  IsUrl,
+  MaxLength,
+  IsPhoneNumber,
+  IsLatitude,
+  IsLongitude,
+  IsBoolean,
+  IsIn,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ValidateNested } from 'class-validator';
+
+class OperatingHoursDto {
+  @IsString()
+  @IsNotEmpty()
+  day: string;
+
+  @IsString()
+  @IsNotEmpty()
+  open: string;
+
+  @IsString()
+  @IsNotEmpty()
+  close: string;
+}
 
 export class CreateSalonDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(100)
   name: string;
 
   @IsString()
   @IsNotEmpty()
-  province: string;
+  @MaxLength(500)
+  description: string;
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
+  address: string;
+  
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  town: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
   city: string;
 
   @IsString()
   @IsNotEmpty()
-  town: string;
-
-  @IsBoolean()
-  @IsOptional()
-  offersMobile?: boolean;
-
-  @IsNumber()
-  @IsOptional()
-  mobileFee?: number;
+  @MaxLength(100)
+  province: string;
 
   @IsString()
-  @IsOptional()
-  bookingType?: string;
+  @IsNotEmpty()
+  @IsPhoneNumber('ZA') // Example: Validates for South Africa
+  phone: string;
 
-  @IsObject()
-  @IsOptional()
-  operatingHours?: any;
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  email: string;
 
-  @IsArray()
-  @IsString({ each: true })
   @IsOptional()
-  operatingDays?: string[];
+  @IsUrl()
+  website?: string;
 
-  @IsNumber()
   @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsLatitude()
   latitude?: number;
 
-  @IsNumber()
   @IsOptional()
+  @IsLongitude()
   longitude?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OperatingHoursDto)
+  operatingHours?: OperatingHoursDto[];
+  
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  operatingDays?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  offersMobile?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  mobileFee?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['INSTANT', 'REQUEST'])
+  bookingType?: string;
 }

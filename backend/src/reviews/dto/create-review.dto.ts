@@ -1,11 +1,13 @@
-// backend/src/reviews/dto/create-review.dto.ts
-import { IsInt, IsNotEmpty, IsString, Max, Min } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsInt,
+  Min,
+  Max,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateReviewDto {
-  @IsString()
-  @IsNotEmpty()
-  bookingId: string;
-
   @IsInt()
   @Min(1)
   @Max(5)
@@ -13,5 +15,14 @@ export class CreateReviewDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(1000)
   comment: string;
+
+  @IsString()
+  @IsNotEmpty()
+  salonId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  bookingId: string;
 }

@@ -25,20 +25,26 @@ export function useAuth(): AuthState {
   const pathname = usePathname();
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
+    const checkAuthStatus = async () => {
       try {
-        const decoded: DecodedToken = jwtDecode(token);
-        setUserId(decoded.sub);
-        setUserRole(decoded.role);
-        setAuthStatus('authenticated');
-      } catch (e) {
+        const res = await fetch('http://localhost:3000/api/auth/status', {
+          credentials: 'include', // Important: send cookies with the request
+        });
+
+        if (res.ok) {
+          const user = await res.json();
+          setUserId(user.id);
+          setUserRole(user.role);
+          setAuthStatus('authenticated');
+        } else {
+          setAuthStatus('unauthenticated');
+        }
+      } catch (error) {
         setAuthStatus('unauthenticated');
-        localStorage.removeItem('access_token');
       }
-    } else {
-      setAuthStatus('unauthenticated');
-    }
+    };
+
+    checkAuthStatus();
   }, [pathname]);
 
   return { authStatus, userRole, userId, setAuthStatus };

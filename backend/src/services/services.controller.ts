@@ -1,69 +1,75 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
-  UseGuards,
-  Param,
-  Get,
   Patch,
+  Param,
   Delete,
-  HttpCode,
-  HttpStatus,
+  UseGuards,
   Query,
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
-import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from 'src/auth/decorator/get-user.decorator';
-import { User } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { GetUser } from '../auth/decorator/get-user.decorator';
+import { JwtGuard } from '../auth/guard/jwt.guard';
+import { User } from '@prisma/client';
 
-// This new controller will handle all public-facing service routes
-@Controller('api')
-export class PublicServicesController {
+@Controller('services')
+export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
-  @Get('salons/:salonId/services')
+  @UseGuards(JwtGuard)
+  @Post()
+  create(@GetUser() user: User, @Body() createServiceDto: CreateServiceDto) {
+    return this.servicesService.create(user, createServiceDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.servicesService.findAll();
+  }
+  
+  // FIX: Added the missing /approved route
+  @Get('approved')
+  findAllApproved(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ) {
+    return this.servicesService.findAllApproved(page, pageSize);
+  }
+
+  @Get('salon/:salonId')
   findAllForSalon(@Param('salonId') salonId: string) {
     return this.servicesService.findAllForSalon(salonId);
   }
 
-  @Get('services/featured')
+  @Get('featured')
   findFeatured() {
     return this.servicesService.findFeatured();
   }
 
-  // NEW: Endpoint for all approved services with pagination
-  @Get('services')
-  findAllApproved(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('pageSize', new DefaultValuePipe(12), ParseIntPipe) pageSize: number,
-  ) {
-    return this.servicesService.findAllApproved(page, pageSize);
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.servicesService.findOne(id);
   }
-}
 
-
-@Controller('api/services')
-export class ServicesController {
-  constructor(private readonly servicesService: ServicesService) {}
-
-  @UseGuards(AuthGuard('jwt'))
-  @Patch(':serviceId')
+  @UseGuards(JwtGuard)
+  @Patch(':id')
   update(
-    @Param('serviceId') serviceId: string,
     @GetUser() user: User,
+    @Param('id') id: string,
     @Body() updateServiceDto: UpdateServiceDto,
   ) {
-    return this.servicesService.update(user, serviceId, updateServiceDto);
+    return this.servicesService.update(user, id, updateServiceDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete(':serviceId')
-  remove(@Param('serviceId') serviceId: string, @GetUser() user: User) {
-    return this.servicesService.remove(user, serviceId);
+  @UseGuards(JwtGuard)
+  @Delete(':id')
+  remove(@GetUser() user: User, @Param('id') id: string) {
+    return this.servicesService.remove(user, id);
   }
 }
