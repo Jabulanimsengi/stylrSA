@@ -1,3 +1,4 @@
+// backend/src/salons/salons.controller.ts
 import {
   Controller,
   Get,
@@ -15,11 +16,11 @@ import { GetUser } from '../auth/decorator/get-user.decorator'; // Corrected imp
 import { JwtGuard } from '../auth/guard/jwt.guard'; // Corrected import path
 import { User } from '@prisma/client'; // Corrected import
 
-@UseGuards(JwtGuard)
-@Controller('salons')
+@Controller('api/salons')
 export class SalonsController {
   constructor(private readonly salonsService: SalonsService) {}
 
+  @UseGuards(JwtGuard)
   @Post()
   create(
     @GetUser() user: User,
@@ -28,12 +29,14 @@ export class SalonsController {
     return this.salonsService.create(user.id, createSalonDto);
   }
 
-  @Get('my-salon/:ownerId')
-  findMySalon(@GetUser() user: User, @Param('ownerId') ownerId: string) {
-    return this.salonsService.findMySalon(user, ownerId);
+  @UseGuards(JwtGuard)
+  @Get('my-salon')
+  findMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+    const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
+    return this.salonsService.findMySalon(user, id);
   }
-
-  @Get('approved')
+  
+  @Get()
   findAllApproved(
     @Query('province') province: string,
     @Query('city') city: string,
@@ -59,39 +62,48 @@ export class SalonsController {
     return this.salonsService.findOne(id);
   }
 
-  @Patch('my-salon/:ownerId')
+  @UseGuards(JwtGuard)
+  @Patch('mine')
   updateMySalon(
     @GetUser() user: User,
     @Body() updateSalonDto: UpdateSalonDto,
-    @Param('ownerId') ownerId: string,
+    @Query('ownerId') ownerId?: string,
   ) {
-    return this.salonsService.updateMySalon(user, updateSalonDto, ownerId);
+    const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
+    return this.salonsService.updateMySalon(user, updateSalonDto, id);
   }
   
-  @Patch('my-salon/:ownerId/toggle-availability')
+  @UseGuards(JwtGuard)
+  @Patch('mine/availability')
   toggleAvailability(
     @GetUser() user: User,
-    @Param('ownerId') ownerId: string,
+    @Query('ownerId') ownerId?: string,
   ) {
-    return this.salonsService.toggleAvailability(user, ownerId);
+    const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
+    return this.salonsService.toggleAvailability(user, id);
   }
 
-  @Get('my-salon/:ownerId/bookings')
+  @UseGuards(JwtGuard)
+  @Get('mine/bookings')
   findBookingsForMySalon(
     @GetUser() user: User,
-    @Param('ownerId') ownerId: string,
+    @Query('ownerId') ownerId?: string,
   ) {
-    return this.salonsService.findBookingsForMySalon(user, ownerId);
+    const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
+    return this.salonsService.findBookingsForMySalon(user, id);
   }
 
-  @Get('my-salon/:ownerId/services')
+  @UseGuards(JwtGuard)
+  @Get('mine/services')
   findServicesForMySalon(
     @GetUser() user: User,
-    @Param('ownerId') ownerId: string,
+    @Query('ownerId') ownerId?: string,
   ) {
-    return this.salonsService.findServicesForMySalon(user, ownerId);
+    const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
+    return this.salonsService.findServicesForMySalon(user, id);
   }
-
+  
+  @UseGuards(JwtGuard)
   @Delete(':id')
   remove(@GetUser() user: User, @Param('id') id: string) {
     return this.salonsService.remove(user, id);

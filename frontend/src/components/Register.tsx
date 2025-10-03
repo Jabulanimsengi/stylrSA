@@ -1,3 +1,4 @@
+// frontend/src/components/Register.tsx
 'use client';
 
 import { useState, FormEvent } from 'react';
@@ -25,6 +26,7 @@ export default function Register() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, password, role }),
+        credentials: 'include',
       });
 
       if (!res.ok) {
@@ -33,14 +35,13 @@ export default function Register() {
         throw new Error(message || 'Registration failed.');
       }
 
-      const data = await res.json();
-      localStorage.setItem('access_token', data.accessToken);
       toast.success('Registration successful! Welcome.');
       closeModal();
       window.location.reload(); // Reload to update auth state everywhere
 
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }

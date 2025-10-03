@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from './HomePage.module.css';
 import FilterBar from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Service, Salon } from '@/types';
+import { Service } from '@/types';
 import FeaturedServiceCard from '@/components/FeaturedServiceCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -24,14 +24,17 @@ export default function HomePage() {
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/services?page=${pageNum}&pageSize=12`);
+      const res = await fetch(`http://localhost:3000/api/services/approved?page=${pageNum}&pageSize=12`);
       if (res.ok) {
-        const data = await res.json();
+        // FIX: Explicitly typing the 'data' object from the API response
+        const data: { services: ServiceWithSalon[], currentPage: number, totalPages: number } = await res.json();
+        
         setServices(prev => {
-          const allServices = [...prev, ...data.services];
-          const uniqueServices = Array.from(new Map(allServices.map(item => [item.id, item])).values());
-          return uniqueServices;
+          const allServices = pageNum === 1 ? data.services : [...prev, ...data.services];
+          const uniqueServicesMap = new Map(allServices.map(item => [item.id, item]));
+          return Array.from(uniqueServicesMap.values());
         });
+        
         setHasMore(data.currentPage < data.totalPages);
         setPage(data.currentPage + 1);
       } else {

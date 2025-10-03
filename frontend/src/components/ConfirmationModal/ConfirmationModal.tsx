@@ -1,36 +1,33 @@
-'use client';
-
-import React from 'react';
 import styles from './ConfirmationModal.module.css';
 
+// FIX: Define the component's props
 interface ConfirmationModalProps {
-  message: string;
+  isOpen: boolean;
+  onClose: () => void;
   onConfirm: () => void;
-  onCancel: () => void;
-  confirmText?: string;
-  cancelText?: string;
+  title: string;
+  message: string;
 }
 
-export default function ConfirmationModal({
-  message,
-  onConfirm,
-  onCancel,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
-}: ConfirmationModalProps) {
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }: ConfirmationModalProps) => {
+  if (!isOpen) return null;
+
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <p className={styles.message}>{message}</p>
-        <div className={styles.buttonContainer}>
-          <button onClick={onCancel} className="btn btn-secondary">
-            {cancelText}
+        <h2>{title}</h2>
+        <p>{message}</p>
+        <div className={styles.modalActions}>
+          <button className="btn btn-secondary" onClick={onClose}>
+            Cancel
           </button>
-          <button onClick={onConfirm} className="btn btn-primary">
-            {confirmText}
+          <button className="btn btn-danger" onClick={onConfirm}>
+            Confirm
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ConfirmationModal;

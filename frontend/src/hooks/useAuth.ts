@@ -1,51 +1,52 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { User } from '@/types';
 
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import { usePathname } from 'next/navigation';
-
-interface DecodedToken {
-  sub: string;
-  role: 'CLIENT' | 'SALON_OWNER' | 'ADMIN';
+// FIX: Define the shape of the authentication state
+export interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+  logout: () => Promise<void>;
 }
 
-type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
-
-interface AuthState {
-  authStatus: AuthStatus;
-  userRole: string | null;
-  userId: string | null;
-  setAuthStatus: Dispatch<SetStateAction<AuthStatus>>;
-}
-
-export function useAuth(): AuthState {
-  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const pathname = usePathname();
+export const useAuth = (): AuthState => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
+    const fetchUser = async () => {
       try {
         const res = await fetch('http://localhost:3000/api/auth/status', {
-          credentials: 'include', // Important: send cookies with the request
+          credentials: 'include',
         });
-
         if (res.ok) {
-          const user = await res.json();
-          setUserId(user.id);
-          setUserRole(user.role);
-          setAuthStatus('authenticated');
+          const data = await res.json();
+          setUser(data);
         } else {
-          setAuthStatus('unauthenticated');
+          setUser(null);
         }
       } catch (error) {
-        setAuthStatus('unauthenticated');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    checkAuthStatus();
-  }, [pathname]);
+    fetchUser();
+  }, []);
 
-  return { authStatus, userRole, userId, setAuthStatus };
-}
+  const logout = async () => {
+    try {
+      await fetch('http://localhost:3000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setUser(null);
+      // It's often a good idea to redirect after logout
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  return { user, isLoading, logout };
+};

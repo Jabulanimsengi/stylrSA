@@ -1,3 +1,4 @@
+// backend/src/services/services.controller.ts
 import {
   Controller,
   Get,
@@ -18,7 +19,7 @@ import { GetUser } from '../auth/decorator/get-user.decorator';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { User } from '@prisma/client';
 
-@Controller('services')
+@Controller('api/services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
@@ -33,7 +34,6 @@ export class ServicesController {
     return this.servicesService.findAll();
   }
   
-  // FIX: Added the missing /approved route
   @Get('approved')
   findAllApproved(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

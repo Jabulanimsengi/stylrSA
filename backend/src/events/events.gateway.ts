@@ -1,99 +1,53 @@
 import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  SubscribeMessage,
   WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
   WebSocketServer,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { NotificationsService } from 'src/notifications/notifications.service';
+import { Logger } from '@nestjs/common';
 
-@WebSocketGateway({ cors: { origin: '*' } })
-export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+  },
+})
+export class EventsGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(
-    private prisma: PrismaService,
-    private notificationsService: NotificationsService,
-  ) {}
+  private logger: Logger = new Logger('EventsGateway');
   private connectedUsers: Map<string, string> = new Map();
 
   handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId as string;
-    if (userId) {
-      this.connectedUsers.set(userId, client.id);
-      client.join(userId);
-    }
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    for (let [key, value] of this.connectedUsers.entries()) {
-      if (value === client.id) {
-        this.connectedUsers.delete(key);
+    this.logger.log(`Client disconnected: ${client.id}`);
+    for (const [userId, socketId] of this.connectedUsers.entries()) {
+      if (socketId === client.id) {
+        this.connectedUsers.delete(userId);
         break;
       }
     }
   }
 
-  @SubscribeMessage('sendMessage')
-  async handleSendMessage(client: Socket, payload: { recipientId: string; body: string; }): Promise<void> {
-    const senderId = client.handshake.query.userId as string;
-    let conversation = await this.prisma.conversation.findFirst({
-      where: {
-        OR: [
-          { AND: [{ user1Id: senderId }, { user2Id: payload.recipientId }] },
-          { AND: [{ user1Id: payload.recipientId }, { user2Id: senderId }] },
-        ],
-      },
-    });
+  @SubscribeMessage('register')
+  handleRegister(
+    @MessageBody() userId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.connectedUsers.set(userId, client.id);
+    this.logger.log(`User ${userId} registered with socket id ${client.id}`);
+  }
 
-    if (!conversation) {
-      conversation = await this.prisma.conversation.create({
-        data: {
-          user1Id: senderId,
-          user2Id: payload.recipientId
-        },
-      });
+  // FIX: Reverted method name to 'sendNotificationToUser'
+  sendNotificationToUser(userId: string, event: string, data: any) {
+    const socketId = this.connectedUsers.get(userId);
+    if (socketId) {
+      this.server.to(socketId).emit(event, data);
     }
-    const newMessage = await this.prisma.message.create({
-      data: {
-        content: payload.body,
-        senderId: senderId,
-        conversationId: conversation.id,
-      },
-    });
-    
-    // Create notification for recipient
-    await this.notificationsService.create(
-      payload.recipientId,
-      `You have a new message.`,
-      `/chat/${conversation.id}`
-    );
-
-    // Emit events
-    this.server.to(payload.recipientId).emit('newMessage', newMessage);
-    this.server.to(payload.recipientId).emit('newNotification', { message: 'You have a new message!' });
-    // Emit a message delivered event to the sender
-    this.server.to(senderId).emit('messageDelivered', { messageId: newMessage.id });
-  }
-
-  @SubscribeMessage('joinSalonRoom')
-  handleJoinSalonRoom(client: Socket, salonId: string): void {
-    client.join(`salon-${salonId}`);
-  }
-
-  @SubscribeMessage('leaveSalonRoom')
-  handleLeaveSalonRoom(client: Socket, salonId: string): void {
-    client.leave(`salon-${salonId}`);
-  }
-
-  emitToUser(userId: string, event: string, data: any) {
-    this.server.to(userId).emit(event, data);
-  }
-
-  emitToSalonRoom(salonId: string, event: string, data: any) {
-    this.server.to(`salon-${salonId}`).emit(event, data);
   }
 }

@@ -1,9 +1,11 @@
+// frontend/src/components/Login.tsx
 'use client';
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../app/auth.module.css';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { toast } from 'react-toastify';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -23,19 +25,21 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-        credentials: 'include', // Important: send cookies with the request
+        credentials: 'include',
       });
 
       if (!res.ok) {
         throw new Error('Login failed. Please check your credentials.');
       }
 
-      // Instead of decoding the token, we'll let the useAuth hook handle it
+      toast.success('Login successful! Welcome back.');
       closeModal();
-      router.push('/salons'); // Redirect to a default page after login
+      // Force a full page reload to update auth state everywhere
+      window.location.reload();
 
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +82,7 @@ export default function Login() {
         </form>
         <p className={styles.footerText}>
           Don't have an account?{' '}
-          <a href="#" onClick={switchToRegister} className={styles.footerLink}>
+          <a href="#" onClick={(e) => { e.preventDefault(); switchToRegister(); }} className={styles.footerLink}>
             Sign up
           </a>
         </p>

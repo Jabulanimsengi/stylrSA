@@ -1,3 +1,4 @@
+// backend/src/services/services.service.ts
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -79,17 +80,31 @@ export class ServicesService {
   }
 
   async findAllApproved(page: number = 1, pageSize: number = 10) {
-    const services = await this.prisma.service.findMany({
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      where: {
-        approvalStatus: 'APPROVED',
-      },
-      include: {
-        salon: true, // Include salon details with the service
-      }
-    });
-    // FIX: Return an object with a 'services' key
-    return { services };
+    const [services, total] = await this.prisma.$transaction([
+      this.prisma.service.findMany({
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        where: {
+          approvalStatus: 'APPROVED',
+        },
+        include: {
+          salon: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+              province: true,
+            },
+          },
+        },
+      }),
+      this.prisma.service.count({ where: { approvalStatus: 'APPROVED' } }),
+    ]);
+
+    return {
+      services,
+      currentPage: page,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 }
