@@ -7,42 +7,49 @@ import styles from './MyFavoritesPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function MyFavoritesPage() {
   const [favorites, setFavorites] = useState<Salon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { authStatus } = useAuth();
 
   useEffect(() => {
-    const fetchFavorites = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
+    if (authStatus === 'unauthenticated') {
+      router.push('/login');
+      return;
+    }
 
-      try {
-        const res = await fetch('http://localhost:3000/api/favorites', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+    if (authStatus === 'authenticated') {
+      const fetchFavorites = async () => {
+        setIsLoading(true);
+        try {
+          const res = await fetch('http://localhost:3000/api/favorites', {
+            credentials: 'include', // Send cookies with the request
+          });
 
-        if (!res.ok) {
-          throw new Error('Failed to fetch favorites');
+          if (!res.ok) {
+            if (res.status === 401) {
+              router.push('/login');
+            }
+            throw new Error('Failed to fetch favorites');
+          }
+
+          const data = await res.json();
+          setFavorites(data.map((fav: { salon: Salon }) => fav.salon));
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsLoading(false);
         }
+      };
 
-        const data = await res.json();
-        setFavorites(data.map((fav: { salon: Salon }) => fav.salon));
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      fetchFavorites();
+    }
+  }, [authStatus, router]);
 
-    fetchFavorites();
-  }, [router]);
-
-  if (isLoading) {
+  if (isLoading || authStatus === 'loading') {
     return <LoadingSpinner />;
   }
 

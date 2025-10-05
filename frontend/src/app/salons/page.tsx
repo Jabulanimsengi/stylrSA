@@ -39,13 +39,11 @@ export default function SalonsPage() {
 
   const [initialFilters] = useState(getInitialFilters);
 
-
   const fetchSalons = useCallback(async (filters: any) => {
     setIsLoading(true);
-    let url = 'http://localhost:3000/api/salons/approved';
     const query = new URLSearchParams();
-    const token = localStorage.getItem('access_token');
-    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+    
+    let url = 'http://localhost:3000/api/salons/approved';
 
     if (filters.lat && filters.lon) {
       url = `http://localhost:3000/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
@@ -56,14 +54,15 @@ export default function SalonsPage() {
       if (filters.offersMobile) query.append('offersMobile', 'true');
       if (filters.sortBy) query.append('sortBy', filters.sortBy);
       if (filters.openOn) query.append('openOn', filters.openOn);
+      
       const queryString = query.toString();
       if (queryString) {
-        url = `http://localhost:3000/api/salons/approved?${queryString}`;
+        url += `?${queryString}`;
       }
     }
 
     try {
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to fetch salons');
       const data = await res.json();
       setSalons(data);
@@ -90,10 +89,8 @@ export default function SalonsPage() {
       return;
     }
 
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
-
     // Optimistic UI update
+    const originalSalons = salons;
     setSalons(prevSalons =>
       prevSalons.map(salon =>
         salon.id === salonId ? { ...salon, isFavorited: !salon.isFavorited } : salon
@@ -103,7 +100,7 @@ export default function SalonsPage() {
     try {
       const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salonId}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include', // This sends the required authentication cookie
       });
 
       if (!res.ok) {
@@ -117,11 +114,7 @@ export default function SalonsPage() {
     } catch (error) {
       toast.error('Could not update favorites. Please try again.');
       // Revert UI on error
-      setSalons(prevSalons =>
-        prevSalons.map(salon =>
-          salon.id === salonId ? { ...salon, isFavorited: !salon.isFavorited } : salon
-        )
-      );
+      setSalons(originalSalons);
     }
   };
 

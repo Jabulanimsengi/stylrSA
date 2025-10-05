@@ -1,6 +1,7 @@
 // frontend/src/hooks/useAuth.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '@/types';
+import { useRouter } from 'next/navigation';
 
 export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
 
@@ -10,12 +11,14 @@ export interface AuthState {
   isLoading: boolean;
   setAuthStatus: (status: AuthStatus) => void;
   setUser: (user: User | null) => void;
+  logout: () => void;
 }
 
 export const useAuth = (): AuthState => {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -42,5 +45,20 @@ export const useAuth = (): AuthState => {
     checkAuthStatus();
   }, []);
 
-  return { authStatus, user, isLoading, setAuthStatus, setUser };
+  const logout = useCallback(async () => {
+    try {
+      await fetch('http://localhost:3000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout failed', error);
+    } finally {
+      setAuthStatus('unauthenticated');
+      setUser(null);
+      router.push('/login');
+    }
+  }, [router]);
+
+  return { authStatus, user, isLoading, setAuthStatus, setUser, logout };
 };

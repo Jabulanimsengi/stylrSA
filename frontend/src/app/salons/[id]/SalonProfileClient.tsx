@@ -238,7 +238,7 @@ export default function SalonProfileClient({ initialSalon, initialServices, init
       {isLightboxOpen && (
         <ImageLightbox
           images={[lightboxImageUrl]}
-          startIndex={0}
+          initialImageIndex={0}
           onClose={() => setLightboxOpen(false)}
         />
       )}

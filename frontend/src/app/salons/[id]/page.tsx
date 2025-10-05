@@ -15,6 +15,7 @@ import ServiceCard from '@/components/ServiceCard';
 import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
 import ImageLightbox from '@/components/ImageLightbox';
+import { useAuthModal } from '@/context/AuthModalContext';
 
 async function getSalonDetails(id: string): Promise<Salon | null> {
   try {
@@ -56,6 +57,7 @@ export default function SalonProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { authStatus, user } = useAuth();
+  const { openModal } = useAuthModal();
   const socket = useSocket();
   
   const [salon, setSalon] = useState<Salon | null>(null);
@@ -113,7 +115,7 @@ export default function SalonProfilePage() {
 
   const handleBookClick = (service: Service) => {
     if (authStatus !== 'authenticated') {
-      router.push('/login');
+      openModal('login');
     } else {
       setSelectedService(service);
     }
@@ -121,7 +123,7 @@ export default function SalonProfilePage() {
 
   const handleSendMessageClick = async () => {
     if (authStatus !== 'authenticated') {
-      router.push('/login');
+      openModal('login');
       return;
     }
     if (!salon || !user) return;
@@ -147,29 +149,32 @@ export default function SalonProfilePage() {
 
   const handleToggleFavorite = async () => {
     if (authStatus !== 'authenticated') {
-      toast.error('You must be logged in to favorite a salon.');
-      router.push('/login');
+      toast.info('Please log in to add to favorites.');
+      openModal('login');
       return;
     }
     if (!salon) return;
 
-    try {
-      setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
+    const originalFavoritedState = salon.isFavorited;
+    setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
 
+    try {
       const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salon.id}`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include', // Automatically sends the auth cookie
       });
       
       if (!res.ok) {
-        setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
         throw new Error('Failed to update favorite status.');
       }
       
-      toast.success(salon.isFavorited ? 'Removed from favorites.' : 'Added to favorites!');
+      const { favorited } = await res.json();
+      toast.success(favorited ? 'Added to favorites!' : 'Removed from favorites.');
 
     } catch (error) {
       toast.error('Could not update favorites.');
+      // Revert UI on error
+      setSalon(prev => (prev ? { ...prev, isFavorited: originalFavoritedState } : null));
     }
   };
   
@@ -264,8 +269,6 @@ export default function SalonProfilePage() {
                         onBook={handleBookClick}
                         onSendMessage={handleSendMessageClick}
                         onImageClick={openLightbox}
-                        isLiked={service.isLikedByCurrentUser || false}
-                        onLike={() => { /* Implement like functionality if needed */ }}
                       />
                   ))}
                 </div>
