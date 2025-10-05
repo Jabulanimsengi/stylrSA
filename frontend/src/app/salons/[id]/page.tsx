@@ -1,4 +1,3 @@
-// frontend/src/app/salons/[id]/page.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -65,6 +64,7 @@ export default function SalonProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
 
   const fetchPageData = useCallback(async () => {
@@ -99,12 +99,19 @@ export default function SalonProfilePage() {
     }
   }, [socket, params]);
 
-  const openLightbox = (index: number) => {
+  const openLightbox = (images: string[], index: number) => {
+    setLightboxImages(images);
     setLightboxStartIndex(index);
     setIsLightboxOpen(true);
   };
+  
+  const closeLightbox = () => {
+    setIsLightboxOpen(false);
+    setLightboxImages([]);
+    setLightboxStartIndex(0);
+  };
 
-  const handleBookNowClick = (service: Service) => {
+  const handleBookClick = (service: Service) => {
     if (authStatus !== 'authenticated') {
       router.push('/login');
     } else {
@@ -210,9 +217,9 @@ export default function SalonProfilePage() {
       )}
       {isLightboxOpen && (
         <ImageLightbox
-          images={galleryImageUrls}
-          startIndex={lightboxStartIndex}
-          onClose={() => setIsLightboxOpen(false)}
+          images={lightboxImages}
+          initialImageIndex={lightboxStartIndex}
+          onClose={closeLightbox}
         />
       )}
       <div>
@@ -254,8 +261,11 @@ export default function SalonProfilePage() {
                       <ServiceCard 
                         key={service.id} 
                         service={service} 
-                        onBookNow={handleBookNowClick}
+                        onBook={handleBookClick}
                         onSendMessage={handleSendMessageClick}
+                        onImageClick={openLightbox}
+                        isLiked={service.isLikedByCurrentUser || false}
+                        onLike={() => { /* Implement like functionality if needed */ }}
                       />
                   ))}
                 </div>
@@ -268,7 +278,7 @@ export default function SalonProfilePage() {
                   <Accordion title="Gallery">
                     <div className={styles.galleryGrid}>
                       {galleryImages.map((image, index) => (
-                        <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(index)}>
+                        <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
                           <img src={image.imageUrl} alt={image.caption || 'Salon work'} />
                         </div>
                       ))}
@@ -295,7 +305,7 @@ export default function SalonProfilePage() {
                   )}
                 </Accordion>
                 <Accordion title="Location & Contact">
-                   <p><strong>Address:</strong> {salon.town}, {salon.city}, {salon.province}</p>
+                   <p><strong>Address:</strong> {salon.address || `${salon.town}, ${salon.city}, ${salon.province}`}</p>
                    {authStatus === 'authenticated' ? (
                      <>
                        {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}

@@ -8,12 +8,12 @@ import { toast } from 'react-toastify';
 
 interface ServiceCardProps {
   service: Service;
-  onBookNow: (service: Service) => void;
+  onBook: (service: Service) => void;
   onSendMessage: () => void;
+  onImageClick: (images: string[], index: number) => void;
 }
 
-export default function ServiceCard({ service, onBookNow, onSendMessage }: ServiceCardProps) {
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+export default function ServiceCard({ service, onBook, onSendMessage, onImageClick }: ServiceCardProps) {
   const [isLiked, setIsLiked] = useState(service.isLikedByCurrentUser || false);
   const [likeCount, setLikeCount] = useState(service.likeCount);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -43,13 +43,10 @@ export default function ServiceCard({ service, onBookNow, onSendMessage }: Servi
 
   return (
     <>
-      {isLightboxOpen && service.images.length > 0 && (
-        <ImageLightbox images={service.images} onClose={() => setIsLightboxOpen(false)} />
-      )}
       <div className={styles.card}>
         <div 
           className={styles.imageContainer} 
-          onClick={() => service.images.length > 0 && setIsLightboxOpen(true)}
+          onClick={() => service.images.length > 0 && onImageClick(service.images, 0)}
         >
           <img
             src={service.images[0] || 'https://via.placeholder.com/300x150'}
@@ -79,7 +76,7 @@ export default function ServiceCard({ service, onBookNow, onSendMessage }: Servi
             </button>
             <div className={styles.actions}>
               <button onClick={(e) => { e.stopPropagation(); onSendMessage(); }} className="btn btn-ghost">Message</button>
-              <button onClick={(e) => { e.stopPropagation(); onBookNow(service); }} className="btn btn-primary">Book</button>
+              <button onClick={(e) => { e.stopPropagation(); onBook(service); }} className="btn btn-primary">Book</button>
             </div>
           </div>
         </div>

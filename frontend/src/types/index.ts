@@ -18,6 +18,7 @@ export interface Salon {
   province: string;
   country: string;
   town: string;
+  address: string;
   contactEmail?: string;
   phoneNumber?: string;
   whatsapp?: string;
@@ -43,15 +44,18 @@ export interface Salon {
 
 export interface Service {
   id: string;
-  name: string;
+  title: string;
   description: string;
   price: number;
   duration: number; // in minutes
   salonId: string;
   salon: Salon;
+  images: string[];
   approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
+  isLikedByCurrentUser?: boolean;
+  likeCount: number;
 }
 
 export interface Booking {
