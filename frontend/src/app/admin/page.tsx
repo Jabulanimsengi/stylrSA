@@ -2,22 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
 import styles from './AdminPage.module.css';
 import { Salon, Service, ApprovalStatus, Review, Product } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
-
-interface DecodedToken { role: string; }
+import { useAuth } from '@/hooks/useAuth'; // Import the useAuth hook
 
 type PendingSalon = Salon & { owner: { id: string; email: string } };
 type PendingService = Service & { salon: { name: string } };
-type PendingReview = Review & { salon: { name: string } };
+type PendingReview = Review & { author: { firstName: string }, salon: { name: string } };
 type PendingProduct = Product & { seller: { firstName: string, lastName: string } };
 
 export default function AdminPage() {
+  const { authStatus, user } = useAuth(); // Use the hook to get auth status and user info
   const [pendingSalons, setPendingSalons] = useState<PendingSalon[]>([]);
-  const [allSalons, setAllSalons] = useState<PendingSalon[]>([]); // New state for all salons
+  const [allSalons, setAllSalons] = useState<PendingSalon[]>([]);
   const [pendingServices, setPendingServices] = useState<PendingService[]>([]);
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
@@ -26,44 +25,57 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.push('/login');
-      return;
+    // Wait for the auth status to be determined
+    if (authStatus === 'loading') {
+      return; 
     }
-    try {
-      const decodedToken: DecodedToken = jwtDecode(token);
-      if (decodedToken.role !== 'ADMIN') {
-        router.push('/');
-        return;
-      }
-    } catch (e) {
+    // If not authenticated or not an admin, redirect
+    if (authStatus !== 'authenticated' || user?.role !== 'ADMIN') {
       router.push('/login');
       return;
     }
 
     const fetchData = async () => {
       setIsLoading(true);
-      const headers = { Authorization: `Bearer ${token}` };
-      const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes] = await Promise.all([
-        fetch('http://localhost:3000/api/admin/salons/pending', { headers }),
-        fetch('http://localhost:3000/api/admin/salons/all', { headers }), // Fetch all salons
-        fetch('http://localhost:3000/api/admin/services/pending', { headers }),
-        fetch('http://localhost:3000/api/admin/reviews/pending', { headers }),
-        fetch('http://localhost:3000/api/admin/products/pending', { headers }),
-      ]);
-      setPendingSalons(await pendingSalonsRes.json());
-      setAllSalons(await allSalonsRes.json()); // Set all salons
-      setPendingServices(await servicesRes.json());
-      setPendingReviews(await reviewsRes.json());
-      setPendingProducts(await productsRes.json());
-      setIsLoading(false);
+      // Use credentials: 'include' to automatically send the auth cookie
+      const requestOptions = { credentials: 'include' as const };
+      
+      try {
+        const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes] = await Promise.all([
+          fetch('http://localhost:3000/api/admin/salons/pending', requestOptions),
+          fetch('http://localhost:3000/api/admin/salons/all', requestOptions),
+          fetch('http://localhost:3000/api/admin/services/pending', requestOptions),
+          fetch('http://localhost:3000/api/admin/reviews/pending', requestOptions),
+          fetch('http://localhost:3000/api/admin/products/pending', requestOptions),
+        ]);
+
+        // Check for unauthorized responses which would indicate an invalid session
+        if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes].some(res => res.status === 401)) {
+            router.push('/login');
+            return;
+        }
+
+        setPendingSalons(await pendingSalonsRes.json());
+        setAllSalons(await allSalonsRes.json());
+        setPendingServices(await servicesRes.json());
+        setPendingReviews(await reviewsRes.json());
+        setPendingProducts(await productsRes.json());
+      } catch (error) {
+        console.error("Failed to fetch admin data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    
     fetchData();
-  }, [router]);
+  }, [authStatus, user, router]);
 
   const handleUpdateStatus = async (type: 'salon' | 'service' | 'review' | 'product', id: string, status: ApprovalStatus) => {
-    const token = localStorage.getItem('access_token');
+    if (authStatus !== 'authenticated') {
+        router.push('/login');
+        return;
+    }
+
     let url = '';
     switch (type) {
       case 'salon': url = `http://localhost:3000/api/admin/salons/${id}/status`; break;
@@ -74,10 +86,8 @@ export default function AdminPage() {
 
     await fetch(url, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Send cookies with the request
       body: JSON.stringify({ approvalStatus: status }),
     });
 
@@ -87,7 +97,7 @@ export default function AdminPage() {
     if (type === 'product') setPendingProducts(pendingProducts.filter(p => p.id !== id));
   };
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading || authStatus === 'loading') return <LoadingSpinner />;
 
   return (
     <div className={styles.container}>

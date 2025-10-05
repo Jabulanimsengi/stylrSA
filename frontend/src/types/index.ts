@@ -1,45 +1,49 @@
 // frontend/src/types/index.ts
 
+export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
+
+export type UserRole = 'USER' | 'SALON_OWNER' | 'ADMIN' | 'PRODUCT_SELLER';
+
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'USER' | 'SALON_OWNER' | 'ADMIN' | 'PRODUCT_SELLER';
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
+  password?: string;
 }
 
 export interface Salon {
   id: string;
   name: string;
-  ownerId: string;
+  address: string;
+  town: string; // Added town property
   city: string;
   province: string;
-  country: string;
-  town: string;
-  address: string;
-  contactEmail?: string;
-  phoneNumber?: string;
-  whatsapp?: string;
-  website?: string;
-  backgroundImage?: string;
-  heroImages?: string[];
+  postalCode: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  phoneNumber?: string | null;
+  contactEmail?: string | null;
+  website?: string | null;
+  whatsapp?: string | null;
   description: string;
-  latitude?: number;
-  longitude?: number;
-  operatingHours?: { [key: string]: string };
-  bookingType: 'ONSITE' | 'MOBILE' | 'BOTH';
-  offersMobile?: boolean;
-  mobileFee?: number;
-  isAvailableNow: boolean;
-  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  ownerId: string;
   createdAt: string;
   updatedAt: string;
-  reviews?: Review[];
-  services?: Service[];
-  gallery?: GalleryImage[];
+  backgroundImage?: string | null;
   isFavorited?: boolean;
+  isAvailableNow?: boolean;
+  operatingHours?: Record<string, string> | null;
+  bookingType: 'ONSITE' | 'MOBILE' | 'BOTH';
+  offersMobile?: boolean;
+  mobileFee?: number | null;
+  reviews?: Review[];
+  approvalStatus: ApprovalStatus;
 }
 
 export interface Service {
@@ -49,44 +53,12 @@ export interface Service {
   price: number;
   duration: number; // in minutes
   salonId: string;
-  salon: Salon;
   images: string[];
-  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
   isLikedByCurrentUser?: boolean;
   likeCount: number;
-}
-
-export interface Booking {
-  id: string;
-  userId: string;
-  user: User;
-  salonId: string;
-  salon: Salon;
-  serviceId: string;
-  service: Service;
-  bookingTime: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-  contactDetails: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Review {
-  id: string;
-  rating: number;
-  comment: string;
-  userId: string;
-  author: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  salonId: string;
-  bookingId: string;
-  createdAt: string;
-  updatedAt: string;
+  approvalStatus: ApprovalStatus;
 }
 
 export interface GalleryImage {
@@ -94,8 +66,33 @@ export interface GalleryImage {
   imageUrl: string;
   caption?: string;
   salonId: string;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  authorId: string;
+  author: {
+    firstName: string;
+    lastName: string;
+  };
+  salonId: string;
+  bookingId: string;
   createdAt: string;
-  updatedAt: string;
+  approvalStatus: ApprovalStatus;
+}
+
+export interface Booking {
+  id: string;
+  startTime: string;
+  endTime: string;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  notes?: string;
+  userId: string;
+  salonId: string;
+  serviceId: string;
+  createdAt: string;
 }
 
 export interface Product {
@@ -103,26 +100,22 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  stockQuantity: number;
-  sellerId: string;
-  seller: User;
+  stock: number;
   images: string[];
-  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  sellerId: string;
   createdAt: string;
   updatedAt: string;
+  approvalStatus: ApprovalStatus;
 }
 
 export interface Promotion {
   id: string;
-  title: string;
+  code: string;
   description: string;
   discountPercentage: number;
   startDate: string;
   endDate: string;
-  serviceId?: string;
-  service?: Service;
-  productId?: string;
-  product?: Product;
-  salonId: string;
-  salon: Salon;
+  salonId?: string | null;
+  productId?: string | null;
+  isActive: boolean;
 }
