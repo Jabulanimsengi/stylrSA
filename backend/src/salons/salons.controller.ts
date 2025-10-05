@@ -15,6 +15,7 @@ import { CreateSalonDto, UpdateSalonDto } from './dto';
 import { GetUser } from '../auth/decorator/get-user.decorator'; // Corrected import path
 import { JwtGuard } from '../auth/guard/jwt.guard'; // Corrected import path
 import { User } from '@prisma/client'; // Corrected import
+import { OptionalJwtAuthGuard } from 'src/auth/guard/optional-jwt.guard';
 
 @Controller('api/salons')
 export class SalonsController {
@@ -36,7 +37,8 @@ export class SalonsController {
     return this.salonsService.findMySalon(user, id);
   }
   
-  @Get()
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get('approved')
   findAllApproved(
     @Query('province') province: string,
     @Query('city') city: string,

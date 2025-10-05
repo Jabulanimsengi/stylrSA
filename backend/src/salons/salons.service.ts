@@ -55,6 +55,9 @@ export class SalonsService {
           },
         },
         services: {
+          where: {
+            approvalStatus: 'APPROVED',
+          },
           orderBy: {
             createdAt: 'asc',
           },
@@ -68,7 +71,6 @@ export class SalonsService {
             email: true,
           },
         },
-        // 'products' and 'promotions' removed as they are not direct relations of Salon
       },
     });
 
@@ -124,14 +126,30 @@ export class SalonsService {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to view this salon');
     }
-    return this.prisma.salon.findMany({ where: { ownerId } });
+    return this.prisma.salon.findFirst({ where: { ownerId } });
   }
 
   async findAllApproved(filters: any, user: User) {
     console.log('Filters received:', filters);
-    return this.prisma.salon.findMany({
-      where: {},
+    const salons = await this.prisma.salon.findMany({
+      where: {
+        approvalStatus: 'APPROVED'
+      },
     });
+
+    if (user) {
+      const favoriteSalons = await this.prisma.favorite.findMany({
+        where: { userId: user.id },
+        select: { salonId: true },
+      });
+      const favoriteSalonIds = new Set(favoriteSalons.map(f => f.salonId));
+      return salons.map(salon => ({
+        ...salon,
+        isFavorited: favoriteSalonIds.has(salon.id),
+      }));
+    }
+
+    return salons;
   }
 
   async findNearby(lat: number, lon: number) {
@@ -162,7 +180,10 @@ export class SalonsService {
     if (!salon) {
       throw new NotFoundException('Salon not found');
     }
-    return { message: 'Availability toggled (placeholder)' };
+    return this.prisma.salon.update({
+      where: { id: salon.id },
+      data: { isAvailableNow: !salon.isAvailableNow },
+    });
   }
 
   async findBookingsForMySalon(user: User, ownerId: string) {
@@ -175,7 +196,13 @@ export class SalonsService {
     if (!salon) {
       throw new NotFoundException('Salon not found');
     }
-    return this.prisma.booking.findMany({ where: { salonId: salon.id } });
+    return this.prisma.booking.findMany({ 
+      where: { salonId: salon.id },
+      include: {
+        service: true,
+        user: true,
+      }
+    });
   }
 
   async findServicesForMySalon(user: User, ownerId: string) {

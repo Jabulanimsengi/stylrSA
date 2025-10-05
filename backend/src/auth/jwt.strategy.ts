@@ -1,10 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+// backend/src/auth/jwt.strategy.ts
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
-import { User } from '@prisma/client'; // Corrected import
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -14,29 +14,33 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => {
-          return request?.cookies?.access_token;
-        },
+        JwtStrategy.extractJWT,
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
-      ignoreExpiration: false,
       secretOrKey: config.get('JWT_SECRET'),
     });
   }
 
-  async validate(payload: {
-    sub: string;
-    email: string;
-    role: string;
-  }): Promise<Omit<User, 'password'>> {
+  private static extractJWT(req: Request): string | null {
+    if (
+      req.cookies &&
+      'access_token' in req.cookies &&
+      req.cookies.access_token.length > 0
+    ) {
+      return req.cookies.access_token;
+    }
+    return null;
+  }
+
+  async validate(payload: { sub: string; role: string }) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
-
-    if (!user) {
-      throw new UnauthorizedException();
+    if (user) {
+      // The password should not be returned with the user object
+      const { password, ...result } = user;
+      return result;
     }
-
-    const { password, ...result } = user;
-    return result;
+    return null;
   }
 }

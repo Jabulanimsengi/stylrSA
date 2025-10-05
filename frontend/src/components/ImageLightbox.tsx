@@ -1,8 +1,7 @@
 // frontend/src/components/ImageLightbox.tsx
-'use client';
-
 import { useState } from 'react';
 import styles from './ImageLightbox.module.css';
+import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface ImageLightboxProps {
   images: string[];
@@ -14,21 +13,24 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Image
   const [currentIndex, setCurrentIndex] = useState(startIndex);
 
   const goToPrevious = () => {
-    setCurrentIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+    setCurrentIndex(prevIndex => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
   };
 
   const goToNext = () => {
-    setCurrentIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+    setCurrentIndex(prevIndex => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
   };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <button className={styles.closeButton} onClick={onClose}>&times;</button>
-      
-      <div className={styles.container} onClick={(e) => e.stopPropagation()}>
-        <button className={`${styles.navButton} ${styles.prevButton}`} onClick={goToPrevious}>‹</button>
-        <img src={images[currentIndex]} alt={`Service Image ${currentIndex + 1}`} className={styles.image} />
-        <button className={`${styles.navButton} ${styles.nextButton}`} onClick={goToNext}>›</button>
+      <div className={styles.content} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.closeButton} onClick={onClose}><FaTimes /></button>
+        {images.length > 1 && (
+            <button className={`${styles.navButton} ${styles.prevButton}`} onClick={goToPrevious}><FaChevronLeft /></button>
+        )}
+        <img src={images[currentIndex]} alt="Enlarged view" className={styles.image} />
+        {images.length > 1 && (
+            <button className={`${styles.navButton} ${styles.nextButton}`} onClick={goToNext}><FaChevronRight /></button>
+        )}
       </div>
     </div>
   );

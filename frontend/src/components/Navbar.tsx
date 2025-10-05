@@ -1,202 +1,183 @@
+// frontend/src/components/Navbar.tsx
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
-import { useSocket } from '@/context/SocketContext';
-import { toast } from 'react-toastify';
-import { FaBell, FaEnvelope, FaBars, FaTimes, FaTrash } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
-
-interface Notification {
-  id: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  link?: string;
-}
+import Image from 'next/image';
 
 export default function Navbar() {
-  const { authStatus, userRole, setAuthStatus } = useAuth();
+  const { authStatus, user, setAuthStatus } = useAuth();
   const { openModal } = useAuthModal();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const socket = useSocket();
-  const notificationRef = useRef<HTMLDivElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const fetchNotifications = async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
+  const handleLogout = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` }
+      await fetch('http://localhost:3000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
       });
-      if (res.ok) {
-        setNotifications(await res.json());
-      }
     } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    }
-  };
-  
-  useEffect(() => {
-    if (authStatus === 'authenticated') {
-      fetchNotifications();
-    }
-  }, [authStatus]);
-
-  useEffect(() => {
-    if (socket) {
-      const handleNewNotification = () => {
-        toast.info("You have a new notification!");
-        fetchNotifications();
-      };
-      socket.on('newNotification', handleNewNotification);
-      return () => { socket.off('newNotification'); };
-    }
-  }, [socket]);
-  
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
+      console.error('Logout failed:', error);
+    } finally {
+      if (setAuthStatus) {
+        setAuthStatus('unauthenticated');
       }
-    };
+      setIsLogoutModalOpen(false);
+      setIsMenuOpen(false);
+      setIsDropdownOpen(false);
+      router.push('/');
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const handleNotificationClick = async (notif: Notification) => {
-    const token = localStorage.getItem('access_token');
-    if (!notif.isRead) {
-      await fetch(`http://localhost:3000/api/notifications/${notif.id}/read`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    }
-    fetchNotifications();
-    setShowNotifications(false);
-    if(notif.link) {
-      router.push(notif.link)
-    }
-  };
-
-  const handleNotificationDelete = async (e: React.MouseEvent, notificationId: string) => {
-    e.stopPropagation(); // Prevent the click from navigating
-    const token = localStorage.getItem('access_token');
-    await fetch(`http://localhost:3000/api/notifications/${notificationId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-  };
-
-
-  const handleLogoutClick = () => {
-    setIsLogoutModalOpen(true);
-  };
-
-  const confirmLogout = () => {
-    localStorage.removeItem('access_token');
-    setIsLogoutModalOpen(false);
-    if (setAuthStatus) {
-      setAuthStatus('unauthenticated');
-    }
-    router.push('/');
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownRef]);
+  
+  // Close mobile menu on route change
+  useEffect(() => {
     setIsMenuOpen(false);
+  }, [pathname]);
+
+
+  const navLinks = [
+    { href: '/salons', label: 'Explore Salons' },
+    { href: '/products', label: 'Shop Products' },
+  ];
+  
+  const userLinks = [
+    { href: '/my-profile', label: 'My Profile' },
+    { href: '/my-bookings', label: 'My Bookings' },
+    { href: '/my-favorites', label: 'My Favorites' },
+  ];
+
+  const salonOwnerLinks = [
+    { href: '/dashboard', label: 'Salon Dashboard' },
+    ...userLinks,
+  ];
+
+  const productSellerLinks = [
+    { href: '/product-dashboard', label: 'Product Dashboard' },
+    ...userLinks,
+  ];
+
+  const adminLinks = [
+    { href: '/admin', label: 'Admin Dashboard' },
+    ...userLinks,
+  ];
+
+  const getDropdownLinks = () => {
+    if (!user) return [];
+    switch(user.role) {
+      case 'SALON_OWNER': return salonOwnerLinks;
+      case 'PRODUCT_SELLER': return productSellerLinks;
+      case 'ADMIN': return adminLinks;
+      default: return userLinks;
+    }
   };
 
-  const closeMobileMenu = () => setIsMenuOpen(false);
+  const renderNavLinks = (isMobile = false) => (
+    <>
+      {navLinks.map(link => (
+        <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`}>{link.label}</Link>
+      ))}
+       {authStatus === 'authenticated' && isMobile && getDropdownLinks().map(link => (
+          <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`}>{link.label}</Link>
+       ))}
+    </>
+  );
 
   return (
     <>
-      {isLogoutModalOpen && (
-        <ConfirmationModal
-          message="Are you sure you want to log out?"
-          onConfirm={confirmLogout}
-          onCancel={() => setIsLogoutModalOpen(false)}
-          confirmText="Logout"
-        />
-      )}
-      <nav className={styles.nav}>
-        <Link href="/" className={styles.logo}>
-          <Image 
-            src="/logo-transparent.png" 
-            alt="Salorify Logo" 
-            width={140} 
-            height={35} 
-            priority 
-          />
-        </Link>
-        
-        <div className={styles.navActions}>
-            {authStatus === 'authenticated' && (
-                <div className={styles.mobileIcons}>
-                    <Link href="/chat" className={styles.iconButton} title="Messages" onClick={closeMobileMenu}><FaEnvelope /></Link>
-                    <div ref={notificationRef} className={styles.notificationWrapper}>
-                      <button onClick={() => setShowNotifications(!showNotifications)} className={styles.iconButton} title="Notifications">
-                        <FaBell />
-                        {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-                      </button>
-                      {showNotifications && (
-                        <div className={styles.dropdown}>
-                          <div className={styles.dropdownHeader}>Notifications</div>
-                          {notifications.length > 0 ? notifications.map(notif => (
-                            <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`${styles.notificationItem} ${!notif.isRead ? styles.unread : ''}`}>
-                              <span>{notif.message}</span>
-                              <button onClick={(e) => handleNotificationDelete(e, notif.id)} className={styles.deleteNotificationButton}>
-                                <FaTrash />
-                              </button>
-                            </div>
-                          )) : <div className={styles.noNotifications}>No notifications yet.</div>}
-                        </div>
-                      )}
-                    </div>
-                </div>
-            )}
-            <div className={styles.hamburger} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? <FaTimes /> : <FaBars />}
-            </div>
-        </div>
+      <nav className={styles.navbar}>
+        <div className={styles.navContainer}>
+          <Link href="/" className={styles.logo}>
+            <Image 
+              src="/logo-transparent.png" 
+              alt="The Salon Hub Logo" 
+              width={180} 
+              height={45} 
+              priority 
+            />
+          </Link>
 
-
-        <div className={`${styles.linksContainer} ${isMenuOpen ? styles.mobileMenuOpen : ''}`}>
-          <Link href="/salons" className={`${styles.link} ${pathname === '/salons' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Salons</Link>
-          <Link href="/products" className={`${styles.link} ${pathname === '/products' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Products</Link>
+          <div className={styles.navLinks}>
+            {renderNavLinks()}
+          </div>
           
-          {authStatus === 'authenticated' ? (
-            <>
-              <Link href="/my-bookings" className={`${styles.link} ${pathname === '/my-bookings' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Bookings</Link>
-              <Link href="/my-profile" className={`${styles.link} ${pathname === '/my-profile' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Profile</Link>
-              <Link href="/my-favorites" className={`${styles.link} ${pathname === '/my-favorites' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>My Favorites</Link>
-              {userRole === 'SALON_OWNER' && <Link href="/dashboard" className={`${styles.link} ${pathname === '/dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Dashboard</Link>}
-              {userRole === 'PRODUCT_SELLER' && <Link href="/product-dashboard" className={`${styles.link} ${pathname === '/product-dashboard' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Product Dashboard</Link>}
-              {userRole === 'ADMIN' && <Link href="/admin" className={`${styles.link} ${pathname === '/admin' ? styles.activeLink : ''}`} onClick={closeMobileMenu}>Admin</Link>}
-              
-              <div className={styles.mobileAuthActions}>
-                <button onClick={handleLogoutClick} className="btn btn-ghost">Logout</button>
-              </div>
-            </>
-          ) : (
-            <div className={styles.mobileAuthActions}>
-              <button onClick={() => { openModal('login'); closeMobileMenu(); }} className={styles.link}>Login</button>
-              <button onClick={() => { openModal('register'); closeMobileMenu(); }} className="btn btn-primary">Sign Up</button>
+          <div className={styles.navActions}>
+            <div className={styles.desktopAuth}>
+              {authStatus === 'unauthenticated' ? (
+                <>
+                  <button onClick={() => openModal('login')} className={`${styles.navLink} ${styles.authButton}`}>Login</button>
+                  <button onClick={() => openModal('register')} className={`btn btn-primary ${styles.registerButton}`}>Sign Up</button>
+                </>
+              ) : (
+                <div className={styles.profileDropdown} ref={dropdownRef}>
+                  <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={styles.profileButton}>
+                    <FaUserCircle size={28} />
+                  </button>
+                  {isDropdownOpen && (
+                    <div className={styles.dropdownMenu}>
+                      {getDropdownLinks().map(link => (
+                         <Link key={link.href} href={link.href} className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>{link.label}</Link>
+                      ))}
+                      <button onClick={() => setIsLogoutModalOpen(true)} className={styles.dropdownItem}>Logout</button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
+
+            <div className={styles.menuIcon} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <FaTimes /> : <FaBars />}
+            </div>
+          </div>
         </div>
       </nav>
+
+      {isMenuOpen && (
+        <div className={styles.mobileMenu}>
+          {renderNavLinks(true)}
+          
+          <div className={styles.mobileAuth}>
+            {authStatus === 'unauthenticated' ? (
+              <>
+                <button onClick={() => { openModal('login'); setIsMenuOpen(false); }} className={`btn btn-ghost`}>Login</button>
+                <button onClick={() => { openModal('register'); setIsMenuOpen(false); }} className={`btn btn-primary`}>Sign Up</button>
+              </>
+            ) : (
+              <button onClick={() => setIsLogoutModalOpen(true)} className={`btn btn-ghost`}>Logout</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isLogoutModalOpen && (
+        <ConfirmationModal
+            message="Are you sure you want to log out?"
+            onConfirm={handleLogout}
+            onCancel={() => setIsLogoutModalOpen(false)}
+            confirmText="Logout"
+        />
+      )}
     </>
   );
 }

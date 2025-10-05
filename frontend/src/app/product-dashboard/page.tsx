@@ -1,145 +1,123 @@
+// frontend/src/app/product-dashboard/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import styles from './ProductDashboard.module.css';
 import { Product } from '@/types';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import ProductFormModal from '@/components/ProductFormModal';
 import ConfirmationModal from '@/components/ConfirmationModal/ConfirmationModal';
+import styles from './ProductDashboard.module.css';
 import { toast } from 'react-toastify';
-import LoadingSpinner from '@/components/LoadingSpinner';
 
-const ProductDashboard = () => {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
+export default function ProductDashboard() {
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user || user.role !== 'PRODUCT_SELLER') {
-        router.push('/login');
-      } else {
-        fetchProducts();
-      }
-    }
-  }, [user, isLoading, router]);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
   const fetchProducts = async () => {
+    if (!user) return;
     try {
-      const res = await fetch('http://localhost:3000/api/products/my-products', {
+      const res = await fetch(`http://localhost:3000/api/products/my-products`, {
         credentials: 'include',
       });
-      if (res.ok) {
-        const data = await res.json();
-        setProducts(data);
-      } else {
-        toast.error('Failed to fetch products.');
-      }
+      if (!res.ok) throw new Error('Failed to fetch products');
+      const data = await res.json();
+      setProducts(data);
     } catch (error) {
-      console.error('Error fetching products:', error);
-      toast.error('An error occurred while fetching products.');
+      console.error(error);
+      toast.error('Could not load your products.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSaveProduct = () => {
+  useEffect(() => {
+    if (!isAuthLoading) {
+      fetchProducts();
+    }
+  }, [user, isAuthLoading]);
+
+  const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
-    fetchProducts();
   };
 
-  const handleEditProduct = (product: Product) => {
+  const handleProductSave = (product: Product) => {
+    if (editingProduct) {
+      setProducts(products.map((p) => (p.id === product.id ? product : p)));
+    } else {
+      setProducts([...products, product]);
+    }
+    handleModalClose();
+  };
+
+  const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setIsModalOpen(true);
   };
 
-  const openDeleteConfirm = (id: string) => {
-    setProductToDelete(id);
-    setIsConfirmModalOpen(true);
-  };
-
-  const handleDeleteProduct = async () => {
-    if (!productToDelete) return;
-
+  const handleDelete = async () => {
+    if (!deletingProduct) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/products/${productToDelete}`, {
+      const res = await fetch(`http://localhost:3000/api/products/${deletingProduct.id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
-
-      if (res.ok) {
-        toast.success('Product deleted successfully');
-        fetchProducts();
-      } else {
-        const errorData = await res.json();
-        toast.error(`Failed to delete product: ${errorData.message}`);
-      }
+      if (!res.ok) throw new Error('Failed to delete product');
+      setProducts(products.filter((p) => p.id !== deletingProduct.id));
+      toast.success('Product deleted successfully.');
     } catch (error) {
-      toast.error('An error occurred while deleting the product.');
+      console.error(error);
+      toast.error('Failed to delete product.');
     } finally {
-      setIsConfirmModalOpen(false);
-      setProductToDelete(null);
+      setDeletingProduct(null);
     }
   };
 
-  if (isLoading || !user) {
-    return <LoadingSpinner />;
-  }
+  if (isLoading || isAuthLoading) return <LoadingSpinner />;
 
   return (
-    <div className={styles.dashboardContainer}>
-      <div className={styles.header}>
-        <h1>My Products</h1>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>Add New Product</button>
-      </div>
-
+    <div className={styles.container}>
+      <h1 className={styles.title}>Product Dashboard</h1>
+      <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">Add New Product</button>
       <div className={styles.productList}>
-        {products.length > 0 ? (
-          products.map((product) => (
-            <div key={product.id} className={styles.productCard}>
-              <img src={product.images[0] || '/logo-transparent.png'} alt={product.title} className={styles.productImage} />
-              <div className={styles.productInfo}>
-                <h3>{product.title}</h3>
-                <p>R{product.price.toFixed(2)}</p>
-                <p>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</p>
-              </div>
-              <div className={styles.productActions}>
-                <button className="btn btn-secondary" onClick={() => handleEditProduct(product)}>Edit</button>
-                <button className="btn btn-danger" onClick={() => openDeleteConfirm(product.id)}>Delete</button>
+        {products.map((product) => (
+          <div key={product.id} className={styles.productCard}>
+            <img src={product.images[0] || 'https://via.placeholder.com/150'} alt={product.name} className={styles.productImage} />
+            <div className={styles.productInfo}>
+              <h2>{product.name}</h2>
+              <p>Price: R{product.price.toFixed(2)}</p>
+              <p>Stock: {product.stockQuantity > 0 ? `${product.stockQuantity} available` : 'Out of stock'}</p>
+              <p>Status: <span className={`${styles.status} ${styles[product.approvalStatus.toLowerCase()]}`}>{product.approvalStatus}</span></p>
+              <div className={styles.actions}>
+                <button onClick={() => handleEdit(product)} className="btn btn-secondary">Edit</button>
+                <button onClick={() => setDeletingProduct(product)} className="btn btn-danger">Delete</button>
               </div>
             </div>
-          ))
-        ) : (
-          <p>You have not added any products yet.</p>
-        )}
+          </div>
+        ))}
       </div>
 
       {isModalOpen && (
         <ProductFormModal
           product={editingProduct}
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingProduct(null);
-          }}
-          onSave={handleSaveProduct}
+          onClose={handleModalClose}
+          onSave={handleProductSave}
         />
       )}
 
-      {isConfirmModalOpen && (
+      {deletingProduct && (
         <ConfirmationModal
-          isOpen={isConfirmModalOpen}
-          onClose={() => setIsConfirmModalOpen(false)}
-          onConfirm={handleDeleteProduct}
-          title="Delete Product"
-          message="Are you sure you want to delete this product? This action cannot be undone."
+          message={`Are you sure you want to delete "${deletingProduct.name}"?`}
+          onConfirm={handleDelete}
+          onCancel={() => setDeletingProduct(null)}
+          confirmText="Delete"
         />
       )}
     </div>
   );
-};
-
-export default ProductDashboard;
+}

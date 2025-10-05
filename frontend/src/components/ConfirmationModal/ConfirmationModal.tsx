@@ -1,33 +1,34 @@
+// frontend/src/components/ConfirmationModal/ConfirmationModal.tsx
 import styles from './ConfirmationModal.module.css';
 
-// FIX: Define the component's props
 interface ConfirmationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
   message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmText?: string;
+  cancelText?: string;
 }
 
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }: ConfirmationModalProps) => {
-  if (!isOpen) return null;
-
+export default function ConfirmationModal({
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+}: ConfirmationModalProps) {
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <h2>{title}</h2>
         <p>{message}</p>
-        <div className={styles.modalActions}>
-          <button className="btn btn-secondary" onClick={onClose}>
-            Cancel
+        <div className={styles.buttonGroup}>
+          <button className="btn btn-secondary" onClick={onCancel}>
+            {cancelText}
           </button>
           <button className="btn btn-danger" onClick={onConfirm}>
-            Confirm
+            {confirmText}
           </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default ConfirmationModal;
+}

@@ -7,7 +7,6 @@ import { SocketProvider } from '@/context/SocketContext';
 import { AuthModalProvider } from '@/context/AuthModalContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import AuthModal from '@/components/AuthModal';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -54,7 +53,6 @@ export default function RootLayout({
               <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
               <ToastContainer position="bottom-right" theme="colored" />
               <Footer />
-              <AuthModal />
             </div>
           </AuthModalProvider>
         </SocketProvider>

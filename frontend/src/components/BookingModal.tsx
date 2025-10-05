@@ -1,40 +1,32 @@
-'use client';
-
-import { useState } from 'react';
-import { Service, Salon } from '@/types';
-import DatePicker from 'react-datepicker';
-import { toast } from 'react-toastify';
+// frontend/src/components/BookingModal.tsx
+import { useState, FormEvent } from 'react';
+import { Salon, Service, Booking } from '@/types';
 import styles from './BookingModal.module.css';
+import { toast } from 'react-toastify';
+import { FaTimes } from 'react-icons/fa';
 
 interface BookingModalProps {
   salon: Salon;
   service: Service;
   onClose: () => void;
-  onBookingSuccess: () => void;
+  onBookingSuccess: (booking: Booking) => void;
 }
 
 export default function BookingModal({ salon, service, onClose, onBookingSuccess }: BookingModalProps) {
-  const [bookingDate, setBookingDate] = useState<Date | null>(new Date());
-  const [isMobile, setIsMobile] = useState(false);
-  const [clientPhone, setClientPhone] = useState('');
-  const [error, setError] = useState('');
+  const [bookingTime, setBookingTime] = useState('');
+  const [contactDetails, setContactDetails] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const totalCost = service.price + (isMobile ? salon.mobileFee || 0 : 0);
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  const handleBooking = async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      setError('You must be logged in to book.');
-      return;
+        toast.error("You must be logged in to book.");
+        setIsLoading(false);
+        return;
     }
-    if (!bookingDate) {
-      setError('Please select a date and time.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
 
     try {
       const res = await fetch('http://localhost:3000/api/bookings', {
@@ -44,21 +36,21 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          salonId: salon.id,
           serviceId: service.id,
-          bookingDate: bookingDate.toISOString(),
-          isMobile,
-          clientPhone,
+          bookingTime,
+          contactDetails,
         }),
       });
 
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || 'Booking failed.');
+        throw new Error('Failed to create booking.');
       }
-      toast.success('Booking request sent! The salon will confirm shortly.');
-      onBookingSuccess();
-    } catch (err: any) {
-      setError(err.message);
+      const newBooking = await res.json();
+      onBookingSuccess(newBooking);
+    } catch (error) {
+      console.error(error);
+      toast.error('Could not send booking request. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -67,56 +59,36 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <h2 className={styles.title}>Book: {service.title}</h2>
-        <div className={styles.formContent}>
-          <div>
-            <label className={styles.label}>Select Date & Time</label>
-            <DatePicker
-              selected={bookingDate}
-              onChange={(date) => setBookingDate(date)}
-              showTimeSelect
-              dateFormat="MMMM d, yyyy h:mm aa"
-              className={styles.datePicker}
+        <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
+        <h2>Book Appointment</h2>
+        <p><strong>Salon:</strong> {salon.name}</p>
+        <p><strong>Service:</strong> {service.name}</p>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label htmlFor="bookingTime">Preferred Date & Time</label>
+            <input
+              type="datetime-local"
+              id="bookingTime"
+              value={bookingTime}
+              onChange={(e) => setBookingTime(e.target.value)}
+              required
             />
           </div>
-          <div>
-            <label className={styles.label}>Your Contact Number</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="contactDetails">Your Contact Number</label>
             <input
               type="tel"
-              value={clientPhone}
-              onChange={(e) => setClientPhone(e.target.value)}
-              className={styles.datePicker} // Reusing styles
+              id="contactDetails"
+              value={contactDetails}
+              onChange={(e) => setContactDetails(e.target.value)}
               placeholder="e.g., 0821234567"
+              required
             />
           </div>
-          {salon.offersMobile && (
-            <div className={styles.checkboxGroup}>
-              <input
-                type="checkbox"
-                id="isMobile"
-                checked={isMobile}
-                onChange={(e) => setIsMobile(e.target.checked)}
-              />
-              <label htmlFor="isMobile">
-                Mobile Service (+R{salon.mobileFee?.toFixed(2)})
-              </label>
-            </div>
-          )}
-          <div className={styles.total}>
-            Total: R{totalCost.toFixed(2)}
-          </div>
-          {error && <p className={styles.errorMessage}>{error}</p>}
-        </div>
-        <div className={styles.buttonContainer}>
-          <button onClick={onClose} className="btn btn-secondary">Cancel</button>
-          <button
-            onClick={handleBooking}
-            disabled={isLoading}
-            className="btn btn-primary"
-          >
-            {isLoading ? 'Confirming...' : 'Confirm Booking'}
+          <button type="submit" disabled={isLoading} className="btn btn-primary">
+            {isLoading ? 'Sending Request...' : 'Request Booking'}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );

@@ -2,15 +2,17 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { Review } from '@/types';
 import styles from './ReviewModal.module.css';
+import { toast } from 'react-toastify';
 
 interface ReviewModalProps {
   bookingId: string;
   onClose: () => void;
-  onReviewSubmitted: () => void;
+  onReviewAdded: (newReview: Review) => void;
 }
 
-export default function ReviewModal({ bookingId, onClose, onReviewSubmitted }: ReviewModalProps) {
+export default function ReviewModal({ bookingId, onClose, onReviewAdded }: ReviewModalProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [error, setError] = useState('');
@@ -36,9 +38,13 @@ export default function ReviewModal({ bookingId, onClose, onReviewSubmitted }: R
         const errData = await res.json();
         throw new Error(errData.message || 'Failed to submit review.');
       }
-      onReviewSubmitted();
+      const newReview = await res.json();
+      toast.success('Thank you for your review!');
+      onReviewAdded(newReview);
+      onClose();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }

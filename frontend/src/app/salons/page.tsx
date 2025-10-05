@@ -1,3 +1,4 @@
+// frontend/src/app/salons/page.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -35,32 +36,32 @@ export default function SalonsPage() {
       lon: params.get('lon') || null,
     };
   }, [searchParams]);
-  
+
   const [initialFilters] = useState(getInitialFilters);
 
 
   const fetchSalons = useCallback(async (filters: any) => {
     setIsLoading(true);
-    let url = 'http://localhost:3000/api/salons';
+    let url = 'http://localhost:3000/api/salons/approved';
     const query = new URLSearchParams();
     const token = localStorage.getItem('access_token');
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
     if (filters.lat && filters.lon) {
-       url = `http://localhost:3000/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
+      url = `http://localhost:3000/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
     } else {
-        if (filters.province) query.append('province', filters.province);
-        if (filters.city) query.append('city', filters.city);
-        if (filters.service) query.append('service', filters.service);
-        if (filters.offersMobile) query.append('offersMobile', 'true');
-        if (filters.sortBy) query.append('sortBy', filters.sortBy);
-        if (filters.openOn) query.append('openOn', filters.openOn);
-        const queryString = query.toString();
-        if (queryString) {
-            url = `http://localhost:3000/api/salons?${queryString}`;
-        }
+      if (filters.province) query.append('province', filters.province);
+      if (filters.city) query.append('city', filters.city);
+      if (filters.service) query.append('service', filters.service);
+      if (filters.offersMobile) query.append('offersMobile', 'true');
+      if (filters.sortBy) query.append('sortBy', filters.sortBy);
+      if (filters.openOn) query.append('openOn', filters.openOn);
+      const queryString = query.toString();
+      if (queryString) {
+        url = `http://localhost:3000/api/salons/approved?${queryString}`;
+      }
     }
-    
+
     try {
       const res = await fetch(url, { headers });
       if (!res.ok) throw new Error('Failed to fetch salons');
@@ -108,7 +109,7 @@ export default function SalonsPage() {
       if (!res.ok) {
         throw new Error('Failed to update favorite status.');
       }
-      
+
       const { favorited } = await res.json();
       const message = favorited ? 'Added to favorites!' : 'Removed from favorites.';
       toast.success(message);
@@ -135,7 +136,7 @@ export default function SalonsPage() {
         <h1 className={styles.title}>Explore Salons</h1>
         <div className={styles.headerSpacer}></div>
       </div>
-      
+
       <FilterBar onSearch={fetchSalons} initialFilters={initialFilters} />
 
       {isLoading ? (
@@ -146,7 +147,7 @@ export default function SalonsPage() {
         <div className={styles.salonGrid}>
           {salons.map((salon) => (
             <div key={salon.id} className={styles.salonCard}>
-               <button
+              <button
                 onClick={(e) => handleToggleFavorite(e, salon.id)}
                 className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}
                 aria-label={salon.isFavorited ? 'Remove from favorites' : 'Add to favorites'}

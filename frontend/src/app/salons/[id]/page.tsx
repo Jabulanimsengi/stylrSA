@@ -1,3 +1,4 @@
+// frontend/src/app/salons/[id]/page.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -17,11 +18,10 @@ import { useSocket } from '@/context/SocketContext';
 import ImageLightbox from '@/components/ImageLightbox';
 
 async function getSalonDetails(id: string): Promise<Salon | null> {
-  const token = localStorage.getItem('access_token');
   try {
     const res = await fetch(`http://localhost:3000/api/salons/${id}`, { 
       cache: 'no-store',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: 'include',
     });
     if (!res.ok) return null;
     return res.json();
@@ -33,7 +33,7 @@ async function getSalonDetails(id: string): Promise<Salon | null> {
 
 async function getSalonServices(id: string): Promise<Service[]> {
   try {
-    const res = await fetch(`http://localhost:3000/api/salons/${id}/services`);
+    const res = await fetch(`http://localhost:3000/api/services/salon/${id}`);
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
@@ -56,7 +56,7 @@ async function getGalleryImages(salonId: string): Promise<GalleryImage[]> {
 export default function SalonProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { authStatus, userId } = useAuth();
+  const { authStatus, user } = useAuth();
   const socket = useSocket();
   
   const [salon, setSalon] = useState<Salon | null>(null);
@@ -105,8 +105,7 @@ export default function SalonProfilePage() {
   };
 
   const handleBookNowClick = (service: Service) => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    if (authStatus !== 'authenticated') {
       router.push('/login');
     } else {
       setSelectedService(service);
@@ -114,24 +113,21 @@ export default function SalonProfilePage() {
   };
 
   const handleSendMessageClick = async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    if (authStatus !== 'authenticated') {
       router.push('/login');
       return;
     }
-    if (!salon || !userId) return;
-    if (userId === salon.ownerId) {
+    if (!salon || !user) return;
+    if (user.id === salon.ownerId) {
       toast.error("You cannot message your own salon.");
       return;
     }
     try {
       const res = await fetch('http://localhost:3000/api/chat/conversations', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipientId: salon.ownerId }),
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to start conversation.');
       const conversation = await res.json();
@@ -150,13 +146,12 @@ export default function SalonProfilePage() {
     }
     if (!salon) return;
 
-    const token = localStorage.getItem('access_token');
     try {
       setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
 
       const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salon.id}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       
       if (!res.ok) {
@@ -255,7 +250,6 @@ export default function SalonProfilePage() {
                 <h2 className={styles.sectionTitle}>Services</h2>
                 <div className={styles.servicesGrid}>
                   {services
-                    .filter((s) => s.approvalStatus === 'APPROVED')
                     .map((service) => (
                       <ServiceCard 
                         key={service.id} 

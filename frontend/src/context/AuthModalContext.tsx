@@ -1,12 +1,11 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import AuthModal from '@/components/AuthModal';
 
 type AuthModalView = 'login' | 'register';
 
 interface AuthModalContextType {
-  isOpen: boolean;
-  view: AuthModalView;
   openModal: (view: AuthModalView) => void;
   closeModal: () => void;
   switchToLogin: () => void;
@@ -37,8 +36,9 @@ export const AuthModalProvider = ({ children }: { children: ReactNode }) => {
   const switchToRegister = () => setView('register');
 
   return (
-    <AuthModalContext.Provider value={{ isOpen, view, openModal, closeModal, switchToLogin, switchToRegister }}>
+    <AuthModalContext.Provider value={{ openModal, closeModal, switchToLogin, switchToRegister }}>
       {children}
+      {isOpen && <AuthModal view={view} onClose={closeModal} />}
     </AuthModalContext.Provider>
   );
 };

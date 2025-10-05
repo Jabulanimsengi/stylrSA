@@ -34,8 +34,7 @@ export default function Login() {
 
       toast.success('Login successful! Welcome back.');
       closeModal();
-      // Force a full page reload to update auth state everywhere
-      window.location.reload();
+      window.location.href = '/salons';
 
     } catch (err: any) {
       setError(err.message);

@@ -2,12 +2,14 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import { Product } from '@/types';
-import styles from './ServiceFormModal.module.css'; // Reusing styles for consistency
+import styles from './ProductFormModal.module.css';
 import { toast } from 'react-toastify';
+import { uploadToCloudinary } from '@/utils/cloudinary';
+import { FaTimes, FaUpload } from 'react-icons/fa';
 
 interface ProductFormModalProps {
   onClose: () => void;
-  onSave: () => void;
+  onSave: (product: Product) => void;
   product?: Product | null;
 }
 
@@ -15,6 +17,7 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [stockQuantity, setStockQuantity] = useState(''); // Added stock quantity
   const [files, setFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -27,6 +30,7 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
       setName(product.name);
       setDescription(product.description);
       setPrice(String(product.price));
+      setStockQuantity(String(product.stockQuantity));
       setExistingImages(product.images);
     }
   }, [isEditMode, product]);
@@ -50,65 +54,36 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
     setFiles(files.filter((_, index) => index !== fileIndex));
   };
 
-  const uploadImages = async (): Promise<string[]> => {
-    const token = localStorage.getItem('access_token');
-    if (!token) throw new Error('Authentication error');
-    
-    const uploadedUrls: string[] = [];
-    const sigRes = await fetch('http://localhost:3000/api/cloudinary/signature', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!sigRes.ok) throw new Error('Could not get upload permission.');
-    const { signature, timestamp } = await sigRes.json();
-    const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
-
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
-      formData.append('timestamp', String(timestamp));
-      formData.append('signature', signature);
-      const uploadRes = await fetch(url, { method: 'POST', body: formData });
-      if (!uploadRes.ok) throw new Error('Image upload failed.');
-      const uploadData = await uploadRes.json();
-      uploadedUrls.push(uploadData.secure_url);
-    }
-    return uploadedUrls;
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      setError('Authentication error.');
-      return;
-    }
     setIsLoading(true);
     setError('');
 
     try {
       let imageUrls = existingImages;
       if (files.length > 0) {
-        const newUrls = await uploadImages();
-        imageUrls = [...existingImages, ...newUrls];
+        const uploadedUrls = await Promise.all(files.map(file => uploadToCloudinary(file)));
+        imageUrls = [...existingImages, ...uploadedUrls];
       }
 
       if (imageUrls.length === 0) {
         throw new Error('Please upload at least one image.');
       }
-
+      
       const apiEndpoint = isEditMode ? `http://localhost:3000/api/products/${product?.id}` : 'http://localhost:3000/api/products';
       const method = isEditMode ? 'PATCH' : 'POST';
       const body = JSON.stringify({
         name,
         description,
         price: parseFloat(price),
+        stockQuantity: parseInt(stockQuantity),
         images: imageUrls,
       });
 
       const res = await fetch(apiEndpoint, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body,
       });
 
@@ -117,8 +92,10 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
         throw new Error(errData.message || `Failed to ${isEditMode ? 'update' : 'add'} product.`);
       }
 
+      const savedProduct = await res.json();
       toast.success(`Product ${isEditMode ? 'update submitted' : 'created and submitted'} for approval.`);
-      onSave();
+      onSave(savedProduct);
+
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
@@ -130,25 +107,34 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <h2 className={styles.title}>{isEditMode ? 'Edit Product' : 'Add a New Product'}</h2>
+        <div className={styles.header}>
+            <h2 className={styles.title}>{isEditMode ? 'Edit Product' : 'Add a New Product'}</h2>
+            <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
+        </div>
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div>
+          <div className={styles.formGroup}>
             <label className={styles.label}>Product Name</label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className={styles.input} />
           </div>
-          <div>
+          <div className={styles.formGroup}>
             <label className={styles.label}>Description</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} required className={styles.textarea} />
           </div>
-          <div>
-            <label className={styles.label}>Price (R)</label>
-            <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required className={styles.input} min="0" step="0.01" />
+          <div className={styles.formGrid}>
+            <div className={styles.formGroup}>
+                <label className={styles.label}>Price (R)</label>
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required className={styles.input} min="0" step="0.01" />
+            </div>
+            <div className={styles.formGroup}>
+                <label className={styles.label}>Stock Quantity</label>
+                <input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} required className={styles.input} min="0" step="1" />
+            </div>
           </div>
-          <div>
+          <div className={styles.formGroup}>
             <label className={styles.label}>Upload Images (up to 5 total)</label>
             <div className={styles.fileInputGroup}>
               <label htmlFor="file-upload" className={styles.fileInputLabel}>
-                Choose Files
+                <FaUpload /> Choose Files
               </label>
               <input 
                 id="file-upload" 
@@ -179,7 +165,7 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
 
           {error && <p className={styles.errorMessage}>{error}</p>}
           <div className={styles.buttonContainer}>
-            <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
+            <button type="button" onClick={onClose} className="btn btn-ghost">Cancel</button>
             <button type="submit" disabled={isLoading} className="btn btn-primary">
               {isLoading ? 'Saving...' : 'Save Product'}
             </button>

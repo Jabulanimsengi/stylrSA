@@ -1,52 +1,46 @@
+// frontend/src/hooks/useAuth.ts
 import { useState, useEffect } from 'react';
 import { User } from '@/types';
 
-// FIX: Define the shape of the authentication state
+export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
+
 export interface AuthState {
+  authStatus: AuthStatus;
   user: User | null;
   isLoading: boolean;
-  logout: () => Promise<void>;
+  setAuthStatus: (status: AuthStatus) => void;
+  setUser: (user: User | null) => void;
 }
 
 export const useAuth = (): AuthState => {
+  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const checkAuthStatus = async () => {
       try {
         const res = await fetch('http://localhost:3000/api/auth/status', {
           credentials: 'include',
         });
         if (res.ok) {
           const data = await res.json();
-          setUser(data);
+          setAuthStatus('authenticated');
+          setUser(data.user);
         } else {
+          setAuthStatus('unauthenticated');
           setUser(null);
         }
       } catch (error) {
+        setAuthStatus('unauthenticated');
         setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUser();
+    checkAuthStatus();
   }, []);
 
-  const logout = async () => {
-    try {
-      await fetch('http://localhost:3000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      setUser(null);
-      // It's often a good idea to redirect after logout
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-
-  return { user, isLoading, logout };
+  return { authStatus, user, isLoading, setAuthStatus, setUser };
 };
