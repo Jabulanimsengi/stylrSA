@@ -21,7 +21,7 @@ export interface Salon {
   id: string;
   name: string;
   address: string;
-  town: string; // Added town property
+  town: string;
   city: string;
   province: string;
   postalCode: string;
@@ -118,4 +118,13 @@ export interface Promotion {
   salonId?: string | null;
   productId?: string | null;
   isActive: boolean;
+}
+
+// Added Notification type
+export interface Notification {
+  id: string;
+  message: string;
+  isRead: boolean;
+  userId: string;
+  createdAt: string;
 }

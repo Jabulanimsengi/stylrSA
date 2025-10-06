@@ -180,3 +180,71 @@
   border-top: 1px solid #f0f0f0;
   margin: 0.75rem 0;
 }
+
+/* Add these styles to your existing Navbar.module.css file */
+
+.iconButton {
+    background: none;
+    border: none;
+    color: var(--dark-gray);
+    font-size: 1.5rem;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+}
+
+.notificationBadge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--primary-pink);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.notificationContainer {
+    position: relative;
+}
+
+.notificationDropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 1rem;
+    background-color: var(--white);
+    border: 1px solid var(--light-silver);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 320px;
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.notificationHeader {
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--light-silver);
+}
+
+.notificationItem {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--light-silver);
+    font-size: 0.9rem;
+}
+
+.notificationItem:last-child {
+    border-bottom: none;
+}
+
+.notificationItem.unread {
+    background-color: var(--warm-beige);
+}

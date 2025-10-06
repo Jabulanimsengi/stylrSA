@@ -45,10 +45,6 @@ export class AuthService {
       throw new ForbiddenException('Credentials incorrect');
     }
 
-    /* SOLUTION: The check that required a salon to be 'APPROVED' before the owner could log in has been removed from this function. 
-      This will now allow service providers to log in even if their salon is still pending approval.
-    */
-
     const payload = { sub: user.id, role: user.role };
     const access_token = await this.jwt.signAsync(payload, {
       expiresIn: '1d',

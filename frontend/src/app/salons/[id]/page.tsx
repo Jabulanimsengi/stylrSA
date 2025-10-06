@@ -69,6 +69,9 @@ export default function SalonProfilePage() {
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
 
+  // State for the hero slider
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   const fetchPageData = useCallback(async () => {
     if (params.id) {
       setIsLoading(true);
@@ -161,7 +164,7 @@ export default function SalonProfilePage() {
     try {
       const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salon.id}`, {
         method: 'POST',
-        credentials: 'include', // Automatically sends the auth cookie
+        credentials: 'include',
       });
       
       if (!res.ok) {
@@ -173,7 +176,6 @@ export default function SalonProfilePage() {
 
     } catch (error) {
       toast.error('Could not update favorites.');
-      // Revert UI on error
       setSalon(prev => (prev ? { ...prev, isFavorited: originalFavoritedState } : null));
     }
   };
@@ -189,6 +191,20 @@ export default function SalonProfilePage() {
 
   if (isLoading) return <LoadingSpinner />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
+
+  // --- Hero Slider Logic ---
+  const heroImages = [
+    salon.backgroundImage,
+    ...galleryImages.map(img => img.imageUrl)
+  ].filter(Boolean).slice(0, 3) as string[];
+
+  const nextSlide = () => {
+    setCurrentSlide(prev => (prev === heroImages.length - 1 ? 0 : prev + 1));
+  };
+  const prevSlide = () => {
+    setCurrentSlide(prev => (prev === 0 ? heroImages.length - 1 : prev - 1));
+  };
+  // --- End Hero Slider Logic ---
 
   const galleryImageUrls = galleryImages.map(img => img.imageUrl);
 
@@ -242,117 +258,139 @@ export default function SalonProfilePage() {
                 )}
             </div>
         </div>
-
-        <div className={styles.hero} style={{ backgroundImage: `url(${salon.backgroundImage || 'https://via.placeholder.com/1200x400'})` }}>
-          <div className={styles.heroOverlay}>
-            <p className={styles.heroLocation}>{salon.town}, {salon.city}</p>
-            {!!salon.isAvailableNow && (
-              <div className={styles.availabilityIndicator}>
-                <span className={styles.availabilityDot}></span>
-                Available for Bookings Now
-              </div>
-            )}
-          </div>
-        </div>
         
         <div className={styles.container}>
-          <div className={styles.profileLayout}>
-            <div className={styles.mainContent}>
-              <section id="services-section">
-                <h2 className={styles.sectionTitle}>Services</h2>
-                <div className={styles.servicesGrid}>
-                  {services
-                    .map((service) => (
-                      <ServiceCard 
-                        key={service.id} 
-                        service={service} 
-                        onBook={handleBookClick}
-                        onSendMessage={handleSendMessageClick}
-                        onImageClick={openLightbox}
-                      />
-                  ))}
-                </div>
-              </section>
-
-              <section>
-                <h2 className={styles.sectionTitle}>Details</h2>
-                
-                {galleryImages.length > 0 && (
-                  <Accordion title="Gallery">
-                    <div className={styles.galleryGrid}>
-                      {galleryImages.map((image, index) => (
-                        <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
-                          <img src={image.imageUrl} alt={image.caption || 'Salon work'} />
+            {/* New Hero Slider */}
+            <div className={styles.heroSlider}>
+                {heroImages.length > 0 ? (
+                    <>
+                    <div className={styles.sliderWrapper} style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+                        {heroImages.map((img, index) => (
+                        <div key={index} className={styles.slide}>
+                            <img src={img} alt={`${salon.name} gallery image ${index + 1}`} className={styles.heroImage} />
                         </div>
+                        ))}
+                    </div>
+                    {heroImages.length > 1 && (
+                        <>
+                        <button onClick={prevSlide} className={`${styles.sliderButton} ${styles.prev}`}>❮</button>
+                        <button onClick={nextSlide} className={`${styles.sliderButton} ${styles.next}`}>❯</button>
+                        </>
+                    )}
+                    </>
+                ) : (
+                    <div className={styles.placeholderHero}>
+                    <p>No images available for this salon</p>
+                    </div>
+                )}
+                <div className={styles.heroOverlay}>
+                    <p className={styles.heroLocation}>{salon.town}, {salon.city}</p>
+                    {!!salon.isAvailableNow && (
+                    <div className={styles.availabilityIndicator}>
+                        <span className={styles.availabilityDot}></span>
+                        Available for Bookings Now
+                    </div>
+                    )}
+                </div>
+            </div>
+
+            <div className={styles.profileLayout}>
+                <div className={styles.mainContent}>
+                  <section id="services-section">
+                    <h2 className={styles.sectionTitle}>Services</h2>
+                    <div className={styles.servicesGrid}>
+                      {services
+                        .map((service) => (
+                          <ServiceCard 
+                            key={service.id} 
+                            service={service} 
+                            onBook={handleBookClick}
+                            onSendMessage={handleSendMessageClick}
+                            onImageClick={openLightbox}
+                          />
                       ))}
                     </div>
-                  </Accordion>
-                )}
+                  </section>
 
-                <Accordion title="Operating Hours">
-                  {salon.operatingHours ? (
-                    <ul>
-                      {operatingDays.map(day => (
-                        <li key={day}>
-                          <span>{day.charAt(0).toUpperCase() + day.slice(1)}</span>
-                          <strong>{salon.operatingHours![day]}</strong>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : <p>Operating hours not listed.</p>}
-                </Accordion>
-                <Accordion title="Service Type">
-                  <p>{formatBookingType(salon.bookingType)}</p>
-                  {salon.offersMobile && salon.mobileFee && (
-                    <p style={{marginTop: '0.5rem'}}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
-                  )}
-                </Accordion>
-                <Accordion title="Location & Contact">
-                   <p><strong>Address:</strong> {salon.address || `${salon.town}, ${salon.city}, ${salon.province}`}</p>
-                   {authStatus === 'authenticated' ? (
-                     <>
-                       {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
-                       {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
-                       {salon.whatsapp && <p><strong><FaWhatsapp /> WhatsApp:</strong> <a href={`https://wa.me/${salon.whatsapp}`} target="_blank" rel="noopener noreferrer">{salon.whatsapp}</a></p>}
-                       {salon.website && <p><strong><FaGlobe /> Website:</strong> <a href={salon.website} target="_blank" rel="noopener noreferrer">{salon.website}</a></p>}
-                       
-                       {mapSrc && (
-                         <div className={styles.mapContainer}>
-                           <iframe
-                             width="100%"
-                             height="300"
-                             style={{ border: 0, borderRadius: '0.5rem', marginTop: '1rem' }}
-                             loading="lazy"
-                             allowFullScreen
-                             src={mapSrc}>
-                           </iframe>
-                         </div>
+                  <section>
+                    <h2 className={styles.sectionTitle}>Details</h2>
+                    
+                    {galleryImages.length > 0 && (
+                      <Accordion title="Gallery">
+                        <div className={styles.galleryGrid}>
+                          {galleryImages.map((image, index) => (
+                            <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
+                              <img src={image.imageUrl} alt={image.caption || 'Salon work'} />
+                            </div>
+                          ))}
+                        </div>
+                      </Accordion>
+                    )}
+
+                    <Accordion title="Operating Hours">
+                      {salon.operatingHours ? (
+                        <ul>
+                          {operatingDays.map(day => (
+                            <li key={day}>
+                              <span>{day.charAt(0).toUpperCase() + day.slice(1)}</span>
+                              <strong>{salon.operatingHours![day]}</strong>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : <p>Operating hours not listed.</p>}
+                    </Accordion>
+                    <Accordion title="Service Type">
+                      <p>{formatBookingType(salon.bookingType)}</p>
+                      {salon.offersMobile && salon.mobileFee && (
+                        <p style={{marginTop: '0.5rem'}}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
+                      )}
+                    </Accordion>
+                    <Accordion title="Location & Contact">
+                       <p><strong>Address:</strong> {salon.address || `${salon.town}, ${salon.city}, ${salon.province}`}</p>
+                       {authStatus === 'authenticated' ? (
+                         <>
+                           {salon.contactEmail && <p><strong>Email:</strong> <a href={`mailto:${salon.contactEmail}`}>{salon.contactEmail}</a></p>}
+                           {salon.phoneNumber && <p><strong>Phone:</strong> <a href={`tel:${salon.phoneNumber}`}>{salon.phoneNumber}</a></p>}
+                           {salon.whatsapp && <p><strong><FaWhatsapp /> WhatsApp:</strong> <a href={`https://wa.me/${salon.whatsapp}`} target="_blank" rel="noopener noreferrer">{salon.whatsapp}</a></p>}
+                           {salon.website && <p><strong><FaGlobe /> Website:</strong> <a href={salon.website} target="_blank" rel="noopener noreferrer">{salon.website}</a></p>}
+                           
+                           {mapSrc && (
+                             <div className={styles.mapContainer}>
+                               <iframe
+                                 width="100%"
+                                 height="300"
+                                 style={{ border: 0, borderRadius: '0.5rem', marginTop: '1rem' }}
+                                 loading="lazy"
+                                 allowFullScreen
+                                 src={mapSrc}>
+                               </iframe>
+                             </div>
+                           )}
+                         </>
+                       ) : (
+                         <p className={styles.loginPrompt}>
+                           <Link href="/login">Log in</Link> to view detailed contact information and map.
+                         </p>
                        )}
-                     </>
-                   ) : (
-                     <p className={styles.loginPrompt}>
-                       <Link href="/login">Log in</Link> to view detailed contact information and map.
-                     </p>
-                   )}
-                </Accordion>
-                 <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
-                   {salon.reviews && salon.reviews.length > 0 ? (
-                     <div>
-                       {salon.reviews.map(review => (
-                         <div key={review.id} style={{borderBottom: '1px dotted #ccc', paddingBottom: '1rem', marginBottom: '1rem'}}>
-                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                             <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
-                             <span style={{color: 'var(--accent-gold)'}}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
-                           </div>
-                           <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>"{review.comment}"</p>
+                    </Accordion>
+                     <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
+                       {salon.reviews && salon.reviews.length > 0 ? (
+                         <div>
+                           {salon.reviews.map(review => (
+                             <div key={review.id} style={{borderBottom: '1px dotted #ccc', paddingBottom: '1rem', marginBottom: '1rem'}}>
+                               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                 <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
+                                 <span style={{color: 'var(--accent-gold)'}}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                               </div>
+                               <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>"{review.comment}"</p>
+                             </div>
+                           ))}
                          </div>
-                       ))}
-                     </div>
-                   ) : <p>No reviews yet.</p>}
-                </Accordion>
-              </section>
+                       ) : <p>No reviews yet.</p>}
+                    </Accordion>
+                  </section>
+                </div>
             </div>
-          </div>
         </div>
       </div>
     </>
