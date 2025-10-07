@@ -28,7 +28,18 @@ export default function Navbar() {
   const notificationsRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
-    // Logout logic remains the same
+    try {
+      await fetch('http://localhost:3000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setAuthStatus('unauthenticated');
+      router.push('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setIsLogoutModalOpen(false);
+    }
   };
 
   // Fetch notifications
@@ -69,7 +80,11 @@ export default function Navbar() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
   
-  // Link generation logic remains the same
+  const mainLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/salons', label: 'Salons' },
+    { href: '/products', label: 'Products' },
+  ];
 
   const getLinks = () => {
     if (!user) return [];
@@ -92,22 +107,36 @@ export default function Navbar() {
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <div className={styles.navLeft}>
-            {/* Logo */}
+            <Link href="/" className={styles.logo}>
+              <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} />
+            </Link>
           </div>
 
           <div className={styles.navCenter}>
-            {/* Main Links */}
+            {mainLinks.map(link => (
+              <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`}>
+                {link.label}
+              </Link>
+            ))}
           </div>
           
           <div className={styles.navRight}>
             <div className={styles.desktopAuth}>
-              {authStatus === 'unauthenticated' ? (
+              {authStatus === 'loading' ? (
+                <div className={styles.navLink}>Loading...</div>
+              ) : authStatus === 'unauthenticated' ? (
                 <>
-                  {/* Login/Register Buttons */}
+                  <button onClick={() => openModal('login')} className={`${styles.navLink} ${styles.authButton}`}>Login</button>
+                  <button onClick={() => openModal('register')} className={`${styles.navLink} ${styles.registerButton}`}>Register</button>
                 </>
               ) : (
                 <>
-                  {/* User Links */}
+                  {authenticatedLinks.map(link => (
+                    <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`}>
+                      {link.label}
+                    </Link>
+                  ))}
+                   <div className={styles.verticalDivider} />
                   <Link href="/chat" className={styles.iconButton} aria-label="Messages">
                     <FaCommentDots />
                   </Link>
@@ -138,7 +167,31 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      <div className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ''}`}>
+        {mainLinks.map(link => (
+          <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`} onClick={() => setIsMenuOpen(false)}>
+            {link.label}
+          </Link>
+        ))}
+        <div className={styles.divider} />
+        {authStatus === 'authenticated' && authenticatedLinks.map(link => (
+          <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`} onClick={() => setIsMenuOpen(false)}>
+            {link.label}
+          </Link>
+        ))}
+        <div className={styles.mobileAuth}>
+          {authStatus === 'loading' ? (
+             <div className={styles.navLink}>Loading...</div>
+          ) : authStatus === 'unauthenticated' ? (
+            <>
+              <button onClick={() => { openModal('login'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.authButton}`}>Login</button>
+              <button onClick={() => { openModal('register'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.mobileRegisterButton}`}>Register</button>
+            </>
+          ) : (
+            <button onClick={() => { setIsLogoutModalOpen(true); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.logoutButton}`}>Logout</button>
+          )}
+        </div>
+      </div>
 
       {isLogoutModalOpen && (
         <ConfirmationModal

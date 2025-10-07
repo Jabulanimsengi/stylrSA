@@ -173,12 +173,24 @@
 
 .mobileRegisterButton {
   width: 100%;
+  background-color: var(--primary-pink);
+  color: white;
+  border-radius: 8px;
+  padding: 0.8rem;
+  font-weight: 600;
 }
 
 .divider {
   border: none;
   border-top: 1px solid #f0f0f0;
   margin: 0.75rem 0;
+}
+
+.verticalDivider {
+  width: 1px;
+  background-color: var(--light-silver);
+  height: 24px;
+  margin: 0 0.5rem;
 }
 
 /* Add these styles to your existing Navbar.module.css file */
@@ -246,5 +258,5 @@
 }
 
 .notificationItem.unread {
-    background-color: var(--warm-beige);
+    background-color: #f7f3e9; /* A warm beige color */
 }
