@@ -1,5 +1,5 @@
 // backend/src/services/services.service.ts
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -14,7 +14,12 @@ export class ServicesService {
       where: { id: dto.salonId },
     });
 
-    if (!salon || salon.ownerId !== user.id) {
+    if (!salon) {
+        throw new NotFoundException('Salon not found.');
+    }
+
+    // FIX: Allow ADMIN or the actual owner to create a service for the salon
+    if (salon.ownerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to add a service to this salon',
       );
@@ -37,7 +42,12 @@ export class ServicesService {
       include: { salon: true },
     });
 
-    if (!service || service.salon.ownerId !== user.id) {
+    if (!service) {
+        throw new NotFoundException('Service not found.');
+    }
+
+    // FIX: Allow ADMIN to update any service
+    if (service.salon.ownerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to update this service',
       );
@@ -55,7 +65,12 @@ export class ServicesService {
       include: { salon: true },
     });
 
-    if (!service || service.salon.ownerId !== user.id) {
+    if (!service) {
+        throw new NotFoundException('Service not found.');
+    }
+
+    // FIX: Allow ADMIN to delete any service
+    if (service.salon.ownerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to delete this service',
       );

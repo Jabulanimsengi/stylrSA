@@ -24,20 +24,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/login', {
+      // Corrected to a relative URL to be handled by the Next.js proxy
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
         credentials: 'include',
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || 'Login failed. Please check your credentials.');
-      }
-      
       const data = await res.json();
 
+      if (!res.ok) {
+        throw new Error(data.message || 'Login failed. Please check your credentials.');
+      }
+      
       toast.success('Login successful! Welcome back.');
       // On success, call the function passed down from the parent component
       onLoginSuccess(data.user);
@@ -79,7 +79,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn btn-primary"
+              className="btn btn-primary" 
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>

@@ -1,30 +1,45 @@
-// frontend/src/components/ServiceFormModal.tsx
-import { useState, FormEvent } from 'react';
-import { Service } from '@/types';
+'use client';
+
+import React, { useState, useEffect, FormEvent } from 'react';
 import styles from './ServiceFormModal.module.css';
+import { Service } from '@/types';
 import { toast } from 'react-toastify';
 import { FaTimes } from 'react-icons/fa';
 
 interface ServiceFormModalProps {
   salonId: string;
   onClose: () => void;
-  onServiceAdded: (newService: Service) => void;
+  onServiceAdded: (service: Service) => void; // Can be used for both add and update
+  initialData?: Service | null; 
 }
 
-export default function ServiceFormModal({ salonId, onClose, onServiceAdded }: ServiceFormModalProps) {
+export default function ServiceFormModal({ salonId, onClose, onServiceAdded, initialData }: ServiceFormModalProps) {
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
     description: '',
     price: 0,
     duration: 30,
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  const isEditing = !!initialData;
+
+  useEffect(() => {
+    if (isEditing && initialData) {
+      setFormData({
+        title: initialData.title,
+        description: initialData.description,
+        price: initialData.price,
+        duration: initialData.duration,
+      });
+    }
+  }, [isEditing, initialData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
         ...prev,
-        [name]: type === 'number' ? parseFloat(value) : value
+        [name]: type === 'number' ? parseFloat(value) || 0 : value
     }));
   };
 
@@ -32,33 +47,32 @@ export default function ServiceFormModal({ salonId, onClose, onServiceAdded }: S
     e.preventDefault();
     setIsLoading(true);
 
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        toast.error("You must be logged in to add a service.");
-        setIsLoading(false);
-        return;
-    }
+    const serviceData = { ...formData, salonId };
 
     try {
-      const res = await fetch('http://localhost:3000/api/services', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...formData, salonId }),
+      const url = isEditing ? `/api/services/${initialData?.id}` : '/api/services';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Use cookies for authentication
+        body: JSON.stringify(serviceData),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error('Failed to add service.');
+        throw new Error(data.message || `Failed to ${isEditing ? 'update' : 'create'} service.`);
       }
-      const newService = await res.json();
-      toast.success('Service added successfully! It will be reviewed by an admin.');
-      onServiceAdded(newService);
+      
+      toast.success(`Service ${isEditing ? 'updated' : 'added'} successfully!`);
+      onServiceAdded(data);
       onClose();
-    } catch (error) {
+
+    } catch (error: any) {
       console.error(error);
-      toast.error('Could not add service.');
+      toast.error(error.message || 'Could not save service.');
     } finally {
       setIsLoading(false);
     }
@@ -68,11 +82,11 @@ export default function ServiceFormModal({ salonId, onClose, onServiceAdded }: S
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
-        <h2>Add a New Service</h2>
+        <h2>{isEditing ? 'Edit Service' : 'Add a New Service'}</h2>
         <form onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
-                <label htmlFor="name">Service Name</label>
-                <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required />
+                <label htmlFor="title">Service Name</label>
+                <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} required />
             </div>
             <div className={styles.formGroup}>
                 <label htmlFor="description">Description</label>
@@ -87,7 +101,7 @@ export default function ServiceFormModal({ salonId, onClose, onServiceAdded }: S
                 <input type="number" id="duration" name="duration" value={formData.duration} onChange={handleChange} required />
             </div>
           <button type="submit" disabled={isLoading} className="btn btn-primary">
-            {isLoading ? 'Adding...' : 'Add Service'}
+            {isLoading ? 'Saving...' : (isEditing ? 'Update Service' : 'Add Service')}
           </button>
         </form>
       </div>

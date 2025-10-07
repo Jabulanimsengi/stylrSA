@@ -1,3 +1,5 @@
+/* frontend/src/components/EditSalonModal.module.css */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -5,28 +7,47 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
+  z-index: 1000;
   padding: 1rem;
 }
 
 .modalContent {
-  background-color: var(--white);
+  background-color: #FFFFFF; /* White (Background/Base) */
   border-radius: 0.5rem;
   padding: 2rem;
   width: 100%;
   max-width: 42rem;
-  color: var(--text-charcoal);
+  color: #1C1C1E; /* Charcoal Black */
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #7C7C7C; /* Muted Text */
+    transition: color 0.2s ease;
+}
+
+.closeButton:hover {
+    color: #FF2D5E; /* Primary Pink */
 }
 
 .title {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
-  color: var(--primary-plum);
+  color: #2F2F3A; /* Dark Gray (Text/Headers) */
   flex-shrink: 0;
+  text-align: center;
 }
 
 .form {
@@ -39,7 +60,7 @@
 .formScrollableContent {
   flex-grow: 1;
   overflow-y: auto;
-  padding-right: 1rem; /* space for scrollbar */
+  padding: 0.5rem 1rem 0.5rem 0.5rem; /* space for scrollbar */
   margin-right: -1rem; /* hide scrollbar visually */
   display: flex;
   flex-direction: column;
@@ -50,16 +71,27 @@
   display: block;
   font-weight: 500;
   margin-bottom: 0.5rem;
+  color: #2F2F3A; /* Primary Text (Headings) */
 }
 
 .input, .textarea, .select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #CBD5E0;
+  border: 1px solid #E5E5E5; /* Light Silver */
   border-radius: 0.375rem;
   font-family: inherit;
   font-size: 1rem;
-  background-color: var(--white);
+  background-color: #FFFFFF; /* White */
+  color: #4A4A4A; /* Body Text */
+}
+
+.input::placeholder, .textarea::placeholder {
+    color: #7C7C7C; /* Muted Text */
+}
+
+.textarea {
+    min-height: 80px;
+    resize: vertical;
 }
 
 .grid {
@@ -80,31 +112,21 @@
 
 .subheading {
   font-weight: 600;
-  color: var(--primary-plum);
+  color: #2F2F3A; /* Dark Gray */
   margin-top: 1rem;
   margin-bottom: 0.5rem;
-  border-top: 1px solid var(--secondary-blush);
+  border-top: 1px solid #E5E5E5; /* Light Silver */
   padding-top: 1rem;
 }
 
-.hoursGrid {
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 0.5rem 1rem;
-  align-items: center;
-}
-
-.timeRange {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .errorMessage {
-  color: var(--error-red);
+  color: #FF2D5E; /* Error Text */
   font-size: 0.875rem;
-  flex-shrink: 0;
-  margin-top: 1rem;
+  text-align: center;
+  background-color: #FFD6DF; /* Error Background */
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
 }
 
 .buttonContainer {
@@ -112,68 +134,85 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid #E5E5E5; /* Light Silver */
   padding-top: 1.5rem;
   flex-shrink: 0;
 }
 
-.cancelButton {
-  padding: 0.5rem 1rem;
-  background-color: #E2E8F0;
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  font-weight: 500;
-  color: #2d3748; /* Ensuring text color is dark */
+.fileInput {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #E5E5E5; /* Light Silver */
+    border-radius: 0.375rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.imageUploadSection {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    background-color: #F4EDE6; /* Warm Beige */
+}
+
+.imagePreview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-top: 10px;
+    border-radius: 0.375rem;
+    border: 1px solid #E5E5E5; /* Light Silver */
+}
+
+.heroPreview {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.heroPreview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 0.375rem;
+    border: 1px solid #E5E5E5; /* Light Silver */
+}
+
+/* Button Styles */
+.cancelButton, .saveButton {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
 }
 
 .saveButton {
-  padding: 0.5rem 1rem;
-  background-color: #E2E8F0; /* Match cancel button */
-  color: #2d3748; /* Match cancel button text color */
-  font-weight: 500; /* Match cancel button font weight */
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
+    background-color: #FF2D5E; /* Primary Pink */
+    color: #FFFFFF; /* Inverse Text */
+}
+
+.saveButton:hover {
+    background-color: #E62654; /* Hover Pink */
+}
+
+.saveButton:active {
+    background-color: #C81F47; /* Active Pink */
 }
 
 .saveButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    background-color: #F9D7E5; /* Disabled Pink */
+    color: #7C7C7C; /* Muted Text */
+    cursor: not-allowed;
 }
 
-
-.subheadingContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  border-top: 1px solid var(--secondary-blush);
-  padding-top: 1rem;
+.cancelButton {
+    background-color: #E5E5E5; /* Light Silver */
+    color: #2F2F3A; /* Dark Gray */
 }
 
-.subheading {
-  font-weight: 600;
-  color: var(--primary-plum);
-  margin-bottom: 0.5rem;
-  border-top: none; /* Remove duplicate border */
-  padding-top: 0; /* Remove duplicate padding */
-  margin-top: 0;
-}
-
-.applyAllButton {
-  background-color: transparent;
-  color: var(--primary-pink);
-  border: 1px solid var(--primary-pink);
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.applyAllButton:hover {
-  background-color: var(--primary-pink);
-  color: var(--white);
+.cancelButton:hover {
+    background-color: #d8d8d8; /* Slightly darker silver */
 }

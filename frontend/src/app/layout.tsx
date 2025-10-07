@@ -6,6 +6,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { SocketProvider } from '@/context/SocketContext';
 import { AuthModalProvider } from '@/context/AuthModalContext';
+import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -47,17 +48,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SocketProvider>
-          <AuthModalProvider>
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-              <Navbar />
-              <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
-              <Footer />
-            </div>
-            {/* Moved ToastContainer to be a direct child of the provider */}
-            <ToastContainer position="bottom-right" theme="colored" />
-          </AuthModalProvider>
-        </SocketProvider>
+        <AuthProvider> {/* Wrap with AuthProvider */}
+          <SocketProvider>
+            <AuthModalProvider>
+              <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <Navbar />
+                <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
+                <Footer />
+              </div>
+              <ToastContainer position="bottom-right" theme="colored" />
+            </AuthModalProvider>
+          </SocketProvider>
+        </AuthProvider>
       </body>
     </html>
   );

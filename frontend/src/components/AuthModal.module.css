@@ -1,3 +1,5 @@
+/* AuthModal.module.css */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -10,11 +12,13 @@
 
 .modalContent {
   position: relative;
-  background-color: transparent; /* Card will provide the background */
+  background-color: #FFFFFF; /* White (Background/Base) */
   border-radius: 0.5rem;
-  padding: 0; /* Remove padding */
+  padding: 2rem;
   width: 100%;
   max-width: 28rem;
+  color: #2F2F3A; /* Dark Gray (Text/Headers) */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .closeButton {
@@ -23,8 +27,90 @@
   right: 0.5rem;
   background: none;
   border: none;
-  font-size: 2rem;
-  color: var(--text-muted);
+  font-size: 1.5rem;
+  color: #7C7C7C; /* Muted Text */
   cursor: pointer;
   z-index: 10;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E5E5; /* Light Silver (Dividers/Lines) */
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+  color: #7C7C7C; /* Muted Text */
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  color: #FF2D5E; /* Primary Pink (Brand/CTA) */
+}
+
+.tab.active {
+  color: #FF2D5E; /* Primary Pink (Brand/CTA) */
+  border-bottom: 2px solid #FF2D5E; /* Primary Pink (Brand/CTA) */
+  font-weight: bold;
+}
+
+/* General styles for form elements within the modal */
+.modalContent form {
+  display: flex;
+  flex-direction: column;
+}
+
+.modalContent input {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #E5E5E5; /* Light Silver */
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  color: #4A4A4A; /* Body Text */
+}
+
+.modalContent input:focus {
+  outline: none;
+  border-color: #FF2D5E; /* Primary Pink */
+  box-shadow: 0 0 0 2px #F9D7E5; /* Soft Pastel Pink */
+}
+
+.modalContent .button {
+  background-color: #FF2D5E; /* Primary Pink */
+  color: #FFFFFF; /* White */
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.modalContent .button:hover {
+  background-color: #E62654; /* Hover Pink */
+}
+
+.modalContent .button:active {
+  background-color: #C81F47; /* Active Pink */
+}
+
+.modalContent .button:disabled {
+  background-color: #F9D7E5; /* Disabled Pink */
+  color: #7C7C7C; /* Muted Text */
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: #FF2D5E; /* Primary Pink */
+  margin-bottom: 1rem;
+  text-align: center;
 }

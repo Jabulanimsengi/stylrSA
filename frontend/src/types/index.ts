@@ -15,7 +15,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   password?: string;
-  salonId?: string; // This line has been added
+  salonId?: string;
 }
 
 export interface Salon {
@@ -37,7 +37,7 @@ export interface Salon {
   createdAt: string;
   updatedAt: string;
   backgroundImage?: string | null;
-  heroImages?: string[]; // Added heroImages property
+  heroImages?: string[];
   isFavorited?: boolean;
   isAvailableNow?: boolean;
   operatingHours?: Record<string, string> | null;
@@ -85,10 +85,10 @@ export interface Review {
   approvalStatus: ApprovalStatus;
 }
 
+// FIX: Changed startTime and endTime to bookingTime to match the database schema
 export interface Booking {
   id: string;
-  startTime: string;
-  endTime: string;
+  bookingTime: string; // Corrected property
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
   notes?: string;
   userId: string;

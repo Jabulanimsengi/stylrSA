@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, FormEvent } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Salon, Service, ApprovalStatus, Booking, GalleryImage } from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './Dashboard.module.css';
@@ -15,8 +15,9 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 
 type DashboardBooking = Booking & {
-  client: { firstName: string, lastName: string },
-  status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED',
+  user: { firstName: string; lastName: string };
+  service: { title: string };
+  status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED' | 'CANCELLED';
   clientPhone?: string;
 };
 
@@ -27,74 +28,69 @@ export default function DashboardPage() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isEditSalonModalOpen, setIsEditSalonModalOpen] = useState(false);
-  const [isCreateSalonModalOpen, setIsCreateSalonModalOpen] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const socket = useSocket();
-  const { userRole } = useAuth();
+  
+  const { authStatus, user } = useAuth(); 
 
-  const ownerId = userRole === 'ADMIN' ? searchParams.get('ownerId') : undefined;
+  const ownerId = user?.role === 'ADMIN' ? searchParams.get('ownerId') : user?.id;
+
+  const fetchDashboardData = useCallback(async () => {
+    if (!ownerId) return;
+
+    setIsLoading(true);
+    try {
+      const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}`, { credentials: 'include' });
+      if (salonRes.status === 401) { router.push('/'); return; }
+      if (salonRes.status === 404) { setSalon(null); setIsLoading(false); return; }
+      if (!salonRes.ok) throw new Error('Could not fetch salon data.');
+      
+      const salonData = await salonRes.json();
+      setSalon(salonData);
+
+      const [servicesRes, bookingsRes, galleryRes] = await Promise.all([
+        fetch(`/api/salons/mine/services?ownerId=${ownerId}`, { credentials: 'include' }),
+        fetch(`/api/salons/mine/bookings?ownerId=${ownerId}`, { credentials: 'include' }),
+        fetch(`/api/gallery/salon/${salonData.id}`, { credentials: 'include' }),
+      ]);
+
+      setServices(await servicesRes.json());
+      const bookingsData = await bookingsRes.json();
+      setBookings(Array.isArray(bookingsData) ? bookingsData : []);
+      setGalleryImages(await galleryRes.json());
+
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [ownerId, router]);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    const fetchDashboardData = async () => {
-      setIsLoading(true);
-      const headers = { Authorization: `Bearer ${token}` };
-      const url = ownerId ? `http://localhost:3000/api/salons/mine?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine';
-      try {
-        const salonRes = await fetch(url, { headers });
-        if (salonRes.status === 404) {
-            // Only set salon to null if the user is not an admin viewing another dashboard
-            if (userRole !== 'ADMIN') {
-                setSalon(null);
-            }
-            setIsLoading(false);
-            return;
-        }
-        if (salonRes.status === 401) { router.push('/login'); return; }
-        if (!salonRes.ok) throw new Error('Could not fetch your salon data.');
-        const salonData = await salonRes.json();
-        setSalon(salonData);
-
-        const servicesUrl = ownerId ? `http://localhost:3000/api/salons/mine/services?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine/services'
-        const bookingsUrl = ownerId ? `http://localhost:3000/api/salons/mine/bookings?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine/bookings'
-
-        const [servicesRes, bookingsRes, galleryRes] = await Promise.all([
-          fetch(servicesUrl, { headers }),
-          fetch(bookingsUrl, { headers }),
-          fetch(`http://localhost:3000/api/gallery/salon/${salonData.id}`, { headers }),
-        ]);
-        setServices(await servicesRes.json());
-        const bookingsData = await bookingsRes.json();
-        setBookings(Array.isArray(bookingsData) ? bookingsData : []);
-        setGalleryImages(await galleryRes.json());
-
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
+    if (authStatus === 'loading') { setIsLoading(true); return; }
+    if (authStatus === 'unauthenticated') { toast.error('You must be logged in.'); router.push('/'); return; }
+    if (authStatus === 'authenticated' && ownerId) {
+      fetchDashboardData();
+    } else if (authStatus === 'authenticated' && user?.role === 'SALON_OWNER' && !ownerId) {
+        setSalon(null);
         setIsLoading(false);
-      }
-    };
-    fetchDashboardData();
-  }, [router, ownerId, userRole]);
+    }
+  }, [authStatus, ownerId, fetchDashboardData, router, user]);
 
   useEffect(() => {
     if (socket) {
       socket.on('newBooking', (newBooking: DashboardBooking) => {
-        setBookings(prev => {
-          const prevBookings = Array.isArray(prev) ? prev : [];
-          return [newBooking, ...prevBookings];
-        });
-        toast.info(`New booking request for ${newBooking.service.title}!`);
+        setBookings(prev => [newBooking, ...prev]);
+        toast.info(`New booking for ${newBooking.service.title}!`);
       });
       return () => { socket.off('newBooking'); };
     }
@@ -110,13 +106,9 @@ export default function DashboardPage() {
   };
 
   const handleDeleteService = async (serviceId: string) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) return;
-    const token = localStorage.getItem('access_token');
+    if (!window.confirm('Are you sure?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/services/${serviceId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`/api/services/${serviceId}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Failed to delete service.');
       setServices(services.filter(s => s.id !== serviceId));
       toast.success("Service deleted.");
@@ -125,14 +117,14 @@ export default function DashboardPage() {
     }
   };
 
-  const handleBookingStatusUpdate = async (bookingId: string, status: 'CONFIRMED' | 'DECLINED') => {
-    const token = localStorage.getItem('access_token');
-    await fetch(`http://localhost:3000/api/bookings/${bookingId}/status`, {
+  const handleBookingStatusUpdate = async (bookingId: string, status: 'CONFIRMED' | 'DECLINED' | 'COMPLETED' | 'CANCELLED') => {
+    await fetch(`/api/bookings/${bookingId}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ status }),
     });
-    setBookings(bookings.map(b => b.id === bookingId ? { ...b, status } : b));
+    fetchDashboardData();
   };
 
   const handleSalonUpdate = (updatedSalon: Salon) => {
@@ -140,43 +132,29 @@ export default function DashboardPage() {
     setIsEditSalonModalOpen(false);
   };
   
-  const handleSalonCreate = (newSalon: Salon) => {
-    setSalon(newSalon);
-    setIsCreateSalonModalOpen(false);
-  };
-
   const handleAvailabilityToggle = async () => {
     if (!salon) return;
-    const token = localStorage.getItem('access_token');
-    setSalon(prev => ({ ...prev!, isAvailableNow: !prev!.isAvailableNow }));
+    const originalStatus = salon.isAvailableNow;
+    setSalon(prev => (prev ? { ...prev, isAvailableNow: !prev.isAvailableNow } : null));
     try {
-      const url = ownerId ? `http://localhost:3000/api/salons/mine/availability?ownerId=${ownerId}` : 'http://localhost:3000/api/salons/mine/availability';
-      await fetch(url, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await fetch(`/api/salons/mine/availability?ownerId=${ownerId}`, { method: 'PATCH', credentials: 'include' });
     } catch (error) {
       toast.error("Failed to update status.");
-      setSalon(prev => ({ ...prev!, isAvailableNow: !prev!.isAvailableNow }));
+      setSalon(prev => (prev ? { ...prev, isAvailableNow: originalStatus } : null));
     }
   };
 
   const handleImageUpload = (newImage: GalleryImage) => {
-    setGalleryImages([newImage, ...galleryImages]);
-    setIsGalleryModalOpen(false);
+    setGalleryImages(prev => [newImage, ...prev]);
   };
 
   const handleDeleteImage = async (imageId: string) => {
-    if (!window.confirm('Are you sure you want to delete this image?')) return;
-    const token = localStorage.getItem('access_token');
+    if (!window.confirm('Are you sure?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/gallery/${imageId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`/api/gallery/${imageId}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Failed to delete image.');
       setGalleryImages(galleryImages.filter(img => img.id !== imageId));
-      toast.success("Image deleted from gallery.");
+      toast.success("Image deleted.");
     } catch (err) {
       toast.error('Error deleting image.');
     }
@@ -192,49 +170,35 @@ export default function DashboardPage() {
     return styles.statusRejected;
   };
 
-  if (isLoading || salon === undefined) return <LoadingSpinner />;
-  if (error) return <div className={styles.container}><p style={{ color: 'var(--error-red)' }}>{error}</p></div>;
+  if (isLoading || authStatus === 'loading') return <LoadingSpinner />;
+  if (error) return <div className={styles.container}><p>{error}</p></div>;
 
   if (!salon) {
-    // Prevent admin from seeing create salon page
-    if (userRole === 'ADMIN') {
-        return <div className={styles.container}><p>Salon not found for the specified owner.</p></div>;
+    if (user?.role === 'ADMIN') {
+        return <div className={styles.container}><p>This user has not created a salon profile yet.</p></div>;
     }
     return (
-        <>
-        {isCreateSalonModalOpen && (
-            <EditSalonModal
-              salon={{} as Salon}
-              onClose={() => setIsCreateSalonModalOpen(false)}
-              onSave={handleSalonCreate}
-            />
-        )}
         <div className={styles.welcomeContainer}>
           <div className={styles.welcomeCard}>
-            <h2 className={styles.cardTitle}>Welcome, Service Provider!</h2>
-            <p>Your profile is not yet complete. Create your public salon profile to start adding services and accepting bookings.</p>
-            <div style={{marginTop: '1.5rem'}}>
-              <button onClick={() => setIsCreateSalonModalOpen(true)} className="btn btn-primary">
-                Create Your Salon Profile
-              </button>
-            </div>
+            <h2>Welcome, Service Provider!</h2>
+            <p>Create your salon profile to start adding services and accepting bookings.</p>
+            <Link href="/create-salon" className="btn btn-primary">Create Your Salon Profile</Link>
           </div>
         </div>
-        </>
     );
   }
-
+  
   const pendingBookings = bookings.filter(b => b.status === 'PENDING');
   const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED');
-  const pastBookings = bookings.filter(b => b.status === 'COMPLETED' || b.status === 'DECLINED');
+  const pastBookings = bookings.filter(b => ['COMPLETED', 'DECLINED', 'CANCELLED'].includes(b.status));
 
   const renderBookingsList = (list: DashboardBooking[]) => {
     if (list.length === 0) return <p>No bookings in this category.</p>;
     return list.map(booking => (
       <div key={booking.id} className={styles.listItem}>
         <div className={styles.listItemInfo}>
-          <p><strong>{booking.service.title}</strong> for {booking.client.firstName}</p>
-          <p className={styles.date}>{new Date(booking.bookingDate).toLocaleString('en-ZA')}</p>
+          <p><strong>{booking.service.title}</strong> for {booking.user.firstName}</p>
+          <p className={styles.date}>{new Date(booking.bookingTime).toLocaleString('en-ZA')}</p>
           {booking.clientPhone && <p className={styles.date}>Contact: {booking.clientPhone}</p>}
         </div>
         {booking.status === 'PENDING' && (
@@ -246,7 +210,7 @@ export default function DashboardPage() {
       </div>
     ));
   };
-
+  
   let bookingsToShow;
   if (activeBookingTab === 'pending') bookingsToShow = renderBookingsList(pendingBookings);
   else if (activeBookingTab === 'confirmed') bookingsToShow = renderBookingsList(confirmedBookings);
@@ -254,34 +218,39 @@ export default function DashboardPage() {
 
   return (
     <>
-      {isServiceModalOpen && (
-        <ServiceFormModal salonId={salon.id} initialData={editingService} onClose={closeServiceModal} onSave={handleSaveService} />
-      )}
-      {isEditSalonModalOpen && (
-        <EditSalonModal
-          salon={salon}
-          onClose={() => setIsEditSalonModalOpen(false)}
-          onSave={handleSalonUpdate}
+      {isServiceModalOpen && salon && (
+        <ServiceFormModal 
+          salonId={salon.id} 
+          onClose={closeServiceModal} 
+          onServiceAdded={handleSaveService} 
+          initialData={editingService} 
         />
       )}
-       {isGalleryModalOpen && (
-        <GalleryUploadModal
-          salonId={salon.id}
-          onClose={() => setIsGalleryModalOpen(false)}
-          onUpload={handleImageUpload}
+      {isEditSalonModalOpen && salon && (
+        <EditSalonModal 
+          salon={salon} 
+          onClose={() => setIsEditSalonModalOpen(false)} 
+          onSalonUpdate={handleSalonUpdate} 
+        />
+      )}
+      {isGalleryModalOpen && salon && (
+        <GalleryUploadModal 
+          salonId={salon.id} 
+          onClose={() => setIsGalleryModalOpen(false)} 
+          onImageAdded={handleImageUpload} 
         />
       )}
       <div className={styles.container}>
-      <div className={styles.stickyHeader}>
-        <div className={styles.navButtonsContainer}>
-            <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-            <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+        <div className={styles.stickyHeader}>
+            <div className={styles.navButtonsContainer}>
+                <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+                <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+            </div>
+            <h1 className={styles.title}>{user?.role === 'ADMIN' ? `${salon.name}'s Dashboard` : 'My Dashboard'}</h1>
+            <div className={styles.headerSpacer}></div>
         </div>
-        <h1 className={styles.title}>My Dashboard</h1>
-        <div className={styles.headerSpacer}></div>
-      </div>
-
-
+        
+        {/* FIX: ADDED BACK THE MISSING JSX FOR DASHBOARD CONTENT */}
         <header className={styles.header}>
           <div className={styles.headerTop}>
             <div className={styles.headerInfo}>

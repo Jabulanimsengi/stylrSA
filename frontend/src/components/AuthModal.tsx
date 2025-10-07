@@ -17,20 +17,18 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ view: initialView, onClose }: AuthModalProps) {
-  const { setAuthStatus } = useAuth();
-  // Get the functions to switch views from the context
+  const { login } = useAuth(); // Get the login function from our global context
   const { switchToLogin, switchToRegister } = useAuthModal();
   const [view, setView] = useState(initialView);
   const router = useRouter();
 
-  // Ensure the view state is synced with the prop from the context
   useEffect(() => {
     setView(initialView);
   }, [initialView]);
 
   const handleLoginSuccess = (user: User) => {
-    setAuthStatus('authenticated');
-    onClose(); // Close the modal using the function passed via props
+    login(user); // Update the global state with the logged-in user
+    onClose(); // Close the modal
     
     // Intelligent redirection logic
     if (user.role === 'SALON_OWNER' && !user.salonId) {
@@ -42,29 +40,30 @@ export default function AuthModal({ view: initialView, onClose }: AuthModalProps
     } else if (user.role === 'ADMIN') {
         router.push('/admin');
     } else {
-      router.push('/');
+      // For CLIENT role, the modal will just close and the navbar will update.
+      // You can optionally redirect them to the home page or another page.
+      // router.push('/'); 
     }
   };
 
   const handleRegisterSuccess = () => {
-    // Use the context function to switch to the login view
     switchToLogin();
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
         <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
         <div className={styles.tabs}>
           <button
             className={`${styles.tab} ${view === 'login' ? styles.active : ''}`}
-            onClick={switchToLogin} // Use context function
+            onClick={switchToLogin}
           >
             Login
           </button>
           <button
             className={`${styles.tab} ${view === 'register' ? styles.active : ''}`}
-            onClick={switchToRegister} // Use context function
+            onClick={switchToRegister}
           >
             Register
           </button>

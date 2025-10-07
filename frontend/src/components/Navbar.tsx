@@ -4,16 +4,18 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth'; // This now points to our new global context hook
 import { useAuthModal } from '@/context/AuthModalContext';
 import { FaBars, FaTimes, FaBell, FaCommentDots } from 'react-icons/fa';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
 import Image from 'next/image';
 import { useSocket } from '@/context/SocketContext';
 import { Notification } from '@/types';
+import { toast } from 'react-toastify';
 
 export default function Navbar() {
-  const { authStatus, user, setAuthStatus } = useAuth();
+  // Use the new global context. Note we get a `logout` function now.
+  const { authStatus, user, logout } = useAuth();
   const { openModal } = useAuthModal();
   const router = useRouter();
   const pathname = usePathname();
@@ -29,10 +31,12 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      setAuthStatus('unauthenticated');
+      logout(); // Use the logout function from our global context
+      toast.success('You have been logged out successfully.');
       router.push('/');
     } catch (error) {
       console.error('Logout failed:', error);
+      toast.error('Logout failed. Please try again.');
     } finally {
       setIsLogoutModalOpen(false);
       setIsMenuOpen(false);
@@ -130,7 +134,7 @@ export default function Navbar() {
                       {link.label}
                     </Link>
                   ))}
-                   <div className={styles.verticalDivider} />
+                    <div className={styles.verticalDivider} />
                   <Link href="/chat" className={styles.iconButton} aria-label="Messages">
                     <FaCommentDots />
                   </Link>

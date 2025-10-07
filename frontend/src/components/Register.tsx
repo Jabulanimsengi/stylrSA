@@ -27,15 +27,17 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/signup', {
+      // Corrected to relative URL and the right endpoint ('/register')
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, password, role }),
         credentials: 'include',
       });
 
+      const errorData = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
         const message = Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message;
         throw new Error(message || 'Registration failed.');
       }

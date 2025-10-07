@@ -86,7 +86,12 @@ export class SalonsService {
       where: { id },
     });
 
-    if (!salon || salon.ownerId !== user.id) {
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
+
+    // FIX: Allow ADMIN to update any salon
+    if (salon.ownerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to update this salon',
       );
@@ -110,8 +115,13 @@ export class SalonsService {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
     });
+    
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
 
-    if (!salon || salon.ownerId !== user.id) {
+    // FIX: Allow ADMIN to delete any salon
+    if (salon.ownerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to delete this salon',
       );
@@ -158,11 +168,12 @@ export class SalonsService {
   }
 
   async updateMySalon(user: User, dto: UpdateSalonDto, ownerId: string) {
-    if (user.id !== ownerId) {
+    // FIX: Allow ADMIN to update any salon
+    if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to update this salon');
     }
     const salon = await this.prisma.salon.findFirst({
-      where: { ownerId: user.id },
+      where: { ownerId: ownerId }, // Use ownerId to find the salon
     });
     if (!salon) {
       throw new NotFoundException('Salon not found');
@@ -171,11 +182,12 @@ export class SalonsService {
   }
 
   async toggleAvailability(user: User, ownerId: string) {
-    if (user.id !== ownerId) {
+    // FIX: Allow ADMIN to update any salon
+    if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to update this salon');
     }
     const salon = await this.prisma.salon.findFirst({
-      where: { ownerId: user.id },
+      where: { ownerId: ownerId }, // Use ownerId to find the salon
     });
     if (!salon) {
       throw new NotFoundException('Salon not found');
