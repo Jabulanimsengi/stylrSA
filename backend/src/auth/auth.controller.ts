@@ -28,8 +28,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const { access_token, user } = await this.authService.login(dto);
-    res.cookie('access_token', access_token, {
+    // Corrected 'access_token' to 'accessToken' to match the service's return object
+    const { accessToken, user } = await this.authService.login(dto);
+    res.cookie('access_token', accessToken, { // Use the corrected variable name here as well
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development', // set to true in production
       sameSite: 'strict',

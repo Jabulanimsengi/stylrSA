@@ -1,19 +1,22 @@
-// frontend/src/components/Login.tsx
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import styles from '../app/auth.module.css';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
+import { User } from '@/types';
 
-export default function Login() {
+// Define the props that this component will accept
+interface LoginProps {
+  onLoginSuccess: (user: User) => void;
+}
+
+export default function Login({ onLoginSuccess }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const { closeModal, switchToRegister } = useAuthModal();
+  const { switchToRegister } = useAuthModal();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -29,12 +32,15 @@ export default function Login() {
       });
 
       if (!res.ok) {
-        throw new Error('Login failed. Please check your credentials.');
+        const errData = await res.json();
+        throw new Error(errData.message || 'Login failed. Please check your credentials.');
       }
+      
+      const data = await res.json();
 
       toast.success('Login successful! Welcome back.');
-      closeModal();
-      window.location.href = '/salons';
+      // On success, call the function passed down from the parent component
+      onLoginSuccess(data.user);
 
     } catch (err: any) {
       setError(err.message);

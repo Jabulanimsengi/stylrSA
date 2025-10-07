@@ -15,6 +15,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   password?: string;
+  salonId?: string; // This line has been added
 }
 
 export interface Salon {

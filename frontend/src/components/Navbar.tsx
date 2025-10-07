@@ -22,31 +22,27 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   
-  // State for notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await fetch('/api/auth/logout', { method: 'POST' });
       setAuthStatus('unauthenticated');
       router.push('/');
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
       setIsLogoutModalOpen(false);
+      setIsMenuOpen(false);
     }
   };
 
-  // Fetch notifications
   useEffect(() => {
     if (authStatus === 'authenticated') {
       const fetchNotifications = async () => {
-        const res = await fetch('http://localhost:3000/api/notifications', { credentials: 'include' });
+        const res = await fetch('/api/notifications');
         if (res.ok) {
           setNotifications(await res.json());
         }
@@ -55,7 +51,6 @@ export default function Navbar() {
     }
   }, [authStatus]);
 
-  // Listen for new notifications via WebSocket
   useEffect(() => {
     if (socket) {
       socket.on('newNotification', (newNotification: Notification) => {
@@ -67,7 +62,6 @@ export default function Navbar() {
     }
   }, [socket]);
 
-  // Logic for closing dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
@@ -108,7 +102,7 @@ export default function Navbar() {
         <div className={styles.navContainer}>
           <div className={styles.navLeft}>
             <Link href="/" className={styles.logo}>
-              <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} />
+              <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} priority />
             </Link>
           </div>
 
@@ -126,7 +120,7 @@ export default function Navbar() {
                 <div className={styles.navLink}>Loading...</div>
               ) : authStatus === 'unauthenticated' ? (
                 <>
-                  <button onClick={() => openModal('login')} className={`${styles.navLink} ${styles.authButton}`}>Login</button>
+                  <button onClick={() => openModal('login')} className={`${styles.navLink} ${styles.loginButton}`}>Login</button>
                   <button onClick={() => openModal('register')} className={`${styles.navLink} ${styles.registerButton}`}>Register</button>
                 </>
               ) : (
@@ -184,11 +178,11 @@ export default function Navbar() {
              <div className={styles.navLink}>Loading...</div>
           ) : authStatus === 'unauthenticated' ? (
             <>
-              <button onClick={() => { openModal('login'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.authButton}`}>Login</button>
-              <button onClick={() => { openModal('register'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.mobileRegisterButton}`}>Register</button>
+              <button onClick={() => { openModal('login'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.loginButton}`}>Login</button>
+              <button onClick={() => { openModal('register'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.registerButton}`}>Register</button>
             </>
           ) : (
-            <button onClick={() => { setIsLogoutModalOpen(true); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.logoutButton}`}>Logout</button>
+            <button onClick={() => setIsLogoutModalOpen(true)} className={`${styles.navLink} ${styles.logoutButton}`}>Logout</button>
           )}
         </div>
       </div>
