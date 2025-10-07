@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { SocketProvider } from '@/context/SocketContext';
 import { AuthModalProvider } from '@/context/AuthModalContext';
 import Navbar from '@/components/Navbar';
@@ -51,9 +52,10 @@ export default function RootLayout({
             <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               <Navbar />
               <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
-              <ToastContainer position="bottom-right" theme="colored" />
               <Footer />
             </div>
+            {/* Moved ToastContainer to be a direct child of the provider */}
+            <ToastContainer position="bottom-right" theme="colored" />
           </AuthModalProvider>
         </SocketProvider>
       </body>

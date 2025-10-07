@@ -36,6 +36,7 @@ export interface Salon {
   createdAt: string;
   updatedAt: string;
   backgroundImage?: string | null;
+  heroImages?: string[]; // Added heroImages property
   isFavorited?: boolean;
   isAvailableNow?: boolean;
   operatingHours?: Record<string, string> | null;
@@ -120,7 +121,6 @@ export interface Promotion {
   isActive: boolean;
 }
 
-// Added Notification type
 export interface Notification {
   id: string;
   message: string;

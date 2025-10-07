@@ -193,10 +193,7 @@ export default function SalonProfilePage() {
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
 
   // --- Hero Slider Logic ---
-  const heroImages = [
-    salon.backgroundImage,
-    ...galleryImages.map(img => img.imageUrl)
-  ].filter(Boolean).slice(0, 3) as string[];
+  const heroImages = salon.heroImages || [];
 
   const nextSlide = () => {
     setCurrentSlide(prev => (prev === heroImages.length - 1 ? 0 : prev + 1));
@@ -209,7 +206,7 @@ export default function SalonProfilePage() {
   const galleryImageUrls = galleryImages.map(img => img.imageUrl);
 
   const mapSrc = salon.latitude && salon.longitude
-    ? `https://maps.google.com/maps?q=${salon.latitude},${salon.longitude}&hl=es;z=14&output=embed`
+    ? `http://googleusercontent.com/maps/google.com/0{salon.latitude},${salon.longitude}&hl=es;z=14&output=embed`
     : '';
 
   return (
@@ -265,7 +262,7 @@ export default function SalonProfilePage() {
                 {heroImages.length > 0 ? (
                     <>
                     <div className={styles.sliderWrapper} style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-                        {heroImages.map((img, index) => (
+                        {heroImages.map((img: string, index: number) => (
                         <div key={index} className={styles.slide}>
                             <img src={img} alt={`${salon.name} gallery image ${index + 1}`} className={styles.heroImage} />
                         </div>

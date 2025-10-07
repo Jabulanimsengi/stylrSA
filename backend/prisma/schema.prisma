@@ -38,6 +38,7 @@ model Salon {
   name                 String
   backgroundImage      String?
   province             String
+  heroImages           String[] 
   city                 String
   town                 String
   latitude             Float?
