@@ -23,6 +23,7 @@ export default function MyProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const { authStatus } = useAuth();
   const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // Use the environment variable
 
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
@@ -34,7 +35,7 @@ export default function MyProfilePage() {
         setIsLoading(true);
         const token = localStorage.getItem('access_token');
         try {
-          const res = await fetch('http://localhost:3000/api/users/me', {
+          const res = await fetch(`${apiUrl}/users/me`, { // Use the variable here
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!res.ok) {
@@ -52,14 +53,14 @@ export default function MyProfilePage() {
       };
       fetchProfile();
     }
-  }, [authStatus, router]);
+  }, [authStatus, router, apiUrl]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     const token = localStorage.getItem('access_token');
     try {
-      const res = await fetch('http://localhost:3000/api/users/me', {
+      const res = await fetch(`${apiUrl}/users/me`, { // And here
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -86,6 +87,7 @@ export default function MyProfilePage() {
 
   return (
     <div className={styles.container}>
+      {/* ... rest of your JSX remains the same */}
       <div className={styles.stickyHeader}>
         <div className={styles.navButtonsContainer}>
           <button onClick={() => router.back()} className={styles.navButton}>

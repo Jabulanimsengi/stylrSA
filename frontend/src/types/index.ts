@@ -55,6 +55,7 @@ export interface Service {
   price: number;
   duration: number; // in minutes
   salonId: string;
+  category: string; // FIX: Added missing category property
   images: string[];
   createdAt: string;
   updatedAt: string;
@@ -85,11 +86,10 @@ export interface Review {
   approvalStatus: ApprovalStatus;
 }
 
-// FIX: Changed startTime and endTime to bookingTime to match the database schema
 export interface Booking {
   id: string;
-  bookingTime: string; // Corrected property
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  bookingTime: string;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'DECLINED';
   notes?: string;
   userId: string;
   salonId: string;
@@ -102,7 +102,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  stock: number;
+  stockQuantity: number; // Corrected from 'stock' to match ProductFormModal
   images: string[];
   sellerId: string;
   createdAt: string;
@@ -128,4 +128,21 @@ export interface Notification {
   isRead: boolean;
   userId: string;
   createdAt: string;
+}
+
+
+export interface Message {
+  id: string;
+  content: string;
+  createdAt: string;
+  userId: string;
+  conversationId: string;
+}
+
+export interface Conversation {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  participants: User[];
+  messages?: Message[]; // Messages are optional on the conversation list
 }

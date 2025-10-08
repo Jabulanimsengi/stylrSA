@@ -39,6 +39,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (salon) {
@@ -74,7 +75,6 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     if (name === 'backgroundImage' && files[0]) {
       const file = files[0];
       setBackgroundImageFile(file);
-      // Revoke old blob URL to prevent memory leaks
       if (backgroundImagePreview && backgroundImagePreview.startsWith('blob:')) {
         URL.revokeObjectURL(backgroundImagePreview);
       }
@@ -95,10 +95,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       const updatedPreviews = heroImagesPreview.filter(img => img !== imageUrlToDelete);
       setHeroImagesPreview(updatedPreviews);
 
-      // If the deleted image was a newly added file (a blob URL), we must find and remove it from heroImageFiles state
       if (imageUrlToDelete.startsWith('blob:')) {
         const indexToRemove = heroImagesPreview.findIndex(p => p === imageUrlToDelete);
-        // Calculate the corresponding index in the `heroImageFiles` array
         const existingImagesCount = heroImagesPreview.filter(p => !p.startsWith('blob:')).length;
         const fileIndexToRemove = indexToRemove - existingImagesCount;
 
@@ -113,25 +111,30 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     e.preventDefault();
     setIsUploading(true);
     setError('');
+    const token = localStorage.getItem('access_token');
 
     try {
       let finalBackgroundImageUrl = backgroundImagePreview;
       if (backgroundImageFile && backgroundImagePreview?.startsWith('blob:')) {
+        // Corrected background image upload
         finalBackgroundImageUrl = await uploadToCloudinary(backgroundImageFile);
       }
 
       const existingHeroImageUrls = heroImagesPreview.filter(p => !p.startsWith('blob:'));
       
+      // Corrected hero images upload
       const newHeroImageUrls = await Promise.all(
         heroImageFiles.map(file => uploadToCloudinary(file))
       );
       
       const finalHeroImageUrls = [...existingHeroImageUrls, ...newHeroImageUrls];
 
-      const res = await fetch(`/api/salons/mine`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const res = await fetch(`${apiUrl}/salons/${salon.id}`, {
+        method: 'PATCH',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           ...formData,
           backgroundImage: finalBackgroundImageUrl,

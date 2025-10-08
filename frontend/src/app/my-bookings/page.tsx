@@ -2,49 +2,75 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Booking } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { Booking, Salon, Service, Review as ReviewType } from '@/types'; // Import all needed types
 import styles from './MyBookingsPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ReviewModal from '@/components/ReviewModal';
 import Link from 'next/link';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
-import { useSocket } from '@/context/SocketContext'; // Import useSocket
+import { useSocket } from '@/context/SocketContext';
+import { toast } from 'react-toastify';
+
+// FIX 1: Create a more detailed Booking type that matches the actual API response data
+// This includes the full salon and service objects, and optional review/totalCost fields.
+type PopulatedBooking = Booking & {
+  salon: Salon;
+  service: Service;
+  review?: ReviewType | null;
+  totalCost: number;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'DECLINED'; // Add 'DECLINED'
+};
 
 export default function MyBookingsPage() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  // Use the new, more accurate type for state
+  const [bookings, setBookings] = useState<PopulatedBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reviewingBookingId, setReviewingBookingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const router = useRouter();
-  const socket = useSocket(); // Get socket instance
+  const socket = useSocket();
+  const { authStatus } = useAuth();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const fetchBookings = async () => {
     setIsLoading(true);
     const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.push('/login');
-      return;
+    try {
+      const res = await fetch(`${apiUrl}/bookings/my-bookings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to fetch bookings');
+      }
+
+      // The data from the API matches our new PopulatedBooking type
+      const data: PopulatedBooking[] = await res.json();
+      setBookings(data);
+
+    } catch (error: any) {
+        toast.error(error.message);
+    } finally {
+        setIsLoading(false);
     }
-    const res = await fetch('http://localhost:3000/api/bookings/my-bookings', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      // The backend now returns bookingTime, map it to bookingDate
-      const formattedData = data.map((b: any) => ({...b, bookingDate: b.bookingTime}));
-      setBookings(formattedData);
-    }
-    setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (authStatus === 'unauthenticated') {
+      toast.error("You must be logged in to view your bookings.");
+      router.push('/');
+    }
+    if (authStatus === 'authenticated') {
+      fetchBookings();
+    }
+  }, [authStatus, router]);
 
   useEffect(() => {
     if (socket) {
-      const handleBookingUpdate = (updatedBooking: Booking) => {
-        fetchBookings(); // Refetch all bookings to get the latest state
+      const handleBookingUpdate = (updatedBooking: PopulatedBooking) => {
+        fetchBookings();
       };
       socket.on('bookingUpdate', handleBookingUpdate);
       return () => {
@@ -53,7 +79,8 @@ export default function MyBookingsPage() {
     }
   }, [socket]);
 
-  const handleReviewSubmitted = () => {
+  // FIX 2: Rename the function to match the prop in ReviewModal.tsx
+  const handleReviewAdded = () => {
     setReviewingBookingId(null);
     fetchBookings();
   };
@@ -64,7 +91,7 @@ export default function MyBookingsPage() {
     });
   };
 
-  const getStatusClass = (status: Booking['status']) => {
+  const getStatusClass = (status: PopulatedBooking['status']) => {
     switch(status) {
       case 'PENDING': return styles.statusPending;
       case 'CONFIRMED': return styles.statusConfirmed;
@@ -75,10 +102,13 @@ export default function MyBookingsPage() {
   };
 
   const upcomingBookings = bookings.filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED');
+  // FIX 3: Include 'DECLINED' as a past booking status
   const pastBookings = bookings.filter(b => b.status === 'COMPLETED' || b.status === 'DECLINED');
   const bookingsToShow = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
 
-  if (isLoading) return <LoadingSpinner />;
+  if (authStatus === 'loading' || isLoading) return <LoadingSpinner />;
+  
+  if (authStatus === 'unauthenticated') return <p>Redirecting to login...</p>;
 
   return (
     <>
@@ -86,7 +116,8 @@ export default function MyBookingsPage() {
         <ReviewModal
           bookingId={reviewingBookingId}
           onClose={() => setReviewingBookingId(null)}
-          onReviewSubmitted={handleReviewSubmitted}
+          // FIX 4: Use the correct prop name: onReviewAdded
+          onReviewAdded={handleReviewAdded}
         />
       )}
       <div className={styles.container}>
@@ -115,9 +146,10 @@ export default function MyBookingsPage() {
             {bookingsToShow.map(booking => (
               <div key={booking.id} className={styles.card}>
                 <span className={`${styles.statusBadge} ${getStatusClass(booking.status)}`}>{booking.status}</span>
+                {/* FIX 5: Access properties from the full objects */}
                 <h4>{booking.service.title}</h4>
                 <p>at <strong>{booking.salon.name}</strong></p>
-                <p>Date: {formatDate(booking.bookingDate)}</p>
+                <p>Date: {formatDate(booking.bookingTime)}</p>
                 <p>Cost: <strong>R{booking.totalCost.toFixed(2)}</strong></p>
                 <div style={{ marginTop: '1rem' }}>
                   {booking.status === 'COMPLETED' && !booking.review && (

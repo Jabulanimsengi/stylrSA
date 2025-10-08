@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
-import { useAuth } from '@/hooks/useAuth'; // This now points to our new global context hook
+import { useAuth } from '@/hooks/useAuth'; 
 import { useAuthModal } from '@/context/AuthModalContext';
 import { FaBars, FaTimes, FaBell, FaCommentDots } from 'react-icons/fa';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
@@ -14,12 +14,12 @@ import { Notification } from '@/types';
 import { toast } from 'react-toastify';
 
 export default function Navbar() {
-  // Use the new global context. Note we get a `logout` function now.
   const { authStatus, user, logout } = useAuth();
   const { openModal } = useAuthModal();
   const router = useRouter();
   const pathname = usePathname();
   const socket = useSocket();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // Use environment variable
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -30,8 +30,14 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      logout(); // Use the logout function from our global context
+        // Corrected API call
+      await fetch(`${apiUrl}/auth/logout`, { 
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+    });
+      logout(); 
       toast.success('You have been logged out successfully.');
       router.push('/');
     } catch (error) {
@@ -43,17 +49,32 @@ export default function Navbar() {
     }
   };
 
+  // --- THIS IS THE NEW FUNCTION TO FIX THE BUG ---
+  const handleChatClick = () => {
+    if (authStatus === 'authenticated') {
+        router.push('/chat');
+    } else {
+        toast.error("Please log in to access messages.");
+        openModal('login');
+    }
+    setIsMenuOpen(false); // Close mobile menu if open
+  };
+
   useEffect(() => {
     if (authStatus === 'authenticated') {
       const fetchNotifications = async () => {
-        const res = await fetch('/api/notifications');
+        const token = localStorage.getItem('access_token');
+        // Corrected API call
+        const res = await fetch(`${apiUrl}/notifications`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (res.ok) {
           setNotifications(await res.json());
         }
       };
       fetchNotifications();
     }
-  }, [authStatus]);
+  }, [authStatus, apiUrl]);
 
   useEffect(() => {
     if (socket) {
@@ -135,9 +156,12 @@ export default function Navbar() {
                     </Link>
                   ))}
                     <div className={styles.verticalDivider} />
-                  <Link href="/chat" className={styles.iconButton} aria-label="Messages">
+
+                  {/* --- THIS IS THE CHANGED LINE --- */}
+                  <button onClick={handleChatClick} className={styles.iconButton} aria-label="Messages">
                     <FaCommentDots />
-                  </Link>
+                  </button>
+                  
                   <div className={styles.notificationContainer} ref={notificationsRef}>
                     <button onClick={() => setIsNotificationsOpen(prev => !prev)} className={styles.iconButton} aria-label="Notifications">
                       <FaBell />

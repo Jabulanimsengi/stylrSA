@@ -1,108 +1,185 @@
+// frontend/srcs/components/ServiceFormModal.tsx
+
 'use client';
 
-import React, { useState, useEffect, FormEvent } from 'react';
-import styles from './ServiceFormModal.module.css';
+import { useState, useEffect, FormEvent } from 'react';
 import { Service } from '@/types';
+import styles from './ServiceFormModal.module.css';
+import { uploadToCloudinary } from '@/utils/cloudinary';
 import { toast } from 'react-toastify';
 import { FaTimes } from 'react-icons/fa';
 
 interface ServiceFormModalProps {
   salonId: string;
+  service?: Service | null;
   onClose: () => void;
-  onServiceAdded: (service: Service) => void; // Can be used for both add and update
-  initialData?: Service | null; 
+  onServiceSaved: (service: Service) => void;
 }
 
-export default function ServiceFormModal({ salonId, onClose, onServiceAdded, initialData }: ServiceFormModalProps) {
+export default function ServiceFormModal({ salonId, service, onClose, onServiceSaved }: ServiceFormModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    price: 0,
-    duration: 30,
+    price: '',
+    duration: '',
+    category: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-
-  const isEditing = !!initialData;
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const isEditMode = !!service;
 
   useEffect(() => {
-    if (isEditing && initialData) {
+    if (isEditMode && service) {
       setFormData({
-        title: initialData.title,
-        description: initialData.description,
-        price: initialData.price,
-        duration: initialData.duration,
+        title: service.title || '',
+        description: service.description || '',
+        price: service.price?.toString() || '',
+        duration: service.duration?.toString() || '',
+        category: service.category || '',
       });
+      setImagePreviews(service.images || []);
     }
-  }, [isEditing, initialData]);
+  }, [service, isEditMode]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-        ...prev,
-        [name]: type === 'number' ? parseFloat(value) || 0 : value
-    }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setImages(prev => [...prev, ...newFiles]);
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      setImagePreviews(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const handleRemoveImage = (imageUrlToRemove: string) => {
+    const updatedPreviews = imagePreviews.filter(img => img !== imageUrlToRemove);
+    setImagePreviews(updatedPreviews);
+
+    if (imageUrlToRemove.startsWith('blob:')) {
+      const indexToRemove = imagePreviews.findIndex(p => p === imageUrlToRemove);
+      const existingImagesCount = imagePreviews.filter(p => !p.startsWith('blob:')).length;
+      const fileIndexToRemove = indexToRemove - existingImagesCount;
+
+      if (fileIndexToRemove >= 0 && fileIndexToRemove < images.length) {
+        setImages(prev => prev.filter((_, i) => i !== fileIndexToRemove));
+      }
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    const serviceData = { ...formData, salonId };
+    setIsSubmitting(true);
+    setError('');
+    const token = localStorage.getItem('access_token');
 
     try {
-      const url = isEditing ? `/api/services/${initialData?.id}` : '/api/services';
-      const method = isEditing ? 'PUT' : 'POST';
+        const existingImageUrls = imagePreviews.filter(p => !p.startsWith('blob:'));
+        
+        // Correctly call the async upload function
+       const uploadedImageUrls = await Promise.all(
+    images.map(file => uploadToCloudinary(file)));
+
+        const allImageUrls = [...existingImageUrls, ...uploadedImageUrls];
+
+      const url = isEditMode ? `${apiUrl}/services/${service?.id}` : `${apiUrl}/services`;
+      const method = isEditMode ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Use cookies for authentication
-        body: JSON.stringify(serviceData),
+        headers: {
+             'Content-Type': 'application/json',
+             Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          price: parseFloat(formData.price),
+          duration: parseInt(formData.duration, 10),
+          images: allImageUrls,
+          salonId: salonId,
+        }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        throw new Error(data.message || `Failed to ${isEditing ? 'update' : 'create'} service.`);
+        const errData = await res.json();
+        throw new Error(errData.message || `Failed to ${isEditMode ? 'update' : 'create'} service`);
       }
-      
-      toast.success(`Service ${isEditing ? 'updated' : 'added'} successfully!`);
-      onServiceAdded(data);
+
+      const savedService = await res.json();
+      toast.success(`Service ${isEditMode ? 'updated' : 'created'} successfully!`);
+      onServiceSaved(savedService);
       onClose();
 
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || 'Could not save service.');
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
+        <h2 className={styles.title}>{isEditMode ? 'Edit Service' : 'Add a New Service'}</h2>
         <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
-        <h2>{isEditing ? 'Edit Service' : 'Add a New Service'}</h2>
-        <form onSubmit={handleSubmit}>
+        
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {error && <p className={styles.errorMessage}>{error}</p>}
+          
+          <div className={styles.formGroup}>
+            <label htmlFor="title" className={styles.label}>Service Title</label>
+            <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} required className={styles.input} />
+          </div>
+
+          <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-                <label htmlFor="title">Service Name</label>
-                <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} required />
+              <label htmlFor="price" className={styles.label}>Price (R)</label>
+              <input type="number" id="price" name="price" value={formData.price} onChange={handleChange} required className={styles.input} min="0" step="any" />
             </div>
             <div className={styles.formGroup}>
-                <label htmlFor="description">Description</label>
-                <textarea id="description" name="description" value={formData.description} onChange={handleChange} required />
+              <label htmlFor="duration" className={styles.label}>Duration (minutes)</label>
+              <input type="number" id="duration" name="duration" value={formData.duration} onChange={handleChange} required className={styles.input} min="0" step="1" />
             </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="price">Price (R)</label>
-                <input type="number" id="price" name="price" value={formData.price} onChange={handleChange} required />
+          </div>
+          
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label htmlFor="category" className={styles.label}>Category</label>
+            <input type="text" id="category" name="category" value={formData.category} onChange={handleChange} required className={styles.input} />
+          </div>
+
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label htmlFor="description" className={styles.label}>Description</label>
+            <textarea id="description" name="description" value={formData.description} onChange={handleChange} required className={styles.textarea} />
+          </div>
+
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label htmlFor="images" className={styles.label}>Service Images</label>
+            <input type="file" id="images" name="images" multiple onChange={handleImageChange} className={styles.input} accept="image/*" />
+            <div className={styles.imagePreviewContainer}>
+              {imagePreviews.map((src) => (
+                <div key={src} className={styles.imageWrapper}>
+                  <img src={src} alt="Service preview" className={styles.imagePreview} />
+                  <button type="button" onClick={() => handleRemoveImage(src)} className={styles.deleteButton}>×</button>
+                </div>
+              ))}
             </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="duration">Duration (minutes)</label>
-                <input type="number" id="duration" name="duration" value={formData.duration} onChange={handleChange} required />
-            </div>
-          <button type="submit" disabled={isLoading} className="btn btn-primary">
-            {isLoading ? 'Saving...' : (isEditing ? 'Update Service' : 'Add Service')}
-          </button>
+          </div>
+
+          <div className={styles.buttonContainer}>
+            <button type="button" onClick={onClose} className={styles.cancelButton}>
+              Cancel
+            </button>
+            <button type="submit" className={styles.saveButton} disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save Service'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

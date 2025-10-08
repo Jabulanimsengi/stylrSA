@@ -1,77 +1,187 @@
 'use client';
 
-import { useState } from 'react';
-import styles from './CreateSalon.module.css';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
+import styles from './CreateSalon.module.css';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { useAuth } from '@/hooks/useAuth';
+import { FaArrowLeft, FaHome } from 'react-icons/fa';
+import Link from 'next/link';
 
 export default function CreateSalonPage() {
-    const router = useRouter();
-    const [salonName, setSalonName] = useState('');
-    const [address, setAddress] = useState('');
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [phone, setPhone] = useState('');
+  const [website, setWebsite] = useState('');
+  const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { authStatus } = useAuth();
+  const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setIsLoading(true);
+  useEffect(() => {
+    if (authStatus === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [authStatus, router]);
 
-        // Here you would typically make an API call to your backend
-        // to create the salon. For now, we'll simulate it.
-        try {
-            console.log('Creating salon:', { salonName, address });
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const token = localStorage.getItem('access_token');
 
-            // On success, redirect to the dashboard
-            router.push('/dashboard');
+    try {
+      const response = await fetch(`${apiUrl}/salons`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          address,
+          city,
+          province,
+          postalCode,
+          phone,
+          website,
+          description,
+        }),
+      });
 
-        } catch (err) {
-            setError('Failed to create salon. Please try again.');
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      if (!response.ok) {
+        // Try to parse the error response as JSON, but have a fallback.
+        const errorData = await response.json().catch(() => ({ message: 'Failed to create salon due to a server error.' }));
+        throw new Error(errorData.message || 'Failed to create salon');
+      }
 
-    return (
-        <div className={styles.container}>
-            <div className={styles.formWrapper}>
-                <h1 className={styles.title}>Create Your Salon</h1>
-                <p className={styles.subtitle}>
-                    Welcome! Let's get your salon set up on The Salon Hub.
-                </p>
-                <form onSubmit={handleSubmit} className={styles.form}>
-                    {error && <p className={styles.error}>{error}</p>}
-                    <div className={styles.inputGroup}>
-                        <label htmlFor="salonName" className={styles.label}>Salon Name</label>
-                        <input
-                            type="text"
-                            id="salonName"
-                            value={salonName}
-                            onChange={(e) => setSalonName(e.target.value)}
-                            className={styles.input}
-                            placeholder="e.g., Glamour & Grace"
-                            required
-                        />
-                    </div>
-                    <div className={styles.inputGroup}>
-                        <label htmlFor="address" className={styles.label}>Address</label>
-                        <input
-                            type="text"
-                            id="address"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            className={styles.input}
-                            placeholder="123 Main Street, Anytown"
-                            required
-                        />
-                    </div>
-                    <button type="submit" className={styles.submitButton} disabled={isLoading}>
-                        {isLoading ? 'Creating...' : 'Create Salon'}
-                    </button>
-                </form>
-            </div>
+      toast.success('Salon created successfully! It will be reviewed by an admin.');
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (authStatus === 'loading') {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.stickyHeader}>
+        <div className={styles.navButtonsContainer}>
+          <button onClick={() => router.back()} className={styles.navButton}>
+            <FaArrowLeft /> Back
+          </button>
+          <Link href="/" className={styles.navButton}>
+            <FaHome /> Home
+          </Link>
         </div>
-    );
+        <h1 className={styles.title}>Create Your Salon</h1>
+        <div className={styles.headerSpacer}></div>
+      </div>
+
+      <div className={styles.card}>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="name">Salon Name</label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="address">Address</label>
+            <input
+              id="address"
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="city">City</label>
+            <input
+              id="city"
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="province">Province</label>
+            <input
+              id="province"
+              type="text"
+              value={province}
+              onChange={(e) => setProvince(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="postalCode">Postal Code</label>
+            <input
+              id="postalCode"
+              type="text"
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="phone">Phone Number</label>
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="website">Website (Optional)</label>
+            <input
+              id="website"
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              className={styles.textarea}
+            ></textarea>
+          </div>
+          <div className={styles.buttonContainer}>
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+              {isSubmitting ? 'Creating...' : 'Create Salon'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

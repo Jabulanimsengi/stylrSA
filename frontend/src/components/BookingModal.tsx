@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { FaTimes } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { useSocket } from '@/context/SocketContext'; // Import the socket hook
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -21,8 +22,10 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
   const [clientPhone, setClientPhone] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { authStatus } = useAuth();
+  const { authStatus, user } = useAuth(); // Get the user object
   const { openModal } = useAuthModal();
+  const socket = useSocket(); // Get the socket instance
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // Use the environment variable
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,20 +36,25 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
     
     setIsLoading(true);
 
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'authenticated' || !user) {
       toast.error("You must be logged in to book.");
       openModal('login');
       setIsLoading(false);
       return;
     }
 
+    const token = localStorage.getItem('access_token'); // Get the auth token
+
     try {
-      const res = await fetch('http://localhost:3000/api/bookings', {
+      // FIX 1: Use apiUrl and the correct port (5000)
+      const res = await fetch(`${apiUrl}/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // FIX 2: Use token-based Authorization header
+          'Authorization': `Bearer ${token}`
         },
-        credentials: 'include',
+        // Your existing body is correct and matches your DTO
         body: JSON.stringify({
           serviceId: service.id,
           bookingTime: bookingTime.toISOString(),
@@ -56,13 +64,27 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
       });
 
       if (!res.ok) {
-        throw new Error('Failed to create booking.');
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to create booking.');
       }
+      
       const newBooking = await res.json();
+      
+      // FIX 3: Add the socket notification emit
+      if (socket) {
+        socket.emit('newBooking', {
+            bookingId: newBooking.id,
+            salonOwnerId: salon.ownerId, // Assuming salon object has ownerId
+            message: `New booking for ${service.title} from ${user.firstName}.`
+        });
+      }
+
+      toast.success('Booking request sent successfully!');
       onBookingSuccess(newBooking);
-    } catch (error) {
+
+    } catch (error: any) {
       console.error(error);
-      toast.error('Could not send booking request. Please try again.');
+      toast.error(error.message || 'Could not send booking request. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -96,6 +118,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
                     dateFormat="yyyy/MM/dd, hh:mm aa"
                     className={styles.datePicker}
                     placeholderText="Select a date and time"
+                    minDate={new Date()} // Prevent past dates
                     required
                 />
             </div>
