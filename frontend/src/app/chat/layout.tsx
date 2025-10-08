@@ -20,12 +20,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   const isConversationActive = pathname.split('/').length > 2;
 
   const fetchConversations = useCallback(async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      return;
-    }
-    const res = await fetch('http://localhost:3000/api/chat/conversations', {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await fetch('/api/chat/conversations', {
+      credentials: 'include',
     });
     if (res.ok) {
       setConversations(await res.json());

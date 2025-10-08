@@ -14,7 +14,7 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch('http://localhost:3000/api/products');
+        const res = await fetch('/api/products');
         if (res.ok) {
           setProducts(await res.json());
         }

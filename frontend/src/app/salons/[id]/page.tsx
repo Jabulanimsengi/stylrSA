@@ -19,7 +19,7 @@ import { useAuthModal } from '@/context/AuthModalContext';
 
 async function getSalonDetails(id: string): Promise<Salon | null> {
   try {
-    const res = await fetch(`http://localhost:3000/api/salons/${id}`, { 
+    const res = await fetch(`/api/salons/${id}`, { 
       cache: 'no-store',
       credentials: 'include',
     });
@@ -33,7 +33,7 @@ async function getSalonDetails(id: string): Promise<Salon | null> {
 
 async function getSalonServices(id: string): Promise<Service[]> {
   try {
-    const res = await fetch(`http://localhost:3000/api/services/salon/${id}`);
+    const res = await fetch(`/api/services/salon/${id}`);
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
@@ -44,7 +44,7 @@ async function getSalonServices(id: string): Promise<Service[]> {
 
 async function getGalleryImages(salonId: string): Promise<GalleryImage[]> {
   try {
-    const res = await fetch(`http://localhost:3000/api/gallery/salon/${salonId}`);
+    const res = await fetch(`/api/gallery/salon/${salonId}`);
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
@@ -135,7 +135,7 @@ export default function SalonProfilePage() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:3000/api/chat/conversations', {
+      const res = await fetch('/api/chat/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipientId: salon.ownerId }),
@@ -162,7 +162,7 @@ export default function SalonProfilePage() {
     setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
 
     try {
-      const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salon.id}`, {
+      const res = await fetch(`/api/favorites/toggle/${salon.id}`, {
         method: 'POST',
         credentials: 'include',
       });

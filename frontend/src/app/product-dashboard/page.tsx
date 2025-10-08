@@ -21,7 +21,7 @@ export default function ProductDashboard() {
   const fetchProducts = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/products/my-products`, {
+      const res = await fetch(`/api/products/my-products`, {
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to fetch products');
@@ -63,7 +63,7 @@ export default function ProductDashboard() {
   const handleDelete = async () => {
     if (!deletingProduct) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/products/${deletingProduct.id}`, {
+      const res = await fetch(`/api/products/${deletingProduct.id}`, {
         method: 'DELETE',
         credentials: 'include',
       });

@@ -38,7 +38,7 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/likes/service/${service.id}/toggle`, {
+      const res = await fetch(`/api/likes/service/${service.id}/toggle`, {
         method: 'POST',
         credentials: 'include', // Send cookies with the request
       });

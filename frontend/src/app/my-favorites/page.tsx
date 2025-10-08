@@ -25,7 +25,7 @@ export default function MyFavoritesPage() {
       const fetchFavorites = async () => {
         setIsLoading(true);
         try {
-          const res = await fetch('http://localhost:3000/api/favorites', {
+          const res = await fetch('/api/favorites', {
             credentials: 'include', // Send cookies with the request
           });
 
