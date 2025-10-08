@@ -43,10 +43,10 @@ export default function SalonsPage() {
     setIsLoading(true);
     const query = new URLSearchParams();
     
-    let url = 'http://localhost:3000/api/salons/approved';
+    let url = '/api/salons/approved';
 
     if (filters.lat && filters.lon) {
-      url = `http://localhost:3000/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
+      url = `/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
     } else {
       if (filters.province) query.append('province', filters.province);
       if (filters.city) query.append('city', filters.city);
@@ -98,7 +98,7 @@ export default function SalonsPage() {
     );
 
     try {
-      const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salonId}`, {
+      const res = await fetch(`/api/favorites/toggle/${salonId}`, {
         method: 'POST',
         credentials: 'include', // This sends the required authentication cookie
       });

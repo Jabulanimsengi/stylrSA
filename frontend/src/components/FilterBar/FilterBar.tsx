@@ -29,7 +29,7 @@ export default function FilterBar({
 
   useEffect(() => {
     const fetchLocations = async () => {
-      const res = await fetch('http://localhost:3000/api/locations');
+      const res = await fetch('/api/locations');
       if (res.ok) {
         setLocations(await res.json());
       }

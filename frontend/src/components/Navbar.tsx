@@ -32,11 +32,8 @@ export default function Navbar() {
         // FIX: Changed the API call to a relative path to use the Next.js proxy
       await fetch(`/api/auth/logout`, {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
         credentials: 'include',
-    });
+      });
       logout();
       toast.success('You have been logged out successfully.');
       router.push('/');
@@ -62,11 +59,7 @@ export default function Navbar() {
   useEffect(() => {
     if (authStatus === 'authenticated') {
       const fetchNotifications = async () => {
-        const token = localStorage.getItem('access_token');
-        // FIX: Changed the API call to a relative path to use the Next.js proxy
-        const res = await fetch(`/api/notifications`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await fetch(`/api/notifications`, { credentials: 'include' });
         if (res.ok) {
           setNotifications(await res.json());
         }
