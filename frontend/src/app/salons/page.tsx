@@ -1,7 +1,7 @@
 // frontend/src/app/salons/page.tsx
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
-export default function SalonsPage() {
+function SalonsPageContent() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -163,5 +163,13 @@ export default function SalonsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SalonsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SalonsPageContent />
+    </Suspense>
   );
 }
