@@ -12,8 +12,9 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3001').split(',');
   app.enableCors({
-    origin: 'http://localhost:3001', // Your frontend URL
+    origin: allowedOrigins,
     credentials: true,
   });
   await app.listen(3000);
