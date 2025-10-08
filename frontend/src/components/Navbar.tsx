@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
-import { useAuth } from '@/hooks/useAuth'; 
+import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { FaBars, FaTimes, FaBell, FaCommentDots } from 'react-icons/fa';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
@@ -19,25 +19,25 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const socket = useSocket();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // Use environment variable
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  
+ 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
     try {
-        // Corrected API call
-      await fetch(`${apiUrl}/auth/logout`, { 
+        // FIX: Changed the API call to a relative path to use the Next.js proxy
+      await fetch(`/api/auth/logout`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
+        },
+        credentials: 'include',
     });
-      logout(); 
+      logout();
       toast.success('You have been logged out successfully.');
       router.push('/');
     } catch (error) {
@@ -49,7 +49,6 @@ export default function Navbar() {
     }
   };
 
-  // --- THIS IS THE NEW FUNCTION TO FIX THE BUG ---
   const handleChatClick = () => {
     if (authStatus === 'authenticated') {
         router.push('/chat');
@@ -64,8 +63,8 @@ export default function Navbar() {
     if (authStatus === 'authenticated') {
       const fetchNotifications = async () => {
         const token = localStorage.getItem('access_token');
-        // Corrected API call
-        const res = await fetch(`${apiUrl}/notifications`, {
+        // FIX: Changed the API call to a relative path to use the Next.js proxy
+        const res = await fetch(`/api/notifications`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -74,7 +73,7 @@ export default function Navbar() {
       };
       fetchNotifications();
     }
-  }, [authStatus, apiUrl]);
+  }, [authStatus]);
 
   useEffect(() => {
     if (socket) {
@@ -98,7 +97,7 @@ export default function Navbar() {
   }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
-  
+ 
   const mainLinks = [
     { href: '/', label: 'Home' },
     { href: '/salons', label: 'Salons' },
@@ -120,7 +119,7 @@ export default function Navbar() {
     }
   };
   const authenticatedLinks = getLinks();
-  
+ 
   return (
     <>
       <nav className={styles.navbar}>
@@ -138,7 +137,7 @@ export default function Navbar() {
               </Link>
             ))}
           </div>
-          
+         
           <div className={styles.navRight}>
             <div className={styles.desktopAuth}>
               {authStatus === 'loading' ? (
@@ -157,11 +156,10 @@ export default function Navbar() {
                   ))}
                     <div className={styles.verticalDivider} />
 
-                  {/* --- THIS IS THE CHANGED LINE --- */}
                   <button onClick={handleChatClick} className={styles.iconButton} aria-label="Messages">
                     <FaCommentDots />
                   </button>
-                  
+                 
                   <div className={styles.notificationContainer} ref={notificationsRef}>
                     <button onClick={() => setIsNotificationsOpen(prev => !prev)} className={styles.iconButton} aria-label="Notifications">
                       <FaBell />

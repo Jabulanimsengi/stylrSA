@@ -1,148 +1,131 @@
 // frontend/src/types/index.ts
 
-export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
-
-export type UserRole = 'USER' | 'SALON_OWNER' | 'ADMIN' | 'PRODUCT_SELLER';
-
-export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
+  role: 'USER' | 'SALON_OWNER' | 'PRODUCT_SELLER' | 'ADMIN';
   createdAt: string;
   updatedAt: string;
-  password?: string;
-  salonId?: string;
+  profileImage?: string;
 }
 
 export interface Salon {
   id: string;
   name: string;
   address: string;
-  town: string;
   city: string;
-  province: string;
-  postalCode: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  phoneNumber?: string | null;
-  contactEmail?: string | null;
-  website?: string | null;
-  whatsapp?: string | null;
+  state: string;
+  zip: string;
+  phone: string;
+  email: string;
+  website?: string;
   description: string;
+  services: Service[];
+  reviews: Review[];
   ownerId: string;
   createdAt: string;
   updatedAt: string;
-  backgroundImage?: string | null;
-  heroImages?: string[];
-  isFavorited?: boolean;
-  isAvailableNow?: boolean;
-  operatingHours?: Record<string, string> | null;
-  bookingType: 'ONSITE' | 'MOBILE' | 'BOTH';
-  offersMobile?: boolean;
-  mobileFee?: number | null;
-  reviews?: Review[];
-  approvalStatus: ApprovalStatus;
+  coverImage?: string;
+  gallery: GalleryImage[];
+  latitude?: number;
+  longitude?: number;
+  rating?: number;
+  openingTime: string;
+  closingTime: string;
+  daysOpen: string[];
+  contactPerson?: string;
+  contactPhone?: string;
+  heroImages: string[];
 }
 
 export interface Service {
   id: string;
-  title: string;
+  name: string; // Changed from title to name
   description: string;
   price: number;
-  duration: number; // in minutes
+  duration: number;
+  category: string;
+  inclusions?: string[];
   salonId: string;
-  category: string; // FIX: Added missing category property
-  images: string[];
   createdAt: string;
   updatedAt: string;
-  isLikedByCurrentUser?: boolean;
-  likeCount: number;
-  approvalStatus: ApprovalStatus;
-}
-
-export interface GalleryImage {
-  id: string;
-  imageUrl: string;
-  caption?: string;
-  salonId: string;
+  images: string[];
+  averageRating?: number;
+  reviewCount?: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export interface Review {
   id: string;
   rating: number;
   comment: string;
-  authorId: string;
-  author: {
-    firstName: string;
-    lastName: string;
-  };
+  userId: string;
   salonId: string;
-  bookingId: string;
   createdAt: string;
-  approvalStatus: ApprovalStatus;
+  updatedAt: string;
+  user: User;
 }
 
 export interface Booking {
   id: string;
-  bookingTime: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'DECLINED';
-  notes?: string;
   userId: string;
   salonId: string;
   serviceId: string;
-  createdAt: string;
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stockQuantity: number; // Corrected from 'stock' to match ProductFormModal
-  images: string[];
-  sellerId: string;
+  bookingDate: string;
+  bookingTime: string;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  notes?: string;
   createdAt: string;
   updatedAt: string;
-  approvalStatus: ApprovalStatus;
-}
-
-export interface Promotion {
-  id: string;
-  code: string;
-  description: string;
-  discountPercentage: number;
-  startDate: string;
-  endDate: string;
-  salonId?: string | null;
-  productId?: string | null;
-  isActive: boolean;
+  user: User;
+  salon: Salon;
+  service: Service;
 }
 
 export interface Notification {
   id: string;
+  userId: string;
   message: string;
   isRead: boolean;
-  userId: string;
+  createdAt: string;
+  link?: string;
+  type: 'BOOKING_CONFIRMED' | 'BOOKING_CANCELLED' | 'NEW_MESSAGE' | 'PROMOTION' | 'REVIEW_REMINDER';
+}
+
+export interface GalleryImage {
+  id: string;
+  url: string;
+  caption?: string;
+  salonId: string;
   createdAt: string;
 }
 
-
-export interface Message {
-  id: string;
-  content: string;
-  createdAt: string;
-  userId: string;
-  conversationId: string;
+export interface Product {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    images: string[];
+    stock: number;
+    sellerId: string;
+    createdAt: string;
+    updatedAt: string;
+    seller: User;
+    category: string;
 }
 
-export interface Conversation {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  participants: User[];
-  messages?: Message[]; // Messages are optional on the conversation list
+export interface Promotion {
+    id: string;
+    title: string;
+    description: string;
+    discountPercentage: number;
+    startDate: string;
+    endDate: string;
+    salonId?: string;
+    serviceId?: string;
+    productId?: string;
+    promoCode?: string;
+    isActive: boolean;
 }

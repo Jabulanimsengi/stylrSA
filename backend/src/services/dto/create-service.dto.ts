@@ -1,38 +1,31 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsNumber,
-  IsInt,
-  Min,
-  MaxLength,
-  IsOptional,
-  IsUrl,
-} from 'class-validator';
+// backend/src/services/dto/create-service.dto.ts
+import { IsString, IsNotEmpty, IsNumber, IsArray, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateServiceDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
-  title: string; // Changed from 'name' to 'title'
+  title: string;
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(500)
   description: string;
 
   @IsNumber()
-  @Min(0)
   price: number;
 
-  @IsInt()
-  @Min(1)
-  duration: number; // Duration in minutes
+  @IsNumber()
+  duration: number;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  images: string[];
 
   @IsString()
   @IsNotEmpty()
   salonId: string;
 
-  @IsOptional()
-  @IsUrl()
-  imageUrl?: string;
+  @IsUUID() // Use IsUUID to validate that it's a valid UUID
+  @IsNotEmpty()
+  categoryId: string; // Add the new categoryId property
 }
