@@ -156,14 +156,14 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
       const url = serviceToEdit
         ? `/api/services/${serviceToEdit.id}`
         : `/api/services`;
-      const method = serviceToEdit ? 'PUT' : 'POST';
+      const method = serviceToEdit ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {
         method,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         },
+        credentials: 'include',
         body: JSON.stringify(serviceData),
       });
 

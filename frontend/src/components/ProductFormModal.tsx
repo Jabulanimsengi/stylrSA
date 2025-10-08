@@ -65,7 +65,8 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
     try {
       let imageUrls = existingImages;
       if (files.length > 0) {
-        const uploadedUrls = await Promise.all(files.map(file => uploadToCloudinary(file)));
+        const uploaded = await Promise.all(files.map(file => uploadToCloudinary(file)));
+        const uploadedUrls = uploaded.map(u => u.secure_url);
         imageUrls = [...existingImages, ...uploadedUrls];
       }
 
