@@ -19,7 +19,6 @@ export default function ChatPage() {
     const router = useRouter();
     const [conversations, setConversations] = useState<PopulatedConversation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     useEffect(() => {
         if (authStatus === 'unauthenticated') {
@@ -30,11 +29,8 @@ export default function ChatPage() {
         if (authStatus === 'authenticated') {
             const fetchConversations = async () => {
                 setIsLoading(true);
-                const token = localStorage.getItem('access_token');
                 try {
-                    const res = await fetch(`${apiUrl}/chat/conversations`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    const res = await fetch(`/api/chat/conversations`, { credentials: 'include' });
                     if (!res.ok) {
                         throw new Error("Failed to load conversations");
                     }
@@ -48,7 +44,7 @@ export default function ChatPage() {
             };
             fetchConversations();
         }
-    }, [authStatus, router, apiUrl]);
+    }, [authStatus, router]);
 
     if (isLoading || authStatus === 'loading') {
         return <LoadingSpinner />;

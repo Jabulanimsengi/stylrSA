@@ -21,7 +21,7 @@ export default function CreateSalonPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { authStatus } = useAuth();
   const router = useRouter();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+ 
 
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
@@ -32,15 +32,11 @@ export default function CreateSalonPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const token = localStorage.getItem('access_token');
-
     try {
-      const response = await fetch(`${apiUrl}/salons`, {
+      const response = await fetch(`/api/salons`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name,
           address,
