@@ -1,7 +1,8 @@
 // frontend/src/app/product-dashboard/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { Product } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -11,15 +12,18 @@ import styles from './ProductDashboard.module.css';
 import { toast } from 'react-toastify';
 
 export default function ProductDashboard() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, authStatus } = useAuth();
+  const isAuthLoading = authStatus === 'loading';
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const fetchProducts = async () => {
-    if (!user) return;
+  const fetchProducts = useCallback(async () => {
+    if (!user) {
+      return;
+    }
     try {
       const res = await fetch(`/api/products/my-products`, {
         credentials: 'include',
@@ -33,13 +37,13 @@ export default function ProductDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!isAuthLoading) {
       fetchProducts();
     }
-  }, [user, isAuthLoading]);
+  }, [isAuthLoading, fetchProducts]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -87,7 +91,15 @@ export default function ProductDashboard() {
       <div className={styles.productList}>
         {products.map((product) => (
           <div key={product.id} className={styles.productCard}>
-            <img src={product.images[0] || 'https://via.placeholder.com/150'} alt={product.name} className={styles.productImage} />
+            <div className={styles.productImageWrapper}>
+              <Image
+                src={product.images[0] || 'https://via.placeholder.com/150'}
+                alt={product.name}
+                className={styles.productImage}
+                fill
+                sizes="(max-width: 768px) 100vw, 120px"
+              />
+            </div>
             <div className={styles.productInfo}>
               <h2>{product.name}</h2>
               <p>Price: R{product.price.toFixed(2)}</p>
@@ -104,9 +116,9 @@ export default function ProductDashboard() {
 
       {isModalOpen && (
         <ProductFormModal
-          product={editingProduct}
+          initialData={editingProduct}
           onClose={handleModalClose}
-          onSave={handleProductSave}
+          onProductAdded={handleProductSave}
         />
       )}
 

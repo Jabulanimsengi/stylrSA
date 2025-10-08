@@ -94,6 +94,29 @@ export interface Notification {
   type: 'BOOKING_CONFIRMED' | 'BOOKING_CANCELLED' | 'NEW_MESSAGE' | 'PROMOTION' | 'REVIEW_REMINDER';
 }
 
+export interface Conversation {
+  id: string;
+  user1Id: string;
+  user2Id: string;
+  user1: User;
+  user2: User;
+  updatedAt: string;
+  createdAt: string;
+  participants?: User[];
+  lastMessage?: ChatMessage;
+  messages?: ChatMessage[];
+}
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  senderId: string;
+  conversationId: string;
+  createdAt: string;
+  deliveredAt?: string | null;
+  readAt?: string | null;
+}
+
 export interface GalleryImage {
   id: string;
   url: string;

@@ -53,7 +53,7 @@
 }
 
 .navButton:hover {
-  background-color: #f7fafc;
+  background-color: var(--color-surface-subtle);
 }
 
 @media (max-width: 768px) {
@@ -96,7 +96,7 @@
   gap: 1.5rem;
 }
 .card {
-  background-color: var(--white);
+  background-color: var(--color-surface-elevated);
   padding: 1.5rem;
   border-radius: 0.5rem;
   border: 1px solid var(--light-silver); /* Changed border color */
@@ -130,15 +130,15 @@
   border-radius: 9999px;
   width: fit-content;
 }
-.statusPending { background-color: #FEFCBF; color: #744210; }
-.statusConfirmed { background-color: #C6F6D5; color: #22543D; }
-.statusDeclined { background-color: #FED7D7; color: #822727; }
-.statusCompleted { background-color: #E2E8F0; color: #4A5568; }
+.statusPending { background-color: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusConfirmed { background-color: var(--color-success-bg); color: var(--color-success-text); }
+.statusDeclined { background-color: var(--color-error-bg); color: var(--color-error-text); }
+.statusCompleted { background-color: var(--light-grey); color: var(--color-text-strong); }
 .reviewedBadge { 
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 9999px;
-  background-color: #E2E8F0;
-  color: #4A5568;
+  background-color: var(--light-grey);
+  color: var(--color-text-strong);
 }

@@ -22,21 +22,27 @@
   gap: 1.5rem;
 }
 
-.productItem {
+.productItem,
+.productCard {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  background: var(--white);
+  background: var(--color-surface-elevated);
   padding: 1rem;
   border-radius: 0.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.productImage {
+.productImageWrapper {
+  position: relative;
   width: 100px;
   height: 100px;
-  object-fit: cover;
   border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.productImage {
+  object-fit: cover;
 }
 
 .productInfo {
@@ -53,9 +59,9 @@
   border-radius: 0.25rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-text-strong);
 }
 
-.pending { background-color: #f59e0b; }
-.approved { background-color: #10b981; }
-.rejected { background-color: #ef4444; }
+.pending { background-color: var(--color-warning-bg); color: var(--color-warning-text); }
+.approved { background-color: var(--color-success-bg); color: var(--color-success-text); }
+.rejected { background-color: var(--color-error-bg); color: var(--color-error-text); }

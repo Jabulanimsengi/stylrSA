@@ -4,11 +4,11 @@
     align-items: center;
     min-height: 80vh;
     padding: 2rem;
-    background-color: #f9f9f9;
+    background-color: var(--color-surface);
 }
 
 .formWrapper {
-    background-color: #ffffff;
+    background-color: var(--color-surface-elevated);
     padding: 2.5rem;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -26,7 +26,7 @@
 
 .subtitle {
     font-size: 1rem;
-    color: #666;
+    color: var(--color-text-muted);
     margin-bottom: 2rem;
 }
 
@@ -50,21 +50,24 @@
 .input {
     width: 100%;
     padding: 0.8rem 1rem;
-    border: 1px solid var(--light-silver);
+    border: 1px solid var(--input-border);
     border-radius: 8px;
     font-size: 1rem;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: var(--color-surface);
+    color: var(--color-text-strong);
 }
 
 .input:focus {
     outline: none;
-    border-color: var(--primary-pink);
-    box-shadow: 0 0 0 3px rgba(255, 45, 94, 0.1);
+    border-color: var(--input-border-strong);
+    box-shadow: 0 0 0 3px var(--input-border-focus);
+    background-color: var(--color-surface-elevated);
 }
 
 .submitButton {
-    background-color: var(--primary-pink);
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
     padding: 0.9rem;
     border: none;
     border-radius: 8px;
@@ -75,17 +78,17 @@
 }
 
 .submitButton:hover {
-    background-color: #e62654;
+    background-color: var(--color-primary-hover);
 }
 
 .submitButton:disabled {
-    background-color: #fcc2d1;
+    background-color: var(--color-primary-soft);
     cursor: not-allowed;
 }
 
 .error {
-    color: red;
-    background-color: #ffebee;
+    color: var(--color-error-text);
+    background-color: var(--color-error-bg);
     padding: 0.75rem;
     border-radius: 8px;
     margin-bottom: 1rem;

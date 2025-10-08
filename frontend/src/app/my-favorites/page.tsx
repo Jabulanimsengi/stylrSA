@@ -6,6 +6,7 @@ import { Salon } from '@/types';
 import styles from './MyFavoritesPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -70,11 +71,15 @@ export default function MyFavoritesPage() {
         <div className={styles.salonGrid}>
           {favorites.map((salon) => (
             <Link href={`/salons/${salon.id}`} key={salon.id} className={styles.salonCard}>
-              <img
-                src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
-                alt={salon.name}
-                className={styles.cardImage}
-              />
+              <div className={styles.imageWrapper}>
+                <Image
+                  src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
+                  alt={salon.name}
+                  className={styles.cardImage}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
               <div className={styles.cardContent}>
                 <h2 className={styles.cardTitle}>{salon.name}</h2>
                 <p className={styles.cardLocation}>

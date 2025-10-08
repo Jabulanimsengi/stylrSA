@@ -4,6 +4,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import Image from 'next/image';
 import { Salon, Service, ApprovalStatus, Booking, GalleryImage, Product, Promotion } from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './Dashboard.module.css';
@@ -320,7 +321,13 @@ function DashboardPageContent() {
             <div className={styles.galleryGrid}>
               {galleryImages.length > 0 ? galleryImages.map((image) => (
                 <div key={image.id} className={styles.galleryItem}>
-                  <img src={image.imageUrl} alt={image.caption || 'Gallery image'} />
+                  <Image
+                    src={image.imageUrl}
+                    alt={image.caption || 'Gallery image'}
+                    className={styles.galleryItemImage}
+                    fill
+                    sizes="(max-width: 768px) 33vw, 160px"
+                  />
                   <button onClick={() => handleDeleteClick(image.id, 'gallery')} className={styles.deleteButton}><FaTrash /></button>
                 </div>
               )) : <p>Your gallery is empty.</p>}

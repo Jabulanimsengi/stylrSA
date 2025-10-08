@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
@@ -148,11 +149,15 @@ function SalonsPageContent() {
                 <FaHeart />
               </button>
               <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
-                <img
-                  src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
-                  alt={`A photo of ${salon.name}`}
-                  className={styles.cardImage}
-                />
+                <div className={styles.imageWrapper}>
+                  <Image
+                    src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
+                    alt={`A photo of ${salon.name}`}
+                    className={styles.cardImage}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
                 <div className={styles.cardContent}>
                   <h2 className={styles.cardTitle}>{salon.name}</h2>
                   <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>

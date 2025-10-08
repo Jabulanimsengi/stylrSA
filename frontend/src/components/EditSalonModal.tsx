@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
+import Image from 'next/image';
 import { Salon } from '@/types';
 import styles from './EditSalonModal.module.css';
 import { toast } from 'react-toastify';
@@ -223,7 +224,13 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <div className={styles.imagePreviewContainer}>
                   {backgroundImagePreview && (
                     <div className={styles.imageWrapper}>
-                      <img src={backgroundImagePreview} alt="Background Preview" className={styles.imagePreview} />
+                      <Image
+                        src={backgroundImagePreview}
+                        alt="Background Preview"
+                        className={styles.imagePreview}
+                        width={200}
+                        height={160}
+                      />
                       <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(backgroundImagePreview, 'background')}>×</button>
                     </div>
                   )}
@@ -235,7 +242,13 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <div className={styles.imagePreviewContainer}>
                   {heroImagesPreview.map((src, index) => (
                     <div key={src} className={styles.imageWrapper}>
-                      <img src={src} alt={`Hero Preview ${index + 1}`} className={styles.imagePreview} />
+                      <Image
+                        src={src}
+                        alt={`Hero Preview ${index + 1}`}
+                        className={styles.imagePreview}
+                        width={200}
+                        height={160}
+                      />
                       <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(src, 'hero')}>×</button>
                     </div>
                   ))}

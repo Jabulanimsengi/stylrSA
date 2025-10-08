@@ -1,16 +1,9 @@
 .card {
-  background-color: var(--white);
-  border: 1px solid var(--light-silver);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s ease-in-out;
+  @apply flex flex-col overflow-hidden rounded-xl bg-white transition-transform duration-200 shadow-sm;
+  border: 1px solid var(--color-border);
 }
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  @apply -translate-y-1 shadow-md;
 }
 .imageContainer {
   width: 100%;
@@ -20,6 +13,8 @@
   position: relative;
 }
 .image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -52,10 +47,7 @@
   margin-top: 0.5rem;
 }
 .content {
-  padding: 0.75rem; /* Reduced padding */
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-1 flex-col p-3;
 }
 .header {
   display: flex;
@@ -65,20 +57,15 @@
   margin-bottom: 0.5rem;
 }
 .title {
-  font-weight: 600;
-  color: var(--dark-gray);
+  @apply font-semibold text-neutral-900;
   margin: 0;
 }
 .price {
-  font-weight: 700;
-  color: var(--text-charcoal);
+  @apply font-semibold text-primary;
   white-space: nowrap;
 }
 .description {
-  margin-top: 0.5rem; /* Adjusted margin */
-  font-size: 0.9rem;
-  color: var(--text-body);
-  line-height: 1.5;
+  @apply mt-2 text-sm leading-relaxed text-neutral-600;
   flex-grow: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -92,34 +79,18 @@
   line-clamp: unset;
 }
 .expandButton {
-  background: none;
+  @apply mt-2 self-start bg-transparent p-0 text-xs font-semibold text-primary underline;
   border: none;
-  color: var(--primary-pink);
   cursor: pointer;
-  font-size: 0.8rem;
-  text-decoration: underline;
-  margin-top: 0.5rem;
-  padding: 0;
-  align-self: flex-start;
 }
 .footer {
-  margin-top: 1rem; /* Reduced margin */
-  padding-top: 0.75rem; /* Reduced padding */
-  border-top: 1px solid var(--light-silver);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  @apply mt-4 flex items-center justify-between pt-3;
+  border-top: 1px solid var(--color-border);
 }
 .likeButton {
-  background: none;
+  @apply flex items-center gap-2 bg-transparent p-0 text-sm text-neutral-500;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  color: var(--text-muted);
-  padding: 0;
 }
 .likeButton svg {
   width: 24px;
@@ -129,11 +100,13 @@
   fill: none;
   transition: all 0.2s;
 }
+.likeButton.liked {
+  @apply text-primary;
+}
 .likeButton.liked svg {
   fill: var(--primary-pink);
   stroke: var(--primary-pink);
 }
 .actions {
-  display: flex;
-  gap: 0.75rem;
+  @apply flex gap-3;
 }

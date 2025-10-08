@@ -7,6 +7,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Message } from '@prisma/client';
 
 @WebSocketGateway({
   cors: {
@@ -18,17 +20,27 @@ export class EventsGateway {
   server: Server;
 
   private logger: Logger = new Logger('EventsGateway');
-  private connectedUsers: Map<string, string> = new Map();
+  private connectedUsers: Map<string, Set<string>> = new Map();
+
+  constructor(private readonly prisma: PrismaService) {}
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
+    const userId = this.extractUserId(client);
+    if (userId) {
+      this.registerUserSocket(userId, client.id);
+      client.join(`user:${userId}`);
+    }
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
-    for (const [userId, socketId] of this.connectedUsers.entries()) {
-      if (socketId === client.id) {
-        this.connectedUsers.delete(userId);
+    for (const [userId, sockets] of this.connectedUsers.entries()) {
+      if (sockets.has(client.id)) {
+        sockets.delete(client.id);
+        if (sockets.size === 0) {
+          this.connectedUsers.delete(userId);
+        }
         break;
       }
     }
@@ -39,15 +51,239 @@ export class EventsGateway {
     @MessageBody() userId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    this.connectedUsers.set(userId, client.id);
+    if (!userId) {
+      return;
+    }
+    this.registerUserSocket(userId, client.id);
+    client.join(`user:${userId}`);
     this.logger.log(`User ${userId} registered with socket id ${client.id}`);
+  }
+
+  @SubscribeMessage('conversation:join')
+  handleConversationJoin(
+    @MessageBody() conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!conversationId) {
+      return;
+    }
+    client.join(this.getConversationRoom(conversationId));
+  }
+
+  @SubscribeMessage('conversation:leave')
+  handleConversationLeave(
+    @MessageBody() conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!conversationId) {
+      return;
+    }
+    client.leave(this.getConversationRoom(conversationId));
+  }
+
+  @SubscribeMessage('sendMessage')
+  async handleSendMessage(
+    @MessageBody()
+    payload: {
+      conversationId: string;
+      recipientId: string;
+      body: string;
+      tempId?: string;
+    },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const senderId = this.getUserIdFromSocket(client);
+    if (!senderId) {
+      client.emit('message:error', {
+        tempId: payload.tempId,
+        error: 'Unauthorized socket client',
+      });
+      return;
+    }
+
+    const { conversationId, recipientId, body, tempId } = payload;
+    if (!conversationId || !recipientId || !body.trim()) {
+      client.emit('message:error', {
+        tempId,
+        error: 'Invalid message payload',
+      });
+      return;
+    }
+
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: { id: true, user1Id: true, user2Id: true },
+    });
+
+    if (
+      !conversation ||
+      (conversation.user1Id !== senderId && conversation.user2Id !== senderId)
+    ) {
+      client.emit('message:error', {
+        tempId,
+        error: 'You are not part of this conversation',
+      });
+      return;
+    }
+
+    let message = await this.prisma.message.create({
+      data: {
+        conversationId,
+        senderId,
+        content: body,
+      },
+    });
+
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data: { updatedAt: new Date() },
+    });
+
+    const serialized = this.serializeMessage(message);
+
+    client.emit('message:sent', { message: serialized, tempId });
+
+    const recipientSockets = this.connectedUsers.get(recipientId);
+    if (recipientSockets && recipientSockets.size > 0) {
+      const deliveredAt = new Date();
+      message = await this.prisma.message.update({
+        where: { id: message.id },
+        data: {
+          deliveredAt,
+        },
+      });
+      const deliveredPayload = this.serializeMessage(message);
+      this.emitToUser(recipientId, 'message:new', deliveredPayload);
+      client.emit('message:delivered', deliveredPayload);
+    }
+  }
+
+  @SubscribeMessage('conversation:read')
+  async handleConversationRead(
+    @MessageBody() payload: { conversationId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const readerId = this.getUserIdFromSocket(client);
+    if (!readerId) {
+      return;
+    }
+
+    const { conversationId } = payload;
+    if (!conversationId) {
+      return;
+    }
+
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: { user1Id: true, user2Id: true },
+    });
+
+    if (
+      !conversation ||
+      (conversation.user1Id !== readerId && conversation.user2Id !== readerId)
+    ) {
+      return;
+    }
+
+    const pendingMessages = await this.prisma.message.findMany({
+      where: {
+        conversationId,
+        senderId: { not: readerId },
+        readAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (pendingMessages.length === 0) {
+      client.emit('conversation:read', {
+        conversationId,
+        updates: [],
+      });
+      return;
+    }
+
+    const readAt = new Date();
+    const ids = pendingMessages.map((message) => message.id);
+
+    await this.prisma.message.updateMany({
+      where: { id: { in: ids } },
+      data: { isRead: true, readAt },
+    });
+
+    const updates = ids.map((id) => ({ id, readAt: readAt.toISOString() }));
+
+    client.emit('conversation:read', {
+      conversationId,
+      updates,
+    });
+
+    const otherUserId =
+      conversation.user1Id === readerId
+        ? conversation.user2Id
+        : conversation.user1Id;
+
+    this.emitToUser(otherUserId, 'conversation:read', {
+      conversationId,
+      updates,
+      readerId,
+    });
   }
 
   // FIX: Reverted method name to 'sendNotificationToUser'
   sendNotificationToUser(userId: string, event: string, data: any) {
-    const socketId = this.connectedUsers.get(userId);
-    if (socketId) {
+    this.emitToUser(userId, event, data);
+  }
+
+  private registerUserSocket(userId: string, socketId: string) {
+    if (!this.connectedUsers.has(userId)) {
+      this.connectedUsers.set(userId, new Set());
+    }
+    this.connectedUsers.get(userId)!.add(socketId);
+  }
+
+  private extractUserId(client: Socket): string | null {
+    const { userId } = client.handshake.query;
+    if (typeof userId === 'string' && userId.trim().length > 0) {
+      return userId;
+    }
+    return null;
+  }
+
+  private getUserIdFromSocket(client: Socket): string | null {
+    const direct = this.extractUserId(client);
+    if (direct) {
+      return direct;
+    }
+    for (const [userId, sockets] of this.connectedUsers.entries()) {
+      if (sockets.has(client.id)) {
+        return userId;
+      }
+    }
+    return null;
+  }
+
+  private emitToUser(userId: string, event: string, data: any) {
+    const socketIds = this.connectedUsers.get(userId);
+    if (!socketIds || socketIds.size === 0) {
+      return;
+    }
+    for (const socketId of socketIds) {
       this.server.to(socketId).emit(event, data);
     }
+  }
+
+  private getConversationRoom(conversationId: string) {
+    return `conversation:${conversationId}`;
+  }
+
+  private serializeMessage(message: Message) {
+    return {
+      ...message,
+      createdAt: message.createdAt.toISOString(),
+      deliveredAt: message.deliveredAt
+        ? message.deliveredAt.toISOString()
+        : null,
+      readAt: message.readAt ? message.readAt.toISOString() : null,
+    };
   }
 }

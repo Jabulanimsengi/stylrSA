@@ -10,7 +10,7 @@
 }
 
 .modalContent {
-  background-color: var(--white);
+  background-color: var(--color-surface-elevated);
   border-radius: 0.75rem;
   padding: 2rem;
   width: 100%;
@@ -70,7 +70,7 @@
 .input, .textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #CBD5E0;
+  border: 1px solid var(--input-border);
   border-radius: 0.375rem;
   font-family: inherit;
   font-size: 1rem;
@@ -78,8 +78,8 @@
 }
 .input:focus, .textarea:focus {
     outline: none;
-    border-color: var(--primary-pink);
-    box-shadow: 0 0 0 2px var(--soft-pastel-pink);
+    border-color: var(--input-border-strong);
+    box-shadow: 0 0 0 2px var(--input-border-focus);
 }
 
 .textarea {
@@ -96,8 +96,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--input-border);
   border-radius: 0.375rem;
   cursor: pointer;
   font-weight: 500;
@@ -106,7 +106,7 @@
 }
 
 .fileInputLabel:hover {
-  background-color: #e2e8f0;
+  background-color: color-mix(in srgb, var(--color-surface-subtle) 80%, var(--color-surface-elevated));
 }
 
 .fileInput {
@@ -129,14 +129,14 @@
 
 .imageWrapper {
   position: relative;
+  width: 6rem;
+  height: 6rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
 }
 
 .imagePreview {
-  width: 6rem;
-  height: 6rem;
   object-fit: cover;
-  border-radius: 0.375rem;
-  border: 1px solid #e2e8f0;
 }
 
 .removeImageButton {
@@ -145,9 +145,9 @@
   right: -8px;
   width: 24px;
   height: 24px;
-  background-color: #e53e3e;
-  color: white;
-  border: 2px solid white;
+  background-color: var(--color-error-text);
+  color: var(--color-text-inverse);
+  border: 2px solid var(--color-surface-elevated);
   border-radius: 50%;
   font-size: 14px;
   font-weight: bold;
@@ -172,6 +172,6 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
   padding-top: 1.5rem;
 }

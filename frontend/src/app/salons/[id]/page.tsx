@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaHome, FaArrowLeft, FaHeart, FaWhatsapp, FaGlobe } from 'react-icons/fa';
 import { Salon, Service, GalleryImage } from '@/types';
 import BookingModal from '@/components/BookingModal';
@@ -264,7 +265,14 @@ export default function SalonProfilePage() {
                     <div className={styles.sliderWrapper} style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
                         {heroImages.map((img: string, index: number) => (
                         <div key={index} className={styles.slide}>
-                            <img src={img} alt={`${salon.name} gallery image ${index + 1}`} className={styles.heroImage} />
+                            <Image
+                              src={img}
+                              alt={`${salon.name} gallery image ${index + 1}`}
+                              className={styles.heroImage}
+                              fill
+                              sizes="(max-width: 1024px) 100vw, 1024px"
+                              priority={index === 0}
+                            />
                         </div>
                         ))}
                     </div>
@@ -317,7 +325,13 @@ export default function SalonProfilePage() {
                         <div className={styles.galleryGrid}>
                           {galleryImages.map((image, index) => (
                             <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
-                              <img src={image.imageUrl} alt={image.caption || 'Salon work'} />
+                              <Image
+                                src={image.imageUrl}
+                                alt={image.caption || 'Salon work'}
+                                className={styles.galleryImage}
+                                fill
+                                sizes="(max-width: 768px) 50vw, 200px"
+                              />
                             </div>
                           ))}
                         </div>

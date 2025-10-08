@@ -8,11 +8,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import styles from './ChatLayout.module.css';
 import { useSocket } from '@/context/SocketContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { authStatus, userId } = useAuth();
+  const { authStatus, user } = useAuth();
+  const userId = user?.id;
   const router = useRouter();
   const pathname = usePathname();
   const socket = useSocket();
@@ -31,7 +33,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
-      router.push('/login');
+      router.push('/');
     }
     if (authStatus === 'authenticated') {
       setIsLoading(true);
@@ -40,17 +42,32 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   }, [authStatus, router, fetchConversations]);
 
   useEffect(() => {
-    if (socket) {
-      const handleNewMessage = () => {
-        fetchConversations();
-      };
-      socket.on('newMessage', handleNewMessage);
-      return () => { socket.off('newMessage', handleNewMessage); };
+    if (!socket) {
+      return;
     }
+
+    const refresh = () => fetchConversations();
+
+    socket.on('message:new', refresh);
+    socket.on('message:sent', refresh);
+
+    return () => {
+      socket.off('message:new', refresh);
+      socket.off('message:sent', refresh);
+    };
   }, [socket, fetchConversations]);
 
   const getOtherParticipant = (convo: Conversation) => {
-    return convo.participants.find(p => p.id !== userId);
+    if (convo.participants && convo.participants.length) {
+      return convo.participants.find((p) => p.id !== userId);
+    }
+    if (convo.user1 && convo.user1.id !== userId) {
+      return convo.user1;
+    }
+    if (convo.user2 && convo.user2.id !== userId) {
+      return convo.user2;
+    }
+    return undefined;
   };
 
   if (authStatus === 'loading') {
@@ -60,8 +77,17 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className={styles.chatContainer}>
       <aside className={`${styles.sidebar} ${isConversationActive ? styles.mobileHidden : ''}`}>
-        <div className={styles.sidebarHeader}>Conversations</div>
-        {isLoading ? <LoadingSpinner /> : (
+        <div className={styles.sidebarHeader}>
+          <span>Conversations</span>
+          <ThemeToggle />
+        </div>
+        {isLoading ? (
+          <div className={styles.conversationList}>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className={`${styles.conversationLink} skeleton`} style={{ height: '4.25rem', borderRadius: '1rem' }} />
+            ))}
+          </div>
+        ) : (
           <div className={styles.conversationList}>
             {conversations.map(convo => {
               const otherParticipant = getOtherParticipant(convo);
@@ -74,12 +100,18 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                     {otherParticipant.firstName} {otherParticipant.lastName}
                   </p>
                   <p className={styles.lastMessage}>
-                    {convo.messages[0]?.content || '...'}
+                    {convo.messages && convo.messages[0]?.content
+                      ? convo.messages[0].content
+                      : convo.lastMessage?.content
+                        ? convo.lastMessage.content
+                        : 'No messages yet'}
                   </p>
                 </Link>
               )
             })}
-            {conversations.length === 0 && <p style={{textAlign: 'center', padding: '1rem', color: '#718096'}}>No conversations yet.</p>}
+            {conversations.length === 0 && (
+              <p className={styles.emptyState}>Start a conversation by booking a service or replying to a client.</p>
+            )}
           </div>
         )}
       </aside>
