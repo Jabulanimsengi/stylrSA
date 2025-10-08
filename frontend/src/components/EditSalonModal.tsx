@@ -1,3 +1,5 @@
+// frontend/srcs/components/EditSalonModal.tsx
+
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
@@ -29,8 +31,12 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     whatsapp: '',
     website: '',
   });
-  const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
-  const [heroImages, setHeroImages] = useState<File[]>([]);
+
+  const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null);
+  const [heroImageFiles, setHeroImageFiles] = useState<File[]>([]);
+  const [backgroundImagePreview, setBackgroundImagePreview] = useState<string | null>(null);
+  const [heroImagesPreview, setHeroImagesPreview] = useState<string[]>([]);
+  
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
 
@@ -51,6 +57,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         whatsapp: salon.whatsapp || '',
         website: salon.website || '',
       });
+      setBackgroundImagePreview(salon.backgroundImage || null);
+      setHeroImagesPreview(salon.heroImages || []);
     }
   }, [salon]);
 
@@ -59,29 +67,75 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+    if (!files) return;
+
+    if (name === 'backgroundImage' && files[0]) {
+      const file = files[0];
+      setBackgroundImageFile(file);
+      // Revoke old blob URL to prevent memory leaks
+      if (backgroundImagePreview && backgroundImagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(backgroundImagePreview);
+      }
+      setBackgroundImagePreview(URL.createObjectURL(file));
+    } else if (name === 'heroImages') {
+      const newFiles = Array.from(files);
+      setHeroImageFiles(prevFiles => [...prevFiles, ...newFiles]);
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      setHeroImagesPreview(prevPreviews => [...prevPreviews, ...newPreviews]);
+    }
+  };
+
+  const handleDeleteImage = (imageUrlToDelete: string, imageType: 'background' | 'hero') => {
+    if (imageType === 'background') {
+      setBackgroundImageFile(null);
+      setBackgroundImagePreview(null);
+    } else {
+      const updatedPreviews = heroImagesPreview.filter(img => img !== imageUrlToDelete);
+      setHeroImagesPreview(updatedPreviews);
+
+      // If the deleted image was a newly added file (a blob URL), we must find and remove it from heroImageFiles state
+      if (imageUrlToDelete.startsWith('blob:')) {
+        const indexToRemove = heroImagesPreview.findIndex(p => p === imageUrlToDelete);
+        // Calculate the corresponding index in the `heroImageFiles` array
+        const existingImagesCount = heroImagesPreview.filter(p => !p.startsWith('blob:')).length;
+        const fileIndexToRemove = indexToRemove - existingImagesCount;
+
+        if (fileIndexToRemove >= 0 && fileIndexToRemove < heroImageFiles.length) {
+            setHeroImageFiles(prevFiles => prevFiles.filter((_, i) => i !== fileIndexToRemove));
+        }
+      }
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
     setError('');
-    
+
     try {
-      let backgroundImageUrl = salon.backgroundImage;
-      if (backgroundImage) {
-        backgroundImageUrl = await uploadToCloudinary(backgroundImage);
+      let finalBackgroundImageUrl = backgroundImagePreview;
+      if (backgroundImageFile && backgroundImagePreview?.startsWith('blob:')) {
+        finalBackgroundImageUrl = await uploadToCloudinary(backgroundImageFile);
       }
 
-      const heroImageUrls = await Promise.all(
-        heroImages.map(file => uploadToCloudinary(file))
+      const existingHeroImageUrls = heroImagesPreview.filter(p => !p.startsWith('blob:'));
+      
+      const newHeroImageUrls = await Promise.all(
+        heroImageFiles.map(file => uploadToCloudinary(file))
       );
       
+      const finalHeroImageUrls = [...existingHeroImageUrls, ...newHeroImageUrls];
+
       const res = await fetch(`/api/salons/mine`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ 
-            ...formData,
-            backgroundImage: backgroundImageUrl,
-            ...(heroImageUrls.length > 0 && { heroImages: heroImageUrls }),
+        body: JSON.stringify({
+          ...formData,
+          backgroundImage: finalBackgroundImageUrl,
+          heroImages: finalHeroImageUrls,
         }),
       });
 
@@ -117,18 +171,16 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
               <label htmlFor="name" className={styles.label}>Salon Name</label>
               <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className={styles.input} />
             </div>
-            
             <div className={styles.fullWidth}>
               <label htmlFor="description" className={styles.label}>Description</label>
               <textarea id="description" name="description" value={formData.description} onChange={handleChange} required className={styles.textarea} />
             </div>
-
             <div className={styles.grid}>
               <div>
                 <label htmlFor="address" className={styles.label}>Street Address</label>
                 <input type="text" id="address" name="address" value={formData.address} onChange={handleChange} required className={styles.input} />
               </div>
-               <div>
+              <div>
                 <label htmlFor="town" className={styles.label}>Town/Suburb</label>
                 <input type="text" id="town" name="town" value={formData.town} onChange={handleChange} required className={styles.input} />
               </div>
@@ -141,7 +193,6 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <input type="text" id="province" name="province" value={formData.province} onChange={handleChange} required className={styles.input} />
               </div>
             </div>
-
             <h3 className={styles.subheading}>Contact Information</h3>
             <div className={styles.grid}>
                 <div>
@@ -161,21 +212,33 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     <input type="tel" id="whatsapp" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className={styles.input} />
                 </div>
             </div>
-
+            
             <h3 className={styles.subheading}>Images</h3>
             <div className={styles.grid}>
-                <div className={styles.imageUploadSection}>
-                    <label className={styles.label}>Background Image</label>
-                    <input type="file" className={styles.fileInput} onChange={(e) => setBackgroundImage(e.target.files ? e.target.files[0] : null)} />
-                    {salon.backgroundImage && <img src={salon.backgroundImage} alt="background" className={styles.imagePreview}/>}
-                </div>
-                <div className={styles.imageUploadSection}>
-                    <label className={styles.label}>Hero Images (up to 4)</label>
-                    <input type="file" multiple className={styles.fileInput} onChange={(e) => setHeroImages(Array.from(e.target.files || []))} />
-                    <div className={styles.heroPreview}>
-                      {/* You can add a preview of newly selected hero images here if you wish */}
+              <div className={styles.imageUploadSection}>
+                <label className={styles.label}>Background Image</label>
+                <input type="file" name="backgroundImage" className={styles.fileInput} onChange={handleFileChange} accept="image/*" />
+                <div className={styles.imagePreviewContainer}>
+                  {backgroundImagePreview && (
+                    <div className={styles.imageWrapper}>
+                      <img src={backgroundImagePreview} alt="Background Preview" className={styles.imagePreview} />
+                      <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(backgroundImagePreview, 'background')}>×</button>
                     </div>
+                  )}
                 </div>
+              </div>
+              <div className={styles.imageUploadSection}>
+                <label className={styles.label}>Hero Images</label>
+                <input type="file" name="heroImages" multiple className={styles.fileInput} onChange={handleFileChange} accept="image/*" />
+                <div className={styles.imagePreviewContainer}>
+                  {heroImagesPreview.map((src, index) => (
+                    <div key={src} className={styles.imageWrapper}>
+                      <img src={src} alt={`Hero Preview ${index + 1}`} className={styles.imagePreview} />
+                      <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(src, 'hero')}>×</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

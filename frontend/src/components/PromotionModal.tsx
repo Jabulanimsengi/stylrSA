@@ -1,19 +1,23 @@
+// frontend/srcs/components/PromotionModal.tsx
+
 'use client';
 
 import { useState, FormEvent } from 'react';
 import styles from './PromotionModal.module.css';
 import { toast } from 'react-toastify';
+import { Promotion } from '@/types'; // Import the Promotion type
 
 interface PromotionModalProps {
   onClose: () => void;
-  onSave: () => void;
+  onPromotionAdded: (promotion: Promotion) => void; // FIX: Changed prop name and added type
+  salonId: string; // FIX: Added salonId to props
   serviceId?: string;
   productId?: string;
 }
 
-export default function PromotionModal({ onClose, onSave, serviceId, productId }: PromotionModalProps) {
+export default function PromotionModal({ onClose, onPromotionAdded, salonId, serviceId, productId }: PromotionModalProps) {
   const [description, setDescription] = useState('');
-  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [discountPercentage, setDiscountPercentage] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,31 +25,37 @@ export default function PromotionModal({ onClose, onSave, serviceId, productId }
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const token = localStorage.getItem('access_token');
+    
     try {
-      const res = await fetch('http://localhost:3000/api/promotions', {
+      // FIX: Use relative URL
+      const res = await fetch('/api/promotions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include', // Use credentials for auth
         body: JSON.stringify({
           description,
-          discountPercentage,
+          discountPercentage: Number(discountPercentage),
           startDate,
           endDate,
+          salonId, // Pass salonId to the API
           serviceId,
           productId,
         }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
         toast.success('Promotion created!');
-        onSave();
+        onPromotionAdded(data); // FIX: Pass the new promotion data back
+        onClose(); // Close the modal on success
       } else {
-        throw new Error('Failed to create promotion.');
+        throw new Error(data.message || 'Failed to create promotion.');
       }
-    } catch (error) {
-      toast.error('Could not create promotion.');
+    } catch (error: any) {
+      toast.error(error.message || 'Could not create promotion.');
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +72,7 @@ export default function PromotionModal({ onClose, onSave, serviceId, productId }
           </div>
           <div className={styles.inputGroup}>
             <label>Discount (%)</label>
-            <input type="number" value={discountPercentage} onChange={(e) => setDiscountPercentage(Number(e.target.value))} required />
+            <input type="number" value={discountPercentage} onChange={(e) => setDiscountPercentage(e.target.value)} required min="1" max="100" />
           </div>
           <div className={styles.inputGroup}>
             <label>Start Date</label>

@@ -108,10 +108,9 @@ export class UpdateSalonDto {
 
   @IsUrl()
   @IsOptional()
-  backgroundImage?: string;
+  backgroundImage?: string | null; // This line has been changed to allow null
 
   @IsArray()
-  @IsString({ each: true })
   @IsUrl({}, { each: true })
   @IsOptional()
   heroImages?: string[];

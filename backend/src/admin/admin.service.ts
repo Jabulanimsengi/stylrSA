@@ -1,3 +1,5 @@
+// backend/src/admin/admin.service.ts
+
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApprovalStatus } from '@prisma/client';
@@ -9,7 +11,17 @@ export class AdminService {
   async getPendingSalons() {
     return this.prisma.salon.findMany({
       where: { approvalStatus: 'PENDING' },
-      include: { owner: true },
+      // FIX: Use `select` to prevent circular references and leaking sensitive data.
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
   }
 

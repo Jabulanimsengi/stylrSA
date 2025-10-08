@@ -1,7 +1,9 @@
+// frontend/src/app/dashboard/page.tsx
+
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Salon, Service, ApprovalStatus, Booking, GalleryImage } from '@/types';
+import { Salon, Service, ApprovalStatus, Booking, GalleryImage, Product, Promotion } from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './Dashboard.module.css';
 import ServiceFormModal from '@/components/ServiceFormModal';
@@ -10,7 +12,10 @@ import { useSocket } from '@/context/SocketContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import GalleryUploadModal from '@/components/GalleryUploadModal';
-import { FaTrash, FaHome, FaArrowLeft } from 'react-icons/fa';
+import ProductFormModal from '@/components/ProductFormModal';
+import PromotionModal from '@/components/PromotionModal';
+import ConfirmationModal from '@/components/ConfirmationModal/ConfirmationModal';
+import { FaTrash, FaHome, FaArrowLeft, FaEdit, FaPlus, FaCamera } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -26,13 +31,21 @@ export default function DashboardPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<DashboardBooking[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isEditSalonModalOpen, setIsEditSalonModalOpen] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'service' | 'product' | 'promotion' | 'gallery' } | null>(null);
+  
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
 
   const router = useRouter();
@@ -45,7 +58,6 @@ export default function DashboardPage() {
 
   const fetchDashboardData = useCallback(async () => {
     if (!ownerId) return;
-
     setIsLoading(true);
     try {
       const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}`, { credentials: 'include' });
@@ -56,16 +68,20 @@ export default function DashboardPage() {
       const salonData = await salonRes.json();
       setSalon(salonData);
 
-      const [servicesRes, bookingsRes, galleryRes] = await Promise.all([
+      const [servicesRes, bookingsRes, galleryRes, productsRes, promotionsRes] = await Promise.all([
         fetch(`/api/salons/mine/services?ownerId=${ownerId}`, { credentials: 'include' }),
         fetch(`/api/salons/mine/bookings?ownerId=${ownerId}`, { credentials: 'include' }),
         fetch(`/api/gallery/salon/${salonData.id}`, { credentials: 'include' }),
+        fetch(`/api/products/seller/${ownerId}`, { credentials: 'include' }),
+        fetch(`/api/promotions/salon/${salonData.id}`, {credentials: 'include'})
       ]);
 
       setServices(await servicesRes.json());
       const bookingsData = await bookingsRes.json();
       setBookings(Array.isArray(bookingsData) ? bookingsData : []);
       setGalleryImages(await galleryRes.json());
+      setProducts(await productsRes.json());
+      setPromotions(await promotionsRes.json());
 
     } catch (err: any) {
       setError(err.message);
@@ -80,23 +96,10 @@ export default function DashboardPage() {
     if (authStatus === 'unauthenticated') { toast.error('You must be logged in.'); router.push('/'); return; }
     if (authStatus === 'authenticated' && ownerId) {
       fetchDashboardData();
-    } else if (authStatus === 'authenticated' && user?.role === 'SALON_OWNER' && !ownerId) {
-        setSalon(null);
-        setIsLoading(false);
     }
-  }, [authStatus, ownerId, fetchDashboardData, router, user]);
-
-  useEffect(() => {
-    if (socket) {
-      socket.on('newBooking', (newBooking: DashboardBooking) => {
-        setBookings(prev => [newBooking, ...prev]);
-        toast.info(`New booking for ${newBooking.service.title}!`);
-      });
-      return () => { socket.off('newBooking'); };
-    }
-  }, [socket]);
-
-  const handleSaveService = (savedService: Service) => {
+  }, [authStatus, ownerId, fetchDashboardData, router]);
+  
+  const handleServiceSaved = (savedService: Service) => {
     if (editingService) {
       setServices(services.map(s => s.id === savedService.id ? savedService : s));
     } else {
@@ -104,19 +107,51 @@ export default function DashboardPage() {
     }
     closeServiceModal();
   };
+  
+  const handleProductAdded = (addedProduct: Product) => {
+    if (selectedProduct) {
+        setProducts(products.map(p => p.id === addedProduct.id ? addedProduct : p));
+    } else {
+        setProducts([...products, addedProduct]);
+    }
+    setIsProductModalOpen(false);
+  };
+  
+  const handlePromotionAdded = (addedPromotion: Promotion) => {
+    setPromotions([...promotions, addedPromotion]);
+    setIsPromotionModalOpen(false);
+  };
 
-  const handleDeleteService = async (serviceId: string) => {
-    if (!window.confirm('Are you sure?')) return;
+  const handleDeleteClick = (id: string, type: 'service' | 'product' | 'promotion' | 'gallery') => {
+    setItemToDelete({ id, type });
+  };
+  
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    const { id, type } = itemToDelete;
     try {
-      const res = await fetch(`/api/services/${serviceId}`, { method: 'DELETE', credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to delete service.');
-      setServices(services.filter(s => s.id !== serviceId));
-      toast.success("Service deleted.");
-    } catch (err) {
-      toast.error('Error deleting service.');
+        const url = type === 'gallery' ? `/api/gallery/${id}` : `/api/${type}s/${id}`;
+        const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
+        if (!res.ok) throw new Error(`Failed to delete ${type}.`);
+
+        if (type === 'service') setServices(services.filter(s => s.id !== id));
+        else if (type === 'product') setProducts(products.filter(p => p.id !== id));
+        else if (type === 'promotion') setPromotions(promotions.filter(p => p.id !== id));
+        else if (type === 'gallery') setGalleryImages(galleryImages.filter(g => g.id !== id));
+
+        toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`);
+    } catch (err: any) {
+        toast.error('Deletion failed: ' + (err as Error).message);
+    } finally {
+        setItemToDelete(null);
     }
   };
 
+  const handleSalonUpdate = (updatedSalon: Salon) => {
+    setSalon(updatedSalon);
+    setIsEditSalonModalOpen(false);
+  };
+  
   const handleBookingStatusUpdate = async (bookingId: string, status: 'CONFIRMED' | 'DECLINED' | 'COMPLETED' | 'CANCELLED') => {
     await fetch(`/api/bookings/${bookingId}/status`, {
       method: 'PATCH',
@@ -127,42 +162,14 @@ export default function DashboardPage() {
     fetchDashboardData();
   };
 
-  const handleSalonUpdate = (updatedSalon: Salon) => {
-    setSalon(updatedSalon);
-    setIsEditSalonModalOpen(false);
-  };
-  
-  const handleAvailabilityToggle = async () => {
-    if (!salon) return;
-    const originalStatus = salon.isAvailableNow;
-    setSalon(prev => (prev ? { ...prev, isAvailableNow: !prev.isAvailableNow } : null));
-    try {
-      await fetch(`/api/salons/mine/availability?ownerId=${ownerId}`, { method: 'PATCH', credentials: 'include' });
-    } catch (error) {
-      toast.error("Failed to update status.");
-      setSalon(prev => (prev ? { ...prev, isAvailableNow: originalStatus } : null));
-    }
-  };
-
-  const handleImageUpload = (newImage: GalleryImage) => {
-    setGalleryImages(prev => [newImage, ...prev]);
-  };
-
-  const handleDeleteImage = async (imageId: string) => {
-    if (!window.confirm('Are you sure?')) return;
-    try {
-      const res = await fetch(`/api/gallery/${imageId}`, { method: 'DELETE', credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to delete image.');
-      setGalleryImages(galleryImages.filter(img => img.id !== imageId));
-      toast.success("Image deleted.");
-    } catch (err) {
-      toast.error('Error deleting image.');
-    }
-  };
-
   const openServiceModalToAdd = () => { setEditingService(null); setIsServiceModalOpen(true); };
   const openServiceModalToEdit = (service: Service) => { setEditingService(service); setIsServiceModalOpen(true); };
   const closeServiceModal = () => { setIsServiceModalOpen(false); setEditingService(null); };
+  
+  const openProductModal = (product: Product | null = null) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
+  };
 
   const getStatusClass = (status: ApprovalStatus) => {
     if (status === 'APPROVED') return styles.statusApproved;
@@ -171,12 +178,8 @@ export default function DashboardPage() {
   };
 
   if (isLoading || authStatus === 'loading') return <LoadingSpinner />;
-  if (error) return <div className={styles.container}><p>{error}</p></div>;
-
+  
   if (!salon) {
-    if (user?.role === 'ADMIN') {
-        return <div className={styles.container}><p>This user has not created a salon profile yet.</p></div>;
-    }
     return (
         <div className={styles.welcomeContainer}>
           <div className={styles.welcomeCard}>
@@ -210,11 +213,6 @@ export default function DashboardPage() {
       </div>
     ));
   };
-  
-  let bookingsToShow;
-  if (activeBookingTab === 'pending') bookingsToShow = renderBookingsList(pendingBookings);
-  else if (activeBookingTab === 'confirmed') bookingsToShow = renderBookingsList(confirmedBookings);
-  else bookingsToShow = renderBookingsList(pastBookings);
 
   return (
     <>
@@ -222,8 +220,8 @@ export default function DashboardPage() {
         <ServiceFormModal 
           salonId={salon.id} 
           onClose={closeServiceModal} 
-          onServiceAdded={handleSaveService} 
-          initialData={editingService} 
+          onServiceSaved={handleServiceSaved} 
+          service={editingService} 
         />
       )}
       {isEditSalonModalOpen && salon && (
@@ -237,41 +235,44 @@ export default function DashboardPage() {
         <GalleryUploadModal 
           salonId={salon.id} 
           onClose={() => setIsGalleryModalOpen(false)} 
-          onImageAdded={handleImageUpload} 
+          onImageAdded={(newImage) => setGalleryImages(prev => [newImage, ...prev])}
         />
       )}
+      {isPromotionModalOpen && salon && (
+        <PromotionModal 
+          salonId={salon.id}
+          onClose={() => setIsPromotionModalOpen(false)} 
+          onPromotionAdded={handlePromotionAdded}
+        />
+      )}
+      {isProductModalOpen && salon && (
+        <ProductFormModal 
+          salonId={salon.id}
+          onClose={() => setIsProductModalOpen(false)} 
+          onProductAdded={handleProductAdded} 
+          initialData={selectedProduct} 
+        />
+      )}
+      {itemToDelete && <ConfirmationModal onConfirm={confirmDelete} onCancel={() => setItemToDelete(null)} message={`Are you sure you want to delete this ${itemToDelete.type}?`} />}
+      
       <div className={styles.container}>
         <div className={styles.stickyHeader}>
-            <div className={styles.navButtonsContainer}>
-                <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-                <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-            </div>
-            <h1 className={styles.title}>{user?.role === 'ADMIN' ? `${salon.name}'s Dashboard` : 'My Dashboard'}</h1>
-            <div className={styles.headerSpacer}></div>
+          <div className={styles.navButtonsContainer}>
+              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+          </div>
+          <h1 className={styles.title}>{user?.role === 'ADMIN' ? `${salon.name}'s Dashboard` : 'My Dashboard'}</h1>
+          <div className={styles.headerSpacer}></div>
         </div>
         
-        {/* FIX: ADDED BACK THE MISSING JSX FOR DASHBOARD CONTENT */}
         <header className={styles.header}>
-          <div className={styles.headerTop}>
-            <div className={styles.headerInfo}>
+            <div className={styles.headerTop}>
               <p className={styles.salonName}>{salon.name}</p>
-            </div>
-            <div className={styles.headerActions}>
-              <div className={styles.availabilityToggle}>
-                <label className={styles.switch}>
-                  <input type="checkbox" checked={!!salon.isAvailableNow} onChange={handleAvailabilityToggle} />
-                  <span className={styles.slider}></span>
-                </label>
-                <strong>Available Now</strong>
+              <div className={styles.headerActions}>
+                <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">View Public Profile</Link>
+                <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary"><FaEdit /> Edit Profile</button>
               </div>
-              <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">
-                View My Salon
-              </Link>
-              <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary">
-                Edit Profile
-              </button>
             </div>
-          </div>
         </header>
 
         <div className={styles.contentGrid}>
@@ -285,29 +286,25 @@ export default function DashboardPage() {
               <button onClick={() => setActiveBookingTab('past')} className={`${styles.tabButton} ${activeBookingTab === 'past' ? styles.activeTab : ''}`}>Past ({pastBookings.length})</button>
             </div>
             <div className={styles.list}>
-              {bookingsToShow}
+              {activeBookingTab === 'pending' && renderBookingsList(pendingBookings)}
+              {activeBookingTab === 'confirmed' && renderBookingsList(confirmedBookings)}
+              {activeBookingTab === 'past' && renderBookingsList(pastBookings)}
             </div>
           </div>
 
           <div className={styles.contentCard}>
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>Your Services</h3>
-              <button onClick={openServiceModalToAdd} className="btn btn-primary">
-                + Add Service
-              </button>
+              <button onClick={openServiceModalToAdd} className="btn btn-primary">+ Add Service</button>
             </div>
             <div className={styles.list}>
               {services.length > 0 ? services.map((service) => (
                 <div key={service.id} className={styles.listItem}>
-                  <div className={styles.listItemInfo}>
-                    <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
-                  </div>
+                  <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
                   <div className={styles.actions}>
-                    <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>
-                      {service.approvalStatus}
-                    </span>
-                    <button onClick={() => openServiceModalToEdit(service)} className={styles.editButton}>Edit</button>
-                    <button onClick={() => handleDeleteService(service.id)} className={styles.deleteButton}>Delete</button>
+                    <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>{service.approvalStatus}</span>
+                    <button onClick={() => openServiceModalToEdit(service)} className={styles.editButton}><FaEdit /></button>
+                    <button onClick={() => handleDeleteClick(service.id, 'service')} className={styles.deleteButton}><FaTrash /></button>
                   </div>
                 </div>
               )) : <p>You haven't added any services yet.</p>}
@@ -317,19 +314,15 @@ export default function DashboardPage() {
           <div className={styles.contentCard}>
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>Manage Gallery</h3>
-              <button onClick={() => setIsGalleryModalOpen(true)} className="btn btn-primary">
-                + Add Image
-              </button>
+              <button onClick={() => setIsGalleryModalOpen(true)} className="btn btn-primary"><FaCamera /> Add Image</button>
             </div>
             <div className={styles.galleryGrid}>
               {galleryImages.length > 0 ? galleryImages.map((image) => (
                 <div key={image.id} className={styles.galleryItem}>
                   <img src={image.imageUrl} alt={image.caption || 'Gallery image'} />
-                  <button onClick={() => handleDeleteImage(image.id)} className={styles.deleteButton}>
-                    <FaTrash />
-                  </button>
+                  <button onClick={() => handleDeleteClick(image.id, 'gallery')} className={styles.deleteButton}><FaTrash /></button>
                 </div>
-              )) : <p>Your gallery is empty. Add some images of your work!</p>}
+              )) : <p>Your gallery is empty.</p>}
             </div>
           </div>
         </div>

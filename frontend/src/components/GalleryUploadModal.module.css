@@ -1,4 +1,4 @@
-/* frontend/srcs/components/ServiceFormModal.module.css */
+/* frontend/srcs/components/GalleryUploadModal.module.css */
 
 .modalOverlay {
   position: fixed;
@@ -16,7 +16,7 @@
   border-radius: 0.5rem;
   padding: 2rem;
   width: 100%;
-  max-width: 36rem; /* A slightly smaller modal for a cleaner look */
+  max-width: 38rem;
   color: #1C1C1E;
   max-height: 90vh;
   display: flex;
@@ -25,10 +25,20 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2F2F3A;
+}
+
 .closeButton {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -41,34 +51,11 @@
   color: #FF2D5E;
 }
 
-.title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: #2F2F3A;
-  text-align: center;
-}
-
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-}
-
-.formGrid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-}
-
-@media (min-width: 640px) {
-    .formGrid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.fullWidth {
-    grid-column: 1 / -1;
+  gap: 1.5rem;
+  overflow-y: auto;
 }
 
 .formGroup {
@@ -83,7 +70,7 @@
   color: #2F2F3A;
 }
 
-.input, .textarea, .select {
+.input, .textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #E5E5E5;
@@ -92,23 +79,38 @@
   font-size: 1rem;
   background-color: #FFFFFF;
   color: #4A4A4A;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.input:focus, .textarea:focus, .select:focus {
-    outline: none;
-    border-color: #FF2D5E;
-    box-shadow: 0 0 0 2px rgba(255, 45, 94, 0.2);
 }
 
 .textarea {
-    min-height: 100px;
+    min-height: 80px;
     resize: vertical;
 }
 
-.imagePreviewContainer {
+.fileInputLabel {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: 2px dashed #E5E5E5;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  text-align: center;
+  color: #7C7C7C;
+}
+
+.fileInputLabel:hover {
+  border-color: #FF2D5E;
+  background-color: #fff8f9;
+}
+
+.fileInput {
+  display: none;
+}
+
+.imagePreviewContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -127,7 +129,7 @@
   border: 1px solid #E5E5E5;
 }
 
-.deleteButton {
+.removeImageButton {
   position: absolute;
   top: -8px;
   right: -8px;
@@ -151,7 +153,6 @@
   color: #FF2D5E;
   font-size: 0.875rem;
   text-align: center;
-  margin-bottom: 1rem;
 }
 
 .buttonContainer {
@@ -170,7 +171,7 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease;
 }
 
 .saveButton {
@@ -184,7 +185,6 @@
 
 .saveButton:disabled {
     background-color: #F9D7E5;
-    color: #7C7C7C;
     cursor: not-allowed;
 }
 
@@ -195,8 +195,4 @@
 
 .cancelButton:hover {
     background-color: #d8d8d8;
-}
-
-.saveButton:active, .cancelButton:active {
-    transform: translateY(1px);
 }

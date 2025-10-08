@@ -1,3 +1,5 @@
+// frontend/srcs/components/ProductFormModal.tsx
+
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
@@ -9,31 +11,32 @@ import { FaTimes, FaUpload } from 'react-icons/fa';
 
 interface ProductFormModalProps {
   onClose: () => void;
-  onSave: (product: Product) => void;
-  product?: Product | null;
+  onProductAdded: (product: Product) => void; // FIX: Renamed prop
+  initialData?: Product | null; // FIX: Renamed prop
+  salonId: string; // FIX: Added salonId
 }
 
-export default function ProductFormModal({ onClose, onSave, product }: ProductFormModalProps) {
+export default function ProductFormModal({ onClose, onProductAdded, initialData, salonId }: ProductFormModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [stockQuantity, setStockQuantity] = useState(''); // Added stock quantity
+  const [stockQuantity, setStockQuantity] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const isEditMode = !!product;
+  const isEditMode = !!initialData;
 
   useEffect(() => {
-    if (isEditMode && product) {
-      setName(product.name);
-      setDescription(product.description);
-      setPrice(String(product.price));
-      setStockQuantity(String(product.stockQuantity));
-      setExistingImages(product.images);
+    if (isEditMode && initialData) {
+      setName(initialData.name);
+      setDescription(initialData.description);
+      setPrice(String(initialData.price));
+      setStockQuantity(String(initialData.stockQuantity));
+      setExistingImages(initialData.images);
     }
-  }, [isEditMode, product]);
+  }, [isEditMode, initialData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -70,7 +73,7 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
         throw new Error('Please upload at least one image.');
       }
       
-      const apiEndpoint = isEditMode ? `http://localhost:3000/api/products/${product?.id}` : 'http://localhost:3000/api/products';
+      const apiEndpoint = isEditMode ? `/api/products/${initialData?.id}` : '/api/products';
       const method = isEditMode ? 'PATCH' : 'POST';
       const body = JSON.stringify({
         name,
@@ -78,6 +81,7 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
         price: parseFloat(price),
         stockQuantity: parseInt(stockQuantity),
         images: imageUrls,
+        salonId, // FIX: Include salonId in the request body
       });
 
       const res = await fetch(apiEndpoint, {
@@ -94,7 +98,8 @@ export default function ProductFormModal({ onClose, onSave, product }: ProductFo
 
       const savedProduct = await res.json();
       toast.success(`Product ${isEditMode ? 'update submitted' : 'created and submitted'} for approval.`);
-      onSave(savedProduct);
+      onProductAdded(savedProduct); // FIX: Use correct prop name
+      onClose();
 
     } catch (err: any) {
       setError(err.message);

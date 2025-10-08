@@ -9,12 +9,13 @@ import {
   Delete,
   UseGuards,
   Query,
+  Put, // Import the Put decorator
 } from '@nestjs/common';
 import { SalonsService } from './salons.service';
 import { CreateSalonDto, UpdateSalonDto } from './dto';
-import { GetUser } from '../auth/decorator/get-user.decorator'; // Corrected import path
-import { JwtGuard } from '../auth/guard/jwt.guard'; // Corrected import path
-import { User } from '@prisma/client'; // Corrected import
+import { GetUser } from '../auth/decorator/get-user.decorator';
+import { JwtGuard } from '../auth/guard/jwt.guard';
+import { User } from '@prisma/client';
 import { OptionalJwtAuthGuard } from 'src/auth/guard/optional-jwt.guard';
 
 @Controller('api/salons')
@@ -65,7 +66,7 @@ export class SalonsController {
   }
 
   @UseGuards(JwtGuard)
-  @Patch('mine')
+  @Put('mine') // FIX: Changed from @Patch to @Put to match the frontend request
   updateMySalon(
     @GetUser() user: User,
     @Body() updateSalonDto: UpdateSalonDto,

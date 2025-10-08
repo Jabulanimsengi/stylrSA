@@ -1,3 +1,5 @@
+// frontend/src/app/admin/page.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,15 +8,23 @@ import styles from './AdminPage.module.css';
 import { Salon, Service, ApprovalStatus, Review, Product } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth'; // Import the useAuth hook
+import { useAuth } from '@/hooks/useAuth';
 
-type PendingSalon = Salon & { owner: { id: string; email: string } };
+// FIX: Update PendingSalon to include the new fields from the backend response.
+type PendingSalon = Salon & { 
+  owner: { 
+    id: string; 
+    email: string;
+    firstName: string;
+    lastName: string;
+  } 
+};
 type PendingService = Service & { salon: { name: string } };
 type PendingReview = Review & { author: { firstName: string }, salon: { name: string } };
 type PendingProduct = Product & { seller: { firstName: string, lastName: string } };
 
 export default function AdminPage() {
-  const { authStatus, user } = useAuth(); // Use the hook to get auth status and user info
+  const { authStatus, user } = useAuth();
   const [pendingSalons, setPendingSalons] = useState<PendingSalon[]>([]);
   const [allSalons, setAllSalons] = useState<PendingSalon[]>([]);
   const [pendingServices, setPendingServices] = useState<PendingService[]>([]);
@@ -25,11 +35,9 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Wait for the auth status to be determined
     if (authStatus === 'loading') {
       return; 
     }
-    // If not authenticated or not an admin, redirect
     if (authStatus !== 'authenticated' || user?.role !== 'ADMIN') {
       router.push('/login');
       return;
@@ -37,29 +45,30 @@ export default function AdminPage() {
 
     const fetchData = async () => {
       setIsLoading(true);
-      // Use credentials: 'include' to automatically send the auth cookie
+      // FIX: Use relative URLs instead of hardcoding localhost.
       const requestOptions = { credentials: 'include' as const };
       
       try {
         const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes] = await Promise.all([
-          fetch('http://localhost:3000/api/admin/salons/pending', requestOptions),
-          fetch('http://localhost:3000/api/admin/salons/all', requestOptions),
-          fetch('http://localhost:3000/api/admin/services/pending', requestOptions),
-          fetch('http://localhost:3000/api/admin/reviews/pending', requestOptions),
-          fetch('http://localhost:3000/api/admin/products/pending', requestOptions),
+          fetch('/api/admin/salons/pending', requestOptions),
+          fetch('/api/admin/salons/all', requestOptions),
+          fetch('/api/admin/services/pending', requestOptions),
+          fetch('/api/admin/reviews/pending', requestOptions),
+          fetch('/api/admin/products/pending', requestOptions),
         ]);
 
-        // Check for unauthorized responses which would indicate an invalid session
         if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes].some(res => res.status === 401)) {
             router.push('/login');
             return;
         }
-
+        
+        // This is where the original error happened. With the backend fix, it should now work.
         setPendingSalons(await pendingSalonsRes.json());
         setAllSalons(await allSalonsRes.json());
         setPendingServices(await servicesRes.json());
         setPendingReviews(await reviewsRes.json());
         setPendingProducts(await productsRes.json());
+
       } catch (error) {
         console.error("Failed to fetch admin data:", error);
       } finally {
@@ -78,16 +87,16 @@ export default function AdminPage() {
 
     let url = '';
     switch (type) {
-      case 'salon': url = `http://localhost:3000/api/admin/salons/${id}/status`; break;
-      case 'service': url = `http://localhost:3000/api/admin/services/${id}/status`; break;
-      case 'review': url = `http://localhost:3000/api/admin/reviews/${id}/status`; break;
-      case 'product': url = `http://localhost:3000/api/admin/products/${id}/status`; break;
+      case 'salon': url = `/api/admin/salons/${id}/status`; break;
+      case 'service': url = `/api/admin/services/${id}/status`; break;
+      case 'review': url = `/api/admin/reviews/${id}/status`; break;
+      case 'product': url = `/api/admin/products/${id}/status`; break;
     }
 
     await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // Send cookies with the request
+      credentials: 'include',
       body: JSON.stringify({ approvalStatus: status }),
     });
 
@@ -141,7 +150,8 @@ export default function AdminPage() {
             <div key={salon.id} className={styles.listItem}>
               <div className={styles.info}>
                 <h4>{salon.name}</h4>
-                <p>Owner: {salon.owner.email}</p>
+                {/* FIX: Display the full name and email of the owner. */}
+                <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email})</p>
               </div>
               <div className={styles.actions}>
                 <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
@@ -157,7 +167,7 @@ export default function AdminPage() {
             <div key={salon.id} className={styles.listItem}>
               <div className={styles.info}>
                 <h4>{salon.name}</h4>
-                <p>Owner: {salon.owner.email} | Status: {salon.approvalStatus}</p>
+                <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email}) | Status: {salon.approvalStatus}</p>
               </div>
               <div className={styles.actions}>
                 <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>

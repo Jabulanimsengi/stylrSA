@@ -1,4 +1,4 @@
-/* frontend/src/components/EditSalonModal.module.css */
+/* frontend/srcs/components/EditSalonModal.module.css */
 
 .modalOverlay {
   position: fixed;
@@ -155,28 +155,53 @@
     background-color: #F4EDE6; /* Warm Beige */
 }
 
+/* --- UPDATED & NEW STYLES for Image Preview --- */
+.imagePreviewContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
 .imagePreview {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    margin-top: 10px;
-    border-radius: 0.375rem;
-    border: 1px solid #E5E5E5; /* Light Silver */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  border: 1px solid #E5E5E5;
 }
 
-.heroPreview {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
+.deleteButton {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #ef4444; /* reddish color */
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
 }
 
-.heroPreview img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 0.375rem;
-    border: 1px solid #E5E5E5; /* Light Silver */
+.deleteButton:hover {
+    transform: scale(1.1);
 }
+/* --- END UPDATED STYLES --- */
 
 /* Button Styles */
 .cancelButton, .saveButton {
