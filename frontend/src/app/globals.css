@@ -17,6 +17,8 @@
   --text-inverse: var(--white);
   --link-color: var(--primary-pink);
   --link-hover: #E62654;
+  --link-active: #C81F47;
+  --link-visited: #7C2B4C;
   --btn-primary-bg: var(--primary-pink);
   --btn-primary-hover: #E62654;
   --btn-primary-active: #C81F47;
@@ -52,6 +54,12 @@ a {
 }
 a:hover {
   color: var(--link-hover);
+}
+a:active {
+  color: var(--link-active);
+}
+a:visited {
+  color: var(--link-visited);
 }
 
 /* --- GLOBAL BUTTON STYLES --- */
