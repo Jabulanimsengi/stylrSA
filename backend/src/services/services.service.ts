@@ -1,5 +1,9 @@
 // backend/src/services/services.service.ts
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -15,7 +19,7 @@ export class ServicesService {
     });
 
     if (!salon) {
-        throw new NotFoundException('Salon not found.');
+      throw new NotFoundException('Salon not found.');
     }
 
     // FIX: Allow ADMIN or the actual owner to create a service for the salon
@@ -43,7 +47,7 @@ export class ServicesService {
     });
 
     if (!service) {
-        throw new NotFoundException('Service not found.');
+      throw new NotFoundException('Service not found.');
     }
 
     // FIX: Allow ADMIN to update any service
@@ -66,7 +70,7 @@ export class ServicesService {
     });
 
     if (!service) {
-        throw new NotFoundException('Service not found.');
+      throw new NotFoundException('Service not found.');
     }
 
     // FIX: Allow ADMIN to delete any service

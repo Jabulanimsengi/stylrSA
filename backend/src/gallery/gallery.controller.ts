@@ -1,4 +1,14 @@
-import { Controller, Post, Body, UseGuards, Param, Get, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Param,
+  Get,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { GalleryService } from './gallery.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
@@ -14,7 +24,7 @@ export class GalleryController {
   getImagesForSalon(@Param('salonId') salonId: string) {
     return this.galleryService.getImagesForSalon(salonId);
   }
-  
+
   // Add an image to a salon's gallery (Salon Owner)
   @UseGuards(AuthGuard('jwt'))
   @Post('salon/:salonId')
@@ -25,15 +35,12 @@ export class GalleryController {
   ) {
     return this.galleryService.addImage(user, salonId, dto);
   }
-  
+
   // Delete an image from a gallery (Salon Owner)
   @UseGuards(AuthGuard('jwt'))
   @Delete(':imageId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteImage(
-    @GetUser() user: User,
-    @Param('imageId') imageId: string,
-  ) {
+  deleteImage(@GetUser() user: User, @Param('imageId') imageId: string) {
     return this.galleryService.deleteImage(user, imageId);
   }
 }

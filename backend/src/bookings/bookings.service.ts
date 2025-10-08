@@ -19,10 +19,11 @@ export class BookingsService {
   ) {}
 
   async create(user: User, dto: CreateBookingDto) {
-    const service: ServiceWithSalon | null = await this.prisma.service.findUnique({
-      where: { id: dto.serviceId },
-      include: { salon: true },
-    });
+    const service: ServiceWithSalon | null =
+      await this.prisma.service.findUnique({
+        where: { id: dto.serviceId },
+        include: { salon: true },
+      });
 
     if (!service) {
       throw new NotFoundException('Service not found');
@@ -42,7 +43,7 @@ export class BookingsService {
       include: {
         service: true,
         user: true,
-      }
+      },
     });
 
     const notification = await this.prisma.notification.create({
@@ -75,27 +76,31 @@ export class BookingsService {
       },
       orderBy: {
         bookingTime: 'desc',
-      }
+      },
     });
   }
 
   async findOne(user: User, id: string) {
-    const booking: BookingWithServiceAndSalon | null = await this.prisma.booking.findUnique({
-      where: { id },
-      include: {
-        service: {
-          include: {
-            salon: true,
+    const booking: BookingWithServiceAndSalon | null =
+      await this.prisma.booking.findUnique({
+        where: { id },
+        include: {
+          service: {
+            include: {
+              salon: true,
+            },
           },
         },
-      },
-    });
+      });
 
     if (!booking) {
       throw new NotFoundException('Booking not found');
     }
 
-    if (booking.userId !== user.id && booking.service.salon.ownerId !== user.id) {
+    if (
+      booking.userId !== user.id &&
+      booking.service.salon.ownerId !== user.id
+    ) {
       throw new ForbiddenException(
         'You are not authorized to view this booking',
       );
@@ -104,7 +109,11 @@ export class BookingsService {
     return booking;
   }
 
-  async updateStatus(user: User, id: string, status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED') {
+  async updateStatus(
+    user: User,
+    id: string,
+    status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED',
+  ) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
@@ -113,7 +122,7 @@ export class BookingsService {
             salon: true,
           },
         },
-        user: true
+        user: true,
       },
     });
 
@@ -142,11 +151,14 @@ export class BookingsService {
     });
 
     // FIX: Corrected method name back to 'sendNotificationToUser'
-    this.eventsGateway.sendNotificationToUser(booking.userId, 'bookingStatusUpdate', {
-      message: notificationMessage,
-      booking: updatedBooking,
-    });
-
+    this.eventsGateway.sendNotificationToUser(
+      booking.userId,
+      'bookingStatusUpdate',
+      {
+        message: notificationMessage,
+        booking: updatedBooking,
+      },
+    );
 
     return updatedBooking;
   }

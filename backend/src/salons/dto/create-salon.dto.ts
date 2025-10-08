@@ -46,7 +46,7 @@ export class CreateSalonDto {
   @IsNotEmpty()
   @MaxLength(255)
   address: string;
-  
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -93,7 +93,7 @@ export class CreateSalonDto {
   @ValidateNested({ each: true })
   @Type(() => OperatingHoursDto)
   operatingHours?: OperatingHoursDto[];
-  
+
   @IsOptional()
   @IsArray()
   @IsString({ each: true })

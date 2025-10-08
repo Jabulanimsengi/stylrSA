@@ -1,5 +1,9 @@
 // backend/src/reviews/reviews.service.ts
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto'; // Corrected typo here
 
@@ -7,7 +11,8 @@ import { CreateReviewDto } from './dto/create-review.dto'; // Corrected typo her
 export class ReviewsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateReviewDto) { // Corrected typo here
+  async create(userId: string, dto: CreateReviewDto) {
+    // Corrected typo here
     const booking = await this.prisma.booking.findUnique({
       where: { id: dto.bookingId },
     });

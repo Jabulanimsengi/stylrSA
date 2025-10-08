@@ -1,5 +1,11 @@
 // backend/src/bookings/dto/create-booking.dto.ts
-import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateBookingDto {
   @IsString()

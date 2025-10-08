@@ -1,4 +1,13 @@
-import { Controller, Get, UseGuards, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';

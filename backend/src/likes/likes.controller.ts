@@ -11,10 +11,7 @@ export class LikesController {
   constructor(private readonly likesService: LikesService) {}
 
   @Post('service/:serviceId/toggle')
-  toggleLike(
-    @GetUser() user: User,
-    @Param('serviceId') serviceId: string,
-  ) {
+  toggleLike(@GetUser() user: User, @Param('serviceId') serviceId: string) {
     return this.likesService.toggleLike(user.id, serviceId);
   }
 }

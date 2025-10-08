@@ -7,7 +7,7 @@ export class ChatService {
 
   async findOrCreateConversation(userOneId: string, userTwoId: string) {
     if (userOneId === userTwoId) {
-      throw new Error("Cannot create a conversation with oneself.");
+      throw new Error('Cannot create a conversation with oneself.');
     }
 
     // Check if a conversation between these two specific users already exists
@@ -20,13 +20,12 @@ export class ChatService {
       },
     });
 
-
     // If no conversation is found, create a new one
     if (!conversation) {
       conversation = await this.prisma.conversation.create({
         data: {
           user1Id: userOneId,
-          user2Id: userTwoId
+          user2Id: userTwoId,
         },
       });
     }
@@ -36,10 +35,7 @@ export class ChatService {
   async getConversations(userId: string) {
     const conversations = await this.prisma.conversation.findMany({
       where: {
-        OR: [
-          { user1Id: userId },
-          { user2Id: userId },
-        ]
+        OR: [{ user1Id: userId }, { user2Id: userId }],
       },
       include: {
         user1: {
@@ -56,23 +52,20 @@ export class ChatService {
       },
       orderBy: {
         updatedAt: 'desc',
-      }
+      },
     });
 
-    return conversations.map(c => ({
+    return conversations.map((c) => ({
       ...c,
-      participants: [c.user1, c.user2]
-    }))
+      participants: [c.user1, c.user2],
+    }));
   }
 
   async getConversationById(conversationId: string, userId: string) {
     const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationId,
-        OR: [
-          { user1Id: userId },
-          { user2Id: userId },
-        ]
+        OR: [{ user1Id: userId }, { user2Id: userId }],
       },
       include: {
         user1: {
@@ -84,7 +77,9 @@ export class ChatService {
       },
     });
     if (!conversation) {
-      throw new UnauthorizedException("Conversation not found or you're not a participant.");
+      throw new UnauthorizedException(
+        "Conversation not found or you're not a participant.",
+      );
     }
     return conversation;
   }
@@ -94,15 +89,12 @@ export class ChatService {
     const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationId,
-        OR: [
-          { user1Id: userId },
-          { user2Id: userId },
-        ]
+        OR: [{ user1Id: userId }, { user2Id: userId }],
       },
     });
 
     if (!conversation) {
-      throw new UnauthorizedException("You are not part of this conversation.");
+      throw new UnauthorizedException('You are not part of this conversation.');
     }
 
     return this.prisma.message.findMany({

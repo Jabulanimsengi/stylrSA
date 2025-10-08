@@ -33,7 +33,7 @@ export class ServicesController {
   findAll() {
     return this.servicesService.findAll();
   }
-  
+
   @Get('approved')
   findAllApproved(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

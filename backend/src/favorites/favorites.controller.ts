@@ -15,10 +15,7 @@ export class FavoritesController {
   }
 
   @Post('toggle/:salonId')
-  toggleFavorite(
-    @GetUser() user: User,
-    @Param('salonId') salonId: string,
-  ) {
+  toggleFavorite(@GetUser() user: User, @Param('salonId') salonId: string) {
     return this.favoritesService.toggleFavorite(user.id, salonId);
   }
 }

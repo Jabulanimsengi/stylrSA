@@ -115,7 +115,7 @@ export class SalonsService {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
     });
-    
+
     if (!salon) {
       throw new NotFoundException('Salon not found');
     }
@@ -143,7 +143,7 @@ export class SalonsService {
     console.log('Filters received:', filters);
     const salons = await this.prisma.salon.findMany({
       where: {
-        approvalStatus: 'APPROVED'
+        approvalStatus: 'APPROVED',
       },
     });
 
@@ -152,8 +152,8 @@ export class SalonsService {
         where: { userId: user.id },
         select: { salonId: true },
       });
-      const favoriteSalonIds = new Set(favoriteSalons.map(f => f.salonId));
-      return salons.map(salon => ({
+      const favoriteSalonIds = new Set(favoriteSalons.map((f) => f.salonId));
+      return salons.map((salon) => ({
         ...salon,
         isFavorited: favoriteSalonIds.has(salon.id),
       }));
@@ -170,7 +170,9 @@ export class SalonsService {
   async updateMySalon(user: User, dto: UpdateSalonDto, ownerId: string) {
     // FIX: Allow ADMIN to update any salon
     if (user.id !== ownerId && user.role !== 'ADMIN') {
-      throw new ForbiddenException('You are not authorized to update this salon');
+      throw new ForbiddenException(
+        'You are not authorized to update this salon',
+      );
     }
     const salon = await this.prisma.salon.findFirst({
       where: { ownerId: ownerId }, // Use ownerId to find the salon
@@ -184,7 +186,9 @@ export class SalonsService {
   async toggleAvailability(user: User, ownerId: string) {
     // FIX: Allow ADMIN to update any salon
     if (user.id !== ownerId && user.role !== 'ADMIN') {
-      throw new ForbiddenException('You are not authorized to update this salon');
+      throw new ForbiddenException(
+        'You are not authorized to update this salon',
+      );
     }
     const salon = await this.prisma.salon.findFirst({
       where: { ownerId: ownerId }, // Use ownerId to find the salon
@@ -200,7 +204,9 @@ export class SalonsService {
 
   async findBookingsForMySalon(user: User, ownerId: string) {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
-      throw new ForbiddenException('You are not authorized to view these bookings');
+      throw new ForbiddenException(
+        'You are not authorized to view these bookings',
+      );
     }
     const salon = await this.prisma.salon.findFirst({
       where: { ownerId: ownerId },
@@ -208,18 +214,20 @@ export class SalonsService {
     if (!salon) {
       throw new NotFoundException('Salon not found');
     }
-    return this.prisma.booking.findMany({ 
+    return this.prisma.booking.findMany({
       where: { salonId: salon.id },
       include: {
         service: true,
         user: true,
-      }
+      },
     });
   }
 
   async findServicesForMySalon(user: User, ownerId: string) {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
-      throw new ForbiddenException('You are not authorized to view these services');
+      throw new ForbiddenException(
+        'You are not authorized to view these services',
+      );
     }
     const salon = await this.prisma.salon.findFirst({
       where: { ownerId: ownerId },

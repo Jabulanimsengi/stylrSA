@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, RegisterDto } from './dto';
 import * as argon2 from 'argon2';
@@ -34,7 +38,6 @@ export class AuthService {
 
       // Return a success message or sign a token, depending on desired flow
       return { message: 'User registered successfully' };
-
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -60,7 +63,7 @@ export class AuthService {
     const pwMatches = await argon2.verify(user.password, dto.password);
     // if password incorrect throw exception
     if (!pwMatches) throw new UnauthorizedException('Invalid credentials');
-    
+
     const salon = user.salons && user.salons.length > 0 ? user.salons[0] : null;
 
     const accessToken = await this.signToken(user.id, user.email, user.role);
@@ -75,25 +78,28 @@ export class AuthService {
       },
     };
   }
-  
+
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
-        where: { email: dto.email },
+      where: { email: dto.email },
     });
 
     if (!user) {
-        return { message: 'If your email is in our database, you will receive a password reset link.' };
+      return {
+        message:
+          'If your email is in our database, you will receive a password reset link.',
+      };
     }
 
     const resetToken = uuidv4();
     const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
 
     await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-            resetPasswordToken: resetToken,
-            resetPasswordExpires: resetTokenExpiry,
-        },
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: resetTokenExpiry,
+      },
     });
 
     console.log(`Password reset token for ${user.email}: ${resetToken}`);
@@ -102,29 +108,31 @@ export class AuthService {
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-      const user = await this.prisma.user.findFirst({
-          where: {
-              resetPasswordToken: dto.token,
-              resetPasswordExpires: { gt: new Date() },
-          },
-      });
+    const user = await this.prisma.user.findFirst({
+      where: {
+        resetPasswordToken: dto.token,
+        resetPasswordExpires: { gt: new Date() },
+      },
+    });
 
-      if (!user) {
-          throw new UnauthorizedException('Invalid or expired password reset token');
-      }
+    if (!user) {
+      throw new UnauthorizedException(
+        'Invalid or expired password reset token',
+      );
+    }
 
-      const hashedPassword = await argon2.hash(dto.password);
+    const hashedPassword = await argon2.hash(dto.password);
 
-      await this.prisma.user.update({
-          where: { id: user.id },
-          data: {
-              password: hashedPassword,
-              resetPasswordToken: null,
-              resetPasswordExpires: null,
-          },
-      });
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
 
-      return { message: 'Password has been successfully reset' };
+    return { message: 'Password has been successfully reset' };
   }
 
   signToken(userId: string, email: string, role: string): Promise<string> {
