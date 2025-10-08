@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import styles from './Navbar.module.css';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { FaBars, FaTimes, FaBell, FaCommentDots } from 'react-icons/fa';
@@ -12,6 +11,12 @@ import Image from 'next/image';
 import { useSocket } from '@/context/SocketContext';
 import { Notification } from '@/types';
 import { toast } from 'react-toastify';
+import { ThemeToggle } from './ThemeToggle';
+
+const baseLinkClasses =
+  'relative rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200';
+const activeLinkClasses = 'text-primary bg-neutral-100 shadow-sm';
+const inactiveLinkClasses = 'text-neutral-700 hover:text-primary hover:bg-neutral-100';
 
 export default function Navbar() {
   const { authStatus, user, logout } = useAuth();
@@ -115,103 +120,203 @@ export default function Navbar() {
  
   return (
     <>
-      <nav className={styles.navbar}>
-        <div className={styles.navContainer}>
-          <div className={styles.navLeft}>
-            <Link href="/" className={styles.logo}>
-              <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} priority />
-            </Link>
-          </div>
+      <nav className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-white/90 backdrop-blur">
+        <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} priority />
+          </Link>
 
-          <div className={styles.navCenter}>
-            {mainLinks.map(link => (
-              <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`}>
+          <div className="hidden lg:flex items-center gap-2">
+            {mainLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
+              >
                 {link.label}
               </Link>
             ))}
           </div>
-         
-          <div className={styles.navRight}>
-            <div className={styles.desktopAuth}>
-              {authStatus === 'loading' ? (
-                <div className={styles.navLink}>Loading...</div>
-              ) : authStatus === 'unauthenticated' ? (
+
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3">
+              {authStatus === 'loading' && <span className="text-sm text-neutral-500">Loading...</span>}
+              {authStatus === 'unauthenticated' && (
                 <>
-                  <button onClick={() => openModal('login')} className={`${styles.navLink} ${styles.loginButton}`}>Login</button>
-                  <button onClick={() => openModal('register')} className={`${styles.navLink} ${styles.registerButton}`}>Register</button>
+                  <button onClick={() => openModal('login')} className="btn btn-ghost text-sm lowercase">
+                    Login
+                  </button>
+                  <button onClick={() => openModal('register')} className="btn btn-primary text-sm lowercase">
+                    Register
+                  </button>
                 </>
-              ) : (
+              )}
+              {authStatus === 'authenticated' && (
                 <>
-                  {authenticatedLinks.map(link => (
-                    <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`}>
+                  {authenticatedLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
+                    >
                       {link.label}
                     </Link>
                   ))}
-                    <div className={styles.verticalDivider} />
-
-                  <button onClick={handleChatClick} className={styles.iconButton} aria-label="Messages">
+                  <div className="h-6 w-px bg-[color:var(--color-border)]" />
+                  <ThemeToggle />
+                  <div className="h-6 w-px bg-[color:var(--color-border)]" />
+                  <button
+                    onClick={handleChatClick}
+                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition-colors hover:bg-neutral-200"
+                    aria-label="Messages"
+                  >
                     <FaCommentDots />
                   </button>
-                 
-                  <div className={styles.notificationContainer} ref={notificationsRef}>
-                    <button onClick={() => setIsNotificationsOpen(prev => !prev)} className={styles.iconButton} aria-label="Notifications">
+                  <div ref={notificationsRef} className="relative">
+                    <button
+                      onClick={() => setIsNotificationsOpen((prev) => !prev)}
+                      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition-colors hover:bg-neutral-200"
+                      aria-label="Notifications"
+                    >
                       <FaBell />
-                      {unreadCount > 0 && <span className={styles.notificationBadge}>{unreadCount}</span>}
+                      {unreadCount > 0 && (
+                        <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-white">
+                          {unreadCount}
+                        </span>
+                      )}
                     </button>
                     {isNotificationsOpen && (
-                      <div className={styles.notificationDropdown}>
-                        <div className={styles.notificationHeader}>Notifications</div>
-                        {notifications.length > 0 ? notifications.map(notif => (
-                          <div key={notif.id} className={`${styles.notificationItem} ${!notif.isRead ? styles.unread : ''}`}>
-                            {notif.message}
-                          </div>
-                        )) : <div className={styles.notificationItem}>No new notifications.</div>}
+                      <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[color:var(--color-border)] bg-white p-3 shadow-lg">
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                          Notifications
+                        </div>
+                        <div className="max-h-72 space-y-2 overflow-y-auto">
+                          {notifications.length > 0 ? (
+                            notifications.map((notif) => (
+                              <div
+                                key={notif.id}
+                                className={`rounded-lg border border-transparent px-3 py-2 text-sm ${
+                                  notif.isRead ? 'text-neutral-600' : 'border-primary/30 bg-primary/5 text-neutral-800'
+                                }`}
+                              >
+                                {notif.message}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="rounded-lg bg-neutral-100 px-3 py-4 text-sm text-neutral-500">
+                              No new notifications.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
-                  <button onClick={() => setIsLogoutModalOpen(true)} className={`${styles.navLink} ${styles.logoutButton}`}>Logout</button>
+                  <button onClick={() => setIsLogoutModalOpen(true)} className="btn btn-ghost text-sm lowercase">
+                    Logout
+                  </button>
                 </>
               )}
             </div>
-            <button className={styles.menuIcon} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+
+            <button
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition-colors hover:bg-neutral-200 lg:hidden"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              aria-label="Toggle navigation"
+            >
               {isMenuOpen ? <FaTimes /> : <FaBars />}
             </button>
           </div>
         </div>
       </nav>
 
-      <div className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ''}`}>
-        {mainLinks.map(link => (
-          <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`} onClick={() => setIsMenuOpen(false)}>
-            {link.label}
-          </Link>
-        ))}
-        <div className={styles.divider} />
-        {authStatus === 'authenticated' && authenticatedLinks.map(link => (
-          <Link key={link.href} href={link.href} className={`${styles.navLink} ${pathname === link.href ? styles.activeLink : ''}`} onClick={() => setIsMenuOpen(false)}>
-            {link.label}
-          </Link>
-        ))}
-        <div className={styles.mobileAuth}>
-          {authStatus === 'loading' ? (
-             <div className={styles.navLink}>Loading...</div>
-          ) : authStatus === 'unauthenticated' ? (
-            <>
-              <button onClick={() => { openModal('login'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.loginButton}`}>Login</button>
-              <button onClick={() => { openModal('register'); setIsMenuOpen(false); }} className={`${styles.navLink} ${styles.registerButton}`}>Register</button>
-            </>
-          ) : (
-            <button onClick={() => setIsLogoutModalOpen(true)} className={`${styles.navLink} ${styles.logoutButton}`}>Logout</button>
+      <div
+        className={`lg:hidden ${
+          isMenuOpen
+            ? 'pointer-events-auto opacity-100'
+            : 'pointer-events-none opacity-0'
+        } fixed inset-x-0 top-20 z-40 bg-white/95 backdrop-blur transition-opacity`}
+      >
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 sm:px-6 lg:px-8">
+          {mainLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsMenuOpen(false)}
+              className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
+            >
+              {link.label}
+            </Link>
+          ))}
+
+          <div className="my-2 h-px bg-[color:var(--color-border)]" />
+          <div className="flex items-center justify-between rounded-lg bg-neutral-100 px-4 py-3 text-sm font-medium text-neutral-600">
+            <span>Appearance</span>
+            <ThemeToggle />
+          </div>
+          <div className="my-2 h-px bg-[color:var(--color-border)]" />
+
+          {authStatus === 'authenticated' && (
+            <div className="flex flex-col gap-2">
+              {authenticatedLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <button
+                onClick={() => {
+                  setIsLogoutModalOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="btn btn-ghost text-sm lowercase"
+              >
+                Logout
+              </button>
+              <button onClick={handleChatClick} className="btn btn-primary text-sm lowercase">
+                Messages
+              </button>
+            </div>
+          )}
+
+          {authStatus === 'unauthenticated' && (
+            <div className="grid gap-2">
+              <button
+                onClick={() => {
+                  openModal('login');
+                  setIsMenuOpen(false);
+                }}
+                className="btn btn-ghost text-sm lowercase"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => {
+                  openModal('register');
+                  setIsMenuOpen(false);
+                }}
+                className="btn btn-primary text-sm lowercase"
+              >
+                Register
+              </button>
+            </div>
+          )}
+
+          {authStatus === 'loading' && (
+            <span className="text-sm text-neutral-500">Checking session...</span>
           )}
         </div>
       </div>
 
       {isLogoutModalOpen && (
         <ConfirmationModal
-            message="Are you sure you want to log out?"
-            onConfirm={handleLogout}
-            onCancel={() => setIsLogoutModalOpen(false)}
-            confirmText="Logout"
+          message="Are you sure you want to log out?"
+          onConfirm={handleLogout}
+          onCancel={() => setIsLogoutModalOpen(false)}
+          confirmText="Logout"
         />
       )}
     </>

@@ -1,122 +1,270 @@
 @import 'react-toastify/dist/ReactToastify.css';
 @import 'react-datepicker/dist/react-datepicker.css';
 
-:root {
-  /* ... (color variables remain the same) ... */
-  --primary-pink: #FF2D5E;
-  --dark-gray: #2F2F3A;
-  --white: #FFFFFF;
-  --light-silver: #E5E5E5;
-  --warm-beige: #F4EDE6;
-  --muted-teal: #3AB7A5;
-  --charcoal-black: #1C1C1E;
-  --soft-pastel-pink: #F9D7E5;
-  --text-primary: var(--dark-gray);
-  --text-body: #4A4A4A;
-  --text-muted: #7C7C7C;
-  --text-inverse: var(--white);
-  --link-color: var(--primary-pink);
-  --link-hover: #E62654;
-  --link-active: #C81F47;
-  --link-visited: #7C2B4C;
-  --btn-primary-bg: var(--primary-pink);
-  --btn-primary-hover: #E62654;
-  --btn-primary-active: #C81F47;
-  --btn-primary-disabled-bg: var(--soft-pastel-pink);
-  --btn-primary-disabled-text: var(--text-muted);
-  --btn-secondary-bg: var(--muted-teal);
-  --btn-secondary-hover: #2E9687;
-  --btn-ghost-border: var(--dark-gray);
-  --btn-ghost-text: var(--dark-gray);
-  --btn-ghost-hover-bg: var(--warm-beige);
-  --alert-success-bg: #CDEDEA;
-  --alert-success-text: #25776C;
-  --alert-error-bg: #FFD6DF;
-  --alert-error-text: #C81F47;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body {
-  background-color: var(--white);
-  color: var(--text-body);
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
+@layer base {
+  :root {
+    --color-primary: #F51957;
+    --color-primary-hover: #ff2d6f;
+    --color-primary-strong: #d4144c;
+    --color-primary-soft: #ffd1dd;
+    --color-secondary: #3ab7a5;
+    --color-secondary-strong: #2e9687;
+    --color-surface: #f9f6f1;
+    --color-surface-subtle: #f3ece3;
+    --color-surface-elevated: #fffaf5;
+    --color-border: #cdbfb3;
+    --color-border-strong: #a8968a;
+    --color-text-strong: #43414A;
+    --color-text-muted: #4D4952;
+    --color-text-inverse: #FFFFFF;
+    --color-success-bg: #cdecea;
+    --color-success-text: #25776c;
+    --color-error-bg: #ffd6df;
+    --color-error-text: #d4144c;
+    --color-warning-bg: #fff4d6;
+    --color-warning-text: #b7791f;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
 
-* {
-  box-sizing: border-box;
-}
+    --space-3xs: 0.125rem;
+    --space-2xs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --radius-sm: 0.5rem;
+    --radius-full: 999px;
 
-a {
-  color: var(--link-color);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-a:hover {
-  color: var(--link-hover);
-}
-a:active {
-  color: var(--link-active);
-}
-a:visited {
-  color: var(--link-visited);
+    --font-family-base: 'InterVariable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: clamp(0.95rem, 0.2vw + 0.9rem, 1rem);
+    --font-size-lg: clamp(1.1rem, 0.25vw + 1rem, 1.25rem);
+    --font-size-xl: clamp(1.35rem, 0.35vw + 1.25rem, 1.6rem);
+    --font-size-2xl: clamp(1.6rem, 0.45vw + 1.55rem, 2rem);
+    --line-height-tight: 1.2;
+    --line-height-base: 1.5;
+    --line-height-relaxed: 1.75;
+
+    --link-color: var(--color-primary);
+    --link-hover: #d4144c;
+    --link-active: var(--color-primary-strong);
+    --link-visited: #924061;
+
+    --transition-base: 180ms ease;
+
+    --primary-pink: var(--color-primary);
+    --dark-gray: #43414A;
+    --white: var(--color-surface);
+    --light-silver: var(--color-border);
+    --warm-beige: #D7C9BE;
+    --secondary-blush: #eaded2;
+    --secondary-blush-dark: #d5c3b3;
+    --light-grey: #f1eeea;
+    --muted-teal: var(--color-secondary);
+    --charcoal-black: #1c1c1e;
+    --soft-pastel-pink: var(--color-primary-soft);
+    --text-primary: var(--color-text-strong);
+    --text-body: var(--color-text-strong);
+    --text-muted: var(--color-text-muted);
+    --text-inverse: var(--color-text-inverse);
+    --text-charcoal: var(--color-text-strong);
+    --primary-plum: var(--color-primary);
+    --error-red: var(--color-error-text);
+    --accent-gold: #f6ad55;
+    --btn-primary-bg: var(--color-primary);
+    --btn-primary-hover: var(--link-hover);
+    --btn-primary-active: var(--color-primary-strong);
+    --btn-primary-disabled-bg: var(--color-primary-soft);
+    --btn-primary-disabled-text: var(--color-text-muted);
+    --btn-secondary-bg: var(--color-secondary);
+    --btn-secondary-hover: var(--color-secondary-strong);
+    --btn-ghost-border: var(--color-border);
+    --btn-ghost-text: var(--color-text-strong);
+    --btn-ghost-hover-bg: var(--color-surface-subtle);
+    --alert-success-bg: var(--color-success-bg);
+    --alert-success-text: var(--color-success-text);
+    --alert-error-bg: var(--color-error-bg);
+    --alert-error-text: var(--color-error-text);
+    --input-border: rgba(67, 65, 74, 0.18);
+    --input-border-strong: rgba(67, 65, 74, 0.32);
+    --input-border-focus: rgba(245, 25, 87, 0.28);
+  }
+
+  [data-theme='dark'] {
+    --color-primary: #ff5c88;
+    --color-primary-hover: #ff7ba0;
+    --color-primary-strong: #ff326a;
+    --color-primary-soft: #4f1f2d;
+    --color-secondary: #4ad0bc;
+    --color-secondary-strong: #32b09d;
+    --color-surface: #12121a;
+    --color-surface-subtle: #161724;
+    --color-surface-elevated: #1d1e2b;
+    --color-border: #2f2f3d;
+    --color-border-strong: #45455b;
+    --color-text-strong: #f5f5f7;
+    --color-text-muted: #b4b4c4;
+    --color-text-inverse: #050508;
+    --color-success-bg: #13524b;
+    --color-success-text: #81f3e2;
+    --color-error-bg: #55222d;
+    --color-error-text: #ff86a5;
+    --color-warning-bg: #4f3b16;
+    --color-warning-text: #fcd796;
+    --shadow-sm: 0 1px 2px rgba(5, 8, 15, 0.4);
+    --shadow-md: 0 18px 40px rgba(5, 8, 15, 0.5);
+
+    --dark-gray: #f5f5f7;
+    --white: var(--color-surface);
+    --light-silver: var(--color-border);
+    --warm-beige: #3a3038;
+    --secondary-blush: #2b2733;
+    --secondary-blush-dark: #403b48;
+    --light-grey: #2a2a38;
+    --muted-teal: var(--color-secondary);
+    --charcoal-black: #050508;
+    --soft-pastel-pink: var(--color-primary-soft);
+    --text-primary: var(--color-text-strong);
+    --text-body: var(--color-text-strong);
+    --text-muted: var(--color-text-muted);
+    --text-inverse: var(--color-text-inverse);
+    --btn-ghost-border: var(--color-border);
+    --btn-ghost-hover-bg: rgba(255, 255, 255, 0.04);
+    --accent-gold: #ffbf66;
+    --input-border: rgba(245, 245, 247, 0.18);
+    --input-border-strong: rgba(245, 245, 247, 0.32);
+    --input-border-focus: rgba(255, 124, 155, 0.28);
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900 antialiased;
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    transition: background-color var(--transition-base), color var(--transition-base);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  a {
+    color: var(--link-color);
+    text-decoration: none;
+    transition: color var(--transition-base);
+  }
+
+  a:hover {
+    color: var(--link-hover);
+  }
+
+  a:active {
+    color: var(--link-active);
+  }
+
+  a:visited {
+    color: var(--link-visited);
+  }
 }
 
 /* --- GLOBAL BUTTON STYLES --- */
 .btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 700;
+  @apply inline-flex items-center justify-center font-semibold border-2 border-transparent transition-transform transition-colors duration-200 ease-out shadow-sm;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-decoration: none;
-  display: inline-block;
   text-align: center;
-  border: 2px solid transparent;
-  transition: all 0.2s ease-in-out;
 }
 
 .btn-primary {
-  background-color: var(--btn-primary-bg);
-  color: var(--text-inverse);
-  border-color: var(--btn-primary-bg);
+  @apply text-white;
+  background-color: var(--color-primary);
 }
 .btn-primary:hover {
-  background-color: var(--btn-primary-hover);
-  border-color: var(--btn-primary-hover);
-  color: var(--text-inverse);
+  @apply -translate-y-px shadow-md;
+  background-color: var(--color-primary-hover);
 }
 .btn-primary:active {
-  background-color: var(--btn-primary-active);
-  border-color: var(--btn-primary-active);
+  @apply translate-y-0;
+  background-color: var(--color-primary-strong);
 }
 .btn-primary:disabled {
-  background-color: var(--btn-primary-disabled-bg);
-  border-color: var(--btn-primary-disabled-bg);
-  color: var(--btn-primary-disabled-text);
-  cursor: not-allowed;
+  @apply cursor-not-allowed;
+  background-color: var(--color-primary-soft);
+  color: var(--color-text-muted);
 }
 
 .btn-secondary {
-  background-color: var(--btn-secondary-bg);
-  border-color: var(--btn-secondary-bg);
-  color: var(--text-inverse);
+  @apply text-white;
+  background-color: var(--color-secondary);
 }
 .btn-secondary:hover {
-  background-color: var(--btn-secondary-hover);
-  border-color: var(--btn-secondary-hover);
+  background-color: var(--color-secondary-strong);
 }
 
 .btn-ghost {
-  background-color: transparent;
-  border-color: var(--btn-ghost-border);
+  @apply bg-transparent;
   color: var(--btn-ghost-text);
+  border: 2px solid var(--btn-ghost-border);
 }
 .btn-ghost:hover {
-  background-color: var(--warm-beige);
-  color: var(--primary-pink); /* This is the fix */
+  background-color: var(--btn-ghost-hover-bg);
+  color: var(--color-primary);
 }
 
 /* This class prevents content from being hidden by the sticky navbar */
 .main-content {
   padding-top: 78px;
+}
+
+.surface-card {
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-base);
+  color: var(--color-text-strong);
+  margin: 0 0 var(--space-md);
+  line-height: var(--line-height-tight);
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(120, 120, 140, 0.12) 25%, rgba(120, 120, 140, 0.24) 37%, rgba(120, 120, 140, 0.12) 63%);
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-loading {
+  0% {
+    transform: translateX(-20%);
+  }
+  100% {
+    transform: translateX(20%);
+  }
 }

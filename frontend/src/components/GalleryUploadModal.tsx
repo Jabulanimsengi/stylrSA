@@ -2,7 +2,8 @@
 
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import styles from './GalleryUploadModal.module.css'; // FIX: Use the new dedicated stylesheet
 import { toast } from 'react-toastify';
 import { GalleryImage } from '@/types';
@@ -15,22 +16,49 @@ interface GalleryUploadModalProps {
   onImageAdded: (image: GalleryImage) => void;
 }
 
+interface FileItem {
+  file: File;
+  preview: string;
+}
+
 export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: GalleryUploadModalProps) {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const filesRef = useRef<FileItem[]>([]);
   const [caption, setCaption] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFiles(prev => [...prev, ...newFiles]);
+      const newFiles = Array.from(e.target.files).map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+      setFiles((prev) => [...prev, ...newFiles]);
     }
   };
 
   const handleRemoveImage = (fileIndex: number) => {
-    setFiles(files.filter((_, index) => index !== fileIndex));
+    setFiles((prev) => {
+      const next = [...prev];
+      const [removed] = next.splice(fileIndex, 1);
+      if (removed) {
+        URL.revokeObjectURL(removed.preview);
+      }
+      return next;
+    });
   };
+
+  const cleanupPreviews = useCallback(() => {
+    filesRef.current.forEach((item) => URL.revokeObjectURL(item.preview));
+    filesRef.current = [];
+    setFiles([]);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    cleanupPreviews();
+    onClose();
+  }, [cleanupPreviews, onClose]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,7 +71,7 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
 
     try {
       // Upload all files simultaneously
-      const uploadPromises = files.map(file => uploadToCloudinary(file));
+      const uploadPromises = files.map(({ file }) => uploadToCloudinary(file));
       const uploaded = await Promise.all(uploadPromises);
       const imageUrls = uploaded.map(u => u.secure_url);
 
@@ -70,6 +98,7 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
       }
 
       toast.success(`${files.length} image(s) uploaded successfully!`);
+      cleanupPreviews();
       onClose();
 
     } catch (err: any) {
@@ -80,12 +109,22 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
     }
   };
 
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
+  useEffect(() => {
+    return () => {
+      filesRef.current.forEach((item) => URL.revokeObjectURL(item.preview));
+    };
+  }, []);
+
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <div className={styles.header}>
             <h2 className={styles.title}>Upload to Gallery</h2>
-            <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
+            <button onClick={handleClose} className={styles.closeButton}><FaTimes /></button>
         </div>
         
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -109,10 +148,19 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
 
           {files.length > 0 && (
             <div className={styles.imagePreviewContainer}>
-              {files.map((file, index) => (
+              {files.map((entry, index) => (
                 <div key={index} className={styles.imageWrapper}>
-                  <img src={URL.createObjectURL(file)} alt={`preview ${index}`} className={styles.imagePreview} />
-                  <button type="button" onClick={() => handleRemoveImage(index)} className={styles.removeImageButton}>×</button>
+                  <Image
+                    src={entry.preview}
+                    alt={`preview ${index + 1}`}
+                    className={styles.imagePreview}
+                    width={160}
+                    height={120}
+                    unoptimized
+                  />
+                  <button type="button" onClick={() => handleRemoveImage(index)} className={styles.removeImageButton}>
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
@@ -130,7 +178,7 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
           </div>
 
           <div className={styles.buttonContainer}>
-            <button type="button" onClick={onClose} className={styles.cancelButton}>
+            <button type="button" onClick={handleClose} className={styles.cancelButton}>
               Cancel
             </button>
             <button type="submit" disabled={isLoading || files.length === 0} className={styles.saveButton}>

@@ -4,8 +4,8 @@
   display: flex; justify-content: center; align-items: center; z-index: 50;
 }
 .modalContent {
-  background-color: var(--white); border-radius: 0.5rem; padding: 2rem;
-  width: 100%; max-width: 32rem; color: var(--text-charcoal);
+  background-color: var(--color-surface-elevated); border-radius: 0.5rem; padding: 2rem;
+  width: 100%; max-width: 32rem; color: var(--color-text-strong);
 }
 .title {
   font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--primary-plum);
@@ -13,17 +13,27 @@
 .form { display: flex; flex-direction: column; gap: 1rem; }
 .label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
 .starRating { display: flex; gap: 0.25rem; font-size: 2rem; }
-.star { cursor: pointer; color: #CBD5E0; /* gray-300 */ }
+.star { cursor: pointer; color: var(--input-border); }
 .starActive { color: var(--accent-gold); }
 .textarea {
-  width: 100%; min-height: 100px; padding: 0.5rem; border: 1px solid #CBD5E0;
+  width: 100%; min-height: 100px; padding: 0.5rem; border: 1px solid var(--input-border);
   border-radius: 0.375rem; font-family: inherit; font-size: 1rem; resize: vertical;
+  background-color: var(--color-surface);
+  color: var(--color-text-strong);
+}
+.textarea:focus {
+  outline: none;
+  border-color: var(--input-border-strong);
+  box-shadow: 0 0 0 2px var(--input-border-focus);
+  background-color: var(--color-surface-elevated);
 }
 .buttonContainer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
-.cancelButton { padding: 0.5rem 1rem; background-color: #E2E8F0; border: none; border-radius: 0.375rem; cursor: pointer; }
+.cancelButton { padding: 0.5rem 1rem; background-color: var(--light-grey); border: none; border-radius: 0.375rem; cursor: pointer; color: var(--color-text-strong); }
+.cancelButton:hover { background-color: color-mix(in srgb, var(--light-grey) 80%, var(--color-surface)); }
 .submitButton {
-  padding: 0.5rem 1rem; background-color: var(--primary-plum); color: var(--white);
+  padding: 0.5rem 1rem; background-color: var(--color-primary); color: var(--color-text-inverse);
   font-weight: 700; border: none; border-radius: 0.375rem; cursor: pointer;
 }
+.submitButton:hover { background-color: var(--color-primary-hover); }
 .submitButton:disabled { opacity: 0.5; cursor: not-allowed; }
-.errorMessage { color: var(--error-red); font-size: 0.875rem; }
+.errorMessage { color: var(--color-error-text); font-size: 0.875rem; }

@@ -53,7 +53,7 @@
 }
 
 .navButton:hover {
-  background-color: #f7fafc; 
+  background-color: var(--color-surface-subtle); 
 }
 
 .salonGrid {
@@ -62,7 +62,7 @@
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
 .salonCard {
-  background-color: var(--white);
+  background-color: var(--color-surface-elevated);
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
   overflow: hidden;
@@ -74,11 +74,15 @@
   transform: translateY(-5px);
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
-.cardImage {
+.imageWrapper {
+  position: relative;
   width: 100%;
   height: 180px;
+  overflow: hidden;
+}
+
+.cardImage {
   object-fit: cover;
-  display: block;
 }
 .cardContent {
   padding: 1rem;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Service } from '@/types';
 import styles from './ServiceCard.module.css';
 import { toast } from 'react-toastify';
@@ -60,10 +61,12 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
         className={styles.imageContainer} 
         onClick={() => service.images.length > 0 && onImageClick(service.images, 0)}
       >
-        <img
+        <Image
           src={service.images[0] || 'https://via.placeholder.com/300x150'}
           alt={service.title}
           className={styles.image}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
         />
         <div className={styles.imageOverlay}>
           <span className={styles.overlayIcon}>👁️</span>

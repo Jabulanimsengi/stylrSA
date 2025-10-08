@@ -180,6 +180,8 @@ model Message {
   id             String       @id @default(uuid())
   content        String
   isRead         Boolean      @default(false)
+  deliveredAt    DateTime?
+  readAt         DateTime?
   createdAt      DateTime     @default(now())
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id])

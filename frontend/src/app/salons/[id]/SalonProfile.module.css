@@ -57,7 +57,7 @@
 }
 
 .navButton:hover {
-  background-color: #f7fafc;
+  background-color: var(--color-surface-subtle);
 }
 
 .hero {
@@ -107,6 +107,28 @@
   border-color: var(--primary-pink);
 }
 
+.heroSlider {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.sliderWrapper {
+  display: flex;
+  transition: transform 0.6s ease-in-out;
+}
+
+.slide {
+  position: relative;
+  min-width: 100%;
+  height: 360px;
+}
+
+.heroImage {
+  object-fit: cover;
+}
+
 .heroLocation {
   font-size: 1.1rem;
   color: #f0f0f0;
@@ -130,9 +152,9 @@
 .availabilityDot {
   width: 12px;
   height: 12px;
-  background-color: #48bb78;
+  background-color: var(--color-success-text);
   border-radius: 50%;
-  border: 2px solid var(--white);
+  border: 2px solid var(--color-surface-elevated);
 }
 
 .container {
@@ -171,19 +193,18 @@
 
 .galleryItem {
   cursor: pointer;
-  overflow: hidden;
   border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+  height: 150px;
 }
 
-.galleryItem img {
-  width: 100%;
-  height: 150px;
+.galleryImage {
   object-fit: cover;
-  border-radius: 0.5rem;
   transition: transform 0.2s ease-in-out;
 }
 
-.galleryItem:hover img {
+.galleryItem:hover .galleryImage {
   transform: scale(1.05);
 }
 

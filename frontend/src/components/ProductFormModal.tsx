@@ -2,7 +2,8 @@
 
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Product } from '@/types';
 import styles from './ProductFormModal.module.css';
 import { toast } from 'react-toastify';
@@ -13,7 +14,7 @@ interface ProductFormModalProps {
   onClose: () => void;
   onProductAdded: (product: Product) => void; // FIX: Renamed prop
   initialData?: Product | null; // FIX: Renamed prop
-  salonId: string; // FIX: Added salonId
+  salonId?: string;
 }
 
 export default function ProductFormModal({ onClose, onProductAdded, initialData, salonId }: ProductFormModalProps) {
@@ -22,6 +23,8 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
   const [price, setPrice] = useState('');
   const [stockQuantity, setStockQuantity] = useState('');
   const [files, setFiles] = useState<File[]>([]);
+  const [filePreviews, setFilePreviews] = useState<string[]>([]);
+  const filePreviewRef = useRef<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +48,9 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
         toast.error('You can upload a maximum of 5 images in total.');
         return;
       }
+      const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
       setFiles((prev) => [...prev, ...newFiles]);
+      setFilePreviews((prev) => [...prev, ...newPreviews]);
     }
   };
 
@@ -54,7 +59,15 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
   };
 
   const handleRemoveNewFile = (fileIndex: number) => {
-    setFiles(files.filter((_, index) => index !== fileIndex));
+    setFiles((prev) => prev.filter((_, index) => index !== fileIndex));
+    setFilePreviews((prev) => {
+      const next = [...prev];
+      const [removed] = next.splice(fileIndex, 1);
+      if (removed) {
+        URL.revokeObjectURL(removed);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -82,7 +95,7 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
         price: parseFloat(price),
         stockQuantity: parseInt(stockQuantity),
         images: imageUrls,
-        salonId, // FIX: Include salonId in the request body
+        ...(salonId ? { salonId } : {}),
       });
 
       const res = await fetch(apiEndpoint, {
@@ -100,6 +113,9 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
       const savedProduct = await res.json();
       toast.success(`Product ${isEditMode ? 'update submitted' : 'created and submitted'} for approval.`);
       onProductAdded(savedProduct); // FIX: Use correct prop name
+      filePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+      setFilePreviews([]);
+      setFiles([]);
       onClose();
 
     } catch (err: any) {
@@ -109,6 +125,16 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    filePreviewRef.current = filePreviews;
+  }, [filePreviews]);
+
+  useEffect(() => {
+    return () => {
+      filePreviewRef.current.forEach((preview) => URL.revokeObjectURL(preview));
+    };
+  }, []);
 
   return (
     <div className={styles.modalOverlay}>
@@ -157,13 +183,28 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
           <div className={styles.imagePreviewContainer}>
             {existingImages.map(url => (
               <div key={url} className={styles.imageWrapper}>
-                <img src={url} alt="Existing" className={styles.imagePreview} />
+                <Image
+                  src={url}
+                  alt="Existing"
+                  className={styles.imagePreview}
+                  width={160}
+                  height={120}
+                />
                 <button type="button" onClick={() => handleRemoveExistingImage(url)} className={styles.removeImageButton}>&times;</button>
               </div>
             ))}
             {files.map((file, index) => (
               <div key={index} className={styles.imageWrapper}>
-                <img src={URL.createObjectURL(file)} alt="Preview" className={styles.imagePreview} />
+                {filePreviews[index] ? (
+                  <Image
+                    src={filePreviews[index]}
+                    alt={`Preview ${index + 1}`}
+                    className={styles.imagePreview}
+                    width={160}
+                    height={120}
+                    unoptimized
+                  />
+                ) : null}
                 <button type="button" onClick={() => handleRemoveNewFile(index)} className={styles.removeImageButton}>&times;</button>
               </div>
             ))}

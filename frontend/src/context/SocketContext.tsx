@@ -16,41 +16,44 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const { authStatus, user } = useAuth();
 
+  const userId = user?.id;
+
   useEffect(() => {
-    if (authStatus !== 'authenticated' || !user) {
-      // Disconnect any existing socket on logout
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-      }
+    if (authStatus !== 'authenticated' || !userId) {
+      setSocket((current) => {
+        if (current) {
+          current.disconnect();
+        }
+        return null;
+      });
       return;
     }
 
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL || undefined; // same-origin if undefined
-    const newSocket = io(WS_URL, {
+    const nextSocket = io(WS_URL, {
       withCredentials: true,
-      query: { userId: user.id },
+      query: { userId },
     });
 
-      newSocket.on('connect', () => {
-        console.log('Socket connected:', newSocket.id);
-      });
+    nextSocket.on('connect', () => {
+      console.log('Socket connected:', nextSocket.id);
+      nextSocket.emit('register', userId);
+    });
 
-      // Listen for notifications
-      newSocket.on('newBooking', (data) => {
-        toast.info(`New Booking Request: ${data.service.title} from ${data.client.firstName}`);
-      });
-      
-      newSocket.on('bookingUpdate', (data) => {
-        toast.success(`Your booking has been ${data.status.toLowerCase()}!`);
-      });
+    nextSocket.on('newBooking', (data) => {
+      toast.info(`New Booking Request: ${data.service.title} from ${data.client.firstName}`);
+    });
 
-      setSocket(newSocket);
+    nextSocket.on('bookingUpdate', (data) => {
+      toast.success(`Your booking has been ${data.status.toLowerCase()}!`);
+    });
 
-      return () => {
-        newSocket.disconnect();
-      };
-  }, [authStatus, user?.id]);
+    setSocket(nextSocket);
+
+    return () => {
+      nextSocket.disconnect();
+    };
+  }, [authStatus, userId]);
 
   return (
     <SocketContext.Provider value={socket}>
