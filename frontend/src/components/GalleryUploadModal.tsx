@@ -44,17 +44,17 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
     try {
       // Upload all files simultaneously
       const uploadPromises = files.map(file => uploadToCloudinary(file));
-      const imageUrls = await Promise.all(uploadPromises);
+      const uploaded = await Promise.all(uploadPromises);
+      const imageUrls = uploaded.map(u => u.secure_url);
 
       // Create a gallery image entry for each uploaded file
-      const creationPromises = imageUrls.map(url => fetch('/api/gallery', {
+      const creationPromises = imageUrls.map(url => fetch(`/api/gallery/salon/${salonId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           imageUrl: url,
           caption: caption || null,
-          salonId: salonId,
         }),
       }));
 

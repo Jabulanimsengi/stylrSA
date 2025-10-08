@@ -39,7 +39,6 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (salon) {
@@ -111,30 +110,30 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     e.preventDefault();
     setIsUploading(true);
     setError('');
-    const token = localStorage.getItem('access_token');
 
     try {
       let finalBackgroundImageUrl = backgroundImagePreview;
       if (backgroundImageFile && backgroundImagePreview?.startsWith('blob:')) {
-        // Corrected background image upload
-        finalBackgroundImageUrl = await uploadToCloudinary(backgroundImageFile);
+        // Upload and extract the secure_url
+        const uploaded = await uploadToCloudinary(backgroundImageFile);
+        finalBackgroundImageUrl = uploaded.secure_url;
       }
 
       const existingHeroImageUrls = heroImagesPreview.filter(p => !p.startsWith('blob:'));
       
       // Corrected hero images upload
-      const newHeroImageUrls = await Promise.all(
-        heroImageFiles.map(file => uploadToCloudinary(file))
-      );
+      const newHeroImageUrls = (
+        await Promise.all(heroImageFiles.map(file => uploadToCloudinary(file)))
+      ).map(r => r.secure_url);
       
       const finalHeroImageUrls = [...existingHeroImageUrls, ...newHeroImageUrls];
 
-      const res = await fetch(`${apiUrl}/salons/${salon.id}`, {
+      const res = await fetch(`/api/salons/${salon.id}`, {
         method: 'PATCH',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+        headers: {
+          'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           ...formData,
           backgroundImage: finalBackgroundImageUrl,
