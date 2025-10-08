@@ -9,10 +9,10 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
     if (!requiredRoles) {
       return true;
     }
@@ -20,7 +20,7 @@ export class RolesGuard implements CanActivate {
 
     // FIX: Ensure user and user.role exist before checking.
     if (!user || !user.role) {
-        return false;
+      return false;
     }
 
     // FIX: Correctly check if the user's single role is in the requiredRoles array.

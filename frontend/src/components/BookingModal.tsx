@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { FaTimes } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
-import { useSocket } from '@/context/SocketContext'; // Import the socket hook
+import { useSocket } from '@/context/SocketContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -25,7 +25,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
   const { authStatus, user } = useAuth(); // Get the user object
   const { openModal } = useAuthModal();
   const socket = useSocket(); // Get the socket instance
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // Use the environment variable
+  // Using relative API path with cookie-based auth
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,17 +43,11 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
       return;
     }
 
-    const token = localStorage.getItem('access_token'); // Get the auth token
-
     try {
-      // FIX 1: Use apiUrl and the correct port (5000)
-      const res = await fetch(`${apiUrl}/bookings`, {
+      const res = await fetch(`/api/bookings`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // FIX 2: Use token-based Authorization header
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         // Your existing body is correct and matches your DTO
         body: JSON.stringify({
           serviceId: service.id,

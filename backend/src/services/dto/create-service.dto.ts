@@ -1,5 +1,12 @@
 // backend/src/services/dto/create-service.dto.ts
-import { IsString, IsNotEmpty, IsNumber, IsArray, IsOptional, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsArray,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateServiceDto {
   @IsString()

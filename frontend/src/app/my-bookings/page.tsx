@@ -31,15 +31,11 @@ export default function MyBookingsPage() {
   const router = useRouter();
   const socket = useSocket();
   const { authStatus } = useAuth();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const fetchBookings = async () => {
     setIsLoading(true);
-    const token = localStorage.getItem('access_token');
     try {
-      const res = await fetch(`${apiUrl}/bookings/my-bookings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`/api/bookings/my-bookings`, { credentials: 'include' });
 
       if (!res.ok) {
         const err = await res.json();

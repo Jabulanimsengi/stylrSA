@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -43,12 +47,16 @@ export class ProductsService {
   }
 
   private async findProductAndCheckOwnership(productId: string, user: User) {
-    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) {
       throw new NotFoundException('Product not found');
     }
     if (product.sellerId !== user.id && user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('You are not authorized to perform this action.');
+      throw new ForbiddenException(
+        'You are not authorized to perform this action.',
+      );
     }
     return product;
   }

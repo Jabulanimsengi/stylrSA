@@ -22,17 +22,10 @@ export default function ChatPage() {
 
   const fetchChatData = useCallback(async () => {
     setIsLoading(true);
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        router.push('/login');
-        return;
-    }
-    const headers = { Authorization: `Bearer ${token}` };
-
     try {
       const [convoRes, messagesRes] = await Promise.all([
-        fetch(`http://localhost:3000/api/chat/conversations/details/${params.conversationId}`, { headers }),
-        fetch(`http://localhost:3000/api/chat/conversations/${params.conversationId}`, { headers }),
+        fetch(`/api/chat/conversations/details/${params.conversationId}`, { credentials: 'include' }),
+        fetch(`/api/chat/conversations/${params.conversationId}`, { credentials: 'include' }),
       ]);
 
       if (convoRes.ok && messagesRes.ok) {

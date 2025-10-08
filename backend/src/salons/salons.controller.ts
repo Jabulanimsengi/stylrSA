@@ -24,10 +24,7 @@ export class SalonsController {
 
   @UseGuards(JwtGuard)
   @Post()
-  create(
-    @GetUser() user: User,
-    @Body() createSalonDto: CreateSalonDto,
-  ) {
+  create(@GetUser() user: User, @Body() createSalonDto: CreateSalonDto) {
     return this.salonsService.create(user.id, createSalonDto);
   }
 
@@ -37,7 +34,7 @@ export class SalonsController {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
     return this.salonsService.findMySalon(user, id);
   }
-  
+
   @UseGuards(OptionalJwtAuthGuard)
   @Get('approved')
   findAllApproved(
@@ -59,7 +56,7 @@ export class SalonsController {
   findNearby(@Query('lat') lat: number, @Query('lon') lon: number) {
     return this.salonsService.findNearby(lat, lon);
   }
-  
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.salonsService.findOne(id);
@@ -75,7 +72,7 @@ export class SalonsController {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
     return this.salonsService.updateMySalon(user, updateSalonDto, id);
   }
-  
+
   @UseGuards(JwtGuard)
   @Patch('mine/availability')
   toggleAvailability(
@@ -105,7 +102,7 @@ export class SalonsController {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
     return this.salonsService.findServicesForMySalon(user, id);
   }
-  
+
   @UseGuards(JwtGuard)
   @Delete(':id')
   remove(@GetUser() user: User, @Param('id') id: string) {

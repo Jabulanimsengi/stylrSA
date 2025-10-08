@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../auth.module.css';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
     setSuccess('');
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/reset-password', {
+      const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
@@ -106,5 +106,13 @@ export default function ResetPasswordPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

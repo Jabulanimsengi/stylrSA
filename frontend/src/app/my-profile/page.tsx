@@ -23,7 +23,7 @@ export default function MyProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const { authStatus } = useAuth();
   const router = useRouter();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // Use the environment variable
+ 
 
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
@@ -33,11 +33,8 @@ export default function MyProfilePage() {
     if (authStatus === 'authenticated') {
       const fetchProfile = async () => {
         setIsLoading(true);
-        const token = localStorage.getItem('access_token');
         try {
-          const res = await fetch(`${apiUrl}/users/me`, { // Use the variable here
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await fetch(`/api/users/me`, { credentials: 'include' });
           if (!res.ok) {
             throw new Error('Failed to fetch profile');
           }
@@ -53,19 +50,16 @@ export default function MyProfilePage() {
       };
       fetchProfile();
     }
-  }, [authStatus, router, apiUrl]);
+  }, [authStatus, router]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    const token = localStorage.getItem('access_token');
     try {
-      const res = await fetch(`${apiUrl}/users/me`, { // And here
+      const res = await fetch(`/api/users/me`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ firstName, lastName }),
       });
 

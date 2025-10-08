@@ -27,11 +27,11 @@ export default function ReviewModal({ bookingId, onClose, onReviewAdded }: Revie
     setIsLoading(true);
     setError('');
 
-    const token = localStorage.getItem('access_token');
     try {
-      const res = await fetch('http://localhost:3000/api/reviews', {
+      const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ bookingId, rating, comment }),
       });
       if (!res.ok) {

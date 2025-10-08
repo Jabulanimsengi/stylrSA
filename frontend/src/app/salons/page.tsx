@@ -1,7 +1,7 @@
 // frontend/src/app/salons/page.tsx
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
-export default function SalonsPage() {
+function SalonsPageContent() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -43,10 +43,10 @@ export default function SalonsPage() {
     setIsLoading(true);
     const query = new URLSearchParams();
     
-    let url = 'http://localhost:3000/api/salons/approved';
+    let url = '/api/salons/approved';
 
     if (filters.lat && filters.lon) {
-      url = `http://localhost:3000/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
+      url = `/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
     } else {
       if (filters.province) query.append('province', filters.province);
       if (filters.city) query.append('city', filters.city);
@@ -98,7 +98,7 @@ export default function SalonsPage() {
     );
 
     try {
-      const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salonId}`, {
+      const res = await fetch(`/api/favorites/toggle/${salonId}`, {
         method: 'POST',
         credentials: 'include', // This sends the required authentication cookie
       });
@@ -163,5 +163,13 @@ export default function SalonsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SalonsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SalonsPageContent />
+    </Suspense>
   );
 }

@@ -53,9 +53,9 @@ export default function SalonProfileClient({ initialSalon, initialServices, init
       setIsLoading(true);
       try {
         const [salonRes, servicesRes, galleryRes] = await Promise.all([
-          fetch(`http://localhost:3000/api/salons/${salon.id}`, { credentials: 'include', cache: 'no-store' }),
-          fetch(`http://localhost:3000/api/services/salon/${salon.id}`),
-          fetch(`http://localhost:3000/api/gallery/salon/${salon.id}`),
+          fetch(`/api/salons/${salon.id}`, { credentials: 'include', cache: 'no-store' }),
+          fetch(`/api/services/salon/${salon.id}`),
+          fetch(`/api/gallery/salon/${salon.id}`),
         ]);
 
         if (salonRes.ok) setSalon(await salonRes.json());
@@ -108,7 +108,7 @@ export default function SalonProfileClient({ initialSalon, initialServices, init
       return;
     }
     try {
-      const res = await fetch('http://localhost:3000/api/chat/conversations', {
+      const res = await fetch('/api/chat/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipientId: salon.ownerId }),
@@ -132,7 +132,7 @@ export default function SalonProfileClient({ initialSalon, initialServices, init
     if (!salon) return;
     try {
       setSalon(prev => (prev ? { ...prev, isFavorited: !prev.isFavorited } : null));
-      const res = await fetch(`http://localhost:3000/api/favorites/toggle/${salon.id}`, {
+      const res = await fetch(`/api/favorites/toggle/${salon.id}`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -149,7 +149,7 @@ export default function SalonProfileClient({ initialSalon, initialServices, init
   const handleToggleAvailability = async () => {
     if (!salon) return;
     try {
-        const res = await fetch(`http://localhost:3000/api/salons/mine/availability`, {
+        const res = await fetch(`/api/salons/mine/availability`, {
             method: 'PATCH',
             credentials: 'include',
         });

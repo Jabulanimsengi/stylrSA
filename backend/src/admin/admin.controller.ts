@@ -32,7 +32,10 @@ export class AdminController {
     @Param('serviceId') serviceId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateServiceStatus(serviceId, approvalStatus as ApprovalStatus);
+    return this.adminService.updateServiceStatus(
+      serviceId,
+      approvalStatus as ApprovalStatus,
+    );
   }
 
   @Patch('salons/:salonId/status')
@@ -40,7 +43,10 @@ export class AdminController {
     @Param('salonId') salonId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateSalonStatus(salonId, approvalStatus as ApprovalStatus);
+    return this.adminService.updateSalonStatus(
+      salonId,
+      approvalStatus as ApprovalStatus,
+    );
   }
 
   @Get('reviews/pending')
@@ -53,7 +59,10 @@ export class AdminController {
     @Param('reviewId') reviewId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateReviewStatus(reviewId, approvalStatus as ApprovalStatus);
+    return this.adminService.updateReviewStatus(
+      reviewId,
+      approvalStatus as ApprovalStatus,
+    );
   }
 
   @Get('products/pending')
@@ -66,6 +75,9 @@ export class AdminController {
     @Param('productId') productId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
   ) {
-    return this.adminService.updateProductStatus(productId, approvalStatus as ApprovalStatus);
+    return this.adminService.updateProductStatus(
+      productId,
+      approvalStatus as ApprovalStatus,
+    );
   }
 }

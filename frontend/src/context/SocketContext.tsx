@@ -3,10 +3,8 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { jwtDecode } from 'jwt-decode';
 import { toast } from 'react-toastify';
-
-interface DecodedToken { sub: string; }
+import { useAuth } from '@/hooks/useAuth';
 
 const SocketContext = createContext<Socket | null>(null);
 
@@ -16,16 +14,23 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const { authStatus, user } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      const decoded: DecodedToken = jwtDecode(token);
-      const userId = decoded.sub;
+    if (authStatus !== 'authenticated' || !user) {
+      // Disconnect any existing socket on logout
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
+      }
+      return;
+    }
 
-      const newSocket = io('http://localhost:3000', {
-        query: { userId },
-      });
+    const WS_URL = process.env.NEXT_PUBLIC_WS_URL || undefined; // same-origin if undefined
+    const newSocket = io(WS_URL, {
+      withCredentials: true,
+      query: { userId: user.id },
+    });
 
       newSocket.on('connect', () => {
         console.log('Socket connected:', newSocket.id);
@@ -45,8 +50,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       return () => {
         newSocket.disconnect();
       };
-    }
-  }, []); // This effect should ideally re-run on login/logout
+  }, [authStatus, user?.id]);
 
   return (
     <SocketContext.Provider value={socket}>

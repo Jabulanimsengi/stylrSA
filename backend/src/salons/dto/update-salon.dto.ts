@@ -124,7 +124,7 @@ export class UpdateSalonDto {
   @IsEnum(BookingType)
   @IsOptional()
   bookingType?: BookingType;
-  
+
   @IsBoolean()
   @IsOptional()
   offersMobile?: boolean;

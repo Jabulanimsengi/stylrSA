@@ -1,8 +1,9 @@
 // frontend/src/app/dashboard/page.tsx
 
+
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { Salon, Service, ApprovalStatus, Booking, GalleryImage, Product, Promotion } from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './Dashboard.module.css';
@@ -26,7 +27,7 @@ type DashboardBooking = Booking & {
   clientPhone?: string;
 };
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const [salon, setSalon] = useState<Salon | null | undefined>(undefined);
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<DashboardBooking[]>([]);
@@ -328,5 +329,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardPageContent />
+    </Suspense>
   );
 }

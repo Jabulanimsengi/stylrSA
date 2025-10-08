@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User, UserRole } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateGalleryImageDto } from './dto/create-gallery-image.dto';
@@ -8,12 +12,16 @@ export class GalleryService {
   constructor(private prisma: PrismaService) {}
 
   async addImage(user: User, salonId: string, dto: CreateGalleryImageDto) {
-    const salon = await this.prisma.salon.findUnique({ where: { id: salonId } });
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+    });
     if (!salon) {
       throw new NotFoundException('Salon not found.');
     }
     if (user.role !== UserRole.ADMIN && salon.ownerId !== user.id) {
-      throw new ForbiddenException('You are not authorized to add images to this gallery.');
+      throw new ForbiddenException(
+        'You are not authorized to add images to this gallery.',
+      );
     }
     return this.prisma.galleryImage.create({
       data: {
@@ -40,7 +48,9 @@ export class GalleryService {
       throw new NotFoundException('Image not found.');
     }
     if (user.role !== UserRole.ADMIN && image.salon.ownerId !== user.id) {
-      throw new ForbiddenException('You are not authorized to delete this image.');
+      throw new ForbiddenException(
+        'You are not authorized to delete this image.',
+      );
     }
     await this.prisma.galleryImage.delete({ where: { id: imageId } });
     return { message: 'Image deleted successfully.' };
