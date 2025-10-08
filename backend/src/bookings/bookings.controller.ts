@@ -13,7 +13,7 @@ import { JwtGuard } from '../auth/guard/jwt.guard';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 
-@Controller('bookings')
+@Controller('api/bookings')
 @UseGuards(JwtGuard)
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}

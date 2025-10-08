@@ -24,7 +24,7 @@ export default function HomePage() {
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/services/approved?page=${pageNum}&pageSize=12`);
+      const res = await fetch(`/api/services/approved?page=${pageNum}&pageSize=12`);
       if (res.ok) {
         // FIX: Explicitly typing the 'data' object from the API response
         const data: { services: ServiceWithSalon[], currentPage: number, totalPages: number } = await res.json();
