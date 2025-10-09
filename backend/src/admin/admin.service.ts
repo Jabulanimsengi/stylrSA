@@ -73,10 +73,25 @@ export class AdminService {
   }
 
   async updateReviewStatus(reviewId: string, status: ApprovalStatus) {
-    return this.prisma.review.update({
+    const existing = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      select: { salonId: true },
+    });
+    const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: { approvalStatus: status },
     });
+    if (existing?.salonId) {
+      const agg = await this.prisma.review.aggregate({
+        where: { salonId: existing.salonId, approvalStatus: 'APPROVED' },
+        _avg: { rating: true },
+      });
+      await this.prisma.salon.update({
+        where: { id: existing.salonId },
+        data: { avgRating: agg._avg.rating ?? 0 },
+      });
+    }
+    return updated;
   }
 
   async getPendingProducts() {

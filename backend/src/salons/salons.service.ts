@@ -36,9 +36,25 @@ export class SalonsService {
       mobileFee: (dto as any).mobileFee,
       bookingType: ((dto as any).bookingType as BookingType) ?? 'ONSITE',
       operatingHours: ((dto as any).operatingHours as any) || Prisma.JsonNull,
+      // Ensure required array field is always provided
+      operatingDays:
+        (Array.isArray((dto as any).operatingDays)
+          ? (dto as any).operatingDays
+          : Array.isArray((dto as any).operatingHours)
+          ? (dto as any).operatingHours
+              .map((oh: any) => oh?.day)
+              .filter((d: any) => typeof d === 'string' && d.length > 0)
+          : []) as string[],
     };
 
-    return this.prisma.salon.create({ data });
+    try {
+      return await this.prisma.salon.create({ data });
+    } catch (err: any) {
+      // Log the actual Prisma error for debugging in development
+      // eslint-disable-next-line no-console
+      console.error('Salon create failed:', err?.message || err, err?.meta || '');
+      throw err; // Let global filter map to friendly message
+    }
   }
 
   findAll() {
@@ -55,6 +71,7 @@ export class SalonsService {
       where: { id },
       include: {
         reviews: {
+          where: { approvalStatus: 'APPROVED' },
           include: {
             author: {
               select: {
