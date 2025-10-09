@@ -10,6 +10,7 @@ import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
 import { ThemeProvider } from '@/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ChatWidget from '@/components/ChatWidget';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -58,6 +59,7 @@ export default function RootLayout({
                   <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
                   <Footer />
                 </div>
+                <ChatWidget />
                 <ToastContainer position="bottom-right" theme="colored" />
               </AuthModalProvider>
             </SocketProvider>

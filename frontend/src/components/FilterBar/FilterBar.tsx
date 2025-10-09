@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './FilterBar.module.css';
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 interface FilterBarProps {
   onSearch: (filters: any) => void;
@@ -28,16 +30,31 @@ export default function FilterBar({
   const [priceMin, setPriceMin] = useState(initialFilters.priceMin || '');
   const [priceMax, setPriceMax] = useState(initialFilters.priceMax || '');
   const [isGeoLoading, setIsGeoLoading] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [serviceSuggestions, setServiceSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const fetchLocations = async () => {
-      const res = await fetch('/api/locations');
-      if (res.ok) {
-        setLocations(await res.json());
+      try {
+        const data = await apiJson('/api/locations');
+        setLocations(data);
+      } catch (e) {
+        // Non-blocking: silently ignore, fields remain empty
+        console.debug('Locations load failed:', toFriendlyMessage(e));
+      }
+    };
+    const fetchCategories = async () => {
+      try {
+        const data = await apiJson('/api/categories');
+        setCategories(data);
+      } catch (e) {
+        console.debug('Categories load failed:', toFriendlyMessage(e));
       }
     };
     fetchLocations();
+    fetchCategories();
   }, []);
 
   const handleSearch = useCallback(() => {
@@ -75,7 +92,8 @@ export default function FilterBar({
     });
     if (priceMin) query.set('priceMin', String(priceMin));
     if (priceMax) query.set('priceMax', String(priceMax));
-    router.push(`/salons?${query.toString()}`);
+    const hasServiceQuery = serviceSearch && serviceSearch.trim().length > 0;
+    router.push(`${hasServiceQuery ? '/services' : '/salons'}?${query.toString()}`);
   };
 
   const handleFindNearby = () => {
@@ -152,20 +170,57 @@ export default function FilterBar({
           type="text"
           placeholder="e.g., Braids, Nails"
           value={serviceSearch}
-          onChange={(e) => setServiceSearch(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setServiceSearch(val);
+            if (val.trim().length > 1) {
+              const q = encodeURIComponent(val);
+              apiJson(`/api/services/autocomplete?q=${q}`)
+                .then((data: any) => {
+                  const titles = Array.isArray(data) ? data.map((d: any) => d.title).filter(Boolean) : [];
+                  setServiceSuggestions(titles);
+                  setShowSuggestions(true);
+                })
+                .catch(() => {
+                  // ignore transient errors
+                });
+            } else {
+              setServiceSuggestions([]);
+              setShowSuggestions(false);
+            }
+          }}
           className={styles.filterInput}
         />
+        {showSuggestions && serviceSuggestions.length > 0 && (
+          <ul className={styles.suggestionsList} onMouseLeave={() => setShowSuggestions(false)}>
+            {serviceSuggestions.map((s) => (
+              <li
+                key={s}
+                className={styles.suggestionItem}
+                onClick={() => {
+                  setServiceSearch(s);
+                  setShowSuggestions(false);
+                }}
+              >
+                {s}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <div className={styles.filterGroup}>
         <label htmlFor="category">Category</label>
-        <input
+        <select
           id="category"
-          type="text"
-          placeholder="e.g., Hair, Nails"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className={styles.filterInput}
-        />
+          className={styles.filterSelect}
+        >
+          <option value="">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.name}>{cat.name}</option>
+          ))}
+        </select>
       </div>
       <div className={styles.filterGroup}>
         <label htmlFor="sortBy">Sort By</label>

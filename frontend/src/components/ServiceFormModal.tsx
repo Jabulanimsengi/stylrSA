@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import styles from './ServiceFormModal.module.css';
 import { toast } from 'react-toastify';
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 import Image from 'next/image';
 import { uploadToCloudinary } from '@/utils/cloudinary';
 import { Service } from '@/types';
@@ -74,16 +76,10 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('/api/categories');
-        if (res.ok) {
-          const data = await res.json();
-          setCategories(data);
-        } else {
-          toast.error('Failed to load service categories.');
-        }
+        const data = await apiJson<Category[]>('/api/categories');
+        setCategories(data);
       } catch (error) {
-        console.error('Error fetching categories:', error);
-        toast.error('An error occurred while fetching categories.');
+        toast.error(toFriendlyMessage(error, 'Failed to load service categories.'));
       }
     };
     fetchCategories();
@@ -173,21 +169,11 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
         : `/api/services`;
       const method = initialService ? 'PATCH' : 'POST';
 
-      const response = await fetch(url, {
+      const savedService = await apiJson<Service>(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceData),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save service.');
-      }
-
-      const savedService = await response.json();
       toast.success(`Service ${initialService ? 'updated' : 'added'} successfully! It will be reviewed by an admin.`);
       // Fire any provided callback name for backwards compatibility
       onServiceAddedOrUpdated?.(savedService);
@@ -195,9 +181,9 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
       (typeof (onServiceAdded) === 'function') && onServiceAdded(savedService);
       onClose();
     } catch (error: any) {
-      console.error('Failed to save service:', error);
-      setErrorMessage(error.message || 'An unexpected error occurred.');
-      toast.error(error.message || 'Failed to save service.');
+      const msg = toFriendlyMessage(error, 'Failed to save service.');
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsUploading(false);
     }

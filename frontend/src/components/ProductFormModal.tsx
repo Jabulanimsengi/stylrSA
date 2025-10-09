@@ -9,6 +9,8 @@ import styles from './ProductFormModal.module.css';
 import { toast } from 'react-toastify';
 import { uploadToCloudinary } from '@/utils/cloudinary';
 import { FaTimes, FaUpload } from 'react-icons/fa';
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 interface ProductFormModalProps {
   onClose: () => void;
@@ -98,19 +100,7 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
         ...(salonId ? { salonId } : {}),
       });
 
-      const res = await fetch(apiEndpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body,
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || `Failed to ${isEditMode ? 'update' : 'add'} product.`);
-      }
-
-      const savedProduct = await res.json();
+      const savedProduct = await apiJson(apiEndpoint, { method, headers: { 'Content-Type': 'application/json' }, body });
       toast.success(`Product ${isEditMode ? 'update submitted' : 'created and submitted'} for approval.`);
       onProductAdded(savedProduct); // FIX: Use correct prop name
       filePreviews.forEach((preview) => URL.revokeObjectURL(preview));
@@ -119,8 +109,9 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
       onClose();
 
     } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+      const msg = toFriendlyMessage(err, `Failed to ${isEditMode ? 'update' : 'add'} product.`);
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

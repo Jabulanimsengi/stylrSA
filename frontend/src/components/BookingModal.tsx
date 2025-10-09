@@ -9,6 +9,8 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import { useSocket } from '@/context/SocketContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 interface BookingModalProps {
   salon: Salon;
@@ -44,11 +46,9 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
     }
 
     try {
-      const res = await fetch(`/api/bookings`, {
+      const newBooking = await apiJson(`/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        // Your existing body is correct and matches your DTO
         body: JSON.stringify({
           serviceId: service.id,
           bookingTime: bookingTime.toISOString(),
@@ -56,13 +56,6 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
           isMobile,
         }),
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to create booking.');
-      }
-      
-      const newBooking = await res.json();
       
       // FIX 3: Add the socket notification emit
       if (socket) {
@@ -93,8 +86,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
       onBookingSuccess(newBooking);
 
     } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || 'Could not send booking request. Please try again.');
+      toast.error(toFriendlyMessage(error, 'Could not send booking request. Please try again.'));
     } finally {
       setIsLoading(false);
     }

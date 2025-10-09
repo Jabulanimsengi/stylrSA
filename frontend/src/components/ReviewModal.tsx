@@ -5,6 +5,8 @@ import { useState, FormEvent } from 'react';
 import { Review } from '@/types';
 import styles from './ReviewModal.module.css';
 import { toast } from 'react-toastify';
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 interface ReviewModalProps {
   bookingId: string;
@@ -28,23 +30,18 @@ export default function ReviewModal({ bookingId, onClose, onReviewAdded }: Revie
     setError('');
 
     try {
-      const res = await fetch('/api/reviews', {
+      const newReview = await apiJson('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ bookingId, rating, comment }),
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || 'Failed to submit review.');
-      }
-      const newReview = await res.json();
       toast.success('Thank you for your review!');
       onReviewAdded(newReview);
       onClose();
     } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+      const msg = toFriendlyMessage(err, 'Failed to submit review.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

@@ -9,6 +9,8 @@ import { toast } from 'react-toastify';
 import { GalleryImage } from '@/types';
 import { uploadToCloudinary } from '@/utils/cloudinary';
 import { FaTimes, FaUpload } from 'react-icons/fa';
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 interface GalleryUploadModalProps {
   salonId: string;
@@ -76,34 +78,26 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
       const imageUrls = uploaded.map(u => u.secure_url);
 
       // Create a gallery image entry for each uploaded file
-      const creationPromises = imageUrls.map(url => fetch(`/api/gallery/salon/${salonId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          imageUrl: url,
-          caption: caption || null,
-        }),
-      }));
+      const results = await Promise.all(
+        imageUrls.map((url) =>
+          apiJson(`/api/gallery/salon/${salonId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: url, caption: caption || null }),
+          }),
+        ),
+      );
 
-      const results = await Promise.all(creationPromises);
-
-      for (const res of results) {
-        if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.message || 'One or more images failed to save.');
-        }
-        const newImage = await res.json();
-        onImageAdded(newImage); // Notify the parent for each new image
-      }
+      results.forEach((newImage) => onImageAdded(newImage));
 
       toast.success(`${files.length} image(s) uploaded successfully!`);
       cleanupPreviews();
       onClose();
 
     } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+      const msg = toFriendlyMessage(err, 'One or more images failed to save.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

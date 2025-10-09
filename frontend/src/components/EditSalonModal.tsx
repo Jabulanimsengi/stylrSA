@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Salon } from '@/types';
 import styles from './EditSalonModal.module.css';
 import { toast } from 'react-toastify';
+import { showError, toFriendlyMessage } from '@/lib/errors';
 import { FaTimes } from 'react-icons/fa';
 import { uploadToCloudinary } from '@/utils/cloudinary';
 import { SalonUpdateSchema } from '@/lib/validation/schemas';
@@ -32,6 +33,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     phoneNumber: '',
     whatsapp: '',
     website: '',
+    latitude: '' as any,
+    longitude: '' as any,
   });
 
   const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null);
@@ -41,6 +44,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
+  const [addrQuery, setAddrQuery] = useState('');
+  const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
+  const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
 
   useEffect(() => {
     if (salon) {
@@ -58,6 +64,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         phoneNumber: salon.phoneNumber || '',
         whatsapp: salon.whatsapp || '',
         website: salon.website || '',
+        latitude: (salon.latitude as any) ?? '' as any,
+        longitude: (salon.longitude as any) ?? '' as any,
       });
       setBackgroundImagePreview(salon.backgroundImage || null);
       setHeroImagesPreview(salon.heroImages || []);
@@ -135,7 +143,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         ...formData,
         backgroundImage: finalBackgroundImageUrl,
         heroImages: finalHeroImageUrls,
-      };
+        latitude: (formData as any).latitude !== '' ? Number((formData as any).latitude) : undefined,
+        longitude: (formData as any).longitude !== '' ? Number((formData as any).longitude) : undefined,
+      } as any;
       const parsed = SalonUpdateSchema.partial().safeParse(payload);
       if (!parsed.success) {
         throw new Error(parsed.error.issues?.[0]?.message || 'Invalid form data');
@@ -151,8 +161,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       });
 
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || 'Failed to update salon');
+        let errData: any = null;
+        try { errData = await res.json(); } catch {}
+        throw errData || new Error('Failed to update salon');
       }
 
       const updatedSalon = await res.json();
@@ -161,8 +172,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       onClose();
 
     } catch (error: any) {
-      setError(error.message);
-      toast.error(error.message || 'Could not update salon profile.');
+      const msg = toFriendlyMessage(error, 'Could not update salon profile.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsUploading(false);
     }
@@ -203,6 +215,69 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <label htmlFor="province" className={styles.label}>Province</label>
                 <input type="text" id="province" name="province" value={formData.province} onChange={handleChange} className={styles.input} />
               </div>
+            </div>
+            <h3 className={styles.subheading}>Location</h3>
+            <div className={styles.grid}>
+              <div className={styles.fullWidth}>
+                <label htmlFor="addrQuery" className={styles.label}>Find on Map</label>
+                <input
+                  id="addrQuery"
+                  type="text"
+                  value={addrQuery}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setAddrQuery(v);
+                    if (v.trim().length > 2) {
+                      const q = encodeURIComponent(v);
+                      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`)
+                        .then((r) => (r.ok ? r.json() : []))
+                        .then((data) => { setAddrSuggestions(data); setShowAddrSuggestions(true); })
+                        .catch(() => {});
+                    } else {
+                      setAddrSuggestions([]);
+                      setShowAddrSuggestions(false);
+                    }
+                  }}
+                  placeholder="Type an address, suburb, or landmark"
+                  className={styles.input}
+                />
+                {showAddrSuggestions && addrSuggestions.length > 0 && (
+                  <ul style={{ position: 'absolute', zIndex: 10, background: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 6, marginTop: 4, width: 'min(520px, 95vw)', listStyle: 'none', padding: 0 }}
+                      onMouseLeave={() => setShowAddrSuggestions(false)}>
+                    {addrSuggestions.map((s: any) => (
+                      <li key={s.place_id} style={{ padding: '8px 10px', cursor: 'pointer' }}
+                          onClick={() => {
+                            setFormData((prev: any) => ({ ...prev, address: s.display_name, latitude: s.lat, longitude: s.lon }));
+                            setAddrQuery(s.display_name);
+                            setShowAddrSuggestions(false);
+                          }}>
+                        {s.display_name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div>
+                <label className={styles.label}>Latitude</label>
+                <input type="number" step="any" value={(formData as any).latitude} onChange={(e) => setFormData((p: any) => ({ ...p, latitude: e.target.value }))} className={styles.input} />
+              </div>
+              <div>
+                <label className={styles.label}>Longitude</label>
+                <input type="number" step="any" value={(formData as any).longitude} onChange={(e) => setFormData((p: any) => ({ ...p, longitude: e.target.value }))} className={styles.input} />
+              </div>
+              {(formData as any).latitude && (formData as any).longitude && (
+                <div className={styles.fullWidth}>
+                  <div style={{ border: '1px solid var(--color-border)', borderRadius: 8, overflow: 'hidden' }}>
+                    <iframe
+                      width="100%"
+                      height="220"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number((formData as any).longitude)-0.01},${Number((formData as any).latitude)-0.01},${Number((formData as any).longitude)+0.01},${Number((formData as any).latitude)+0.01}&layer=mapnik&marker=${(formData as any).latitude},${(formData as any).longitude}`}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <h3 className={styles.subheading}>Contact Information</h3>
             <div className={styles.grid}>

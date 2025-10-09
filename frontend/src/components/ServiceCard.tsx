@@ -7,6 +7,8 @@ import styles from './ServiceCard.module.css';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { apiFetch } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 interface ServiceCardProps {
   service: Service;
@@ -39,19 +41,12 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
 
     try {
-      const res = await fetch(`/api/likes/service/${service.id}/toggle`, {
-        method: 'POST',
-        credentials: 'include', // Send cookies with the request
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to update like status.');
-      }
+      await apiFetch(`/api/likes/service/${service.id}/toggle`, { method: 'POST' });
     } catch (error) {
       // Revert UI on error
       setIsLiked(originalLikedState);
       setLikeCount(originalLikeCount);
-      toast.error('Failed to update like status.');
+      toast.error(toFriendlyMessage(error, 'Failed to update like status.'));
     }
   };
 

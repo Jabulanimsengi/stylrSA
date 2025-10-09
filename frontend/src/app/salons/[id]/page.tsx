@@ -74,6 +74,8 @@ export default function SalonProfilePage() {
   // State for the hero slider
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const heroImagesCount = salon?.heroImages?.length ?? 0;
+
   const fetchPageData = useCallback(async () => {
     if (params.id) {
       setIsLoading(true);
@@ -106,6 +108,14 @@ export default function SalonProfilePage() {
     }
   }, [socket, params]);
 
+  useEffect(() => {
+    if (heroImagesCount < 2) return;
+    const id = setInterval(() => {
+      setCurrentSlide((prev) => (prev === heroImagesCount - 1 ? 0 : prev + 1));
+    }, 5000);
+    return () => clearInterval(id);
+  }, [heroImagesCount]);
+
   const openLightbox = (images: string[], index: number) => {
     setLightboxImages(images);
     setLightboxStartIndex(index);
@@ -133,23 +143,10 @@ export default function SalonProfilePage() {
     }
     if (!salon || !user) return;
     if (user.id === salon.ownerId) {
-      toast.error("You cannot message your own salon.");
+      toast.error('You cannot message your own salon.');
       return;
     }
-    try {
-      const res = await fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientId: salon.ownerId }),
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Failed to start conversation.');
-      const conversation = await res.json();
-      router.push(`/chat/${conversation.id}`);
-    } catch (error) {
-      console.error(error);
-      toast.error('Could not start chat. Please try again.');
-    }
+    window.openChatWidget?.(salon.ownerId, salon.name);
   };
 
   const handleToggleFavorite = async () => {
@@ -190,6 +187,15 @@ export default function SalonProfilePage() {
   };
   
   const operatingDays = salon?.operatingHours ? Object.keys(salon.operatingHours) : [];
+  const operatingSummary = (() => {
+    if (!salon?.operatingHours) return '';
+    const entries = Object.entries(salon.operatingHours as Record<string, string>);
+    if (entries.length === 0) return '';
+    // Basic summary: show up to first two day ranges
+    const samples = entries.slice(0, 2).map(([day, hours]) => `${day.substring(0,3)} ${hours}`);
+    const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
+    return `${samples.join(' • ')}${extra}`;
+  })();
 
   if (isLoading) return <LoadingSpinner />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
@@ -205,11 +211,18 @@ export default function SalonProfilePage() {
   };
   // --- End Hero Slider Logic ---
 
+  
+
   const galleryImageUrls = galleryImages.map(img => img.imageUrl);
 
-  const mapSrc = salon.latitude && salon.longitude
-    ? `http://googleusercontent.com/maps/google.com/0{salon.latitude},${salon.longitude}&hl=es;z=14&output=embed`
-    : '';
+  const mapSrc = (() => {
+    if (!salon.latitude || !salon.longitude) return '';
+    const lat = salon.latitude;
+    const lon = salon.longitude;
+    const d = 0.01; // small box
+    const bbox = `${lon - d},${lat - d},${lon + d},${lat + d}`;
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+  })();
 
   return (
     <>
@@ -322,18 +335,39 @@ export default function SalonProfilePage() {
                     </div>
                 )}
                 <div className={styles.heroOverlay}>
-                    <p className={styles.heroLocation}>{salon.town}, {salon.city}</p>
+                    <p className={styles.heroLocation}>{salon.town}, {salon.province}</p>
+                    {operatingSummary && (
+                      <p className={styles.heroHours}>Hours: {operatingSummary}</p>
+                    )}
                     {!!salon.isAvailableNow && (
-                    <div className={styles.availabilityIndicator}>
-                        <span className={styles.availabilityDot}></span>
-                        Available for Bookings Now
-                    </div>
+                      <div className={styles.availabilityIndicator}>
+                          <span className={styles.availabilityDot}></span>
+                          Available Now
+                      </div>
                     )}
                 </div>
             </div>
 
             <div className={styles.profileLayout}>
                 <div className={styles.mainContent}>
+                  {galleryImages.length > 0 && (
+                    <section id="gallery-section">
+                      <h2 className={styles.sectionTitle}>Gallery</h2>
+                      <div className={styles.galleryGrid}>
+                        {galleryImages.map((image, index) => (
+                          <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
+                            <Image
+                              src={transformCloudinary(image.imageUrl, { width: 400, quality: 'auto', format: 'auto', crop: 'fill' })}
+                              alt={image.caption || 'Salon work'}
+                              className={styles.galleryImage}
+                              fill
+                              sizes="(max-width: 768px) 50vw, 200px"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
                   <section id="services-section">
                     <h2 className={styles.sectionTitle}>Services</h2>
                     <div className={styles.servicesGrid}>
@@ -352,24 +386,6 @@ export default function SalonProfilePage() {
 
                   <section>
                     <h2 className={styles.sectionTitle}>Details</h2>
-                    
-                    {galleryImages.length > 0 && (
-                      <Accordion title="Gallery">
-                        <div className={styles.galleryGrid}>
-                          {galleryImages.map((image, index) => (
-                            <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
-                              <Image
-                                src={transformCloudinary(image.imageUrl, { width: 400, quality: 'auto', format: 'auto', crop: 'fill' })}
-                                alt={image.caption || 'Salon work'}
-                                className={styles.galleryImage}
-                                fill
-                                sizes="(max-width: 768px) 50vw, 200px"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </Accordion>
-                    )}
 
                     <Accordion title="Operating Hours">
                       {salon.operatingHours ? (

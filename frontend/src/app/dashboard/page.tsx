@@ -20,6 +20,8 @@ import ConfirmationModal from '@/components/ConfirmationModal/ConfirmationModal'
 import { FaTrash, FaHome, FaArrowLeft, FaEdit, FaPlus, FaCamera } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { apiFetch, apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
@@ -66,28 +68,27 @@ function DashboardPageContent() {
       if (salonRes.status === 401) { router.push('/'); return; }
       if (salonRes.status === 404) { setSalon(null); setIsLoading(false); return; }
       if (!salonRes.ok) throw new Error('Could not fetch salon data.');
-      
       const salonData = await salonRes.json();
       setSalon(salonData);
 
-      const [servicesRes, bookingsRes, galleryRes, productsRes, promotionsRes] = await Promise.all([
-        fetch(`/api/salons/mine/services?ownerId=${ownerId}`, { credentials: 'include' }),
-        fetch(`/api/salons/mine/bookings?ownerId=${ownerId}`, { credentials: 'include' }),
-        fetch(`/api/gallery/salon/${salonData.id}`, { credentials: 'include' }),
-        fetch(`/api/products/seller/${ownerId}`, { credentials: 'include' }),
-        fetch(`/api/promotions/salon/${salonData.id}`, {credentials: 'include'})
+      const [servicesData, bookingsData, galleryData, productsData, promotionsData] = await Promise.all([
+        apiJson(`/api/salons/mine/services?ownerId=${ownerId}`),
+        apiJson(`/api/salons/mine/bookings?ownerId=${ownerId}`),
+        apiJson(`/api/gallery/salon/${salonData.id}`),
+        apiJson(`/api/products/seller/${ownerId}`),
+        apiJson(`/api/promotions/salon/${salonData.id}`),
       ]);
 
-      setServices(await servicesRes.json());
-      const bookingsData = await bookingsRes.json();
+      setServices(servicesData);
       setBookings(Array.isArray(bookingsData) ? bookingsData : []);
-      setGalleryImages(await galleryRes.json());
-      setProducts(await productsRes.json());
-      setPromotions(await promotionsRes.json());
+      setGalleryImages(galleryData);
+      setProducts(productsData);
+      setPromotions(promotionsData);
 
     } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+      const msg = toFriendlyMessage(err, 'Failed to load your dashboard.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -133,8 +134,7 @@ function DashboardPageContent() {
     const { id, type } = itemToDelete;
     try {
         const url = type === 'gallery' ? `/api/gallery/${id}` : `/api/${type}s/${id}`;
-        const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
-        if (!res.ok) throw new Error(`Failed to delete ${type}.`);
+        await apiFetch(url, { method: 'DELETE' });
 
         if (type === 'service') setServices(services.filter(s => s.id !== id));
         else if (type === 'product') setProducts(products.filter(p => p.id !== id));
@@ -143,7 +143,7 @@ function DashboardPageContent() {
 
         toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`);
     } catch (err: any) {
-        toast.error('Deletion failed: ' + (err as Error).message);
+        toast.error(toFriendlyMessage(err, 'Deletion failed'));
     } finally {
         setItemToDelete(null);
     }
@@ -153,15 +153,29 @@ function DashboardPageContent() {
     setSalon(updatedSalon);
     setIsEditSalonModalOpen(false);
   };
+
+  const toggleAvailability = async () => {
+    if (!ownerId) return;
+    try {
+      const updated = await apiJson(`/api/salons/mine/availability?ownerId=${ownerId}`, { method: 'PATCH' });
+      setSalon(updated);
+      toast.success(updated.isAvailableNow ? 'Marked as available now' : 'Marked as unavailable');
+    } catch (e: any) {
+      toast.error(toFriendlyMessage(e, 'Could not update availability'));
+    }
+  };
   
   const handleBookingStatusUpdate = async (bookingId: string, status: 'CONFIRMED' | 'DECLINED' | 'COMPLETED' | 'CANCELLED') => {
-    await fetch(`/api/bookings/${bookingId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ status }),
-    });
-    fetchDashboardData();
+    try {
+      await apiFetch(`/api/bookings/${bookingId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      fetchDashboardData();
+    } catch (e) {
+      toast.error(toFriendlyMessage(e, 'Failed to update booking'));
+    }
   };
 
   const openServiceModalToAdd = () => { setEditingService(null); setIsServiceModalOpen(true); };
@@ -271,6 +285,9 @@ function DashboardPageContent() {
             <div className={styles.headerTop}>
               <p className={styles.salonName}>{salon.name}</p>
               <div className={styles.headerActions}>
+              <button onClick={toggleAvailability} className="btn btn-ghost">
+                {salon.isAvailableNow ? 'Set Unavailable' : 'Set Available Now'}
+              </button>
                 <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">View Public Profile</Link>
                 <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary"><FaEdit /> Edit Profile</button>
               </div>

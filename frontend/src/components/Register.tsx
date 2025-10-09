@@ -5,6 +5,8 @@ import styles from '../app/auth.module.css';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 import { UserRole } from '@/types';
+import { apiFetch } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 // Define the props that this component will accept
 interface RegisterProps {
@@ -27,28 +29,20 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
     setError('');
 
     try {
-      // Corrected to relative URL and the right endpoint ('/register')
-      const res = await fetch('/api/auth/register', {
+      await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, password, role }),
-        credentials: 'include',
       });
-
-      const errorData = await res.json();
-
-      if (!res.ok) {
-        const message = Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message;
-        throw new Error(message || 'Registration failed.');
-      }
 
       toast.success('Registration successful! Please sign in.');
       // On success, call the function passed down from the parent
       onRegisterSuccess();
 
     } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+      const msg = toFriendlyMessage(err, 'Registration failed.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

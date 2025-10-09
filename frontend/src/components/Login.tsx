@@ -5,6 +5,8 @@ import styles from '../app/auth.module.css';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 import { User } from '@/types';
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 // Define the props that this component will accept
 interface LoginProps {
@@ -24,27 +26,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setError('');
 
     try {
-      // Corrected to a relative URL to be handled by the Next.js proxy
-      const res = await fetch('/api/auth/login', {
+      const data = await apiJson<{ user: User }>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-        credentials: 'include',
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Login failed. Please check your credentials.');
-      }
       
       toast.success('Login successful! Welcome back.');
       // On success, call the function passed down from the parent component
       onLoginSuccess(data.user);
 
     } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+      const msg = toFriendlyMessage(err, 'Login failed. Please check your credentials.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

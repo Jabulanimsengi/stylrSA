@@ -46,3 +46,13 @@ Thumbs.db
 
 # Ignore test coverage reports
 /frontend/coverage/
+
+# --- Local test data & credentials ---
+admin-login.json
+login.json
+admin.txt
+client.txt
+cookie.txt
+booking.json
+review.json
+approve.json

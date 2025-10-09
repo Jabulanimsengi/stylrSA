@@ -42,6 +42,34 @@ export class ServicesController {
     return this.servicesService.findAllApproved(page, pageSize);
   }
 
+  @Get('search')
+  search(
+    @Query('q') q?: string,
+    @Query('category') category?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('priceMin') priceMin?: string,
+    @Query('priceMax') priceMax?: string,
+    @Query('province') province?: string,
+    @Query('city') city?: string,
+    @Query('sortBy') sortBy?: string,
+  ) {
+    return this.servicesService.search({
+      q,
+      category,
+      categoryId,
+      priceMin,
+      priceMax,
+      province,
+      city,
+      sortBy,
+    });
+  }
+
+  @Get('autocomplete')
+  autocomplete(@Query('q') q: string) {
+    return this.servicesService.autocomplete(q);
+  }
+
   @Get('salon/:salonId')
   findAllForSalon(@Param('salonId') salonId: string) {
     return this.servicesService.findAllForSalon(salonId);

@@ -1,0 +1,126 @@
+ .container {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: min(360px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  overflow: hidden;
+  z-index: 50;
+ }
+
+@media (max-width: 640px) {
+  .container {
+    right: 50%;
+    transform: translateX(50%);
+    bottom: 24px;
+    width: min(520px, 94vw);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  padding: 0.5rem 0.75rem;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
+  word-break: break-word;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sent {
+  align-self: flex-end;
+  background: var(--soft-pastel-pink);
+  color: var(--color-text-strong);
+}
+
+.received {
+  align-self: flex-start;
+  background: var(--color-surface-subtle);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--dark-gray);
+}
+
+.statusIcon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.read {
+  color: var(--color-primary);
+}
+
+.statusText { opacity: 0.8; }
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: 0.375rem;
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+}
+
+.sendBtn {
+  padding: 0.5rem 0.75rem;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}

@@ -1,6 +1,6 @@
 type Props = {
   children: React.ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 async function fetchSalon(id: string) {
@@ -14,7 +14,8 @@ async function fetchSalon(id: string) {
 }
 
 export default async function SalonLayout({ children, params }: Props) {
-  const salon = await fetchSalon(params.id);
+  const { id } = await params;
+  const salon = await fetchSalon(id);
   const jsonLd = salon
     ? {
         '@context': 'https://schema.org',

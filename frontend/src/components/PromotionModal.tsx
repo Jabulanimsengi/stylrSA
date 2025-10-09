@@ -6,6 +6,8 @@ import { useState, FormEvent } from 'react';
 import styles from './PromotionModal.module.css';
 import { toast } from 'react-toastify';
 import { Promotion } from '@/types'; // Import the Promotion type
+import { apiJson } from '@/lib/api';
+import { toFriendlyMessage } from '@/lib/errors';
 
 interface PromotionModalProps {
   onClose: () => void;
@@ -27,35 +29,24 @@ export default function PromotionModal({ onClose, onPromotionAdded, salonId, ser
     setIsLoading(true);
     
     try {
-      // FIX: Use relative URL
-      const res = await fetch('/api/promotions', {
+      const data = await apiJson('/api/promotions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Use credentials for auth
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           description,
           discountPercentage: Number(discountPercentage),
           startDate,
           endDate,
-          salonId, // Pass salonId to the API
+          salonId,
           serviceId,
           productId,
         }),
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success('Promotion created!');
-        onPromotionAdded(data); // FIX: Pass the new promotion data back
-        onClose(); // Close the modal on success
-      } else {
-        throw new Error(data.message || 'Failed to create promotion.');
-      }
+      toast.success('Promotion created!');
+      onPromotionAdded(data);
+      onClose();
     } catch (error: any) {
-      toast.error(error.message || 'Could not create promotion.');
+      toast.error(toFriendlyMessage(error, 'Could not create promotion.'));
     } finally {
       setIsLoading(false);
     }

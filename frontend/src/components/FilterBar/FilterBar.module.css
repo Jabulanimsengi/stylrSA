@@ -44,6 +44,27 @@
   color: var(--color-text-strong);
 }
 
+.suggestionsList {
+  position: absolute;
+  z-index: 10;
+  margin-top: 0.25rem;
+  width: min(340px, 95vw);
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.suggestionItem {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+.suggestionItem:hover {
+  background: var(--hover-bg);
+}
+
 .filterInput:focus, .filterSelect:focus {
   outline: none;
   border-color: var(--input-border-strong);

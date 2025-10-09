@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 async function fetchSalon(id: string) {
@@ -15,7 +15,8 @@ async function fetchSalon(id: string) {
 }
 
 export default async function Head({ params }: Props) {
-  const salon = await fetchSalon(params.id);
+  const { id } = await params;
+  const salon = await fetchSalon(id);
 
   const jsonLd = salon
     ? {

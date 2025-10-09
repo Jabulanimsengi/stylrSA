@@ -126,4 +126,74 @@ export class ServicesService {
       totalPages: Math.ceil(total / pageSize),
     };
   }
+
+  async search(filters: any) {
+    const {
+      q,
+      category,
+      categoryId,
+      priceMin,
+      priceMax,
+      province,
+      city,
+      sortBy,
+    } = filters || {};
+
+    const where: any = {
+      approvalStatus: 'APPROVED',
+    };
+
+    if (q) {
+      where.title = { contains: String(q), mode: 'insensitive' };
+    }
+    if (categoryId) {
+      where.categoryId = String(categoryId);
+    } else if (category) {
+      where.category = { name: { contains: String(category), mode: 'insensitive' } };
+    }
+    if (priceMin || priceMax) {
+      where.price = {};
+      if (priceMin) where.price.gte = Number(priceMin);
+      if (priceMax) where.price.lte = Number(priceMax);
+    }
+    if (province) {
+      where.salon = { ...(where.salon || {}), province: { equals: String(province), mode: 'insensitive' } };
+    }
+    if (city) {
+      where.salon = {
+        ...(where.salon || {}),
+        OR: [
+          { city: { equals: String(city), mode: 'insensitive' } },
+          { town: { equals: String(city), mode: 'insensitive' } },
+        ],
+      };
+    }
+
+    let orderBy: any | undefined;
+    if (sortBy === 'price') orderBy = { price: 'asc' };
+    if (sortBy === 'latest') orderBy = { createdAt: 'desc' };
+
+    return this.prisma.service.findMany({
+      where,
+      orderBy,
+      include: {
+        salon: {
+          select: { id: true, name: true, city: true, province: true, ownerId: true },
+        },
+        category: { select: { id: true, name: true } },
+      },
+    });
+  }
+
+  async autocomplete(q: string) {
+    if (!q || String(q).trim().length === 0) return [] as { title: string }[];
+    const results = await this.prisma.service.findMany({
+      where: { title: { contains: String(q), mode: 'insensitive' } },
+      select: { title: true },
+      take: 10,
+      distinct: ['title'],
+      orderBy: { title: 'asc' },
+    });
+    return results.map((r) => r);
+  }
 }
