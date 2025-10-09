@@ -17,14 +17,28 @@ export class SalonsService {
       throw new ForbiddenException('You are not authorized to create a salon');
     }
 
-    return this.prisma.salon.create({
-      data: {
-        ownerId: userId,
-        ...dto,
-        operatingHours: (dto.operatingHours as any) || Prisma.JsonNull,
-        bookingType: dto.bookingType as BookingType,
-      },
-    });
+    const data: any = {
+      ownerId: userId,
+      name: dto.name,
+      description: (dto as any).description,
+      address: (dto as any).address,
+      province: (dto as any).province,
+      city: (dto as any).city,
+      town: (dto as any).town,
+      website: (dto as any).website,
+      latitude: (dto as any).latitude,
+      longitude: (dto as any).longitude,
+      heroImages: (dto as any).heroImages ?? [],
+      backgroundImage: (dto as any).backgroundImage,
+      contactEmail: (dto as any).email ?? (dto as any).contactEmail,
+      phoneNumber: (dto as any).phone ?? (dto as any).phoneNumber,
+      offersMobile: (dto as any).offersMobile,
+      mobileFee: (dto as any).mobileFee,
+      bookingType: ((dto as any).bookingType as BookingType) ?? 'ONSITE',
+      operatingHours: ((dto as any).operatingHours as any) || Prisma.JsonNull,
+    };
+
+    return this.prisma.salon.create({ data });
   }
 
   findAll() {
@@ -97,12 +111,41 @@ export class SalonsService {
       );
     }
 
-    const updateData: any = { ...dto };
-    if (dto.bookingType) {
-      updateData.bookingType = dto.bookingType as BookingType;
+    // Whitelist fields that exist on the Prisma Salon model to avoid unknown-argument errors
+    const allowedFields: (keyof UpdateSalonDto | 'backgroundImage' | 'heroImages')[] = [
+      'name',
+      'description',
+      'backgroundImage',
+      'heroImages',
+      'province',
+      'city',
+      'town',
+      'address',
+      'latitude',
+      'longitude',
+      'contactEmail',
+      'phoneNumber',
+      'whatsapp',
+      'website',
+      'bookingType',
+      'offersMobile',
+      'mobileFee',
+      'operatingHours',
+    ];
+
+    const updateData: any = {};
+    for (const key of allowedFields) {
+      const value = (dto as any)[key];
+      if (value !== undefined) {
+        updateData[key] = value;
+      }
     }
-    if (dto.operatingHours) {
-      updateData.operatingHours = dto.operatingHours as any;
+
+    if (updateData.bookingType) {
+      updateData.bookingType = updateData.bookingType as BookingType;
+    }
+    if (updateData.operatingHours) {
+      updateData.operatingHours = updateData.operatingHours as any;
     }
 
     return this.prisma.salon.update({
@@ -140,23 +183,106 @@ export class SalonsService {
   }
 
   async findAllApproved(filters: any, user: User) {
-    console.log('Filters received:', filters);
-    const salons = await this.prisma.salon.findMany({
-      where: {
-        approvalStatus: 'APPROVED',
-      },
-    });
+    const {
+      province,
+      city,
+      service,
+      category,
+      q,
+      offersMobile,
+      sortBy,
+      openNow,
+      priceMin,
+      priceMax,
+      lat,
+      lon,
+    } = filters || {};
 
+    const where: Prisma.SalonWhereInput = {
+      approvalStatus: 'APPROVED',
+    };
+
+    if (province) where.province = { equals: String(province), mode: 'insensitive' } as any;
+    if (city) {
+      where.OR = [
+        { city: { equals: String(city), mode: 'insensitive' } as any },
+        { town: { equals: String(city), mode: 'insensitive' } as any },
+      ];
+    }
+    if (offersMobile === 'true' || offersMobile === true) where.offersMobile = true;
+    if (openNow === 'true' || openNow === true) where.isAvailableNow = true;
+
+    // Service-based filters
+    const servicesFilter: Prisma.ServiceWhereInput = {};
+    if (service || q) {
+      servicesFilter.title = { contains: String(service || q), mode: 'insensitive' } as any;
+    }
+    if (category) {
+      servicesFilter.OR = [
+        { category: { name: { contains: String(category), mode: 'insensitive' } as any } },
+      ];
+    }
+    if (priceMin || priceMax) {
+      servicesFilter.price = {};
+      if (priceMin) (servicesFilter.price as any).gte = Number(priceMin);
+      if (priceMax) (servicesFilter.price as any).lte = Number(priceMax);
+    }
+    if (Object.keys(servicesFilter).length > 0) {
+      (where as any).services = { some: servicesFilter };
+    }
+
+    let orderBy: Prisma.SalonOrderByWithRelationInput | undefined;
+    if (sortBy === 'rating' || sortBy === 'top_rated') orderBy = { avgRating: 'desc' };
+
+    // Fetch base list
+    let salons = await this.prisma.salon.findMany({ where, orderBy });
+
+    // Sort by distance in memory if requested and coordinates provided
+    if (sortBy === 'distance' && lat && lon) {
+      const R = 6371; // km
+      const toRad = (v: number) => (v * Math.PI) / 180;
+      const userLat = Number(lat);
+      const userLon = Number(lon);
+      salons = salons
+        .map((s) => {
+          if (s.latitude == null || s.longitude == null) return { ...s, __dist: Number.POSITIVE_INFINITY } as any;
+          const dLat = toRad(s.latitude - userLat);
+          const dLon = toRad(s.longitude - userLon);
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(userLat)) *
+              Math.cos(toRad(s.latitude)) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const d = R * c;
+          return { ...s, __dist: d } as any;
+        })
+        .sort((a: any, b: any) => a.__dist - b.__dist)
+        .map(({ __dist, ...rest }: any) => rest);
+    }
+
+    // Attach favorite flag if logged-in
     if (user) {
       const favoriteSalons = await this.prisma.favorite.findMany({
         where: { userId: user.id },
         select: { salonId: true },
       });
       const favoriteSalonIds = new Set(favoriteSalons.map((f) => f.salonId));
-      return salons.map((salon) => ({
+      salons = salons.map((salon) => ({
         ...salon,
         isFavorited: favoriteSalonIds.has(salon.id),
-      }));
+      })) as any;
+    }
+
+    // Optional price sort using min service price
+    if (sortBy === 'price') {
+      const mins = await this.prisma.service.groupBy({
+        by: ['salonId'],
+        _min: { price: true },
+        where: { salonId: { in: salons.map((s) => s.id) } },
+      });
+      const minMap = new Map(mins.map((m) => [m.salonId, m._min.price ?? 0]));
+      salons = salons.sort((a, b) => (minMap.get(a.id) ?? 0) - (minMap.get(b.id) ?? 0));
     }
 
     return salons;

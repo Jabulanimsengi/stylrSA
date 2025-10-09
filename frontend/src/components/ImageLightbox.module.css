@@ -31,7 +31,7 @@
 .closeButton, .navButton {
   position: absolute;
   background-color: rgba(0, 0, 0, 0.5);
-  color: white;
+  color: var(--color-text-inverse);
   border: none;
   border-radius: 50%;
   cursor: pointer;

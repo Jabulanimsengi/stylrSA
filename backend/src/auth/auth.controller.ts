@@ -34,10 +34,9 @@ export class AuthController {
     // Corrected 'access_token' to 'accessToken' to match the service's return object
     const { accessToken, user } = await this.authService.login(dto);
     res.cookie('access_token', accessToken, {
-      // Use the corrected variable name here as well
       httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development', // set to true in production
-      sameSite: 'strict',
+      secure: false,
+      sameSite: 'lax',
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day
     });
     return { message: 'Login successful', user };

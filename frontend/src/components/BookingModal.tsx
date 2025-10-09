@@ -74,6 +74,22 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
       }
 
       toast.success('Booking request sent successfully!');
+      // Generate an ICS file for calendar
+      try {
+        const start = new Date(newBooking.bookingTime);
+        const dt = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const end = new Date(start.getTime() + (service.duration || 60) * 60000);
+        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//TheSalonHub//Booking//EN\nBEGIN:VEVENT\nUID:${newBooking.id}@thesalonhub\nDTSTAMP:${dt(new Date())}\nDTSTART:${dt(start)}\nDTEND:${dt(end)}\nSUMMARY:${service.title || 'Salon Service'} at ${salon.name}\nDESCRIPTION:Booking via TheSalonHub\nLOCATION:${salon.address || salon.city + ', ' + salon.province}\nEND:VEVENT\nEND:VCALENDAR`;
+        const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${service.title || 'service'}-${start.toISOString().slice(0,10)}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch {}
       onBookingSuccess(newBooking);
 
     } catch (error: any) {

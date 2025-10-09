@@ -19,11 +19,14 @@ export default function FilterBar({
   const [province, setProvince] = useState(initialFilters.province || '');
   const [city, setCity] = useState(initialFilters.city || '');
   const [serviceSearch, setServiceSearch] = useState(initialFilters.service || '');
+  const [category, setCategory] = useState(initialFilters.category || '');
   const [offersMobile, setOffersMobile] = useState(
     initialFilters.offersMobile || false
   );
   const [sortBy, setSortBy] = useState(initialFilters.sortBy || '');
-  const [openOn, setOpenOn] = useState(initialFilters.openOn || '');
+  const [openNow, setOpenNow] = useState(initialFilters.openNow || false);
+  const [priceMin, setPriceMin] = useState(initialFilters.priceMin || '');
+  const [priceMax, setPriceMax] = useState(initialFilters.priceMax || '');
   const [isGeoLoading, setIsGeoLoading] = useState(false);
   const router = useRouter();
 
@@ -42,11 +45,14 @@ export default function FilterBar({
       province,
       city,
       service: serviceSearch,
+      category,
       offersMobile,
       sortBy,
-      openOn,
+      openNow,
+      priceMin,
+      priceMax,
     });
-  }, [province, city, serviceSearch, offersMobile, sortBy, openOn, onSearch]);
+  }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, onSearch]);
 
   useEffect(() => {
     if (!isHomePage) {
@@ -55,17 +61,20 @@ export default function FilterBar({
       }, 300); // Debounce
       return () => clearTimeout(handler);
     }
-  }, [province, city, serviceSearch, offersMobile, sortBy, openOn, isHomePage, handleSearch]);
+  }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, isHomePage, handleSearch]);
 
   const handleSearchClick = () => {
     const query = new URLSearchParams({
       province,
       city,
       service: serviceSearch,
+      category,
       offersMobile: String(offersMobile),
       sortBy,
-      openOn,
+      openNow: String(openNow),
     });
+    if (priceMin) query.set('priceMin', String(priceMin));
+    if (priceMax) query.set('priceMax', String(priceMax));
     router.push(`/salons?${query.toString()}`);
   };
 
@@ -90,7 +99,7 @@ export default function FilterBar({
   };
 
   const handleWeekendFilter = (day: 'Saturday' | 'Sunday', isChecked: boolean) => {
-    setOpenOn(isChecked ? day : '');
+    // Deprecated in favor of openNow; keep function to avoid runtime errors if referenced
   };
 
   return (
@@ -148,6 +157,17 @@ export default function FilterBar({
         />
       </div>
       <div className={styles.filterGroup}>
+        <label htmlFor="category">Category</label>
+        <input
+          id="category"
+          type="text"
+          placeholder="e.g., Hair, Nails"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className={styles.filterInput}
+        />
+      </div>
+      <div className={styles.filterGroup}>
         <label htmlFor="sortBy">Sort By</label>
         <select
           id="sortBy"
@@ -157,27 +177,18 @@ export default function FilterBar({
         >
           <option value="">Default</option>
           <option value="top_rated">Top Rated</option>
+          <option value="distance">Nearest</option>
+          <option value="price">Lowest Price</option>
         </select>
       </div>
-      <div className={styles.weekendGroup}>
-        <div className={styles.checkboxGroup}>
-          <input
-            id="openSaturday"
-            type="checkbox"
-            checked={openOn === 'Saturday'}
-            onChange={(e) => handleWeekendFilter('Saturday', e.target.checked)}
-          />
-          <label htmlFor="openSaturday">Open Saturday</label>
-        </div>
-        <div className={styles.checkboxGroup}>
-          <input
-            id="openSunday"
-            type="checkbox"
-            checked={openOn === 'Sunday'}
-            onChange={(e) => handleWeekendFilter('Sunday', e.target.checked)}
-          />
-          <label htmlFor="openSunday">Open Sunday</label>
-        </div>
+      <div className={styles.checkboxGroup}>
+        <input
+          id="openNow"
+          type="checkbox"
+          checked={openNow}
+          onChange={(e) => setOpenNow(e.target.checked)}
+        />
+        <label htmlFor="openNow">Open now</label>
       </div>
       <div className={styles.checkboxGroup}>
         <input
@@ -187,6 +198,27 @@ export default function FilterBar({
           onChange={(e) => setOffersMobile(e.target.checked)}
         />
         <label htmlFor="offersMobile">Offers Mobile Services</label>
+      </div>
+      <div className={styles.filterGroup}>
+        <label>Price Range (R)</label>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            type="number"
+            placeholder="Min"
+            value={priceMin}
+            onChange={(e) => setPriceMin(e.target.value)}
+            className={styles.filterInput}
+            min={0}
+          />
+          <input
+            type="number"
+            placeholder="Max"
+            value={priceMax}
+            onChange={(e) => setPriceMax(e.target.value)}
+            className={styles.filterInput}
+            min={0}
+          />
+        </div>
       </div>
       <button
         onClick={handleFindNearby}

@@ -1,5 +1,7 @@
 .card {
-  @apply flex flex-col overflow-hidden rounded-xl bg-white text-neutral-800 no-underline shadow-sm transition-transform duration-200;
+  @apply flex flex-col overflow-hidden rounded-xl no-underline shadow-sm transition-transform duration-200;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-strong);
   border: 1px solid var(--color-border);
 }
 
@@ -23,11 +25,13 @@
 }
 
 .cardTitle {
-  @apply mb-1 font-semibold text-neutral-900;
+  @apply mb-1 font-semibold;
+  color: var(--color-text-strong);
 }
 
 .salonName {
-  @apply mb-2 text-sm text-neutral-500;
+  @apply mb-2 text-sm;
+  color: var(--color-text-muted);
 }
 
 .price {

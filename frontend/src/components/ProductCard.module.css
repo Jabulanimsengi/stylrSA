@@ -1,5 +1,7 @@
 .card {
-  @apply overflow-hidden rounded-xl bg-white shadow-sm transition-transform duration-200;
+  @apply overflow-hidden rounded-xl shadow-sm transition-transform duration-200;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-strong);
   border: 1px solid var(--color-border);
 }
 
@@ -23,7 +25,8 @@
 }
 
 .cardTitle {
-  @apply mb-2 text-lg font-semibold text-neutral-900;
+  @apply mb-2 text-lg font-semibold;
+  color: var(--color-text-strong);
 }
 
 .price {

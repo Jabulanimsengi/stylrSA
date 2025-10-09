@@ -8,10 +8,10 @@
   position: sticky;
   top: 78px;
   z-index: 10;
-  background-color: var(--white);
+  background-color: var(--color-surface);
   padding: 1rem 0;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--secondary-blush);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -41,9 +41,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: var(--white);
+  background-color: var(--color-surface-elevated);
   color: var(--dark-gray);
-  border: 1px solid var(--light-silver);
+  border: 1px solid var(--color-border);
   border-radius: 0.375rem;
   font-weight: 500;
   cursor: pointer;
@@ -71,7 +71,7 @@
 .tabs {
   display: flex;
   gap: 1rem;
-  border-bottom: 1px solid var(--secondary-blush);
+  border-bottom: 1px solid var(--color-border);
   margin-bottom: 2rem;
 }
 .tabButton {
@@ -99,7 +99,7 @@
   background-color: var(--color-surface-elevated);
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--light-silver); /* Changed border color */
+  border: 1px solid var(--color-border);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); /* Enhanced shadow */
   display: flex;
   flex-direction: column;
@@ -118,7 +118,7 @@
 }
 .card p {
   margin: 0.25rem 0;
-  color: var(--text-charcoal);
+  color: var(--color-text-strong);
 }
 .card strong {
   color: var(--primary-plum);

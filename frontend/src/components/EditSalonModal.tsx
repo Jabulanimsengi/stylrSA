@@ -9,6 +9,7 @@ import styles from './EditSalonModal.module.css';
 import { toast } from 'react-toastify';
 import { FaTimes } from 'react-icons/fa';
 import { uploadToCloudinary } from '@/utils/cloudinary';
+import { SalonUpdateSchema } from '@/lib/validation/schemas';
 
 interface EditSalonModalProps {
   salon: Salon;
@@ -129,17 +130,24 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       
       const finalHeroImageUrls = [...existingHeroImageUrls, ...newHeroImageUrls];
 
-      const res = await fetch(`/api/salons/${salon.id}`, {
-        method: 'PATCH',
+      // Validate payload (partial allowed)
+      const payload = {
+        ...formData,
+        backgroundImage: finalBackgroundImageUrl,
+        heroImages: finalHeroImageUrls,
+      };
+      const parsed = SalonUpdateSchema.partial().safeParse(payload);
+      if (!parsed.success) {
+        throw new Error(parsed.error.issues?.[0]?.message || 'Invalid form data');
+      }
+
+      const res = await fetch(`/api/salons/mine?ownerId=${salon.ownerId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          ...formData,
-          backgroundImage: finalBackgroundImageUrl,
-          heroImages: finalHeroImageUrls,
-        }),
+        body: JSON.stringify(parsed.data),
       });
 
       if (!res.ok) {
@@ -176,24 +184,24 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
             </div>
             <div className={styles.fullWidth}>
               <label htmlFor="description" className={styles.label}>Description</label>
-              <textarea id="description" name="description" value={formData.description} onChange={handleChange} required className={styles.textarea} />
+              <textarea id="description" name="description" value={formData.description} onChange={handleChange} className={styles.textarea} />
             </div>
             <div className={styles.grid}>
               <div>
                 <label htmlFor="address" className={styles.label}>Street Address</label>
-                <input type="text" id="address" name="address" value={formData.address} onChange={handleChange} required className={styles.input} />
+                <input type="text" id="address" name="address" value={formData.address} onChange={handleChange} className={styles.input} />
               </div>
               <div>
                 <label htmlFor="town" className={styles.label}>Town/Suburb</label>
-                <input type="text" id="town" name="town" value={formData.town} onChange={handleChange} required className={styles.input} />
+                <input type="text" id="town" name="town" value={formData.town} onChange={handleChange} className={styles.input} />
               </div>
               <div>
                 <label htmlFor="city" className={styles.label}>City</label>
-                <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} required className={styles.input} />
+                <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} className={styles.input} />
               </div>
               <div>
                 <label htmlFor="province" className={styles.label}>Province</label>
-                <input type="text" id="province" name="province" value={formData.province} onChange={handleChange} required className={styles.input} />
+                <input type="text" id="province" name="province" value={formData.province} onChange={handleChange} className={styles.input} />
               </div>
             </div>
             <h3 className={styles.subheading}>Contact Information</h3>

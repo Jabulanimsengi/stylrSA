@@ -1,5 +1,7 @@
 .card {
-  @apply flex flex-col overflow-hidden rounded-xl bg-white transition-transform duration-200 shadow-sm;
+  @apply flex flex-col overflow-hidden rounded-xl transition-transform duration-200 shadow-sm;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-strong);
   border: 1px solid var(--color-border);
 }
 .card:hover {
@@ -31,7 +33,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-inverse);
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
   pointer-events: none;
@@ -57,7 +59,8 @@
   margin-bottom: 0.5rem;
 }
 .title {
-  @apply font-semibold text-neutral-900;
+  @apply font-semibold;
+  color: var(--color-text-strong);
   margin: 0;
 }
 .price {
@@ -65,7 +68,8 @@
   white-space: nowrap;
 }
 .description {
-  @apply mt-2 text-sm leading-relaxed text-neutral-600;
+  @apply mt-2 text-sm leading-relaxed;
+  color: var(--color-text-muted);
   flex-grow: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -88,7 +92,8 @@
   border-top: 1px solid var(--color-border);
 }
 .likeButton {
-  @apply flex items-center gap-2 bg-transparent p-0 text-sm text-neutral-500;
+  @apply flex items-center gap-2 bg-transparent p-0 text-sm;
+  color: var(--color-text-muted);
   border: none;
   cursor: pointer;
 }

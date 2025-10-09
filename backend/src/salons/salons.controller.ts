@@ -41,13 +41,20 @@ export class SalonsController {
     @Query('province') province: string,
     @Query('city') city: string,
     @Query('service') service: string,
+    @Query('category') category: string,
+    @Query('q') q: string,
     @Query('offersMobile') offersMobile: boolean,
     @Query('sortBy') sortBy: string,
     @Query('openOn') openOn: string,
+    @Query('openNow') openNow: string,
+    @Query('priceMin') priceMin: string,
+    @Query('priceMax') priceMax: string,
+    @Query('lat') lat: string,
+    @Query('lon') lon: string,
     @GetUser() user: User,
   ) {
     return this.salonsService.findAllApproved(
-      { province, city, service, offersMobile, sortBy, openOn },
+      { province, city, service, category, q, offersMobile, sortBy, openOn, openNow, priceMin, priceMax, lat, lon },
       user,
     );
   }

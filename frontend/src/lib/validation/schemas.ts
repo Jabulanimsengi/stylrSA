@@ -1,0 +1,31 @@
+import { z } from 'zod';
+
+export const BookingTypeEnum = z.enum(['ONSITE', 'MOBILE', 'BOTH']);
+
+export const SalonUpdateSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional().nullable(),
+  province: z.string().optional(),
+  city: z.string().optional(),
+  town: z.string().optional(),
+  address: z.string().optional().nullable(),
+  contactEmail: z.string().email().optional().nullable(),
+  phoneNumber: z.string().optional().nullable(),
+  whatsapp: z.string().optional().nullable(),
+  website: z.string().url().optional().nullable(),
+  bookingType: BookingTypeEnum.optional(),
+  offersMobile: z.boolean().optional(),
+  mobileFee: z.number().min(0).optional().nullable(),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
+  operatingHours: z.record(z.string()).optional().nullable(),
+  backgroundImage: z.string().url().optional().nullable(),
+  heroImages: z.array(z.string().url()).optional(),
+});
+
+export const SalonCreateSchema = SalonUpdateSchema.extend({
+  name: z.string().min(1).max(100),
+});
+
+export type SalonUpdateInput = z.infer<typeof SalonUpdateSchema>;
+export type SalonCreateInput = z.infer<typeof SalonCreateSchema>;

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
+import { transformCloudinary } from '@/utils/cloudinary';
 import { FaHome, FaArrowLeft, FaHeart, FaWhatsapp, FaGlobe } from 'react-icons/fa';
 import { Salon, Service, GalleryImage } from '@/types';
 import BookingModal from '@/components/BookingModal';
@@ -222,6 +223,38 @@ export default function SalonProfilePage() {
         <meta property="og:url" content={`https://thesalonhub.com/salons/${salon.id}`} />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'LocalBusiness',
+            name: salon.name,
+            description: salon.description || undefined,
+            image: salon.heroImages && salon.heroImages.length > 0 ? salon.heroImages : salon.backgroundImage ? [salon.backgroundImage] : undefined,
+            url: `https://thesalonhub.com/salons/${salon.id}`,
+            telephone: salon.phoneNumber || undefined,
+            email: salon.contactEmail || undefined,
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: salon.city,
+              addressRegion: salon.province,
+              streetAddress: salon.address || `${salon.town || ''}`.trim(),
+              addressCountry: 'ZA',
+            },
+            geo: salon.latitude && salon.longitude ? {
+              '@type': 'GeoCoordinates',
+              latitude: salon.latitude,
+              longitude: salon.longitude,
+            } : undefined,
+            aggregateRating: salon.avgRating ? {
+              '@type': 'AggregateRating',
+              ratingValue: salon.avgRating,
+              reviewCount: salon.reviews?.length || 0,
+            } : undefined,
+          }),
+        }}
+      />
 
       {selectedService && (
         <BookingModal
@@ -266,7 +299,7 @@ export default function SalonProfilePage() {
                         {heroImages.map((img: string, index: number) => (
                         <div key={index} className={styles.slide}>
                             <Image
-                              src={img}
+                              src={transformCloudinary(img, { width: 1200, quality: 'auto', format: 'auto', crop: 'fill' })}
                               alt={`${salon.name} gallery image ${index + 1}`}
                               className={styles.heroImage}
                               fill
@@ -326,7 +359,7 @@ export default function SalonProfilePage() {
                           {galleryImages.map((image, index) => (
                             <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
                               <Image
-                                src={image.imageUrl}
+                                src={transformCloudinary(image.imageUrl, { width: 400, quality: 'auto', format: 'auto', crop: 'fill' })}
                                 alt={image.caption || 'Salon work'}
                                 className={styles.galleryImage}
                                 fill
@@ -388,7 +421,7 @@ export default function SalonProfilePage() {
                        {salon.reviews && salon.reviews.length > 0 ? (
                          <div>
                            {salon.reviews.map(review => (
-                             <div key={review.id} style={{borderBottom: '1px dotted #ccc', paddingBottom: '1rem', marginBottom: '1rem'}}>
+                             <div key={review.id} style={{borderBottom: '1px dotted var(--color-border)', paddingBottom: '1rem', marginBottom: '1rem'}}>
                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                                  <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
                                  <span style={{color: 'var(--accent-gold)'}}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>

@@ -14,39 +14,47 @@ export interface User {
 export interface Salon {
   id: string;
   name: string;
-  address: string;
+  description?: string;
+  backgroundImage?: string | null;
+  province: string;
+  heroImages: string[];
   city: string;
-  state: string;
-  zip: string;
-  phone: string;
-  email: string;
-  website?: string;
-  description: string;
-  services: Service[];
-  reviews: Review[];
+  town: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  contactEmail?: string | null;
+  phoneNumber?: string | null;
+  whatsapp?: string | null;
+  website?: string | null;
+  bookingType?: 'ONSITE' | 'MOBILE' | 'BOTH';
+  offersMobile?: boolean;
+  mobileFee?: number | null;
+  isAvailableNow?: boolean;
+  operatingHours?: Record<string, string> | null;
+  operatingDays?: string[];
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  avgRating?: number;
+  services?: Service[];
+  reviews?: Review[];
   ownerId: string;
   createdAt: string;
   updatedAt: string;
   coverImage?: string;
-  gallery: GalleryImage[];
-  latitude?: number;
-  longitude?: number;
-  rating?: number;
-  openingTime: string;
-  closingTime: string;
-  daysOpen: string[];
-  contactPerson?: string;
-  contactPhone?: string;
-  heroImages: string[];
+  gallery?: GalleryImage[];
+  isFavorited?: boolean;
 }
 
 export interface Service {
   id: string;
-  name: string; // Changed from title to name
+  // Keep both for backward-compat across components; backend uses 'title'
+  title?: string;
+  name?: string;
   description: string;
   price: number;
   duration: number;
-  category: string;
+  category?: string;
+  categoryId?: string;
   inclusions?: string[];
   salonId: string;
   createdAt: string;
@@ -54,7 +62,8 @@ export interface Service {
   images: string[];
   averageRating?: number;
   reviewCount?: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export interface Review {
@@ -65,7 +74,7 @@ export interface Review {
   salonId: string;
   createdAt: string;
   updatedAt: string;
-  user: User;
+  author: { id: string; firstName: string; lastName: string };
 }
 
 export interface Booking {
@@ -73,9 +82,8 @@ export interface Booking {
   userId: string;
   salonId: string;
   serviceId: string;
-  bookingDate: string;
   bookingTime: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'DECLINED';
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -119,7 +127,7 @@ export interface ChatMessage {
 
 export interface GalleryImage {
   id: string;
-  url: string;
+  imageUrl: string;
   caption?: string;
   salonId: string;
   createdAt: string;

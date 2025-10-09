@@ -15,8 +15,8 @@ import { ThemeToggle } from './ThemeToggle';
 
 const baseLinkClasses =
   'relative rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200';
-const activeLinkClasses = 'text-primary bg-neutral-100 shadow-sm';
-const inactiveLinkClasses = 'text-neutral-700 hover:text-primary hover:bg-neutral-100';
+const activeLinkClasses = 'text-primary bg-[color:var(--color-surface-subtle)] shadow-sm';
+const inactiveLinkClasses = 'text-[color:var(--color-text-strong)] hover:text-primary hover:bg-[color:var(--color-surface-subtle)]';
 
 export default function Navbar() {
   const { authStatus, user, logout } = useAuth();
@@ -120,7 +120,7 @@ export default function Navbar() {
  
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-white/90 backdrop-blur">
+      <nav className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]/90 backdrop-blur">
         <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} priority />
@@ -140,7 +140,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-3">
-              {authStatus === 'loading' && <span className="text-sm text-neutral-500">Loading...</span>}
+              {authStatus === 'loading' && <span className="text-sm text-[color:var(--color-text-muted)]">Loading...</span>}
               {authStatus === 'unauthenticated' && (
                 <>
                   <button onClick={() => openModal('login')} className="btn btn-ghost text-sm lowercase">
@@ -167,7 +167,7 @@ export default function Navbar() {
                   <div className="h-6 w-px bg-[color:var(--color-border)]" />
                   <button
                     onClick={handleChatClick}
-                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition-colors hover:bg-neutral-200"
+                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] text-[color:var(--color-text-strong)] transition-colors hover:bg-[color:var(--color-surface-subtle)]"
                     aria-label="Messages"
                   >
                     <FaCommentDots />
@@ -175,19 +175,19 @@ export default function Navbar() {
                   <div ref={notificationsRef} className="relative">
                     <button
                       onClick={() => setIsNotificationsOpen((prev) => !prev)}
-                      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition-colors hover:bg-neutral-200"
+                      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] text-[color:var(--color-text-strong)] transition-colors hover:bg-[color:var(--color-surface-subtle)]"
                       aria-label="Notifications"
                     >
                       <FaBell />
                       {unreadCount > 0 && (
-                        <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-white">
+                        <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-[color:var(--color-text-inverse)]">
                           {unreadCount}
                         </span>
                       )}
                     </button>
                     {isNotificationsOpen && (
-                      <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[color:var(--color-border)] bg-white p-3 shadow-lg">
-                        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-3 shadow-lg">
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-text-muted)]">
                           Notifications
                         </div>
                         <div className="max-h-72 space-y-2 overflow-y-auto">
@@ -196,14 +196,14 @@ export default function Navbar() {
                               <div
                                 key={notif.id}
                                 className={`rounded-lg border border-transparent px-3 py-2 text-sm ${
-                                  notif.isRead ? 'text-neutral-600' : 'border-primary/30 bg-primary/5 text-neutral-800'
+                                  notif.isRead ? 'text-[color:var(--color-text-muted)]' : 'border-primary/30 bg-primary/5 text-[color:var(--color-text-strong)]'
                                 }`}
                               >
                                 {notif.message}
                               </div>
                             ))
                           ) : (
-                            <div className="rounded-lg bg-neutral-100 px-3 py-4 text-sm text-neutral-500">
+                            <div className="rounded-lg bg-[color:var(--color-surface-subtle)] px-3 py-4 text-sm text-[color:var(--color-text-muted)]">
                               No new notifications.
                             </div>
                           )}
@@ -219,7 +219,7 @@ export default function Navbar() {
             </div>
 
             <button
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition-colors hover:bg-neutral-200 lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] text-[color:var(--color-text-strong)] transition-colors hover:bg-[color:var(--color-surface-subtle)] lg:hidden"
               onClick={() => setIsMenuOpen((prev) => !prev)}
               aria-label="Toggle navigation"
             >
@@ -234,7 +234,7 @@ export default function Navbar() {
           isMenuOpen
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none opacity-0'
-        } fixed inset-x-0 top-20 z-40 bg-white/95 backdrop-blur transition-opacity`}
+        } fixed inset-x-0 top-20 z-40 bg-[color:var(--color-surface)]/95 backdrop-blur transition-opacity`}
       >
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 sm:px-6 lg:px-8">
           {mainLinks.map((link) => (
@@ -249,7 +249,7 @@ export default function Navbar() {
           ))}
 
           <div className="my-2 h-px bg-[color:var(--color-border)]" />
-          <div className="flex items-center justify-between rounded-lg bg-neutral-100 px-4 py-3 text-sm font-medium text-neutral-600">
+          <div className="flex items-center justify-between rounded-lg bg-[color:var(--color-surface-subtle)] px-4 py-3 text-sm font-medium text-[color:var(--color-text-muted)]">
             <span>Appearance</span>
             <ThemeToggle />
           </div>
@@ -306,7 +306,7 @@ export default function Navbar() {
           )}
 
           {authStatus === 'loading' && (
-            <span className="text-sm text-neutral-500">Checking session...</span>
+            <span className="text-sm text-[color:var(--color-text-muted)]">Checking session...</span>
           )}
         </div>
       </div>

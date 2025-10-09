@@ -16,12 +16,18 @@ interface ServiceFormInputs {
   images: string[];
 }
 
+// Backwards-compatible props to support existing usages across pages
 interface ServiceFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   salonId: string;
-  onServiceAddedOrUpdated: (service: Service) => void;
+  onClose: () => void;
+  // Newer props
+  onServiceAddedOrUpdated?: (service: Service) => void;
   serviceToEdit?: Service | null;
+  isOpen?: boolean; // optional: component is conditionally mounted by parents
+  // Older usages
+  onServiceAdded?: (service: Service) => void;
+  onServiceSaved?: (service: Service) => void;
+  service?: Service | null;
 }
 
 interface Category {
@@ -35,6 +41,9 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
   salonId,
   onServiceAddedOrUpdated,
   serviceToEdit,
+  service,
+  onServiceAdded,
+  onServiceSaved,
 }) => {
   const {
     register,
@@ -65,7 +74,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('/api/services/categories');
+        const res = await fetch('/api/categories');
         if (res.ok) {
           const data = await res.json();
           setCategories(data);
@@ -80,17 +89,20 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
     fetchCategories();
   }, []);
 
+  // Support either 'serviceToEdit' (new) or 'service' (older prop name)
+  const initialService = serviceToEdit ?? service ?? null;
+
   useEffect(() => {
-    if (serviceToEdit) {
+    if (initialService) {
       reset({
-        name: serviceToEdit.name,
-        description: serviceToEdit.description,
-        price: serviceToEdit.price,
-        duration: serviceToEdit.duration,
-        categoryId: serviceToEdit.category, // FIX: Use 'category' for existing services
-        images: serviceToEdit.images || [],
+        name: (initialService as any).name ?? (initialService as any).title ?? '',
+        description: initialService.description,
+        price: initialService.price,
+        duration: initialService.duration,
+        categoryId: (initialService as any).categoryId ?? '',
+        images: initialService.images || [],
       });
-      setImagePreviews(serviceToEdit.images || []);
+      setImagePreviews(initialService.images || []);
       setImageFiles([]);
     } else {
       reset({
@@ -104,7 +116,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
       setImagePreviews([]);
       setImageFiles([]);
     }
-  }, [serviceToEdit, reset]);
+  }, [initialService, reset]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -145,18 +157,21 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
         uploadedImageUrls.push(...newUrls);
       }
       
-      const serviceData = {
-        ...data,
+      const serviceData: any = {
+        // Backend expects 'title'
+        title: data.name,
+        description: data.description,
         price: Number(data.price),
         duration: Number(data.duration),
         images: uploadedImageUrls,
         salonId,
+        categoryId: data.categoryId,
       };
 
-      const url = serviceToEdit
-        ? `/api/services/${serviceToEdit.id}`
+      const url = initialService
+        ? `/api/services/${initialService.id}`
         : `/api/services`;
-      const method = serviceToEdit ? 'PATCH' : 'POST';
+      const method = initialService ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {
         method,
@@ -173,8 +188,11 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
       }
 
       const savedService = await response.json();
-      toast.success(`Service ${serviceToEdit ? 'updated' : 'added'} successfully! It will be reviewed by an admin.`);
-      onServiceAddedOrUpdated(savedService);
+      toast.success(`Service ${initialService ? 'updated' : 'added'} successfully! It will be reviewed by an admin.`);
+      // Fire any provided callback name for backwards compatibility
+      onServiceAddedOrUpdated?.(savedService);
+      (typeof (onServiceSaved) === 'function') && onServiceSaved(savedService);
+      (typeof (onServiceAdded) === 'function') && onServiceAdded(savedService);
       onClose();
     } catch (error: any) {
       console.error('Failed to save service:', error);
@@ -194,7 +212,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
     onClose();
   }, [isSubmitting, isUploading, reset, onClose]);
 
-  if (!isOpen) return null;
+  // Component is conditionally mounted by parents; no need for internal isOpen guard
 
   return (
     <div className={styles.modalOverlay} onClick={handleClose}>

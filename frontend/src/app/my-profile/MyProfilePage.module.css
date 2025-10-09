@@ -8,10 +8,10 @@
   position: sticky;
   top: 78px;
   z-index: 10;
-  background-color: var(--white);
+  background-color: var(--color-surface);
   padding: 1rem 0;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--secondary-blush);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -43,7 +43,7 @@
   padding: 0.5rem 1rem;
   background-color: var(--color-surface-elevated);
   color: var(--dark-gray);
-  border: 1px solid var(--light-silver);
+  border: 1px solid var(--color-border);
   border-radius: 0.375rem;
   font-weight: 500;
   cursor: pointer;

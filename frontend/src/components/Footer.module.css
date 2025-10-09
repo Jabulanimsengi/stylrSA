@@ -1,6 +1,6 @@
 .footer {
   background-color: var(--charcoal-black);
-  color: var(--white);
+  color: var(--color-text-inverse);
   padding: 4rem 2rem 2rem;
   margin-top: auto; /* Pushes footer to the bottom */
 }
@@ -37,7 +37,7 @@
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
-  color: var(--white);
+  color: var(--color-text-inverse);
 }
 
 .links {
@@ -67,7 +67,7 @@
 }
 
 .socialLink {
-  color: var(--white);
+  color: var(--color-text-inverse);
   font-size: 1.5rem;
   transition: color 0.2s;
 }
@@ -130,7 +130,7 @@
 }
 
 .legalLinks a:hover {
-  color: var(--white);
+  color: var(--color-text-inverse);
   text-decoration: underline;
 }
 

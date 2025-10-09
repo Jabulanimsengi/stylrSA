@@ -36,11 +36,13 @@ model User {
 model Salon {
   id                   String         @id @default(uuid())
   name                 String
+  description          String?
   backgroundImage      String?
   province             String
   heroImages           String[]
   city                 String
   town                 String
+  address              String?
   latitude             Float?
   longitude            Float?
   contactEmail         String?

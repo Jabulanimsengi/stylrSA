@@ -4,6 +4,7 @@
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { transformCloudinary } from '@/utils/cloudinary';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
@@ -30,9 +31,13 @@ function SalonsPageContent() {
       province: params.get('province') || '',
       city: params.get('city') || '',
       service: params.get('service') || '',
+      category: params.get('category') || '',
+      q: params.get('q') || '',
       offersMobile: params.get('offersMobile') === 'true',
       sortBy: params.get('sortBy') || '',
-      openOn: params.get('openOn') || '',
+      openNow: params.get('openNow') === 'true',
+      priceMin: params.get('priceMin') || '',
+      priceMax: params.get('priceMax') || '',
       lat: params.get('lat') || null,
       lon: params.get('lon') || null,
     };
@@ -45,21 +50,23 @@ function SalonsPageContent() {
     const query = new URLSearchParams();
     
     let url = '/api/salons/approved';
-
-    if (filters.lat && filters.lon) {
-      url = `/api/salons/nearby?lat=${filters.lat}&lon=${filters.lon}`;
-    } else {
-      if (filters.province) query.append('province', filters.province);
-      if (filters.city) query.append('city', filters.city);
-      if (filters.service) query.append('service', filters.service);
-      if (filters.offersMobile) query.append('offersMobile', 'true');
-      if (filters.sortBy) query.append('sortBy', filters.sortBy);
-      if (filters.openOn) query.append('openOn', filters.openOn);
-      
-      const queryString = query.toString();
-      if (queryString) {
-        url += `?${queryString}`;
-      }
+    if (filters.province) query.append('province', filters.province);
+    if (filters.city) query.append('city', filters.city);
+    if (filters.service) query.append('service', filters.service);
+    if (filters.category) query.append('category', filters.category);
+    if (filters.q) query.append('q', filters.q);
+    if (filters.offersMobile) query.append('offersMobile', 'true');
+    if (filters.sortBy) query.append('sortBy', filters.sortBy);
+    if (filters.openNow) query.append('openNow', 'true');
+    if (filters.priceMin) query.append('priceMin', String(filters.priceMin));
+    if (filters.priceMax) query.append('priceMax', String(filters.priceMax));
+    if (filters.sortBy === 'distance' && filters.lat && filters.lon) {
+      query.append('lat', String(filters.lat));
+      query.append('lon', String(filters.lon));
+    }
+    const queryString = query.toString();
+    if (queryString) {
+      url += `?${queryString}`;
     }
 
     try {
@@ -151,7 +158,7 @@ function SalonsPageContent() {
               <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
                 <div className={styles.imageWrapper}>
                   <Image
-                    src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
+                    src={transformCloudinary(salon.backgroundImage || 'https://via.placeholder.com/400x200', { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
                     alt={`A photo of ${salon.name}`}
                     className={styles.cardImage}
                     fill
