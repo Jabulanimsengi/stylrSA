@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
+import { useSession } from 'next-auth/react';
 
 // FIX: Update PendingSalon to include the new fields from the backend response.
 type PendingSalon = Pick<Salon, 'id'|'name'|'approvalStatus'|'createdAt'> & { 
@@ -25,6 +26,7 @@ type PendingReview = Review & { author: { firstName: string }, salon: { name: st
 type PendingProduct = Product & { seller: { firstName: string, lastName: string } };
 
 export default function AdminPage() {
+  const { data: session } = useSession();
   const { authStatus, user } = useAuth();
   const [pendingSalons, setPendingSalons] = useState<PendingSalon[]>([]);
   const [allSalons, setAllSalons] = useState<PendingSalon[]>([]);
@@ -96,7 +98,8 @@ export default function AdminPage() {
     const fetchData = async () => {
       setIsLoading(true);
       // FIX: Use relative URLs instead of hardcoding localhost.
-      const requestOptions = { credentials: 'include' as const };
+      const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+      const requestOptions = { credentials: 'include' as const, headers: authHeaders } as const;
       
       try {
         const ts = Date.now();
@@ -143,8 +146,8 @@ export default function AdminPage() {
       socket.on('salon:deleted', async () => {
         try {
           const [allRes, delRes] = await Promise.all([
-            fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any }),
-            fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any }),
+            fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
           ]);
           if (allRes.ok) setAllSalons(await allRes.json());
           if (delRes.ok) setDeletedSalons(await delRes.json());
@@ -152,14 +155,14 @@ export default function AdminPage() {
       });
       socket.on('visibility:updated', async () => {
         try {
-          const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any });
+          const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
           if (allRes.ok) setAllSalons(await allRes.json());
         } catch {}
       });
     } catch {}
 
     return () => { try { socket?.disconnect(); } catch {} };
-  }, [authStatus, user, router]);
+  }, [authStatus, user, router, session?.backendJwt]);
 
   const handleUpdateStatus = async (type: 'salon' | 'service' | 'review' | 'product', id: string, status: ApprovalStatus) => {
     if (authStatus !== 'authenticated') {
@@ -175,9 +178,10 @@ export default function AdminPage() {
       case 'product': url = `/api/admin/products/${id}/status`; break;
     }
 
+    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
     await fetch(url, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       credentials: 'include',
       body: JSON.stringify({ approvalStatus: status }),
     });
@@ -204,9 +208,10 @@ export default function AdminPage() {
     if (isDeleting) return;
     setIsDeleting(true);
     const id = deletingSalon.id;
+    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
     const res = await fetch(`/api/admin/salons/${id}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       credentials: 'include',
       body: JSON.stringify({ reason: deleteReason.trim() }),
     });
@@ -216,7 +221,7 @@ export default function AdminPage() {
       setDeletingSalon(null);
       toast.success(res.status === 404 ? 'Profile was already removed' : 'Profile deleted');
       try {
-        const r = await fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any });
+        const r = await fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
         if (r.ok) setDeletedSalons(await r.json());
       } catch {}
     } else {
@@ -227,16 +232,18 @@ export default function AdminPage() {
   };
 
   const restoreDeletedSalon = async (archiveId: string) => {
+    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
     const res = await fetch(`/api/admin/salons/deleted/${archiveId}/restore`, {
       method: 'POST',
       credentials: 'include',
+      headers: authHeaders,
     });
     if (res.ok) {
       toast.success('Profile restored');
       try {
         const [allRes, delRes] = await Promise.all([
-          fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any }),
-          fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any }),
+          fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+          fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
         ]);
         if (allRes.ok) setAllSalons(await allRes.json());
         if (delRes.ok) setDeletedSalons(await delRes.json());
@@ -405,7 +412,8 @@ export default function AdminPage() {
                           if (!Number.isNaN(maxListings) && draftMax !== '') body.maxListings = maxListings;
                           // Always send featuredUntil to allow clearing on server (null when empty)
                           body.featuredUntil = featuredUntil ? featuredUntil : null;
-                          const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
+                          const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+                          const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders}, credentials:'include', body: JSON.stringify(body)});
                           if (r.ok) {
                             const updated = await r.json();
                             toast.success('Visibility updated');
@@ -420,7 +428,7 @@ export default function AdminPage() {
                             setEditingSalonId(null);
                             // Re-fetch from server to ensure persistence and avoid stale UI
                             try {
-                              const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any });
+                              const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
                               if (allRes.ok) {
                                 const fresh = await allRes.json();
                                 setAllSalons(fresh);
