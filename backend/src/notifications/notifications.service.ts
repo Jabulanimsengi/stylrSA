@@ -1,6 +1,9 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 50;
+
 @Injectable()
 export class NotificationsService {
   constructor(private prisma: PrismaService) {}
@@ -20,12 +23,39 @@ export class NotificationsService {
     });
   }
 
-  async getNotifications(userId: string) {
-    return this.prisma.notification.findMany({
-      where: { userId: userId },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
+  async getNotifications(
+    userId: string,
+    options?: { cursor?: string; limit?: number },
+  ) {
+    const resolvedLimit = Math.min(
+      Math.max(options?.limit ?? DEFAULT_LIMIT, 1),
+      MAX_LIMIT,
+    );
+
+    const notifications = await this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: resolvedLimit + 1,
+      cursor: options?.cursor ? { id: options.cursor } : undefined,
+      skip: options?.cursor ? 1 : 0,
     });
+
+    const unreadCount = await this.prisma.notification.count({
+      where: { userId, isRead: false },
+    });
+
+    const hasNextPage = notifications.length > resolvedLimit;
+    const items = hasNextPage
+      ? notifications.slice(0, resolvedLimit)
+      : notifications;
+    const nextCursor =
+      hasNextPage && items.length > 0 ? items[items.length - 1].id : null;
+
+    return {
+      items,
+      nextCursor,
+      unreadCount,
+    };
   }
 
   async markAsRead(notificationId: string, userId: string) {

@@ -112,6 +112,12 @@ export interface Notification {
   type?: 'BOOKING_CONFIRMED' | 'BOOKING_CANCELLED' | 'NEW_MESSAGE' | 'PROMOTION' | 'REVIEW_REMINDER';
 }
 
+export interface PaginatedNotifications {
+  items: Notification[];
+  nextCursor: string | null;
+  unreadCount: number;
+}
+
 export interface Conversation {
   id: string;
   user1Id: string;

@@ -7,6 +7,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -19,8 +20,16 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  getNotifications(@GetUser() user: User) {
-    return this.notificationsService.getNotifications(user.id);
+  getNotifications(
+    @GetUser() user: User,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsedLimit = limit ? Number.parseInt(limit, 10) : undefined;
+    return this.notificationsService.getNotifications(user.id, {
+      cursor,
+      limit: Number.isNaN(parsedLimit) ? undefined : parsedLimit,
+    });
   }
 
   @Patch(':id/read')
