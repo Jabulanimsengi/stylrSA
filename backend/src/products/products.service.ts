@@ -44,9 +44,9 @@ export class ProductsService {
             lastName: true,
             email: true,
             // following fields may not exist in older prisma types
-            // @ts-ignore
+            // @ts-expect-error - field is present in our schema but may be missing in older generated types
             sellerVisibilityWeight: true,
-            // @ts-ignore
+            // @ts-expect-error - field is present in our schema but may be missing in older generated types
             sellerFeaturedUntil: true,
           },
         },
@@ -55,8 +55,8 @@ export class ProductsService {
 
     const score = (p: any) =>
       calculateVisibilityScore({
-        visibilityWeight: (p.seller as any)?.sellerVisibilityWeight ?? 1,
-        featuredUntil: (p.seller as any)?.sellerFeaturedUntil ?? null,
+        visibilityWeight: p.seller?.sellerVisibilityWeight ?? 1,
+        featuredUntil: p.seller?.sellerFeaturedUntil ?? null,
         createdAt: p.createdAt,
       });
 

@@ -43,7 +43,9 @@ export class AdminService {
         visibilityWeight: true,
         maxListings: true,
         featuredUntil: true,
-        owner: { select: { id: true, email: true, firstName: true, lastName: true } },
+        owner: {
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
       },
     });
   }
@@ -209,9 +211,16 @@ export class AdminService {
   async setSalonPlan(
     salonId: string,
     planCode: string,
-    overrides?: { visibilityWeight?: number; maxListings?: number; featuredUntil?: Date | null },
+    overrides?: {
+      visibilityWeight?: number;
+      maxListings?: number;
+      featuredUntil?: Date | null;
+    },
   ) {
-    const FALLBACKS: Record<string, { visibilityWeight: number; maxListings: number }> = {
+    const FALLBACKS: Record<
+      string,
+      { visibilityWeight: number; maxListings: number }
+    > = {
       STARTER: { visibilityWeight: 1, maxListings: 2 },
       ESSENTIAL: { visibilityWeight: 2, maxListings: 6 },
       GROWTH: { visibilityWeight: 3, maxListings: 11 },
@@ -220,25 +229,57 @@ export class AdminService {
     };
     let plan: any = null;
     try {
-      plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
-    } catch {}
-    const visibilityWeight = overrides?.visibilityWeight ?? plan?.visibilityWeight ?? FALLBACKS[planCode]?.visibilityWeight ?? 1;
-    const maxListings = overrides?.maxListings ?? plan?.maxListings ?? FALLBACKS[planCode]?.maxListings ?? 2;
+      plan = await (this.prisma as any).plan.findUnique({
+        where: { code: planCode },
+      });
+    } catch (_err) {
+      // noop: Plan table may be absent in some environments; fallbacks cover values
+    }
+    const visibilityWeight =
+      overrides?.visibilityWeight ??
+      plan?.visibilityWeight ??
+      FALLBACKS[planCode]?.visibilityWeight ??
+      1;
+    const maxListings =
+      overrides?.maxListings ??
+      plan?.maxListings ??
+      FALLBACKS[planCode]?.maxListings ??
+      2;
     const data: any = { planCode, visibilityWeight, maxListings };
-    if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
+    if (
+      overrides &&
+      Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')
+    ) {
       data.featuredUntil = overrides.featuredUntil ?? null;
     }
-    const updated = await this.prisma.salon.update({ where: { id: salonId }, data });
-    try { this.eventsGateway.server.emit('visibility:updated', { entity: 'salon', id: salonId }); } catch {}
+    const updated = await this.prisma.salon.update({
+      where: { id: salonId },
+      data,
+    });
+    try {
+      this.eventsGateway.server.emit('visibility:updated', {
+        entity: 'salon',
+        id: salonId,
+      });
+    } catch (_err) {
+      // noop: websocket not critical for persistence
+    }
     return updated;
   }
 
   async setSellerPlan(
     sellerId: string,
     planCode: string,
-    overrides?: { visibilityWeight?: number; maxListings?: number; featuredUntil?: Date | null },
+    overrides?: {
+      visibilityWeight?: number;
+      maxListings?: number;
+      featuredUntil?: Date | null;
+    },
   ) {
-    const FALLBACKS: Record<string, { visibilityWeight: number; maxListings: number }> = {
+    const FALLBACKS: Record<
+      string,
+      { visibilityWeight: number; maxListings: number }
+    > = {
       STARTER: { visibilityWeight: 1, maxListings: 2 },
       ESSENTIAL: { visibilityWeight: 2, maxListings: 6 },
       GROWTH: { visibilityWeight: 3, maxListings: 11 },
@@ -247,16 +288,45 @@ export class AdminService {
     };
     let plan: any = null;
     try {
-      plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
-    } catch {}
-    const sellerVisibilityWeight = overrides?.visibilityWeight ?? plan?.visibilityWeight ?? FALLBACKS[planCode]?.visibilityWeight ?? 1;
-    const sellerMaxListings = overrides?.maxListings ?? plan?.maxListings ?? FALLBACKS[planCode]?.maxListings ?? 2;
-    const data: any = { sellerPlanCode: planCode, sellerVisibilityWeight, sellerMaxListings };
-    if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
+      plan = await (this.prisma as any).plan.findUnique({
+        where: { code: planCode },
+      });
+    } catch (_err) {
+      // noop: Plan table may be absent in some environments; fallbacks cover values
+    }
+    const sellerVisibilityWeight =
+      overrides?.visibilityWeight ??
+      plan?.visibilityWeight ??
+      FALLBACKS[planCode]?.visibilityWeight ??
+      1;
+    const sellerMaxListings =
+      overrides?.maxListings ??
+      plan?.maxListings ??
+      FALLBACKS[planCode]?.maxListings ??
+      2;
+    const data: any = {
+      sellerPlanCode: planCode,
+      sellerVisibilityWeight,
+      sellerMaxListings,
+    };
+    if (
+      overrides &&
+      Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')
+    ) {
       data.sellerFeaturedUntil = overrides.featuredUntil ?? null;
     }
-    const updated = await this.prisma.user.update({ where: { id: sellerId }, data });
-    try { this.eventsGateway.server.emit('visibility:updated', { entity: 'seller', id: sellerId }); } catch {}
+    const updated = await this.prisma.user.update({
+      where: { id: sellerId },
+      data,
+    });
+    try {
+      this.eventsGateway.server.emit('visibility:updated', {
+        entity: 'seller',
+        id: sellerId,
+      });
+    } catch (_err) {
+      // noop: websocket not critical for persistence
+    }
     return updated;
   }
 }

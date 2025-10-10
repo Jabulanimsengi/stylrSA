@@ -132,6 +132,7 @@ function DashboardPageContent() {
           // If the currently viewed salon or owner matches, refresh
           if ((salon?.id && payload.id === salon.id) || payload.id === ownerId) {
             fetchDashboardData();
+            toast.success('Visibility updated');
           }
         }
       } catch {}
