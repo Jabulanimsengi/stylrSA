@@ -33,6 +33,12 @@ model User {
   notifications        Notification[]
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
+
+  // Product seller plan fields (used when role = PRODUCT_SELLER)
+  sellerPlanCode        PlanCode?
+  sellerVisibilityWeight Int?         @default(1)
+  sellerMaxListings      Int?         @default(2)
+  sellerFeaturedUntil    DateTime?
 }
 
 model Salon {
@@ -68,6 +74,12 @@ model Salon {
   reviews              Review[]
   favorites            Favorite[]
   gallery              GalleryImage[]
+
+  // Plan & visibility controls
+  planCode             PlanCode?      @default(STARTER)
+  visibilityWeight     Int            @default(1)
+  maxListings          Int            @default(2)
+  featuredUntil        DateTime?
   @@index([approvalStatus])
   @@index([city])
   @@index([province])
@@ -306,4 +318,24 @@ enum ProductOrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+// Subscription plans (seeded)
+model Plan {
+  id               String   @id @default(uuid())
+  code             PlanCode @unique
+  name             String
+  priceCents       Int
+  visibilityWeight Int
+  maxListings      Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum PlanCode {
+  STARTER
+  ESSENTIAL
+  GROWTH
+  PRO
+  ELITE
 }

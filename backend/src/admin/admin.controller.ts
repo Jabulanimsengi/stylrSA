@@ -5,6 +5,7 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/guard/roles.decorator';
 import { UserRole, ApprovalStatus } from '@prisma/client';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
+import { UpdatePlanDto } from './dto/update-plan.dto';
 
 @Controller('api/admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -79,5 +80,31 @@ export class AdminController {
       productId,
       approvalStatus as ApprovalStatus,
     );
+  }
+
+  @Patch('salons/:salonId/plan')
+  updateSalonPlan(
+    @Param('salonId') salonId: string,
+    @Body() dto: UpdatePlanDto,
+  ) {
+    const featuredUntil = dto.featuredUntil ? new Date(dto.featuredUntil) : undefined;
+    return this.adminService.setSalonPlan(salonId, dto.planCode as any, {
+      visibilityWeight: dto.visibilityWeight,
+      maxListings: dto.maxListings,
+      featuredUntil,
+    });
+  }
+
+  @Patch('sellers/:sellerId/plan')
+  updateSellerPlan(
+    @Param('sellerId') sellerId: string,
+    @Body() dto: UpdatePlanDto,
+  ) {
+    const featuredUntil = dto.featuredUntil ? new Date(dto.featuredUntil) : undefined;
+    return this.adminService.setSellerPlan(sellerId, dto.planCode as any, {
+      visibilityWeight: dto.visibilityWeight,
+      maxListings: dto.maxListings,
+      featuredUntil,
+    });
   }
 }

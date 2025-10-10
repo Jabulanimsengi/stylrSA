@@ -13,6 +13,17 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   async create(user: User, dto: CreateProductDto) {
+    // Enforce plan-based listing cap for product seller
+    const currentCount = await this.prisma.product.count({
+      where: { sellerId: user.id },
+    });
+    const maxListings = (user as any).sellerMaxListings ?? 2;
+    if (currentCount >= maxListings) {
+      throw new ForbiddenException(
+        `Listing limit reached for your plan (max ${maxListings} products). Upgrade your plan to add more.`,
+      );
+    }
+
     return this.prisma.product.create({
       data: {
         ...dto,
@@ -22,7 +33,7 @@ export class ProductsService {
   }
 
   async findAllApproved() {
-    return this.prisma.product.findMany({
+    const products = await this.prisma.product.findMany({
       where: { approvalStatus: ApprovalStatus.APPROVED },
       include: {
         seller: {
@@ -31,9 +42,28 @@ export class ProductsService {
             firstName: true,
             lastName: true,
             email: true,
+            // following fields may not exist in older prisma types
+            // @ts-ignore
+            sellerVisibilityWeight: true,
+            // @ts-ignore
+            sellerFeaturedUntil: true,
           },
         },
       },
+    });
+
+    const now = Date.now();
+    const score = (p: any) => {
+      const w = (p.seller as any)?.sellerVisibilityWeight ?? 1;
+      const fu = (p.seller as any)?.sellerFeaturedUntil as any;
+      const boost = fu && new Date(fu).getTime() > now ? 10 : 0;
+      return w + boost;
+    };
+
+    return products.sort((a, b) => {
+      const sb = score(b) - score(a);
+      if (sb !== 0) return sb;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }
 

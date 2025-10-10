@@ -269,6 +269,21 @@ export class SalonsService {
     // Fetch base list
     let salons = await this.prisma.salon.findMany({ where, orderBy });
 
+    // Default ranking by visibility score when no explicit distance/price sort
+    if (!sortBy || sortBy === 'latest') {
+      const now = Date.now();
+      const visibilityScore = (s: any) => {
+        const w = s.visibilityWeight ?? 1;
+        const boost = s.featuredUntil && new Date(s.featuredUntil).getTime() > now ? 10 : 0;
+        return w + boost;
+      };
+      salons = salons.sort((a: any, b: any) => {
+        const sv = visibilityScore(b) - visibilityScore(a);
+        if (sv !== 0) return sv;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
+
     // Sort by distance in memory if requested and coordinates provided
     if (sortBy === 'distance' && lat && lon) {
       const R = 6371; // km

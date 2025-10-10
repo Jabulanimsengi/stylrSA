@@ -195,4 +195,40 @@ export class AdminService {
 
     return updated;
   }
+
+  async setSalonPlan(
+    salonId: string,
+    planCode: string,
+    overrides?: { visibilityWeight?: number; maxListings?: number; featuredUntil?: Date | null },
+  ) {
+    const plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
+    if (!plan) throw new Error('Plan not found');
+    const data: any = {
+      planCode,
+      visibilityWeight: overrides?.visibilityWeight ?? plan.visibilityWeight,
+      maxListings: overrides?.maxListings ?? plan.maxListings,
+    };
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
+      data.featuredUntil = overrides.featuredUntil ?? null;
+    }
+    return this.prisma.salon.update({ where: { id: salonId }, data });
+  }
+
+  async setSellerPlan(
+    sellerId: string,
+    planCode: string,
+    overrides?: { visibilityWeight?: number; maxListings?: number; featuredUntil?: Date | null },
+  ) {
+    const plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
+    if (!plan) throw new Error('Plan not found');
+    const data: any = {
+      sellerPlanCode: planCode,
+      sellerVisibilityWeight: overrides?.visibilityWeight ?? plan.visibilityWeight,
+      sellerMaxListings: overrides?.maxListings ?? plan.maxListings,
+    };
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
+      data.sellerFeaturedUntil = overrides.featuredUntil ?? null;
+    }
+    return this.prisma.user.update({ where: { id: sellerId }, data });
+  }
 }

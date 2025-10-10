@@ -29,6 +29,17 @@ export class ServicesService {
       );
     }
 
+    // Enforce plan-based listing cap
+    const currentCount = await this.prisma.service.count({
+      where: { salonId: salon.id },
+    });
+    const maxListings = (salon as any).maxListings ?? 2;
+    if (currentCount >= maxListings) {
+      throw new ForbiddenException(
+        `Listing limit reached for your plan (max ${maxListings} services). Upgrade your plan to add more.`,
+      );
+    }
+
     return this.prisma.service.create({ data: dto });
   }
 
