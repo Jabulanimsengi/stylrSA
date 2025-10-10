@@ -144,9 +144,7 @@ export class AdminController {
   }
 
   @Post('salons/deleted/:archiveId/restore')
-  restoreSalon(
-    @Param('archiveId') archiveId: string,
-  ) {
+  restoreSalon(@Param('archiveId') archiveId: string) {
     return this.adminService.restoreDeletedSalon(archiveId);
   }
 }
