@@ -100,21 +100,21 @@ export default function HomePage() {
   }, [isLoading, hasMore, page, fetchServices]);
 
   useEffect(() => {
-    const option = {
+    const option: IntersectionObserverInit = {
       root: null,
-      rootMargin: "20px",
-      threshold: 1.0
+      rootMargin: '400px 0px',
+      threshold: 0.25,
     };
-    
+
     observer.current = new IntersectionObserver(handleObserver, option);
-    
+
     const currentLoader = loader.current;
     if (currentLoader) {
       observer.current.observe(currentLoader);
     }
 
     return () => {
-      if(currentLoader) {
+      if (currentLoader) {
         observer.current?.unobserve(currentLoader);
       }
     };
@@ -127,7 +127,19 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
-      {isLoading && page === 1 && <LoadingSpinner />}
+      {isLoading && page === 1 && (
+        <div className={styles.grid} aria-hidden>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} style={{
+              height: 220,
+              borderRadius: 12,
+              background: 'linear-gradient(90deg, #eee 25%, #f5f5f5 37%, #eee 63%)',
+              backgroundSize: '400% 100%',
+              animation: 'pulse 1.4s ease infinite'
+            }} />
+          ))}
+        </div>
+      )}
       <section className={styles.hero}>
         <div className={styles.heroMedia} aria-hidden="true">
           {HERO_SLIDES.map((slide, index) => (

@@ -10,7 +10,8 @@ import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
 import { ThemeProvider } from '@/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import ChatWidget from '@/components/ChatWidget';
+import dynamic from 'next/dynamic';
+const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
 
 const inter = Inter({ subsets: ['latin'] });
 

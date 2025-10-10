@@ -4,12 +4,14 @@ import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Add helmet as a middleware
+  // Security & performance middlewares
   app.use(helmet());
+  app.use(compression());
 
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
