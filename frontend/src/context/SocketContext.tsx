@@ -15,29 +15,16 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const { authStatus, user } = useAuth();
-
   const userId = user?.id;
 
   useEffect(() => {
-    if (authStatus !== 'authenticated' || !userId) {
-      setSocket((current) => {
-        if (current) {
-          current.disconnect();
-        }
-        return null;
-      });
-      return;
-    }
-
+    // Always connect (even when not authenticated) to receive public broadcasts
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL || undefined; // same-origin if undefined
-    const nextSocket = io(WS_URL, {
-      withCredentials: true,
-      query: { userId },
-    });
+    const nextSocket = io(WS_URL, { withCredentials: true });
 
     nextSocket.on('connect', () => {
       console.log('Socket connected:', nextSocket.id);
-      nextSocket.emit('register', userId);
+      if (userId) nextSocket.emit('register', userId);
     });
 
     nextSocket.on('newBooking', (data) => {
@@ -53,7 +40,16 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       nextSocket.disconnect();
     };
-  }, [authStatus, userId]);
+    // Only run once on mount; userId registration handled by separate effect below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    if (authStatus === 'authenticated' && userId) {
+      socket.emit('register', userId);
+    }
+  }, [socket, authStatus, userId]);
 
   return (
     <SocketContext.Provider value={socket}>
