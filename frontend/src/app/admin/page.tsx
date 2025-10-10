@@ -168,6 +168,39 @@ export default function AdminPage() {
               <div className={styles.info}>
                 <h4>{salon.name}</h4>
                 <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email}) | Status: {salon.approvalStatus}</p>
+                <div style={{display:'grid', gap: '0.5rem', marginTop: '0.5rem'}}>
+                  <div style={{display:'flex', gap: '0.5rem', alignItems:'center', flexWrap:'wrap'}}>
+                    <label>Plan</label>
+                    <select id={`plan-${salon.id}`} defaultValue="STARTER" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}}>
+                      <option value="STARTER">Starter</option>
+                      <option value="ESSENTIAL">Essential</option>
+                      <option value="GROWTH">Growth</option>
+                      <option value="PRO">Pro</option>
+                      <option value="ELITE">Elite</option>
+                    </select>
+                    <label>Weight</label>
+                    <input id={`weight-${salon.id}`} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                    <label>Max listings</label>
+                    <input id={`max-${salon.id}`} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                    <label>Featured until</label>
+                    <input id={`feat-${salon.id}`} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                    <button
+                      onClick={async ()=>{
+                        const planCode = (document.getElementById(`plan-${salon.id}`) as HTMLSelectElement)?.value;
+                        const visibilityWeight = Number((document.getElementById(`weight-${salon.id}`) as HTMLInputElement)?.value || NaN);
+                        const maxListings = Number((document.getElementById(`max-${salon.id}`) as HTMLInputElement)?.value || NaN);
+                        const featuredUntil = (document.getElementById(`feat-${salon.id}`) as HTMLInputElement)?.value;
+                        const body: any = { planCode };
+                        if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
+                        if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
+                        if (featuredUntil) body.featuredUntil = featuredUntil;
+                        await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
+                        alert('Plan updated for salon.');
+                      }}
+                      className={styles.approveButton}
+                    >Save</button>
+                  </div>
+                </div>
               </div>
               <div className={styles.actions}>
                 <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
@@ -212,6 +245,37 @@ export default function AdminPage() {
               <div className={styles.info}>
                 <h4>{product.name}</h4>
                 <p>Seller: {product.seller.firstName} {product.seller.lastName}</p>
+                <div style={{display:'flex', gap: '0.5rem', alignItems:'center', flexWrap:'wrap', marginTop:'0.5rem'}}>
+                  <label>Seller Plan</label>
+                  <select id={`splan-${product.id}`} defaultValue="STARTER" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}}>
+                    <option value="STARTER">Starter</option>
+                    <option value="ESSENTIAL">Essential</option>
+                    <option value="GROWTH">Growth</option>
+                    <option value="PRO">Pro</option>
+                    <option value="ELITE">Elite</option>
+                  </select>
+                  <label>Weight</label>
+                  <input id={`sweight-${product.id}`} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                  <label>Max listings</label>
+                  <input id={`smax-${product.id}`} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                  <label>Featured until</label>
+                  <input id={`sfeat-${product.id}`} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                  <button
+                    onClick={async ()=>{
+                      const planCode = (document.getElementById(`splan-${product.id}`) as HTMLSelectElement)?.value;
+                      const visibilityWeight = Number((document.getElementById(`sweight-${product.id}`) as HTMLInputElement)?.value || NaN);
+                      const maxListings = Number((document.getElementById(`smax-${product.id}`) as HTMLInputElement)?.value || NaN);
+                      const featuredUntil = (document.getElementById(`sfeat-${product.id}`) as HTMLInputElement)?.value;
+                      const body: any = { planCode };
+                      if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
+                      if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
+                      if (featuredUntil) body.featuredUntil = featuredUntil;
+                      await fetch(`/api/admin/sellers/${product.seller.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
+                      alert('Plan updated for seller.');
+                    }}
+                    className={styles.approveButton}
+                  >Save</button>
+                </div>
               </div>
               <div className={styles.actions}>
                 <button onClick={() => handleUpdateStatus('product', product.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
