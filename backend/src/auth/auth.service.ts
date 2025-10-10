@@ -206,10 +206,18 @@ export class AuthService {
     }
 
     const accessToken = await this.signToken(user.id, user.email, user.role);
-    const salon = await this.prisma.salon.findFirst({ where: { ownerId: user.id }, select: { id: true } });
+    const salon = await this.prisma.salon.findFirst({
+      where: { ownerId: user.id },
+      select: { id: true },
+    });
     return {
       jwt: accessToken,
-      user: { id: user.id, email: user.email, role: user.role, salonId: salon?.id },
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        salonId: salon?.id,
+      },
     };
   }
 }

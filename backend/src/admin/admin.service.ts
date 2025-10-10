@@ -2,7 +2,8 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ApprovalStatus, PlanCode } from '@prisma/client';
+type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { EventsGateway } from 'src/events/events.gateway';
 
@@ -41,13 +42,13 @@ export class AdminService {
     }
     try {
       const exists = (
-        await this.prisma.$queryRaw<{ exists: boolean }[]>`
+        await (this.prisma as any).$queryRaw<{ exists: boolean }[]>`
           SELECT to_regclass('"AdminActionLog"') IS NOT NULL as exists
         `
       )[0]?.exists;
       if (exists) {
         const metaJson = metadata ? JSON.stringify(metadata) : null;
-        await this.prisma.$executeRawUnsafe(
+        await (this.prisma as any).$executeRawUnsafe(
           `INSERT INTO "AdminActionLog" ("adminId","action","targetType","targetId","reason","metadata")
            VALUES ($1,$2,$3,$4,$5,$6::jsonb)`,
           adminId,
@@ -99,7 +100,11 @@ export class AdminService {
     });
   }
 
-  async updateSalonStatus(salonId: string, status: ApprovalStatus, adminId?: string) {
+  async updateSalonStatus(
+    salonId: string,
+    status: ApprovalStatus,
+    adminId?: string,
+  ) {
     const updated = await this.prisma.salon.update({
       where: { id: salonId },
       data: { approvalStatus: status },
@@ -142,7 +147,11 @@ export class AdminService {
     });
   }
 
-  async updateServiceStatus(serviceId: string, status: ApprovalStatus, adminId?: string) {
+  async updateServiceStatus(
+    serviceId: string,
+    status: ApprovalStatus,
+    adminId?: string,
+  ) {
     const updated = await this.prisma.service.update({
       where: { id: serviceId },
       data: { approvalStatus: status },
@@ -203,7 +212,11 @@ export class AdminService {
     });
   }
 
-  async updateReviewStatus(reviewId: string, status: ApprovalStatus, adminId?: string) {
+  async updateReviewStatus(
+    reviewId: string,
+    status: ApprovalStatus,
+    adminId?: string,
+  ) {
     const existing = await this.prisma.review.findUnique({
       where: { id: reviewId },
       select: { salonId: true },
@@ -261,7 +274,11 @@ export class AdminService {
     });
   }
 
-  async updateProductStatus(productId: string, status: ApprovalStatus, adminId?: string) {
+  async updateProductStatus(
+    productId: string,
+    status: ApprovalStatus,
+    adminId?: string,
+  ) {
     const updated = await this.prisma.product.update({
       where: { id: productId },
       data: { approvalStatus: status },
@@ -539,7 +556,7 @@ export class AdminService {
         if (!archived) {
           try {
             const exists = (
-              await this.prisma.$queryRaw<{ exists: boolean }[]>`
+              await (this.prisma as any).$queryRaw<{ exists: boolean }[]>`
               SELECT to_regclass('"DeletedSalonArchive"') IS NOT NULL as exists
             `
             )[0]?.exists;
@@ -550,7 +567,7 @@ export class AdminService {
                 ...snapshot,
                 services: undefined,
               });
-              await this.prisma.$executeRawUnsafe(
+              await (this.prisma as any).$executeRawUnsafe(
                 `INSERT INTO "DeletedSalonArchive" ("salonId","ownerId","salon","services","reason","deletedBy")
                  VALUES ($1,$2,$3::jsonb,$4::jsonb,$5,$6)`,
                 snapshot.id,
@@ -571,7 +588,7 @@ export class AdminService {
       // Archival is best-effort; proceed with deletion if archive table is unavailable
     }
 
-    await this.prisma.$transaction(async (tx) => {
+    await (this.prisma as any).$transaction(async (tx: any) => {
       const services = await tx.service.findMany({
         where: { salonId },
         select: { id: true },
@@ -647,7 +664,7 @@ export class AdminService {
     }
     // Fallback to raw SQL if model or client is not generated
     try {
-      const rows = await this.prisma.$queryRawUnsafe(
+      const rows = await (this.prisma as any).$queryRawUnsafe(
         'SELECT id, "salonId", "ownerId", salon, services, reason, "deletedBy", "deletedAt", "restoredAt" FROM "DeletedSalonArchive" ORDER BY "deletedAt" DESC',
       );
       return Array.isArray(rows) ? rows : [];
@@ -669,7 +686,7 @@ export class AdminService {
     }
     if (!archive) {
       try {
-        const rows = await this.prisma.$queryRaw`
+        const rows = await (this.prisma as any).$queryRaw`
           SELECT id, "salonId", "ownerId", salon, services, reason, "deletedBy", "deletedAt", "restoredAt"
           FROM "DeletedSalonArchive" WHERE id = ${archiveId} LIMIT 1
         `;
@@ -771,7 +788,7 @@ export class AdminService {
       });
     } catch {
       try {
-        await this.prisma.$executeRaw`
+        await (this.prisma as any).$executeRaw`
           UPDATE "DeletedSalonArchive" SET "restoredAt" = NOW() WHERE id = ${archiveId}
         `;
       } catch {
@@ -794,17 +811,34 @@ export class AdminService {
   }
 
   async getMetrics() {
-    const [salonsPending, servicesPending, reviewsPending, productsPending] = await Promise.all([
-      this.prisma.salon.count({ where: { approvalStatus: 'PENDING' } }),
-      this.prisma.service.count({ where: { approvalStatus: 'PENDING' } }),
-      this.prisma.review.count({ where: { approvalStatus: 'PENDING' } }),
-      this.prisma.product.count({ where: { approvalStatus: 'PENDING' } }),
-    ]);
+    const [salonsPending, servicesPending, reviewsPending, productsPending] =
+      await Promise.all([
+        this.prisma.salon.count({ where: { approvalStatus: 'PENDING' } }),
+        this.prisma.service.count({ where: { approvalStatus: 'PENDING' } }),
+        this.prisma.review.count({ where: { approvalStatus: 'PENDING' } }),
+        this.prisma.product.count({ where: { approvalStatus: 'PENDING' } }),
+      ]);
 
-    const oldestSalon = await this.prisma.salon.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
-    const oldestService = await this.prisma.service.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
-    const oldestReview = await this.prisma.review.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
-    const oldestProduct = await this.prisma.product.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
+    const oldestSalon = await this.prisma.salon.findFirst({
+      where: { approvalStatus: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true },
+    });
+    const oldestService = await this.prisma.service.findFirst({
+      where: { approvalStatus: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true },
+    });
+    const oldestReview = await this.prisma.review.findFirst({
+      where: { approvalStatus: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true },
+    });
+    const oldestProduct = await this.prisma.product.findFirst({
+      where: { approvalStatus: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true },
+    });
 
     return {
       salonsPending,

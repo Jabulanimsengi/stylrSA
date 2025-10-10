@@ -14,7 +14,6 @@ import { LoginDto, RegisterDto } from './dto';
 import { Response } from 'express';
 import { JwtGuard } from './guard/jwt.guard';
 import { GetUser } from './decorator/get-user.decorator';
-import { User } from '@prisma/client';
 
 @Controller('api/auth')
 export class AuthController {
@@ -44,7 +43,7 @@ export class AuthController {
 
   @UseGuards(JwtGuard)
   @Get('status')
-  status(@GetUser() user: User) {
+  status(@GetUser() user: any) {
     return { status: 'authenticated', user };
   }
 

@@ -13,7 +13,6 @@ import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/guard/roles.decorator';
-import { UserRole, ApprovalStatus } from '@prisma/client';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
 import { DeleteEntityDto } from './dto/delete-entity.dto';
@@ -21,7 +20,7 @@ import { Request } from 'express';
 
 @Controller('api/admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles('ADMIN')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -49,7 +48,7 @@ export class AdminController {
     const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateServiceStatus(
       serviceId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
       adminId,
     );
   }
@@ -63,7 +62,7 @@ export class AdminController {
     const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateSalonStatus(
       salonId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
       adminId,
     );
   }
@@ -87,7 +86,7 @@ export class AdminController {
     const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateReviewStatus(
       reviewId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
       adminId,
     );
   }
@@ -106,7 +105,7 @@ export class AdminController {
     const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateProductStatus(
       productId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
       adminId,
     );
   }
@@ -169,7 +168,7 @@ export class AdminController {
           orderBy: { createdAt: 'desc' },
           take: 200,
         })
-      : this.adminService['prisma'].$queryRawUnsafe(
+      : (this.adminService as any).prisma.$queryRawUnsafe(
           'SELECT id, "adminId", action, "targetType", "targetId", reason, metadata, "createdAt" FROM "AdminActionLog" ORDER BY "createdAt" DESC LIMIT 200',
         );
   }
