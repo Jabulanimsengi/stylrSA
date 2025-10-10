@@ -14,9 +14,11 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('health check', () => {
+    it('should return healthy status payload', () => {
+      expect(appController.getHealthCheck()).toEqual({
+        status: 'Backend is running! 🚀',
+      });
     });
   });
 });

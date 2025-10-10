@@ -95,6 +95,22 @@
     --input-border: rgba(67, 65, 74, 0.18);
     --input-border-strong: rgba(67, 65, 74, 0.32);
     --input-border-focus: rgba(245, 25, 87, 0.28);
+    --hero-text-color: var(--color-text-inverse);
+    --hero-subtitle-color: rgba(255, 255, 255, 0.92);
+    --hero-badge-bg: rgba(255, 255, 255, 0.16);
+    --hero-filter-bg: rgba(17, 17, 29, 0.55);
+    --hero-overlay-gradient: linear-gradient(160deg, rgba(10, 12, 32, 0.88) 12%, rgba(11, 13, 33, 0.65) 48%, rgba(12, 12, 30, 0.9) 100%);
+    --nav-surface: rgba(255, 250, 245, 0.94);
+    --nav-surface-subtle: rgba(255, 255, 255, 0.5);
+    --nav-surface-active: rgba(255, 255, 255, 0.85);
+    --nav-border: rgba(205, 191, 179, 0.9);
+    --nav-text: var(--color-text-strong);
+    --nav-link: var(--color-text-strong);
+    --nav-link-hover: var(--color-primary);
+    --nav-link-active: var(--color-primary);
+    --nav-icon-bg: rgba(255, 255, 255, 0.86);
+    --nav-icon-hover-bg: rgba(255, 255, 255, 0.98);
+    --nav-badge-text: var(--color-text-inverse);
   }
 
   [data-theme='dark'] {
@@ -141,6 +157,22 @@
     --input-border: rgba(245, 245, 247, 0.18);
     --input-border-strong: rgba(245, 245, 247, 0.32);
     --input-border-focus: rgba(255, 124, 155, 0.28);
+    --hero-text-color: var(--color-text-strong);
+    --hero-subtitle-color: rgba(245, 245, 247, 0.86);
+    --hero-badge-bg: rgba(5, 5, 8, 0.48);
+    --hero-filter-bg: rgba(12, 12, 22, 0.72);
+    --hero-overlay-gradient: linear-gradient(160deg, rgba(5, 6, 16, 0.85) 10%, rgba(9, 11, 24, 0.78) 52%, rgba(5, 6, 14, 0.9) 100%);
+    --nav-surface: rgba(18, 18, 26, 0.95);
+    --nav-surface-subtle: rgba(30, 31, 45, 0.65);
+    --nav-surface-active: rgba(35, 36, 52, 0.85);
+    --nav-border: rgba(47, 47, 61, 0.95);
+    --nav-text: var(--color-text-strong);
+    --nav-link: rgba(245, 245, 247, 0.82);
+    --nav-link-hover: var(--color-primary);
+    --nav-link-active: var(--color-text-strong);
+    --nav-icon-bg: rgba(30, 31, 45, 0.9);
+    --nav-icon-hover-bg: rgba(44, 45, 60, 0.95);
+    --nav-badge-text: var(--color-text-inverse);
   }
 
   body {

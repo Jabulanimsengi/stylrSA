@@ -24,6 +24,16 @@ export class ProductsService {
   async findAllApproved() {
     return this.prisma.product.findMany({
       where: { approvalStatus: ApprovalStatus.APPROVED },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
     });
   }
 

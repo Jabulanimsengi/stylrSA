@@ -5,12 +5,17 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, message: string, link?: string) {
+  async create(
+    userId: string,
+    message: string,
+    options?: { link?: string; bookingId?: string },
+  ) {
     return this.prisma.notification.create({
       data: {
         userId,
         message,
-        link,
+        link: options?.link,
+        bookingId: options?.bookingId,
       },
     });
   }
@@ -27,6 +32,19 @@ export class NotificationsService {
     return this.prisma.notification.updateMany({
       where: { id: notificationId, userId: userId },
       data: { isRead: true },
+    });
+  }
+
+  async markAllAsRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+  }
+
+  async clearAll(userId: string) {
+    return this.prisma.notification.deleteMany({
+      where: { userId },
     });
   }
 

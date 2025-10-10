@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Message } from '@prisma/client';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @WebSocketGateway({
   cors: {
@@ -22,7 +23,10 @@ export class EventsGateway {
   private logger: Logger = new Logger('EventsGateway');
   private connectedUsers: Map<string, Set<string>> = new Map();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -139,6 +143,36 @@ export class EventsGateway {
       data: { updatedAt: new Date() },
     });
 
+    const recipientNotificationPromise = (async () => {
+      try {
+        if (recipientId !== senderId) {
+          const senderProfile = await this.prisma.user.findUnique({
+            where: { id: senderId },
+            select: { firstName: true, lastName: true },
+          });
+          const senderName = senderProfile
+            ? `${senderProfile.firstName ?? ''} ${senderProfile.lastName ?? ''}`.trim() ||
+              'A user'
+            : 'A user';
+          const notification = await this.notificationsService.create(
+            recipientId,
+            `New message from ${senderName}.`,
+            { link: `/chat/${conversationId}` },
+          );
+          this.sendNotificationToUser(
+            recipientId,
+            'newNotification',
+            notification,
+          );
+        }
+      } catch (error) {
+        this.logger.error(
+          'Failed to enqueue chat notification',
+          error instanceof Error ? error.stack : String(error),
+        );
+      }
+    })();
+
     const serialized = this.serializeMessage(message);
 
     client.emit('message:sent', { message: serialized, tempId });
@@ -156,6 +190,8 @@ export class EventsGateway {
       this.emitToUser(recipientId, 'message:new', deliveredPayload);
       client.emit('message:delivered', deliveredPayload);
     }
+
+    await recipientNotificationPromise;
   }
 
   @SubscribeMessage('conversation:read')

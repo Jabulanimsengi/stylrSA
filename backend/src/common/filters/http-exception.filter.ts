@@ -47,7 +47,8 @@ function friendlyFromCode(code: string): string {
     PAYLOAD_TOO_LARGE: 'That upload is too large.',
     UNPROCESSABLE: 'We could not process that request.',
     BAD_GATEWAY: 'Temporary upstream issue. Please try again.',
-    SERVICE_UNAVAILABLE: 'Service is temporarily unavailable. Please try again.',
+    SERVICE_UNAVAILABLE:
+      'Service is temporarily unavailable. Please try again.',
     GATEWAY_TIMEOUT: 'The request timed out. Please try again.',
     INTERNAL_ERROR: 'Something went wrong. Please try again.',
   };
@@ -68,7 +69,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res = exception.getResponse() as any;
       devMessage = (res && (res.message ?? res.error)) || exception.message;
-    } else if (exception && typeof exception === 'object' && (exception as any).status) {
+    } else if (
+      exception &&
+      typeof exception === 'object' &&
+      (exception as any).status
+    ) {
       status = Number((exception as any).status) || status;
       devMessage = (exception as any).message;
     }

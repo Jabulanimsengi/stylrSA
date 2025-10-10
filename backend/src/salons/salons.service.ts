@@ -35,12 +35,11 @@ export class SalonsService {
       offersMobile: (dto as any).offersMobile,
       mobileFee: (dto as any).mobileFee,
       bookingType: ((dto as any).bookingType as BookingType) ?? 'ONSITE',
-      operatingHours: ((dto as any).operatingHours as any) || Prisma.JsonNull,
+      operatingHours: (dto as any).operatingHours || Prisma.JsonNull,
       // Ensure required array field is always provided
-      operatingDays:
-        (Array.isArray((dto as any).operatingDays)
-          ? (dto as any).operatingDays
-          : Array.isArray((dto as any).operatingHours)
+      operatingDays: (Array.isArray((dto as any).operatingDays)
+        ? (dto as any).operatingDays
+        : Array.isArray((dto as any).operatingHours)
           ? (dto as any).operatingHours
               .map((oh: any) => oh?.day)
               .filter((d: any) => typeof d === 'string' && d.length > 0)
@@ -52,7 +51,11 @@ export class SalonsService {
     } catch (err: any) {
       // Log the actual Prisma error for debugging in development
       // eslint-disable-next-line no-console
-      console.error('Salon create failed:', err?.message || err, err?.meta || '');
+      console.error(
+        'Salon create failed:',
+        err?.message || err,
+        err?.meta || '',
+      );
       throw err; // Let global filter map to friendly message
     }
   }
@@ -129,7 +132,11 @@ export class SalonsService {
     }
 
     // Whitelist fields that exist on the Prisma Salon model to avoid unknown-argument errors
-    const allowedFields: (keyof UpdateSalonDto | 'backgroundImage' | 'heroImages')[] = [
+    const allowedFields: (
+      | keyof UpdateSalonDto
+      | 'backgroundImage'
+      | 'heroImages'
+    )[] = [
       'name',
       'description',
       'backgroundImage',
@@ -161,9 +168,7 @@ export class SalonsService {
     if (updateData.bookingType) {
       updateData.bookingType = updateData.bookingType as BookingType;
     }
-    if (updateData.operatingHours) {
-      updateData.operatingHours = updateData.operatingHours as any;
-    }
+    // operatingHours already whitelisted above; no extra transformation required
 
     return this.prisma.salon.update({
       where: { id },
@@ -219,24 +224,33 @@ export class SalonsService {
       approvalStatus: 'APPROVED',
     };
 
-    if (province) where.province = { equals: String(province), mode: 'insensitive' } as any;
+    if (province)
+      where.province = { equals: String(province), mode: 'insensitive' } as any;
     if (city) {
       where.OR = [
         { city: { equals: String(city), mode: 'insensitive' } as any },
         { town: { equals: String(city), mode: 'insensitive' } as any },
       ];
     }
-    if (offersMobile === 'true' || offersMobile === true) where.offersMobile = true;
+    if (offersMobile === 'true' || offersMobile === true)
+      where.offersMobile = true;
     if (openNow === 'true' || openNow === true) where.isAvailableNow = true;
 
     // Service-based filters
     const servicesFilter: Prisma.ServiceWhereInput = {};
     if (service || q) {
-      servicesFilter.title = { contains: String(service || q), mode: 'insensitive' } as any;
+      servicesFilter.title = {
+        contains: String(service || q),
+        mode: 'insensitive',
+      } as any;
     }
     if (category) {
       servicesFilter.OR = [
-        { category: { name: { contains: String(category), mode: 'insensitive' } as any } },
+        {
+          category: {
+            name: { contains: String(category), mode: 'insensitive' } as any,
+          },
+        },
       ];
     }
     if (priceMin || priceMax) {
@@ -249,7 +263,8 @@ export class SalonsService {
     }
 
     let orderBy: Prisma.SalonOrderByWithRelationInput | undefined;
-    if (sortBy === 'rating' || sortBy === 'top_rated') orderBy = { avgRating: 'desc' };
+    if (sortBy === 'rating' || sortBy === 'top_rated')
+      orderBy = { avgRating: 'desc' };
 
     // Fetch base list
     let salons = await this.prisma.salon.findMany({ where, orderBy });
@@ -262,14 +277,16 @@ export class SalonsService {
       const userLon = Number(lon);
       salons = salons
         .map((s) => {
-          if (s.latitude == null || s.longitude == null) return { ...s, __dist: Number.POSITIVE_INFINITY } as any;
+          if (s.latitude == null || s.longitude == null)
+            return { ...s, __dist: Number.POSITIVE_INFINITY } as any;
           const dLat = toRad(s.latitude - userLat);
           const dLon = toRad(s.longitude - userLon);
           const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.cos(toRad(userLat)) *
               Math.cos(toRad(s.latitude)) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+              Math.sin(dLon / 2) *
+              Math.sin(dLon / 2);
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           const d = R * c;
           return { ...s, __dist: d } as any;
@@ -299,7 +316,9 @@ export class SalonsService {
         where: { salonId: { in: salons.map((s) => s.id) } },
       });
       const minMap = new Map(mins.map((m) => [m.salonId, m._min.price ?? 0]));
-      salons = salons.sort((a, b) => (minMap.get(a.id) ?? 0) - (minMap.get(b.id) ?? 0));
+      salons = salons.sort(
+        (a, b) => (minMap.get(a.id) ?? 0) - (minMap.get(b.id) ?? 0),
+      );
     }
 
     return salons;

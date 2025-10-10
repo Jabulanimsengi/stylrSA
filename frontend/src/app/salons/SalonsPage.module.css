@@ -67,6 +67,29 @@
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
+
+.resultsShell {
+  margin-top: 1.5rem;
+}
+
+.loadingState {
+  display: grid;
+  place-items: center;
+  padding: 3rem 0;
+}
+
+.emptyState {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+.emptyState h2 {
+  margin-bottom: 0.5rem;
+  color: var(--color-text-strong);
+}
 .salonCard {
   background-color: var(--color-surface-elevated);
   border-radius: 0.5rem;

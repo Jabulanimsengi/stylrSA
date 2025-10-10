@@ -64,6 +64,15 @@ export interface Service {
   reviewCount?: number;
   approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  likeCount?: number;
+  isLikedByCurrentUser?: boolean;
+  salon?: {
+    id: string;
+    name: string;
+    ownerId: string;
+    city?: string;
+    province?: string;
+  };
 }
 
 export interface Review {
@@ -99,7 +108,8 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
   link?: string;
-  type: 'BOOKING_CONFIRMED' | 'BOOKING_CANCELLED' | 'NEW_MESSAGE' | 'PROMOTION' | 'REVIEW_REMINDER';
+  bookingId?: string;
+  type?: 'BOOKING_CONFIRMED' | 'BOOKING_CANCELLED' | 'NEW_MESSAGE' | 'PROMOTION' | 'REVIEW_REMINDER';
 }
 
 export interface Conversation {
@@ -111,8 +121,9 @@ export interface Conversation {
   updatedAt: string;
   createdAt: string;
   participants?: User[];
-  lastMessage?: ChatMessage;
+  lastMessage?: ChatMessage | null;
   messages?: ChatMessage[];
+  unreadCount?: number;
 }
 
 export interface ChatMessage {
@@ -143,8 +154,10 @@ export interface Product {
     sellerId: string;
     createdAt: string;
     updatedAt: string;
-    seller: User;
-    category: string;
+    isOnSale?: boolean;
+    salePrice?: number;
+    seller?: Partial<User>;
+    category?: string;
 }
 
 export interface Promotion {
@@ -159,4 +172,29 @@ export interface Promotion {
     productId?: string;
     promoCode?: string;
     isActive: boolean;
+}
+
+export type ProductOrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+
+export interface ProductOrder {
+  id: string;
+  productId: string;
+  buyerId: string;
+  sellerId: string;
+  quantity: number;
+  totalPrice: number;
+  status: ProductOrderStatus;
+  deliveryMethod?: string | null;
+  contactPhone?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  product: {
+    id: string;
+    name: string;
+    images: string[];
+    price: number;
+  };
+  seller?: Partial<User>;
+  buyer?: Partial<User>;
 }

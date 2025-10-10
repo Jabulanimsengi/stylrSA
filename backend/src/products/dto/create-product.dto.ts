@@ -30,4 +30,8 @@ export class CreateProductDto {
   @IsNumber()
   @IsOptional()
   salePrice?: number;
+
+  @IsNumber()
+  @IsOptional()
+  stock?: number;
 }

@@ -31,4 +31,8 @@ export class UpdateProductDto {
   @IsNumber()
   @IsOptional()
   salePrice?: number;
+
+  @IsNumber()
+  @IsOptional()
+  stock?: number;
 }

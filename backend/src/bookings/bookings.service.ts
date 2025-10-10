@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { User, Service, Salon, Booking } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 type ServiceWithSalon = Service & { salon: Salon };
 type BookingWithServiceAndSalon = Booking & { service: ServiceWithSalon };
@@ -16,6 +17,7 @@ export class BookingsService {
   constructor(
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(user: User, dto: CreateBookingDto) {
@@ -46,22 +48,19 @@ export class BookingsService {
       },
     });
 
-    const notification = await this.prisma.notification.create({
-      data: {
-        userId: service.salon.ownerId,
-        message: `New booking for ${service.title} by ${user.firstName}.`,
+    const notification = await this.notificationsService.create(
+      service.salon.ownerId,
+      `New booking for ${service.title} by ${user.firstName}.`,
+      {
         bookingId: booking.id,
+        link: '/dashboard?tab=bookings',
       },
-    });
+    );
 
-    // FIX: Corrected method name back to 'sendNotificationToUser'
     this.eventsGateway.sendNotificationToUser(
       service.salon.ownerId,
-      'newBooking',
-      {
-        message: `New booking for ${service.title} by ${user.firstName}.`,
-        booking,
-      },
+      'newNotification',
+      notification,
     );
 
     return booking;
@@ -142,22 +141,19 @@ export class BookingsService {
     });
 
     const notificationMessage = `Your booking for ${booking.service.title} has been ${status.toLowerCase()}.`;
-    await this.prisma.notification.create({
-      data: {
-        userId: booking.userId,
-        message: notificationMessage,
+    const notification = await this.notificationsService.create(
+      booking.userId,
+      notificationMessage,
+      {
         bookingId: booking.id,
+        link: '/my-bookings',
       },
-    });
+    );
 
-    // FIX: Corrected method name back to 'sendNotificationToUser'
     this.eventsGateway.sendNotificationToUser(
       booking.userId,
-      'bookingStatusUpdate',
-      {
-        message: notificationMessage,
-        booking: updatedBooking,
-      },
+      'newNotification',
+      notification,
     );
 
     return updatedBooking;

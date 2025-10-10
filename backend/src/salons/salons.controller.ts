@@ -54,7 +54,21 @@ export class SalonsController {
     @GetUser() user: User,
   ) {
     return this.salonsService.findAllApproved(
-      { province, city, service, category, q, offersMobile, sortBy, openOn, openNow, priceMin, priceMax, lat, lon },
+      {
+        province,
+        city,
+        service,
+        category,
+        q,
+        offersMobile,
+        sortBy,
+        openOn,
+        openNow,
+        priceMin,
+        priceMax,
+        lat,
+        lon,
+      },
       user,
     );
   }

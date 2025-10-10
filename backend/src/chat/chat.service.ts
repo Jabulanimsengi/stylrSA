@@ -39,15 +39,34 @@ export class ChatService {
       },
       include: {
         user1: {
-          select: { id: true, firstName: true, lastName: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profileImage: true,
+          },
         },
         user2: {
-          select: { id: true, firstName: true, lastName: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profileImage: true,
+          },
         },
         messages: {
-          select: { content: true },
           orderBy: { createdAt: 'desc' },
-          take: 1, // Get only the last message for the preview
+          take: 1,
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            senderId: true,
+            deliveredAt: true,
+            readAt: true,
+          },
         },
       },
       orderBy: {
@@ -55,10 +74,35 @@ export class ChatService {
       },
     });
 
-    return conversations.map((c) => ({
-      ...c,
-      participants: [c.user1, c.user2],
-    }));
+    return Promise.all(
+      conversations.map(async (conversation) => {
+        const [latest] = conversation.messages;
+        const unreadCount = await this.prisma.message.count({
+          where: {
+            conversationId: conversation.id,
+            senderId: { not: userId },
+            readAt: null,
+          },
+        });
+
+        const { messages, ...rest } = conversation;
+        return {
+          ...rest,
+          participants: [conversation.user1, conversation.user2],
+          lastMessage: latest
+            ? {
+                ...latest,
+                createdAt: latest.createdAt.toISOString(),
+                deliveredAt: latest.deliveredAt
+                  ? latest.deliveredAt.toISOString()
+                  : null,
+                readAt: latest.readAt ? latest.readAt.toISOString() : null,
+              }
+            : null,
+          unreadCount,
+        };
+      }),
+    );
   }
 
   async getConversationById(conversationId: string, userId: string) {

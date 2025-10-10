@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from './HomePage.module.css';
 import FilterBar from '@/components/FilterBar/FilterBar';
@@ -8,6 +9,27 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Service } from '@/types';
 import FeaturedServiceCard from '@/components/FeaturedServiceCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
+
+const HERO_SLIDES = [
+  {
+    src: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2070&auto=format&fit=crop',
+    alt: 'Modern salon interior with stylish lighting',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1520338661084-680395057dc0?q=80&w=2070&auto=format&fit=crop',
+    alt: 'Stylist attending to a client in a bright salon',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=2070&auto=format&fit=crop',
+    alt: 'Salon workspace with premium hair products on shelves',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1502786129293-79981df4e689?q=80&w=2070&auto=format&fit=crop',
+    alt: 'Comfortable salon waiting area',
+  },
+];
+
+const SLIDE_INTERVAL = 6000;
 
 type ServiceWithSalon = Service & { salon: { id: string; name: string, city: string, province: string } };
 
@@ -20,6 +42,8 @@ export default function HomePage() {
   const loader = useRef(null);
   
   const observer = useRef<IntersectionObserver | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const totalSlides = HERO_SLIDES.length;
 
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
@@ -51,6 +75,22 @@ export default function HomePage() {
   useEffect(() => {
     fetchServices(1);
   }, [fetchServices]);
+
+  const handlePrevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
+  }, [totalSlides]);
+
+  const handleNextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
+  }, [totalSlides]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
+    }, SLIDE_INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [totalSlides]);
 
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const target = entries[0];
@@ -89,9 +129,26 @@ export default function HomePage() {
     <div className={styles.container}>
       {isLoading && page === 1 && <LoadingSpinner />}
       <section className={styles.hero}>
-        <div className={styles.heroOverlay}>
-          <h1 className={styles.heroTitle}>Find & Book Your Next Salon Visit</h1>
-          <p className={styles.heroSubtitle}>Discover top-rated salons and stylists near you.</p>
+        <div className={styles.heroMedia} aria-hidden="true">
+          {HERO_SLIDES.map((slide, index) => (
+            <Image
+              key={slide.src}
+              src={slide.src}
+              alt={slide.alt}
+              className={`${styles.heroImage} ${index === currentSlide ? styles.heroImageActive : ''}`}
+              fill
+              priority={index === 0}
+              sizes="100vw"
+            />
+          ))}
+          <div className={styles.heroGradient} />
+        </div>
+        <div className={styles.heroContent}>
+          <div className={styles.heroCopy}>
+            <span className={styles.heroBadge}>Your personal salon concierge</span>
+            <h1 className={styles.heroTitle}>Find &amp; Book Your Next Salon Visit</h1>
+            <p className={styles.heroSubtitle}>Discover top-rated salons, stylists, and premium experiences matched to your style.</p>
+          </div>
           <div className={styles.filterContainer}>
             <FilterBar onSearch={handleSearch} isHomePage={true} />
           </div>
@@ -99,7 +156,29 @@ export default function HomePage() {
             <Link href="/salons" className="btn btn-primary">
               Explore Salons
             </Link>
+            <Link href="/services" className="btn btn-ghost">
+              Browse Services
+            </Link>
           </div>
+        </div>
+        <div className={styles.heroControls}>
+          <button type="button" className={styles.heroNavButton} onClick={handlePrevSlide} aria-label="Previous slide">
+            ‹
+          </button>
+          <button type="button" className={styles.heroNavButton} onClick={handleNextSlide} aria-label="Next slide">
+            ›
+          </button>
+        </div>
+        <div className={styles.heroDots}>
+          {HERO_SLIDES.map((_, index) => (
+            <button
+              key={`hero-dot-${index}`}
+              type="button"
+              className={`${styles.heroDot} ${index === currentSlide ? styles.heroDotActive : ''}`}
+              onClick={() => setCurrentSlide(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
       </section>
 

@@ -1,104 +1,256 @@
-/* frontend/src/app/chat/ChatLayout.module.css */
-.chatContainer {
-  display: grid;
-  grid-template-columns: 1fr; /* Mobile-first: one column */
-  height: calc(100vh - 78px);
-  background: radial-gradient(circle at top, rgba(255, 45, 94, 0.08), transparent 45%), var(--color-surface-subtle);
+.chatShell {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+  background:
+    radial-gradient(circle at top right, rgba(255, 45, 94, 0.16), transparent 55%),
+    radial-gradient(circle at bottom left, rgba(74, 208, 188, 0.12), transparent 50%),
+    var(--color-surface);
   color: var(--color-text-strong);
-  overflow: hidden;
 }
 
-/* Two columns on larger screens */
-@media (min-width: 768px) {
-  .chatContainer {
-    grid-template-columns: 320px 1fr; 
+@media (min-width: 960px) {
+  .chatShell {
+    flex-direction: row;
   }
 }
 
 .sidebar {
-  border-right: 1px solid var(--color-border);
+  width: 100%;
+  max-width: 380px;
+  background: var(--nav-surface);
+  border-right: 1px solid var(--nav-border);
+  backdrop-filter: blur(24px);
   display: flex;
   flex-direction: column;
-  background-color: var(--color-surface-elevated);
-  backdrop-filter: blur(16px);
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-lg) var(--space-xl);
+  box-shadow: 0 12px 36px rgba(15, 20, 35, 0.08);
+  z-index: 2;
 }
 
 .sidebarHeader {
-  padding: var(--space-lg);
-  font-size: var(--font-size-xl);
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.sidebarTitle {
+  font-size: clamp(1.125rem, 1.8vw, 1.5rem);
+  font-weight: 700;
+  margin: 0;
+}
+
+.sidebarSubtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.refreshBtn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--nav-border);
+  background: var(--nav-surface-subtle);
+  color: var(--nav-link);
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.refreshBtn:hover {
+  transform: rotate(-12deg);
+  border-color: var(--color-primary);
+}
+
+.searchBox {
+  display: flex;
+  padding: 0 var(--space-2xs) var(--space-sm);
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--input-border);
+  background: var(--color-surface);
   color: var(--color-text-strong);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.searchBox input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 45, 94, 0.18);
+}
+
+.conversationList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  overflow-y: auto;
+  padding-right: var(--space-xs);
+}
+
+.conversationCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  text-decoration: none;
+  color: inherit;
+  background: var(--nav-surface-subtle);
+  border: 1px solid var(--nav-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg) var(--space-md) var(--space-lg);
+  transition: border-color 0.2s ease, transform 0.15s ease, background 0.2s ease;
+  cursor: pointer;
+  text-align: left;
+}
+
+.conversationCard:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.conversationCard:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.conversationCardActive {
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, rgba(255, 45, 94, 0.18), rgba(74, 208, 188, 0.15));
+  box-shadow: 0 12px 28px rgba(15, 20, 35, 0.12);
+}
+
+.conversationHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
 }
 
-.conversationList {
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-.conversationLink {
-  display: block;
-  padding: var(--space-md) var(--space-lg);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  color: var(--color-text-strong);
-  cursor: pointer;
-  transition: background-color var(--transition-base), color var(--transition-base), border-color var(--transition-base);
-  background-color: transparent;
-}
-
-.conversationLink:hover {
-  background-color: var(--color-surface-subtle);
-  border-color: var(--color-border);
-}
-
-.activeConversation {
-  background: linear-gradient(135deg, rgba(255, 45, 94, 0.12), rgba(74, 208, 188, 0.18));
-  border-color: transparent;
-}
-
-.participantName {
+.conversationName {
   font-weight: 600;
+  font-size: 1rem;
 }
 
-.lastMessage {
-  font-size: var(--font-size-sm);
+.conversationTime {
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 0.25rem;
 }
 
-.mainContent {
+.conversationSnippet {
   display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--color-surface);
+  align-items: baseline;
+  gap: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  overflow: hidden;
+}
+
+.conversationSnippetPrefix {
+  color: var(--color-primary);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.conversationSnippetBody {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unreadBadge {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .emptyState {
   text-align: center;
-  padding: var(--space-xl) var(--space-lg);
+  padding: var(--space-xl) var(--space-md);
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  font-size: 0.9rem;
 }
 
-/* Mobile-specific classes to hide/show panels */
-.mobileHidden {
-  display: none;
+.placeholderPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2.5rem, 4vw, 4rem);
 }
 
-@media (min-width: 768px) {
-  .mobileHidden {
-    display: flex;
+.placeholderIllustration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  max-width: 420px;
+  text-align: center;
+}
+
+.placeholderBubble {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, rgba(255, 45, 94, 0.28), rgba(74, 208, 188, 0.32));
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  color: var(--color-text-inverse);
+  box-shadow: 0 18px 36px rgba(15, 20, 35, 0.18);
+}
+
+.placeholderContent h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  font-weight: 700;
+}
+
+.placeholderContent p {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.placeholderHint {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.9rem;
+}
+
+@media (max-width: 959px) {
+  .sidebar {
+    max-width: none;
+    border-right: none;
+    border-bottom: 1px solid var(--nav-border);
+    box-shadow: none;
   }
-  .desktopHidden {
-    display: none;
+
+  .conversationCard,
+  .conversationCardActive {
+    padding: var(--space-md) var(--space-md);
+  }
+
+  .placeholderPanel {
+    padding-top: clamp(2rem, 5vw, 3.5rem);
   }
 }

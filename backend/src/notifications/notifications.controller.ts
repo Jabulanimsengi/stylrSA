@@ -28,9 +28,20 @@ export class NotificationsController {
     return this.notificationsService.markAsRead(id, user.id);
   }
 
+  @Patch('read-all')
+  markAllAsRead(@GetUser() user: User) {
+    return this.notificationsService.markAllAsRead(user.id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteNotification(@Param('id') id: string, @GetUser() user: User) {
     return this.notificationsService.deleteNotification(id, user.id);
+  }
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  clearAll(@GetUser() user: User) {
+    return this.notificationsService.clearAll(user.id);
   }
 }

@@ -23,7 +23,7 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [stockQuantity, setStockQuantity] = useState('');
+  const [stock, setStock] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const filePreviewRef = useRef<string[]>([]);
@@ -38,7 +38,7 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
       setName(initialData.name);
       setDescription(initialData.description);
       setPrice(String(initialData.price));
-      setStockQuantity(String(initialData.stockQuantity));
+      setStock(String(initialData.stock ?? 0));
       setExistingImages(initialData.images);
     }
   }, [isEditMode, initialData]);
@@ -95,7 +95,7 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
         name,
         description,
         price: parseFloat(price),
-        stockQuantity: parseInt(stockQuantity),
+        stock: parseInt(stock || '0', 10),
         images: imageUrls,
         ...(salonId ? { salonId } : {}),
       });
@@ -150,7 +150,7 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
             </div>
             <div className={styles.formGroup}>
                 <label className={styles.label}>Stock Quantity</label>
-                <input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} required className={styles.input} min="0" step="1" />
+                <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} required className={styles.input} min="0" step="1" />
             </div>
           </div>
           <div className={styles.formGroup}>

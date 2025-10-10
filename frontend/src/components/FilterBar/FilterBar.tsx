@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './FilterBar.module.css';
 import { apiJson } from '@/lib/api';
@@ -31,8 +31,10 @@ export default function FilterBar({
   const [priceMax, setPriceMax] = useState(initialFilters.priceMax || '');
   const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [serviceSuggestions, setServiceSuggestions] = useState<string[]>([]);
+  const [serviceSuggestions, setServiceSuggestions] = useState<{ id: string; title: string; salon?: string }[]>([]);
+  const [isServiceLoading, setIsServiceLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLUListElement | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -175,36 +177,61 @@ export default function FilterBar({
             setServiceSearch(val);
             if (val.trim().length > 1) {
               const q = encodeURIComponent(val);
+              setIsServiceLoading(true);
               apiJson(`/api/services/autocomplete?q=${q}`)
                 .then((data: any) => {
-                  const titles = Array.isArray(data) ? data.map((d: any) => d.title).filter(Boolean) : [];
-                  setServiceSuggestions(titles);
-                  setShowSuggestions(true);
+                  const mapped = Array.isArray(data)
+                    ? data
+                        .map((item) => ({
+                          id: item?.id ?? `${item?.title}-${Math.random()}`,
+                          title: item?.title ?? '',
+                          salon: item?.salon?.name ?? item?.salonName ?? '',
+                        }))
+                        .filter((item) => item.title.trim().length > 0)
+                    : [];
+                  setServiceSuggestions(mapped);
+                  setShowSuggestions(mapped.length > 0);
                 })
                 .catch(() => {
-                  // ignore transient errors
-                });
+                  setServiceSuggestions([]);
+                  setShowSuggestions(false);
+                })
+                .finally(() => setIsServiceLoading(false));
             } else {
               setServiceSuggestions([]);
               setShowSuggestions(false);
             }
           }}
           className={styles.filterInput}
+          onFocus={() => {
+            if (serviceSuggestions.length > 0) setShowSuggestions(true);
+          }}
+          onBlur={() => {
+            setTimeout(() => setShowSuggestions(false), 120);
+          }}
         />
-        {showSuggestions && serviceSuggestions.length > 0 && (
-          <ul className={styles.suggestionsList} onMouseLeave={() => setShowSuggestions(false)}>
-            {serviceSuggestions.map((s) => (
+        {showSuggestions && (
+          <ul className={styles.suggestionsList} ref={suggestionsRef}>
+            {isServiceLoading && (
+              <li className={`${styles.suggestionItem} ${styles.suggestionLoading}`}>Searching…</li>
+            )}
+            {!isServiceLoading && serviceSuggestions.length === 0 && (
+              <li className={`${styles.suggestionItem} ${styles.suggestionEmpty}`}>No matches found</li>
+            )}
+            {!isServiceLoading &&
+              serviceSuggestions.map((s) => (
               <li
-                key={s}
+                key={s.id}
                 className={styles.suggestionItem}
                 onClick={() => {
-                  setServiceSearch(s);
+                  setServiceSearch(s.title);
                   setShowSuggestions(false);
                 }}
               >
-                {s}
+                <span className={styles.suggestionTitle}>{s.title}</span>
+                {s.salon && <span className={styles.suggestionMeta}>{s.salon}</span>}
               </li>
-            ))}
+              ))}
           </ul>
         )}
       </div>

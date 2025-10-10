@@ -3,10 +3,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApprovalStatus } from '@prisma/client';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { EventsGateway } from 'src/events/events.gateway';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   async getPendingSalons() {
     return this.prisma.salon.findMany({
@@ -33,10 +39,29 @@ export class AdminService {
   }
 
   async updateSalonStatus(salonId: string, status: ApprovalStatus) {
-    return this.prisma.salon.update({
+    const updated = await this.prisma.salon.update({
       where: { id: salonId },
       data: { approvalStatus: status },
+      include: {
+        owner: { select: { id: true, firstName: true, lastName: true } },
+      },
     });
+
+    if (updated.owner) {
+      const message = `Your salon "${updated.name}" has been ${status.toLowerCase()}.`;
+      const notification = await this.notificationsService.create(
+        updated.owner.id,
+        message,
+        { link: '/dashboard' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        updated.owner.id,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return updated;
   }
 
   async getPendingServices() {
@@ -47,10 +72,35 @@ export class AdminService {
   }
 
   async updateServiceStatus(serviceId: string, status: ApprovalStatus) {
-    return this.prisma.service.update({
+    const updated = await this.prisma.service.update({
       where: { id: serviceId },
       data: { approvalStatus: status },
+      include: {
+        salon: {
+          select: {
+            name: true,
+            owner: { select: { id: true } },
+          },
+        },
+      },
     });
+
+    const ownerId = updated.salon?.owner?.id;
+    if (ownerId) {
+      const message = `Your service "${updated.title}" has been ${status.toLowerCase()}.`;
+      const notification = await this.notificationsService.create(
+        ownerId,
+        message,
+        { link: '/dashboard?tab=services' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        ownerId,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return updated;
   }
 
   async getPendingReviews() {
@@ -80,6 +130,10 @@ export class AdminService {
     const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: { approvalStatus: status },
+      include: {
+        author: { select: { id: true } },
+        salon: { select: { name: true } },
+      },
     });
     if (existing?.salonId) {
       const agg = await this.prisma.review.aggregate({
@@ -91,6 +145,21 @@ export class AdminService {
         data: { avgRating: agg._avg.rating ?? 0 },
       });
     }
+
+    if (updated.author) {
+      const message = `Your review for ${updated.salon?.name ?? 'the salon'} has been ${status.toLowerCase()}.`;
+      const notification = await this.notificationsService.create(
+        updated.author.id,
+        message,
+        { link: '/my-profile?tab=reviews' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        updated.author.id,
+        'newNotification',
+        notification,
+      );
+    }
+
     return updated;
   }
 
@@ -102,9 +171,28 @@ export class AdminService {
   }
 
   async updateProductStatus(productId: string, status: ApprovalStatus) {
-    return this.prisma.product.update({
+    const updated = await this.prisma.product.update({
       where: { id: productId },
       data: { approvalStatus: status },
+      include: {
+        seller: { select: { id: true } },
+      },
     });
+
+    if (updated.seller) {
+      const message = `Your product "${updated.name}" has been ${status.toLowerCase()}.`;
+      const notification = await this.notificationsService.create(
+        updated.seller.id,
+        message,
+        { link: '/product-dashboard' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        updated.seller.id,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return updated;
   }
 }

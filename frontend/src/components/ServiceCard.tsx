@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Service } from '@/types';
 import styles from './ServiceCard.module.css';
@@ -20,9 +20,27 @@ interface ServiceCardProps {
 export default function ServiceCard({ service, onBook, onSendMessage, onImageClick }: ServiceCardProps) {
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
-  const [isLiked, setIsLiked] = useState(service.isLikedByCurrentUser || false);
-  const [likeCount, setLikeCount] = useState(service.likeCount);
+  const [isLiked, setIsLiked] = useState(Boolean(service.isLikedByCurrentUser));
+  const [likeCount, setLikeCount] = useState(service.likeCount ?? 0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const serviceTitle = service.title ?? service.name ?? 'Service';
+  const images = useMemo(() => {
+    const unique = Array.isArray(service.images)
+      ? service.images.filter((img, idx, arr) => img && arr.indexOf(img) === idx)
+      : [];
+    return unique.length > 0 ? unique : ['https://via.placeholder.com/640x360'];
+  }, [service.images]);
+  const [activeImage, setActiveImage] = useState(0);
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
 
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -52,17 +70,41 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
 
   return (
     <div className={styles.card}>
-      <div 
-        className={styles.imageContainer} 
-        onClick={() => service.images.length > 0 && onImageClick(service.images, 0)}
+      <div
+        className={styles.imageContainer}
+        onClick={() => images.length > 0 && onImageClick(images, activeImage)}
       >
         <Image
-          src={service.images[0] || 'https://via.placeholder.com/300x150'}
-          alt={service.title}
+          key={images[activeImage]}
+          src={images[activeImage]}
+          alt={serviceTitle}
           className={styles.image}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
         />
+        {images.length > 1 && (
+          <>
+            <button className={`${styles.carouselButton} ${styles.prev}`} onClick={handlePrevImage} aria-label="Previous image">
+              ‹
+            </button>
+            <button className={`${styles.carouselButton} ${styles.next}`} onClick={handleNextImage} aria-label="Next image">
+              ›
+            </button>
+            <div className={styles.carouselDots}>
+              {images.map((img, idx) => (
+                <button
+                  key={`${img}-${idx}`}
+                  className={`${styles.carouselDot} ${idx === activeImage ? styles.activeDot : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImage(idx);
+                  }}
+                  aria-label={`Show image ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
         <div className={styles.imageOverlay}>
           <span className={styles.overlayIcon}>👁️</span>
           <span className={styles.overlayText}>View Images</span>
@@ -70,7 +112,7 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
       </div>
       <div className={styles.content}>
         <div className={styles.header}>
-          <h3 className={styles.title}>{service.title}</h3>
+          <h3 className={styles.title}>{serviceTitle}</h3>
           <p className={styles.price}>R{service.price.toFixed(2)}</p>
         </div>
         <p className={`${styles.description} ${isExpanded ? styles.expanded : ''}`}>

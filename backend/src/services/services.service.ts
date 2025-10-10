@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class ServicesService {
@@ -139,7 +139,7 @@ export class ServicesService {
       sortBy,
     } = filters || {};
 
-    const where: any = {
+    const where: Prisma.ServiceWhereInput = {
       approvalStatus: 'APPROVED',
     };
 
@@ -149,27 +149,33 @@ export class ServicesService {
     if (categoryId) {
       where.categoryId = String(categoryId);
     } else if (category) {
-      where.category = { name: { contains: String(category), mode: 'insensitive' } };
+      where.category = {
+        name: { contains: String(category), mode: 'insensitive' },
+      };
     }
     if (priceMin || priceMax) {
       where.price = {};
       if (priceMin) where.price.gte = Number(priceMin);
       if (priceMax) where.price.lte = Number(priceMax);
     }
+    const salonFilter: Prisma.SalonWhereInput = {};
     if (province) {
-      where.salon = { ...(where.salon || {}), province: { equals: String(province), mode: 'insensitive' } };
-    }
-    if (city) {
-      where.salon = {
-        ...(where.salon || {}),
-        OR: [
-          { city: { equals: String(city), mode: 'insensitive' } },
-          { town: { equals: String(city), mode: 'insensitive' } },
-        ],
+      salonFilter.province = {
+        equals: String(province),
+        mode: 'insensitive',
       };
     }
+    if (city) {
+      salonFilter.OR = [
+        { city: { equals: String(city), mode: 'insensitive' } },
+        { town: { equals: String(city), mode: 'insensitive' } },
+      ];
+    }
+    if (Object.keys(salonFilter).length > 0) {
+      where.salon = { is: salonFilter };
+    }
 
-    let orderBy: any | undefined;
+    let orderBy: Record<string, 'asc' | 'desc'> | undefined;
     if (sortBy === 'price') orderBy = { price: 'asc' };
     if (sortBy === 'latest') orderBy = { createdAt: 'desc' };
 
@@ -178,7 +184,13 @@ export class ServicesService {
       orderBy,
       include: {
         salon: {
-          select: { id: true, name: true, city: true, province: true, ownerId: true },
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            province: true,
+            ownerId: true,
+          },
         },
         category: { select: { id: true, name: true } },
       },
@@ -186,14 +198,28 @@ export class ServicesService {
   }
 
   async autocomplete(q: string) {
-    if (!q || String(q).trim().length === 0) return [] as { title: string }[];
+    if (!q || String(q).trim().length === 0) {
+      return [] as {
+        id: string;
+        title: string;
+        salon?: { id: string; name: string };
+      }[];
+    }
     const results = await this.prisma.service.findMany({
       where: { title: { contains: String(q), mode: 'insensitive' } },
-      select: { title: true },
+      select: {
+        id: true,
+        title: true,
+        salon: { select: { id: true, name: true } },
+      },
       take: 10,
       distinct: ['title'],
       orderBy: { title: 'asc' },
     });
-    return results.map((r) => r);
+    return results.map((r) => ({
+      id: r.id,
+      title: r.title,
+      salon: r.salon,
+    }));
   }
 }

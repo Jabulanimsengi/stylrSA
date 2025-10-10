@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,9 +14,9 @@ import { toast } from 'react-toastify';
 import { ThemeToggle } from './ThemeToggle';
 
 const baseLinkClasses =
-  'relative rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200';
-const activeLinkClasses = 'text-primary bg-[color:var(--color-surface-subtle)] shadow-sm';
-const inactiveLinkClasses = 'text-[color:var(--color-text-strong)] hover:text-primary hover:bg-[color:var(--color-surface-subtle)]';
+  'relative rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--nav-link-active)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--nav-surface)]';
+const activeLinkClasses = 'text-[color:var(--nav-link-active)] bg-[color:var(--nav-surface-active)] shadow-sm';
+const inactiveLinkClasses = 'text-[color:var(--nav-link)] hover:text-[color:var(--nav-link-hover)] hover:bg-[color:var(--nav-surface-subtle)]';
 
 export default function Navbar() {
   const { authStatus, user, logout } = useAuth();
@@ -52,26 +52,39 @@ export default function Navbar() {
   };
 
   const handleChatClick = () => {
-    if (authStatus === 'authenticated') {
-        router.push('/chat');
-    } else {
-        toast.error("Please log in to access messages.");
-        openModal('login');
+    if (authStatus !== 'authenticated') {
+      toast.error('Please log in to access messages.');
+      openModal('login');
+      setIsMenuOpen(false);
+      return;
     }
-    setIsMenuOpen(false); // Close mobile menu if open
+
+    let handled = false;
+    if (typeof window !== 'undefined') {
+      if (typeof window.showChatWidget === 'function') {
+        window.showChatWidget();
+        handled = true;
+      }
+    }
+
+    if (!handled) {
+      router.push('/chat');
+    }
+
+    setIsMenuOpen(false);
   };
 
-  useEffect(() => {
-    if (authStatus === 'authenticated') {
-      const fetchNotifications = async () => {
-        const res = await fetch(`/api/notifications`, { credentials: 'include' });
-        if (res.ok) {
-          setNotifications(await res.json());
-        }
-      };
-      fetchNotifications();
+  const fetchNotifications = useCallback(async () => {
+    if (authStatus !== 'authenticated') return;
+    const res = await fetch(`/api/notifications`, { credentials: 'include' });
+    if (res.ok) {
+      setNotifications(await res.json());
     }
   }, [authStatus]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   useEffect(() => {
     if (socket) {
@@ -83,6 +96,50 @@ export default function Navbar() {
       };
     }
   }, [socket]);
+  const handleMarkAllRead = async () => {
+    try {
+      await fetch(`/api/notifications/read-all`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+      setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
+    } catch (error) {
+      console.error('Failed to mark notifications as read', error);
+    }
+  };
+
+  const handleClearNotifications = async () => {
+    try {
+      await fetch(`/api/notifications`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      setNotifications([]);
+    } catch (error) {
+      console.error('Failed to clear notifications', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    try {
+      if (!notification.isRead) {
+        await fetch(`/api/notifications/${notification.id}/read`, {
+          method: 'PATCH',
+          credentials: 'include',
+        });
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n)),
+        );
+      }
+      setIsNotificationsOpen(false);
+      if (notification.link) {
+        router.push(notification.link);
+      }
+    } catch (error) {
+      console.error('Failed to update notification', error);
+    }
+  };
+
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -120,7 +177,7 @@ export default function Navbar() {
  
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]/90 backdrop-blur">
+      <nav className="sticky top-0 z-50 border-b border-[color:var(--nav-border)] bg-[color:var(--nav-surface)] backdrop-blur">
         <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} priority />
@@ -140,7 +197,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-3">
-              {authStatus === 'loading' && <span className="text-sm text-[color:var(--color-text-muted)]">Loading...</span>}
+              {authStatus === 'loading' && <span className="text-sm text-[color:var(--nav-link)]/70">Loading...</span>}
               {authStatus === 'unauthenticated' && (
                 <>
                   <button onClick={() => openModal('login')} className="btn btn-ghost text-sm lowercase">
@@ -162,12 +219,12 @@ export default function Navbar() {
                       {link.label}
                     </Link>
                   ))}
-                  <div className="h-6 w-px bg-[color:var(--color-border)]" />
+                  <div className="h-6 w-px bg-[color:var(--nav-border)]" />
                   <ThemeToggle />
-                  <div className="h-6 w-px bg-[color:var(--color-border)]" />
+                  <div className="h-6 w-px bg-[color:var(--nav-border)]" />
                   <button
                     onClick={handleChatClick}
-                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] text-[color:var(--color-text-strong)] transition-colors hover:bg-[color:var(--color-surface-subtle)]"
+                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--nav-icon-bg)] text-[color:var(--nav-text)] transition-colors hover:bg-[color:var(--nav-icon-hover-bg)]"
                     aria-label="Messages"
                   >
                     <FaCommentDots />
@@ -175,35 +232,56 @@ export default function Navbar() {
                   <div ref={notificationsRef} className="relative">
                     <button
                       onClick={() => setIsNotificationsOpen((prev) => !prev)}
-                      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] text-[color:var(--color-text-strong)] transition-colors hover:bg-[color:var(--color-surface-subtle)]"
+                      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--nav-icon-bg)] text-[color:var(--nav-text)] transition-colors hover:bg-[color:var(--nav-icon-hover-bg)]"
                       aria-label="Notifications"
                     >
                       <FaBell />
                       {unreadCount > 0 && (
-                        <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-[color:var(--color-text-inverse)]">
+                        <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-[color:var(--nav-badge-text)]">
                           {unreadCount}
                         </span>
                       )}
                     </button>
                     {isNotificationsOpen && (
-                      <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-3 shadow-lg">
-                        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-text-muted)]">
-                          Notifications
+                      <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[color:var(--nav-border)] bg-[color:var(--nav-surface-active)] p-3 shadow-lg">
+                        <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-[color:var(--nav-link)]/70">
+                          <span>Notifications</span>
+                          {notifications.length > 0 && (
+                            <div className="flex items-center gap-2 text-[11px] font-semibold normal-case">
+                              <button
+                                className="text-[color:var(--nav-link-hover)] hover:underline"
+                                onClick={handleMarkAllRead}
+                              >
+                                Mark all read
+                              </button>
+                              <span className="text-[color:var(--nav-border)]">•</span>
+                              <button
+                                className="text-[color:var(--color-error, #d64545)] hover:underline"
+                                onClick={handleClearNotifications}
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          )}
                         </div>
                         <div className="max-h-72 space-y-2 overflow-y-auto">
                           {notifications.length > 0 ? (
                             notifications.map((notif) => (
-                              <div
+                              <button
                                 key={notif.id}
-                                className={`rounded-lg border border-transparent px-3 py-2 text-sm ${
-                                  notif.isRead ? 'text-[color:var(--color-text-muted)]' : 'border-primary/30 bg-primary/5 text-[color:var(--color-text-strong)]'
+                                type="button"
+                                onClick={() => handleNotificationClick(notif)}
+                                className={`w-full rounded-lg border border-transparent px-3 py-2 text-sm text-left transition-colors ${
+                                  notif.isRead
+                                    ? 'text-[color:var(--nav-link)]/70 hover:bg-[color:var(--nav-surface-subtle)]'
+                                    : 'border-primary/30 bg-primary/10 text-[color:var(--nav-text)] hover:bg-primary/20'
                                 }`}
                               >
                                 {notif.message}
-                              </div>
+                              </button>
                             ))
                           ) : (
-                            <div className="rounded-lg bg-[color:var(--color-surface-subtle)] px-3 py-4 text-sm text-[color:var(--color-text-muted)]">
+                            <div className="rounded-lg bg-[color:var(--nav-surface-subtle)] px-3 py-4 text-sm text-[color:var(--nav-link)]/70">
                               No new notifications.
                             </div>
                           )}
@@ -219,7 +297,7 @@ export default function Navbar() {
             </div>
 
             <button
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] text-[color:var(--color-text-strong)] transition-colors hover:bg-[color:var(--color-surface-subtle)] lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--nav-icon-bg)] text-[color:var(--nav-text)] transition-colors hover:bg-[color:var(--nav-icon-hover-bg)] lg:hidden"
               onClick={() => setIsMenuOpen((prev) => !prev)}
               aria-label="Toggle navigation"
             >
@@ -234,7 +312,7 @@ export default function Navbar() {
           isMenuOpen
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none opacity-0'
-        } fixed inset-x-0 top-20 z-40 bg-[color:var(--color-surface)]/95 backdrop-blur transition-opacity`}
+        } fixed inset-x-0 top-20 z-40 bg-[color:var(--nav-surface)] backdrop-blur transition-opacity`}
       >
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 sm:px-6 lg:px-8">
           {mainLinks.map((link) => (
@@ -248,12 +326,12 @@ export default function Navbar() {
             </Link>
           ))}
 
-          <div className="my-2 h-px bg-[color:var(--color-border)]" />
-          <div className="flex items-center justify-between rounded-lg bg-[color:var(--color-surface-subtle)] px-4 py-3 text-sm font-medium text-[color:var(--color-text-muted)]">
+          <div className="my-2 h-px bg-[color:var(--nav-border)]/80" />
+          <div className="flex items-center justify-between rounded-lg bg-[color:var(--nav-surface-subtle)] px-4 py-3 text-sm font-medium text-[color:var(--nav-link)]/70">
             <span>Appearance</span>
             <ThemeToggle />
           </div>
-          <div className="my-2 h-px bg-[color:var(--color-border)]" />
+          <div className="my-2 h-px bg-[color:var(--nav-border)]/80" />
 
           {authStatus === 'authenticated' && (
             <div className="flex flex-col gap-2">
@@ -306,7 +384,7 @@ export default function Navbar() {
           )}
 
           {authStatus === 'loading' && (
-            <span className="text-sm text-[color:var(--color-text-muted)]">Checking session...</span>
+            <span className="text-sm text-[color:var(--nav-link)]/70">Checking session...</span>
           )}
         </div>
       </div>

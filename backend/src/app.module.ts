@@ -22,6 +22,8 @@ import { ProductsModule } from './products/products.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { LocationsModule } from './locations/locations.module';
 import { CategoriesModule } from './categories/categories.module'; // Import the new module
+import { ProductOrdersModule } from './product-orders/product-orders.module';
+import { SellersModule } from './sellers/sellers.module';
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { CategoriesModule } from './categories/categories.module'; // Import the
     PromotionsModule,
     LocationsModule,
     CategoriesModule, // Add the new module here
+    ProductOrdersModule,
+    SellersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

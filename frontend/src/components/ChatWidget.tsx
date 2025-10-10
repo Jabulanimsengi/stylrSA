@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./ChatWidget.module.css";
 import { useAuth } from "@/hooks/useAuth";
 import { useSocket } from "@/context/SocketContext";
@@ -8,14 +8,18 @@ import { ChatMessage, Conversation, User } from "@/types";
 import { FaMinus, FaTimes, FaCheck, FaCheckDouble } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { showError } from "@/lib/errors";
+import { apiJson } from "@/lib/api";
 
 type MessageView = ChatMessage & { tempId?: string; pending?: boolean };
 
 declare global {
   interface Window {
     openChatWidget?: (recipientId: string, recipientName?: string) => void;
+    showChatWidget?: (conversationId?: string) => void;
   }
 }
+
+const LAST_CONVERSATION_KEY = "chat:lastConversationId";
 
 const deriveStatus = (message: MessageView, currentUserId?: string) => {
   if (!currentUserId || message.senderId !== currentUserId) {
@@ -36,15 +40,44 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<MessageView[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [recipient, setRecipient] = useState<{ id: string; name?: string } | null>(null);
+  const [recentConversations, setRecentConversations] = useState<Conversation[]>([]);
+  const [isRecentLoading, setIsRecentLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   const userId = user?.id;
 
-  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     endRef.current?.scrollIntoView({ behavior });
-  };
+  }, []);
 
-  const openChat = async (recipientId: string, recipientName?: string) => {
+  const rememberConversation = useCallback((id: string | null) => {
+    try {
+      if (id) {
+        localStorage.setItem(LAST_CONVERSATION_KEY, id);
+      } else {
+        localStorage.removeItem(LAST_CONVERSATION_KEY);
+      }
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  const refreshConversations = useCallback(async () => {
+    if (authStatus !== "authenticated") return;
+    try {
+      setIsRecentLoading(true);
+      const data = await apiJson<Conversation[]>("/api/chat/conversations", {
+        credentials: "include",
+      });
+      setRecentConversations(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.debug("Failed to load conversations", error);
+    } finally {
+      setIsRecentLoading(false);
+    }
+  }, [authStatus]);
+
+  const openChat = useCallback(async (recipientId: string, recipientName?: string) => {
     if (authStatus !== "authenticated") {
       toast.info("Please log in to chat.");
       return;
@@ -75,10 +108,68 @@ export default function ChatWidget() {
       const msgs = (await msgsRes.json()) as ChatMessage[];
       setMessages(msgs.map((m) => ({ ...m, pending: false })));
       setTimeout(() => scrollToBottom("auto"), 50);
-    } catch (e: any) {
-      showError(e, "Could not start chat");
+      refreshConversations();
+      if (convo.id) {
+        rememberConversation(convo.id);
+      }
+    } catch (error: unknown) {
+      showError(error, "Could not start chat");
     }
-  };
+  }, [authStatus, userId, refreshConversations, rememberConversation, scrollToBottom]);
+
+  const openConversationById = useCallback(
+    async (conversationId: string) => {
+      if (authStatus !== "authenticated" || !conversationId) return;
+      try {
+        const convo = await apiJson<Conversation>(`/api/chat/conversations/details/${conversationId}`, {
+          credentials: "include",
+        });
+        const msgs = await apiJson<ChatMessage[]>(`/api/chat/conversations/${conversationId}`, {
+          credentials: "include",
+        });
+        const other = convo.user1?.id === userId ? convo.user2 : convo.user1;
+        setConversation(convo);
+        setRecipient(
+          other
+            ? {
+                id: other.id,
+                name: `${other.firstName ?? ""} ${other.lastName ?? ""}`.trim() || other.email,
+              }
+            : null,
+        );
+        setMessages(msgs.map((m) => ({ ...m, pending: false })));
+        setIsOpen(true);
+        setIsMinimized(false);
+        rememberConversation(convo.id);
+        setTimeout(() => scrollToBottom("auto"), 50);
+      } catch (error) {
+        console.debug("Failed to open conversation by id", error);
+      }
+    },
+    [authStatus, userId, rememberConversation, scrollToBottom],
+  );
+
+  const openExistingConversation = useCallback(
+    async (convo: Conversation) => {
+      if (authStatus !== "authenticated") return;
+      try {
+        const msgs = await apiJson<ChatMessage[]>(`/api/chat/conversations/${convo.id}`, {
+          credentials: "include",
+        });
+        const other = convo.user1?.id === userId ? convo.user2 : convo.user1;
+        setConversation(convo);
+        setRecipient(other ? { id: other.id, name: `${other.firstName ?? ""} ${other.lastName ?? ""}`.trim() || other.email } : null);
+        setMessages(msgs.map((m) => ({ ...m, pending: false })));
+        setIsOpen(true);
+        setIsMinimized(false);
+        setTimeout(() => scrollToBottom("auto"), 50);
+        rememberConversation(convo.id);
+      } catch (error: unknown) {
+        showError(error, "Unable to load conversation");
+      }
+    },
+    [authStatus, userId, rememberConversation, scrollToBottom],
+  );
 
   // expose global opener
   useEffect(() => {
@@ -86,7 +177,37 @@ export default function ChatWidget() {
     return () => {
       window.openChatWidget = undefined;
     };
-  }, [authStatus, userId]);
+  }, [authStatus, userId, openChat]);
+
+  useEffect(() => {
+    window.showChatWidget = (conversationId?: string) => {
+      if (authStatus !== "authenticated") {
+        toast.info("Please log in to view your messages.");
+        return;
+      }
+
+      setIsOpen(true);
+      setIsMinimized(false);
+
+      const storedId = (() => {
+        if (conversationId) return conversationId;
+        try {
+          return localStorage.getItem(LAST_CONVERSATION_KEY) ?? undefined;
+        } catch {
+          return undefined;
+        }
+      })();
+
+      if (storedId && storedId !== conversation?.id) {
+        void openConversationById(storedId);
+      } else if (!storedId) {
+        void refreshConversations();
+      }
+    };
+    return () => {
+      window.showChatWidget = undefined;
+    };
+  }, [authStatus, conversation?.id, openConversationById, refreshConversations]);
 
   // socket room join
   useEffect(() => {
@@ -115,6 +236,7 @@ export default function ChatWidget() {
         if (!exists) next.push({ ...message, pending: false });
         return next;
       });
+      refreshConversations();
     };
 
     const handleDelivered = (message: ChatMessage) => {
@@ -127,6 +249,7 @@ export default function ChatWidget() {
       if (message.conversationId !== conversation?.id) return;
       setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, { ...message, pending: false }]));
       scrollToBottom();
+      refreshConversations();
     };
 
     const handleRead = ({ updates }: { conversationId: string; updates: { id: string; readAt: string }[] }) => {
@@ -153,12 +276,17 @@ export default function ChatWidget() {
       socket.off("conversation:read", handleRead);
       socket.off("message:error", handleError);
     };
-  }, [socket, conversation?.id]);
+  }, [socket, conversation?.id, refreshConversations, scrollToBottom]);
 
   const otherParticipant: User | null = useMemo(() => {
     if (!user || !conversation) return null;
     return conversation.user1?.id === user.id ? conversation.user2 : conversation.user1;
   }, [conversation, user]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    refreshConversations();
+  }, [isOpen, refreshConversations]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,15 +313,47 @@ export default function ChatWidget() {
     socket.emit("sendMessage", { conversationId: conversation.id, recipientId, body, tempId });
   };
 
-  if (!isOpen) return null;
+  if (!isOpen)
+    return (
+      <button
+        className={styles.launcher}
+        onClick={() => {
+          if (authStatus !== "authenticated") {
+            toast.info("Please log in to view your messages.");
+          }
+          setIsOpen(true);
+          setIsMinimized(false);
+        }}
+      >
+        Messages
+      </button>
+    );
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.title}>
-          {otherParticipant ? `${otherParticipant.firstName} ${otherParticipant.lastName}` : recipient?.name || "Chat"}
+          {conversation
+            ? otherParticipant
+              ? `${otherParticipant.firstName ?? ""} ${otherParticipant.lastName ?? ""}`.trim() || "Chat"
+              : recipient?.name || "Chat"
+            : "Messages"}
         </div>
         <div className={styles.headerActions}>
+          {conversation && (
+            <button
+              className={styles.iconBtn}
+              onClick={() => {
+                setConversation(null);
+                setRecipient(null);
+                setMessages([]);
+                rememberConversation(null);
+              }}
+              aria-label="Back to conversations"
+            >
+              ‹
+            </button>
+          )}
           <button className={styles.iconBtn} onClick={() => setIsMinimized((m) => !m)} aria-label="Minimize chat">
             <FaMinus />
           </button>
@@ -202,7 +362,35 @@ export default function ChatWidget() {
           </button>
         </div>
       </div>
-      {!isMinimized && (
+      {!conversation && !isMinimized && (
+        <div className={styles.conversationList}>
+          {isRecentLoading ? (
+            <div className={styles.listPlaceholder}>Loading conversations…</div>
+          ) : recentConversations.length === 0 ? (
+            <div className={styles.listPlaceholder}>No conversations yet. Start chatting with a salon owner.</div>
+          ) : (
+            recentConversations.map((convo) => {
+              const other = convo.user1?.id === userId ? convo.user2 : convo.user1;
+              const preview = convo.lastMessage?.content ?? "No messages yet";
+              const unread = convo.unreadCount ?? 0;
+              return (
+                <button
+                  key={convo.id}
+                  className={styles.conversationItem}
+                  onClick={() => openExistingConversation(convo)}
+                >
+                  <span className={styles.conversationName}>
+                    {`${other?.firstName ?? ""} ${other?.lastName ?? ""}`.trim() || other?.email || "Conversation"}
+                  </span>
+                  <span className={styles.conversationPreview}>{preview}</span>
+                  {unread > 0 && <span className={styles.unreadBadge}>{unread > 9 ? "9+" : unread}</span>}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+      {conversation && !isMinimized && (
         <>
           <div className={styles.messages}>
             {messages.map((m) => {
@@ -213,8 +401,7 @@ export default function ChatWidget() {
                   <div>{m.content}</div>
                   {mine && (
                     <div className={styles.status}>
-                      {status === "sending" && <span className={styles.statusText}>Sending…</span>}
-                      {status === "sent" && (
+                      {(status === "sent" || status === "sending") && (
                         <span className={styles.statusIcon} aria-label="Sent">
                           <FaCheck />
                         </span>

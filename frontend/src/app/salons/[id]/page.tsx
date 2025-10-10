@@ -18,6 +18,7 @@ import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
 import ImageLightbox from '@/components/ImageLightbox';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { useStartConversation } from '@/hooks/useStartConversation';
 
 async function getSalonDetails(id: string): Promise<Salon | null> {
   try {
@@ -61,6 +62,7 @@ export default function SalonProfilePage() {
   const { authStatus, user } = useAuth();
   const { openModal } = useAuthModal();
   const socket = useSocket();
+  const { startConversation } = useStartConversation();
   
   const [salon, setSalon] = useState<Salon | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -137,16 +139,16 @@ export default function SalonProfilePage() {
   };
 
   const handleSendMessageClick = async () => {
-    if (authStatus !== 'authenticated') {
-      openModal('login');
+    if (!salon) {
       return;
     }
-    if (!salon || !user) return;
-    if (user.id === salon.ownerId) {
+    if (user && user.id === salon.ownerId) {
       toast.error('You cannot message your own salon.');
       return;
     }
-    window.openChatWidget?.(salon.ownerId, salon.name);
+    void startConversation(salon.ownerId, {
+      recipientName: salon.name,
+    });
   };
 
   const handleToggleFavorite = async () => {

@@ -10,7 +10,7 @@
 .header {
   padding: var(--space-md) var(--space-lg);
   border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-surface-elevated);
+  background-color: var(--nav-surface);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -34,6 +34,19 @@
   outline-offset: 2px;
 }
 
+.headerAvatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text-inverse);
+  background: linear-gradient(135deg, rgba(255, 45, 94, 0.85), rgba(74, 208, 188, 0.75));
+  box-shadow: 0 12px 24px rgba(15, 20, 35, 0.18);
+}
+
 .headerDetails {
   display: flex;
   flex-direction: column;
@@ -54,11 +67,13 @@
 .messageStream {
   flex-grow: 1;
   overflow-y: auto;
-  padding: var(--space-lg);
+  padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2.5vw, 2rem);
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  background: linear-gradient(180deg, var(--color-surface-subtle), transparent 20%);
+  background:
+    linear-gradient(180deg, rgba(255, 45, 94, 0.08), transparent 30%),
+    var(--color-surface);
 }
 
 .messageBubble {
@@ -95,12 +110,10 @@
 }
 
 .statusRow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
   gap: var(--space-2xs);
   font-size: var(--font-size-xs);
-  color: rgba(255, 255, 255, 0.8);
 }
 
 .statusIcon {
@@ -116,6 +129,50 @@
 
 .statusText {
   font-size: var(--font-size-xs);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.timestamp {
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.sent .metaRow {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.sent .timestamp {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.sent .statusIcon {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sent .statusRead {
+  color: #8ef7ff;
+}
+
+.received .metaRow {
+  color: var(--color-text-muted);
+}
+
+.emptyThread {
+  margin: auto;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .inputArea {
