@@ -44,10 +44,13 @@ export class AdminController {
   updateServiceStatus(
     @Param('serviceId') serviceId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateServiceStatus(
       serviceId,
       approvalStatus as ApprovalStatus,
+      adminId,
     );
   }
 
@@ -55,10 +58,13 @@ export class AdminController {
   updateSalonStatus(
     @Param('salonId') salonId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateSalonStatus(
       salonId,
       approvalStatus as ApprovalStatus,
+      adminId,
     );
   }
 
@@ -76,10 +82,13 @@ export class AdminController {
   updateReviewStatus(
     @Param('reviewId') reviewId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateReviewStatus(
       reviewId,
       approvalStatus as ApprovalStatus,
+      adminId,
     );
   }
 
@@ -92,10 +101,13 @@ export class AdminController {
   updateProductStatus(
     @Param('productId') productId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateProductStatus(
       productId,
       approvalStatus as ApprovalStatus,
+      adminId,
     );
   }
 
@@ -146,5 +158,24 @@ export class AdminController {
   @Post('salons/deleted/:archiveId/restore')
   restoreSalon(@Param('archiveId') archiveId: string) {
     return this.adminService.restoreDeletedSalon(archiveId);
+  }
+
+  @Get('audit')
+  getAudit() {
+    // Simple list; can be extended with query filters later
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    return (this.adminService as any).prisma?.adminActionLog
+      ? (this.adminService as any).prisma.adminActionLog.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 200,
+        })
+      : this.adminService['prisma'].$queryRawUnsafe(
+          'SELECT id, "adminId", action, "targetType", "targetId", reason, metadata, "createdAt" FROM "AdminActionLog" ORDER BY "createdAt" DESC LIMIT 200',
+        );
+  }
+
+  @Get('metrics')
+  getMetrics() {
+    return this.adminService.getMetrics();
   }
 }

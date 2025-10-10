@@ -353,3 +353,17 @@ model DeletedSalonArchive {
   restoredAt DateTime?
   @@index([deletedAt])
 }
+
+// Admin activity/audit log
+model AdminActionLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}

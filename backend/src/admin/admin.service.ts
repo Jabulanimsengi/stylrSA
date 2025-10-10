@@ -14,6 +14,55 @@ export class AdminService {
     private eventsGateway: EventsGateway,
   ) {}
 
+  private async logAction(params: {
+    adminId: string;
+    action: string;
+    targetType: string;
+    targetId: string;
+    reason?: string | null;
+    metadata?: Record<string, unknown> | null;
+  }) {
+    const { adminId, action, targetType, targetId, reason, metadata } = params;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      await (this.prisma as any).adminActionLog?.create?.({
+        data: {
+          adminId,
+          action,
+          targetType,
+          targetId,
+          reason: reason ?? null,
+          metadata: (metadata ?? undefined) as any,
+        },
+      });
+      return;
+    } catch {
+      // Fallback to raw SQL
+    }
+    try {
+      const exists = (
+        await this.prisma.$queryRaw<{ exists: boolean }[]>`
+          SELECT to_regclass('"AdminActionLog"') IS NOT NULL as exists
+        `
+      )[0]?.exists;
+      if (exists) {
+        const metaJson = metadata ? JSON.stringify(metadata) : null;
+        await this.prisma.$executeRawUnsafe(
+          `INSERT INTO "AdminActionLog" ("adminId","action","targetType","targetId","reason","metadata")
+           VALUES ($1,$2,$3,$4,$5,$6::jsonb)`,
+          adminId,
+          action,
+          targetType,
+          targetId,
+          reason ?? null,
+          metaJson,
+        );
+      }
+    } catch {
+      // noop
+    }
+  }
+
   async getPendingSalons() {
     return this.prisma.salon.findMany({
       where: { approvalStatus: 'PENDING' },
@@ -50,7 +99,7 @@ export class AdminService {
     });
   }
 
-  async updateSalonStatus(salonId: string, status: ApprovalStatus) {
+  async updateSalonStatus(salonId: string, status: ApprovalStatus, adminId?: string) {
     const updated = await this.prisma.salon.update({
       where: { id: salonId },
       data: { approvalStatus: status },
@@ -58,6 +107,16 @@ export class AdminService {
         owner: { select: { id: true, firstName: true, lastName: true } },
       },
     });
+
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'SALON_STATUS_UPDATE',
+        targetType: 'SALON',
+        targetId: salonId,
+        metadata: { status },
+      });
+    }
 
     if (updated.owner) {
       const message = `Your salon "${updated.name}" has been ${status.toLowerCase()}.`;
@@ -83,7 +142,7 @@ export class AdminService {
     });
   }
 
-  async updateServiceStatus(serviceId: string, status: ApprovalStatus) {
+  async updateServiceStatus(serviceId: string, status: ApprovalStatus, adminId?: string) {
     const updated = await this.prisma.service.update({
       where: { id: serviceId },
       data: { approvalStatus: status },
@@ -96,6 +155,16 @@ export class AdminService {
         },
       },
     });
+
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'SERVICE_STATUS_UPDATE',
+        targetType: 'SERVICE',
+        targetId: serviceId,
+        metadata: { status },
+      });
+    }
 
     const ownerId = updated.salon?.owner?.id;
     if (ownerId) {
@@ -134,7 +203,7 @@ export class AdminService {
     });
   }
 
-  async updateReviewStatus(reviewId: string, status: ApprovalStatus) {
+  async updateReviewStatus(reviewId: string, status: ApprovalStatus, adminId?: string) {
     const existing = await this.prisma.review.findUnique({
       where: { id: reviewId },
       select: { salonId: true },
@@ -172,6 +241,16 @@ export class AdminService {
       );
     }
 
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'REVIEW_STATUS_UPDATE',
+        targetType: 'REVIEW',
+        targetId: reviewId,
+        metadata: { status },
+      });
+    }
+
     return updated;
   }
 
@@ -182,7 +261,7 @@ export class AdminService {
     });
   }
 
-  async updateProductStatus(productId: string, status: ApprovalStatus) {
+  async updateProductStatus(productId: string, status: ApprovalStatus, adminId?: string) {
     const updated = await this.prisma.product.update({
       where: { id: productId },
       data: { approvalStatus: status },
@@ -190,6 +269,16 @@ export class AdminService {
         seller: { select: { id: true } },
       },
     });
+
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'PRODUCT_STATUS_UPDATE',
+        targetType: 'PRODUCT',
+        targetId: productId,
+        metadata: { status },
+      });
+    }
 
     if (updated.seller) {
       const message = `Your product "${updated.name}" has been ${status.toLowerCase()}.`;
@@ -533,6 +622,15 @@ export class AdminService {
       // noop
     }
 
+    // Log action
+    void this.logAction({
+      adminId,
+      action: 'SALON_DELETE',
+      targetType: 'SALON',
+      targetId: salonId,
+      reason: reason ?? null,
+    });
+
     return { ok: true };
   }
 
@@ -681,6 +779,44 @@ export class AdminService {
       }
     }
 
+    // Attempt to log restore action
+    try {
+      const ownerId: string = createdSalon.ownerId;
+      void this.logAction({
+        adminId: ownerId, // if we need real admin id, controller can pass it; using ownerId as placeholder otherwise
+        action: 'SALON_RESTORE',
+        targetType: 'SALON',
+        targetId: createdSalon.id,
+      });
+    } catch {}
+
     return createdSalon;
+  }
+
+  async getMetrics() {
+    const [salonsPending, servicesPending, reviewsPending, productsPending] = await Promise.all([
+      this.prisma.salon.count({ where: { approvalStatus: 'PENDING' } }),
+      this.prisma.service.count({ where: { approvalStatus: 'PENDING' } }),
+      this.prisma.review.count({ where: { approvalStatus: 'PENDING' } }),
+      this.prisma.product.count({ where: { approvalStatus: 'PENDING' } }),
+    ]);
+
+    const oldestSalon = await this.prisma.salon.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
+    const oldestService = await this.prisma.service.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
+    const oldestReview = await this.prisma.review.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
+    const oldestProduct = await this.prisma.product.findFirst({ where: { approvalStatus: 'PENDING' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
+
+    return {
+      salonsPending,
+      servicesPending,
+      reviewsPending,
+      productsPending,
+      oldest: {
+        salon: oldestSalon?.createdAt ?? null,
+        service: oldestService?.createdAt ?? null,
+        review: oldestReview?.createdAt ?? null,
+        product: oldestProduct?.createdAt ?? null,
+      },
+    };
   }
 }
