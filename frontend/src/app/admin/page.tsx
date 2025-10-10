@@ -9,6 +9,7 @@ import { Salon, Service, ApprovalStatus, Review, Product } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'react-toastify';
 
 // FIX: Update PendingSalon to include the new fields from the backend response.
 type PendingSalon = Salon & { 
@@ -194,8 +195,8 @@ export default function AdminPage() {
                         if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
                         if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
                         if (featuredUntil) body.featuredUntil = featuredUntil;
-                        await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
-                        alert('Plan updated for salon.');
+                        const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
+                        if (r.ok) toast.success('Salon plan updated'); else toast.error('Failed to update plan');
                       }}
                       className={styles.approveButton}
                     >Save</button>
@@ -270,8 +271,8 @@ export default function AdminPage() {
                       if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
                       if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
                       if (featuredUntil) body.featuredUntil = featuredUntil;
-                      await fetch(`/api/admin/sellers/${product.seller.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
-                      alert('Plan updated for seller.');
+                      const r = await fetch(`/api/admin/sellers/${product.seller.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
+                      if (r.ok) toast.success('Seller plan updated'); else toast.error('Failed to update plan');
                     }}
                     className={styles.approveButton}
                   >Save</button>

@@ -101,12 +101,27 @@ export class ServicesService {
   }
 
   async findFeatured() {
-    return this.prisma.service.findMany({
-      take: 5,
-      orderBy: {
-        createdAt: 'desc',
+    const items = await this.prisma.service.findMany({
+      where: { approvalStatus: 'APPROVED' },
+      include: {
+        salon: { select: { id: true, visibilityWeight: true, featuredUntil: true, createdAt: true } },
       },
+      take: 20,
     });
+    const now = Date.now();
+    const score = (s: any) => {
+      const w = s.salon?.visibilityWeight ?? 1;
+      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const boost = fu > now ? 10 : 0;
+      return w + boost;
+    };
+    return items
+      .sort((a: any, b: any) => {
+        const sv = score(b) - score(a);
+        if (sv !== 0) return sv;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      })
+      .slice(0, 5);
   }
 
   async findAllApproved(page: number = 1, pageSize: number = 10) {
@@ -124,6 +139,8 @@ export class ServicesService {
               name: true,
               city: true,
               province: true,
+              visibilityWeight: true,
+              featuredUntil: true,
             },
           },
         },
@@ -131,8 +148,22 @@ export class ServicesService {
       this.prisma.service.count({ where: { approvalStatus: 'APPROVED' } }),
     ]);
 
+    const now = Date.now();
+    const score = (s: any) => {
+      const w = s.salon?.visibilityWeight ?? 1;
+      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const boost = fu > now ? 10 : 0;
+      return w + boost;
+    };
+
+    const ordered = services.sort((a: any, b: any) => {
+      const sv = score(b) - score(a);
+      if (sv !== 0) return sv;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
     return {
-      services,
+      services: ordered,
       currentPage: page,
       totalPages: Math.ceil(total / pageSize),
     };
@@ -190,9 +221,8 @@ export class ServicesService {
     if (sortBy === 'price') orderBy = { price: 'asc' };
     if (sortBy === 'latest') orderBy = { createdAt: 'desc' };
 
-    return this.prisma.service.findMany({
+    const items = await this.prisma.service.findMany({
       where,
-      orderBy,
       include: {
         salon: {
           select: {
@@ -201,10 +231,28 @@ export class ServicesService {
             city: true,
             province: true,
             ownerId: true,
+            visibilityWeight: true,
+            featuredUntil: true,
           },
         },
         category: { select: { id: true, name: true } },
       },
+    });
+
+    if (orderBy) {
+      return items;
+    }
+    const now = Date.now();
+    const score = (s: any) => {
+      const w = s.salon?.visibilityWeight ?? 1;
+      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const boost = fu > now ? 10 : 0;
+      return w + boost;
+    };
+    return items.sort((a: any, b: any) => {
+      const sv = score(b) - score(a);
+      if (sv !== 0) return sv;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }
 
