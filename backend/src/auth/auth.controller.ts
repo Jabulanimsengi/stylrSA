@@ -53,4 +53,18 @@ export class AuthController {
     res.clearCookie('access_token');
     return { message: 'Logout successful' };
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('sso')
+  async sso(
+    @Body()
+    body: {
+      provider: string;
+      providerAccountId: string;
+      email?: string | null;
+      name?: string | null;
+    },
+  ) {
+    return this.authService.sso(body);
+  }
 }

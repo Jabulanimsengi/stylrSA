@@ -331,7 +331,7 @@ export default function AdminPage() {
                 <button onClick={() => handleUpdateStatus('salon', salon.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
               </div>
             </div>
-          )) : <p>No pending salons.</p>
+          )) : <p>No pending salons.</p>}
           </>
         )}
         
@@ -446,7 +446,7 @@ export default function AdminPage() {
                 >Delete Profile</button>
               </div>
             </div>
-          )) : <p>No salons found.</p>
+          )) : <p>No salons found.</p>}
           </>
         )}
 
@@ -486,7 +486,7 @@ export default function AdminPage() {
                 <button onClick={() => handleUpdateStatus('service', service.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
               </div>
             </div>
-          )) : <p>No pending services.</p>
+          )) : <p>No pending services.</p>}
           </>
         )}
 
@@ -512,7 +512,7 @@ export default function AdminPage() {
                 <button onClick={() => handleUpdateStatus('review', review.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
               </div>
             </div>
-          )) : <p>No pending reviews.</p>
+          )) : <p>No pending reviews.</p>}
           </>
         )}
         
@@ -569,7 +569,7 @@ export default function AdminPage() {
                 <button onClick={() => handleUpdateStatus('product', product.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
               </div>
             </div>
-          )) : <p>No pending products.</p>
+          )) : <p>No pending products.</p>}
           </>
         )}
 
