@@ -10,8 +10,7 @@ import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
 import { ThemeProvider } from '@/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import dynamic from 'next/dynamic';
-const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
+import ClientChatWidget from '@/components/ClientChatWidget';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -60,7 +59,7 @@ export default function RootLayout({
                   <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
                   <Footer />
                 </div>
-                <ChatWidget />
+                <ClientChatWidget />
                 <ToastContainer position="bottom-right" theme="colored" />
               </AuthModalProvider>
             </SocketProvider>
