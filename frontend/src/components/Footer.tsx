@@ -11,14 +11,14 @@ export default function Footer() {
           <Link href="/" className={styles.logoLink}>
             <Image 
               src="/logo-transparent.png" 
-              alt="Maxisalonhub Logo"
+              alt="Mzansi Salon Hub Logo"
               width={185}
               height={45}
               className={styles.logo}
             />
           </Link>
           <p className={styles.description}>
-            Your one-stop destination for finding and booking the best salon experiences near you.
+            Mzansi Salon Hub helps South Africa discover trusted salons and beauty sellers.
           </p>
           <div className={styles.socials}>
             <a href="#" aria-label="Facebook" className={styles.socialLink}><FaFacebook /></a>
@@ -57,7 +57,7 @@ export default function Footer() {
         </div>
       </div>
       <div className={styles.footerBottom}>
-        <p>© {new Date().getFullYear()} Maxisalonhub. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Mzansi Salon Hub. All rights reserved.</p>
         <div className={styles.legalLinks}>
           <Link href="/terms">Terms of Service</Link>
           <Link href="/privacy">Privacy Policy</Link>
