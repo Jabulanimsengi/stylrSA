@@ -378,6 +378,72 @@ export class AdminService {
     });
     if (!salon) throw new NotFoundException('Salon not found');
 
+    // Snapshot salon and its services for archival
+    try {
+      const snapshot = await this.prisma.salon.findUnique({
+        where: { id: salonId },
+        select: {
+          id: true,
+          ownerId: true,
+          name: true,
+          description: true,
+          backgroundImage: true,
+          province: true,
+          heroImages: true,
+          city: true,
+          town: true,
+          address: true,
+          latitude: true,
+          longitude: true,
+          contactEmail: true,
+          phoneNumber: true,
+          whatsapp: true,
+          website: true,
+          bookingType: true,
+          offersMobile: true,
+          mobileFee: true,
+          isAvailableNow: true,
+          operatingHours: true,
+          operatingDays: true,
+          approvalStatus: true,
+          avgRating: true,
+          planCode: true,
+          visibilityWeight: true,
+          maxListings: true,
+          featuredUntil: true,
+          services: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              price: true,
+              duration: true,
+              images: true,
+              approvalStatus: true,
+              categoryId: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      });
+      if (snapshot) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        await (this.prisma as any).deletedSalonArchive?.create?.({
+          data: {
+            salonId: snapshot.id,
+            ownerId: snapshot.ownerId,
+            salon: snapshot as unknown as object,
+            services: (snapshot.services ?? []) as unknown as object,
+            reason: reason ?? null,
+            deletedBy: adminId,
+          },
+        });
+      }
+    } catch {
+      // Archival is best-effort; proceed with deletion if archive table is unavailable
+    }
+
     await this.prisma.$transaction(async (tx) => {
       const services = await tx.service.findMany({
         where: { salonId },
@@ -430,5 +496,119 @@ export class AdminService {
     }
 
     return { ok: true };
+  }
+
+  async getDeletedSalons() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const rows = await (this.prisma as any).deletedSalonArchive?.findMany?.({
+        orderBy: { deletedAt: 'desc' },
+      });
+      return Array.isArray(rows) ? rows : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async restoreDeletedSalon(archiveId: string) {
+    // Load archive
+    let archive: any | null = null;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      archive = await (this.prisma as any).deletedSalonArchive?.findUnique?.({
+        where: { id: archiveId },
+      });
+    } catch {
+      archive = null;
+    }
+    if (!archive) throw new NotFoundException('Archived profile not found');
+
+    const salonId: string = archive.salonId as string;
+    const ownerId: string = archive.ownerId as string;
+    const salonData: any = archive.salon ?? {};
+    const servicesData: any[] = Array.isArray(archive.services)
+      ? (archive.services as any[])
+      : [];
+
+    // Ensure no existing salon blocks restoration (ownerId is unique on Salon)
+    const existing = await this.prisma.salon.findFirst({ where: { OR: [ { id: salonId }, { ownerId } ] } });
+    if (existing) {
+      throw new NotFoundException('Cannot restore: owner already has a salon or id is taken');
+    }
+
+    // Re-create salon
+    const createdSalon = await this.prisma.salon.create({
+      data: {
+        id: salonId,
+        ownerId,
+        name: String(salonData.name),
+        description: salonData.description ?? null,
+        backgroundImage: salonData.backgroundImage ?? null,
+        province: String(salonData.province ?? ''),
+        heroImages: Array.isArray(salonData.heroImages)
+          ? (salonData.heroImages as string[])
+          : [],
+        city: String(salonData.city ?? ''),
+        town: String(salonData.town ?? ''),
+        address: salonData.address ?? null,
+        latitude: salonData.latitude ?? null,
+        longitude: salonData.longitude ?? null,
+        contactEmail: salonData.contactEmail ?? null,
+        phoneNumber: salonData.phoneNumber ?? null,
+        whatsapp: salonData.whatsapp ?? null,
+        website: salonData.website ?? null,
+        bookingType: salonData.bookingType ?? 'ONSITE',
+        offersMobile: !!salonData.offersMobile,
+        mobileFee: salonData.mobileFee ?? null,
+        isAvailableNow: !!salonData.isAvailableNow,
+        operatingHours: salonData.operatingHours ?? null,
+        operatingDays: Array.isArray(salonData.operatingDays)
+          ? (salonData.operatingDays as string[])
+          : [],
+        approvalStatus: salonData.approvalStatus ?? 'PENDING',
+        avgRating: typeof salonData.avgRating === 'number' ? salonData.avgRating : 0,
+        planCode: salonData.planCode ?? 'STARTER',
+        visibilityWeight:
+          typeof salonData.visibilityWeight === 'number'
+            ? salonData.visibilityWeight
+            : 1,
+        maxListings:
+          typeof salonData.maxListings === 'number' ? salonData.maxListings : 2,
+        featuredUntil: salonData.featuredUntil ? new Date(salonData.featuredUntil) : null,
+      },
+    });
+
+    // Re-create services
+    for (const svc of servicesData) {
+      try {
+        await this.prisma.service.create({
+          data: {
+            id: String(svc.id),
+            title: String(svc.title),
+            description: String(svc.description ?? ''),
+            price: Number(svc.price ?? 0),
+            duration: Number(svc.duration ?? 0),
+            images: Array.isArray(svc.images) ? (svc.images as string[]) : [],
+            approvalStatus: svc.approvalStatus ?? 'PENDING',
+            salonId: createdSalon.id,
+            categoryId: (svc.categoryId as string | undefined) ?? null,
+          },
+        });
+      } catch {
+        // Skip individual service failures to ensure best-effort restoration
+      }
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      await (this.prisma as any).deletedSalonArchive?.update?.({
+        where: { id: archiveId },
+        data: { restoredAt: new Date() },
+      });
+    } catch {
+      // noop
+    }
+
+    return createdSalon;
   }
 }

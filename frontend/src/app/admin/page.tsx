@@ -30,7 +30,8 @@ export default function AdminPage() {
   const [pendingServices, setPendingServices] = useState<PendingService[]>([]);
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products'>('salons');
+  const [deletedSalons, setDeletedSalons] = useState<any[]>([]);
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'deleted-salons'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -39,6 +40,10 @@ export default function AdminPage() {
   const [draftWeight, setDraftWeight] = useState<string>('');
   const [draftMax, setDraftMax] = useState<string>('');
   const [draftFeatured, setDraftFeatured] = useState<string>('');
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deletingSalon, setDeletingSalon] = useState<PendingSalon | null>(null);
 
   useEffect(() => {
     if (authStatus === 'loading') {
@@ -57,15 +62,16 @@ export default function AdminPage() {
       try {
         const ts = Date.now();
         const noStore: RequestInit = { ...requestOptions, cache: 'no-store' } as any;
-        const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes] = await Promise.all([
+        const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, deletedSalonsRes] = await Promise.all([
           fetch(`/api/admin/salons/pending?ts=${ts}`, noStore),
           fetch(`/api/admin/salons/all?ts=${ts}`, noStore),
           fetch(`/api/admin/services/pending?ts=${ts}`, noStore),
           fetch(`/api/admin/reviews/pending?ts=${ts}`, noStore),
           fetch(`/api/admin/products/pending?ts=${ts}`, noStore),
+          fetch(`/api/admin/salons/deleted?ts=${ts}`, noStore),
         ]);
 
-        if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes].some(res => res.status === 401)) {
+        if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, deletedSalonsRes].some(res => res.status === 401)) {
             router.push('/login');
             return;
         }
@@ -76,6 +82,7 @@ export default function AdminPage() {
         setPendingServices(await servicesRes.json());
         setPendingReviews(await reviewsRes.json());
         setPendingProducts(await productsRes.json());
+        setDeletedSalons(await deletedSalonsRes.json());
 
       } catch (error) {
         console.error("Failed to fetch admin data:", error);
@@ -114,21 +121,58 @@ export default function AdminPage() {
     if (type === 'product') setPendingProducts(pendingProducts.filter(p => p.id !== id));
   };
 
-  const handleDeleteSalon = async (id: string) => {
-    const reason = window.prompt('Enter the reason for deleting this provider profile:') ?? '';
-    if (reason === null) return;
+  const openDeleteModal = (salon: PendingSalon) => {
+    setDeletingSalon(salon);
+    setDeleteReason('');
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteSalon = async () => {
+    if (!deletingSalon) return;
+    if (!deleteReason.trim()) {
+      toast.error('Please provide a reason for deletion.');
+      return;
+    }
+    const id = deletingSalon.id;
     const res = await fetch(`/api/admin/salons/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason: deleteReason.trim() }),
     });
     if (res.ok) {
       setAllSalons(prev => prev.filter(s => s.id !== id));
+      setShowDeleteModal(false);
+      setDeletingSalon(null);
       toast.success('Profile deleted');
+      try {
+        const r = await fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any });
+        if (r.ok) setDeletedSalons(await r.json());
+      } catch {}
     } else {
       const msg = await res.text().catch(()=> '');
       toast.error(`Failed to delete (${res.status}). ${msg}`);
+    }
+  };
+
+  const restoreDeletedSalon = async (archiveId: string) => {
+    const res = await fetch(`/api/admin/salons/deleted/${archiveId}/restore`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (res.ok) {
+      toast.success('Profile restored');
+      try {
+        const [allRes, delRes] = await Promise.all([
+          fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any }),
+          fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any }),
+        ]);
+        if (allRes.ok) setAllSalons(await allRes.json());
+        if (delRes.ok) setDeletedSalons(await delRes.json());
+      } catch {}
+    } else {
+      const msg = await res.text().catch(()=> '');
+      toast.error(`Failed to restore (${res.status}). ${msg}`);
     }
   };
 
@@ -167,6 +211,12 @@ export default function AdminPage() {
           className={`${styles.tabButton} ${view === 'products' ? styles.activeTab : ''}`}
         >
           Pending Products ({pendingProducts.length})
+        </button>
+        <button
+          onClick={() => setView('deleted-salons')}
+          className={`${styles.tabButton} ${view === 'deleted-salons' ? styles.activeTab : ''}`}
+        >
+          Deleted Profiles ({deletedSalons.length})
         </button>
       </div>
 
@@ -277,12 +327,26 @@ export default function AdminPage() {
                 <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
                 <button
                   className={styles.rejectButton}
-                  onClick={() => handleDeleteSalon(salon.id)}
+                  onClick={() => openDeleteModal(salon)}
                   title="Delete provider profile"
                 >Delete Profile</button>
               </div>
             </div>
           )) : <p>No salons found.</p>
+        )}
+
+        {view === 'deleted-salons' && (
+          deletedSalons.length > 0 ? deletedSalons.map((row:any) => (
+            <div key={row.id} className={styles.listItem}>
+              <div className={styles.info}>
+                <h4>{row.salon?.name ?? 'Unknown name'}</h4>
+                <p>Deleted at: {row.deletedAt ? new Date(row.deletedAt).toLocaleString() : ''} {row.reason ? `| Reason: ${row.reason}` : ''}</p>
+              </div>
+              <div className={styles.actions}>
+                <button className={styles.approveButton} onClick={() => restoreDeletedSalon(row.id)}>Restore</button>
+              </div>
+            </div>
+          )) : <p>No deleted profiles.</p>
         )}
 
         {view === 'services' && (
@@ -361,6 +425,21 @@ export default function AdminPage() {
           )) : <p>No pending products.</p>
         )}
       </div>
+      {showDeleteModal && deletingSalon && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'grid', placeItems:'center', zIndex:1000}}>
+          <div style={{background:'#fff', color:'#000', padding:'1rem', borderRadius:8, maxWidth:560, width:'96%', boxShadow:'0 10px 30px rgba(0,0,0,0.25)'}}>
+            <h3 style={{marginTop:0}}>Delete Provider Profile</h3>
+            <p style={{color:'#a00', fontWeight:600}}>Caution: This will remove the provider profile and all their listings from the platform. You can later restore it from Deleted Profiles.</p>
+            <p><strong>Provider:</strong> {deletingSalon.name}</p>
+            <label style={{display:'block', margin:'0.5rem 0'}}>Reason (required)</label>
+            <textarea value={deleteReason} onChange={e=>setDeleteReason(e.target.value)} rows={4} style={{width:'100%', padding:'0.5rem', border:'1px solid var(--color-border)', borderRadius:6}} placeholder="Enter reason for deletion" />
+            <div style={{display:'flex', gap:'0.5rem', justifyContent:'flex-end', marginTop:'0.75rem'}}>
+              <button className={styles.approveButton} onClick={confirmDeleteSalon}>Confirm Delete</button>
+              <button className={styles.rejectButton} onClick={()=>{setShowDeleteModal(false); setDeletingSalon(null);}}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

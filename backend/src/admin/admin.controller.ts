@@ -7,6 +7,7 @@ import {
   Get,
   Delete,
   Req,
+  Post,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -64,6 +65,11 @@ export class AdminController {
   @Get('reviews/pending')
   getPendingReviews() {
     return this.adminService.getPendingReviews();
+  }
+
+  @Get('salons/deleted')
+  getDeletedSalons() {
+    return this.adminService.getDeletedSalons();
   }
 
   @Patch('reviews/:reviewId/status')
@@ -135,5 +141,12 @@ export class AdminController {
       adminId ?? 'unknown',
       dto?.reason,
     );
+  }
+
+  @Post('salons/deleted/:archiveId/restore')
+  restoreSalon(
+    @Param('archiveId') archiveId: string,
+  ) {
+    return this.adminService.restoreDeletedSalon(archiveId);
   }
 }

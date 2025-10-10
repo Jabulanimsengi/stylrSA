@@ -339,3 +339,17 @@ enum PlanCode {
   PRO
   ELITE
 }
+
+// Archive for deleted provider profiles to enable restoration
+model DeletedSalonArchive {
+  id         String   @id @default(uuid())
+  salonId    String
+  ownerId    String
+  salon      Json
+  services   Json
+  reason     String?
+  deletedBy  String?
+  deletedAt  DateTime @default(now())
+  restoredAt DateTime?
+  @@index([deletedAt])
+}
