@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import compression from 'compression';
+import compression = require('compression');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -33,50 +34,60 @@ export class ChatService {
   }
 
   async getConversations(userId: string) {
+    const conversationInclude = {
+      user1: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      user2: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          senderId: true,
+          deliveredAt: true,
+          readAt: true,
+        },
+      },
+    } satisfies Prisma.ConversationInclude;
+
+    type ConversationWithRelations = Prisma.ConversationGetPayload<{
+      include: typeof conversationInclude;
+    }>;
+
     const conversations = await this.prisma.conversation.findMany({
       where: {
         OR: [{ user1Id: userId }, { user2Id: userId }],
       },
-      include: {
-        user1: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            profileImage: true,
-          },
-        },
-        user2: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            profileImage: true,
-          },
-        },
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            senderId: true,
-            deliveredAt: true,
-            readAt: true,
-          },
-        },
-      },
+      include: conversationInclude,
       orderBy: {
         updatedAt: 'desc',
       },
     });
 
     return Promise.all(
-      conversations.map(async (conversation) => {
-        const [latest] = conversation.messages;
+      conversations.map(async (conversation: ConversationWithRelations) => {
+        const {
+          messages: messagesList = [],
+          user1,
+          user2,
+          ...rest
+        } = conversation;
+        const [latest] = messagesList;
         const unreadCount = await this.prisma.message.count({
           where: {
             conversationId: conversation.id,
@@ -84,11 +95,11 @@ export class ChatService {
             readAt: null,
           },
         });
-
-        const { messages, ...rest } = conversation;
         return {
           ...rest,
-          participants: [conversation.user1, conversation.user2],
+          user1,
+          user2,
+          participants: [user1, user2],
           lastMessage: latest
             ? {
                 ...latest,
