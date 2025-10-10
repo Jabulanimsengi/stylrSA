@@ -135,7 +135,7 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
-      {isLoading && page === 1 && (
+      {isLoading && services.length === 0 && (
         <div className={styles.grid} aria-hidden>
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} style={{
@@ -204,15 +204,18 @@ export default function HomePage() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>
-        
-        {services.length > 0 && (
-          <div className={styles.grid}>
-            {services.map((service) => (
-              <FeaturedServiceCard key={service.id} service={service} />
-            ))}
-          </div>
+        {isLoading && services.length === 0 ? (
+          <div className={styles.spinnerContainer}><LoadingSpinner /></div>
+        ) : (
+          services.length > 0 && (
+            <div className={styles.grid}>
+              {services.map((service) => (
+                <FeaturedServiceCard key={service.id} service={service} />
+              ))}
+            </div>
+          )
         )}
-        
+
         <div ref={loader} />
 
         {isLoading && page > 1 && <div className={styles.spinnerContainer}><div className={styles.spinner}></div></div>}
