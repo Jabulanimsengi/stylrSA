@@ -1,6 +1,6 @@
 // backend/src/admin/admin.service.ts
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApprovalStatus, PlanCode } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
@@ -232,13 +232,22 @@ export class AdminService {
       maxListings?: number | null;
     };
     // Normalize and validate incoming plan code (handle 'undefined'/'null' strings)
-    const normalizedPlan = !planCode || planCode === 'undefined' || planCode === 'null' ? undefined : planCode;
-    const isValidPlan = !!normalizedPlan && ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(normalizedPlan);
+    const normalizedPlan =
+      !planCode || planCode === 'undefined' || planCode === 'null'
+        ? undefined
+        : planCode;
+    const isValidPlan =
+      !!normalizedPlan &&
+      ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(
+        normalizedPlan,
+      );
     let plan: PlanPartial | null = null;
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       plan = isValidPlan
-        ? ((await (this.prisma as any).plan.findUnique({ where: { code: normalizedPlan } })) as unknown as PlanPartial)
+        ? ((await (this.prisma as any).plan.findUnique({
+            where: { code: normalizedPlan },
+          })) as unknown as PlanPartial)
         : null;
     } catch {
       // noop: Plan table may be absent in some environments; fallbacks cover values
@@ -246,12 +255,12 @@ export class AdminService {
     const visibilityWeight =
       overrides?.visibilityWeight ??
       plan?.visibilityWeight ??
-      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.visibilityWeight ??
+      (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.visibilityWeight ??
       1;
     const maxListings =
       overrides?.maxListings ??
       plan?.maxListings ??
-      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.maxListings ??
+      (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.maxListings ??
       2;
     const data: any = {
       visibilityWeight,
@@ -302,13 +311,22 @@ export class AdminService {
       visibilityWeight?: number | null;
       maxListings?: number | null;
     };
-    const normalizedPlan = !planCode || planCode === 'undefined' || planCode === 'null' ? undefined : planCode;
-    const isValidPlan = !!normalizedPlan && ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(normalizedPlan);
+    const normalizedPlan =
+      !planCode || planCode === 'undefined' || planCode === 'null'
+        ? undefined
+        : planCode;
+    const isValidPlan =
+      !!normalizedPlan &&
+      ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(
+        normalizedPlan,
+      );
     let plan: SellerPlanPartial | null = null;
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       plan = isValidPlan
-        ? ((await (this.prisma as any).plan.findUnique({ where: { code: normalizedPlan } })) as unknown as SellerPlanPartial)
+        ? ((await (this.prisma as any).plan.findUnique({
+            where: { code: normalizedPlan },
+          })) as unknown as SellerPlanPartial)
         : null;
     } catch {
       // noop: Plan table may be absent in some environments; fallbacks cover values
@@ -316,12 +334,12 @@ export class AdminService {
     const sellerVisibilityWeight =
       overrides?.visibilityWeight ??
       plan?.visibilityWeight ??
-      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.visibilityWeight ??
+      (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.visibilityWeight ??
       1;
     const sellerMaxListings =
       overrides?.maxListings ??
       plan?.maxListings ??
-      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.maxListings ??
+      (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.maxListings ??
       2;
     const data: any = {
       sellerVisibilityWeight,
@@ -347,5 +365,70 @@ export class AdminService {
       // noop: websocket not critical for persistence
     }
     return updated;
+  }
+
+  async deleteSalonWithCascade(
+    salonId: string,
+    adminId: string,
+    reason?: string,
+  ) {
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+      select: { id: true, name: true, ownerId: true },
+    });
+    if (!salon) throw new NotFoundException('Salon not found');
+
+    await this.prisma.$transaction(async (tx) => {
+      const services = await tx.service.findMany({
+        where: { salonId },
+        select: { id: true },
+      });
+      const serviceIds = services.map((s) => s.id);
+
+      if (serviceIds.length > 0) {
+        await tx.promotion.deleteMany({
+          where: { serviceId: { in: serviceIds } },
+        });
+        await tx.serviceLike.deleteMany({
+          where: { serviceId: { in: serviceIds } },
+        });
+      }
+
+      await tx.review.deleteMany({ where: { salonId } });
+      await tx.favorite.deleteMany({ where: { salonId } });
+      await tx.galleryImage.deleteMany({ where: { salonId } });
+      await tx.booking.deleteMany({ where: { salonId } });
+      await tx.service.deleteMany({ where: { salonId } });
+      await tx.salon.delete({ where: { id: salonId } });
+    });
+
+    try {
+      const message =
+        `Your salon "${salon.name}" has been removed by an administrator.` +
+        (reason && reason.trim().length > 0 ? ` Reason: ${reason.trim()}` : '');
+      const notification = await this.notificationsService.create(
+        salon.ownerId,
+        message,
+        { link: '/create-salon' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        salon.ownerId,
+        'newNotification',
+        notification,
+      );
+    } catch {
+      // noop: notification is best-effort
+    }
+
+    try {
+      this.eventsGateway.server.emit('salon:deleted', {
+        id: salonId,
+        by: adminId,
+      });
+    } catch {
+      // noop
+    }
+
+    return { ok: true };
   }
 }

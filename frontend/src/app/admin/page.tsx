@@ -114,6 +114,24 @@ export default function AdminPage() {
     if (type === 'product') setPendingProducts(pendingProducts.filter(p => p.id !== id));
   };
 
+  const handleDeleteSalon = async (id: string) => {
+    const reason = window.prompt('Enter the reason for deleting this provider profile:') ?? '';
+    if (reason === null) return;
+    const res = await fetch(`/api/admin/salons/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ reason }),
+    });
+    if (res.ok) {
+      setAllSalons(prev => prev.filter(s => s.id !== id));
+      toast.success('Profile deleted');
+    } else {
+      const msg = await res.text().catch(()=> '');
+      toast.error(`Failed to delete (${res.status}). ${msg}`);
+    }
+  };
+
   if (isLoading || authStatus === 'loading') return <LoadingSpinner />;
 
   return (
@@ -257,6 +275,11 @@ export default function AdminPage() {
               </div>
               <div className={styles.actions}>
                 <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
+                <button
+                  className={styles.rejectButton}
+                  onClick={() => handleDeleteSalon(salon.id)}
+                  title="Delete provider profile"
+                >Delete Profile</button>
               </div>
             </div>
           )) : <p>No salons found.</p>

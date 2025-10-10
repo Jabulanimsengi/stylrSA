@@ -1,4 +1,13 @@
-import { Controller, Patch, Param, Body, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Get,
+  Delete,
+  Req,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
@@ -6,6 +15,8 @@ import { Roles } from 'src/auth/guard/roles.decorator';
 import { UserRole, ApprovalStatus } from '@prisma/client';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
+import { DeleteEntityDto } from './dto/delete-entity.dto';
+import { Request } from 'express';
 
 @Controller('api/admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -110,5 +121,19 @@ export class AdminController {
       maxListings: dto.maxListings,
       featuredUntil,
     });
+  }
+
+  @Delete('salons/:salonId')
+  deleteSalon(
+    @Param('salonId') salonId: string,
+    @Body() dto: DeleteEntityDto,
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.deleteSalonWithCascade(
+      salonId,
+      adminId ?? 'unknown',
+      dto?.reason,
+    );
   }
 }
