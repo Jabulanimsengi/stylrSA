@@ -33,18 +33,17 @@ export class AdminService {
 
   async getAllSalons() {
     return this.prisma.salon.findMany({
-      include: { owner: { select: { id: true, email: true, firstName: true, lastName: true } } },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
         name: true,
         approvalStatus: true,
         createdAt: true,
-        owner: true,
         visibilityWeight: true,
         maxListings: true,
         featuredUntil: true,
-      } as any,
+        owner: { select: { id: true, email: true, firstName: true, lastName: true } },
+      },
     });
   }
 

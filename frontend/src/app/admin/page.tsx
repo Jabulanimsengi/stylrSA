@@ -193,8 +193,18 @@ export default function AdminPage() {
                         if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
                         if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
                         if (featuredUntil) body.featuredUntil = featuredUntil;
-                        const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
-                        if (r.ok) toast.success('Salon plan updated'); else toast.error('Failed to update plan');
+                    const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
+                    if (r.ok) {
+                      toast.success('Salon plan updated');
+                      setAllSalons(prev => prev.map(s => s.id === salon.id ? {
+                        ...s,
+                        visibilityWeight: !Number.isNaN(visibilityWeight) ? visibilityWeight : s.visibilityWeight,
+                        maxListings: !Number.isNaN(maxListings) ? maxListings : s.maxListings,
+                        featuredUntil: featuredUntil || s.featuredUntil || null,
+                      } : s));
+                    } else {
+                      toast.error('Failed to update plan');
+                    }
                       }}
                       className={styles.approveButton}
                     >Save</button>
