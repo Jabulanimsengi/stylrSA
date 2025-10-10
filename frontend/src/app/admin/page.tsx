@@ -32,6 +32,11 @@ export default function AdminPage() {
   const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  // Inline edit state for salon visibility features
+  const [editingSalonId, setEditingSalonId] = useState<string | null>(null);
+  const [draftWeight, setDraftWeight] = useState<string>('');
+  const [draftMax, setDraftMax] = useState<string>('');
+  const [draftFeatured, setDraftFeatured] = useState<string>('');
 
   useEffect(() => {
     if (authStatus === 'loading') {
@@ -168,47 +173,57 @@ export default function AdminPage() {
                 <h4>{salon.name}</h4>
                 <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email}) | Status: {salon.approvalStatus}</p>
                 <div style={{display:'grid', gap: '0.5rem', marginTop: '0.5rem'}}>
-                  <div style={{display:'flex', gap: '0.5rem', alignItems:'center', flexWrap:'wrap'}}>
-                    <label>Plan</label>
-                    <select id={`plan-${salon.id}`} defaultValue="STARTER" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}}>
-                      <option value="STARTER">Starter</option>
-                      <option value="ESSENTIAL">Essential</option>
-                      <option value="GROWTH">Growth</option>
-                      <option value="PRO">Pro</option>
-                      <option value="ELITE">Elite</option>
-                    </select>
-                    <label>Weight</label>
-                    <input id={`weight-${salon.id}`} defaultValue={String(salon.visibilityWeight ?? '')} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                    <label>Max listings</label>
-                    <input id={`max-${salon.id}`} defaultValue={String(salon.maxListings ?? '')} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                    <label>Featured until</label>
-                    <input id={`feat-${salon.id}`} defaultValue={salon.featuredUntil ? new Date(salon.featuredUntil).toISOString().slice(0,16) : ''} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                    <button
-                      onClick={async ()=>{
-                        const planCode = (document.getElementById(`plan-${salon.id}`) as HTMLSelectElement)?.value;
-                        const visibilityWeight = Number((document.getElementById(`weight-${salon.id}`) as HTMLInputElement)?.value || NaN);
-                        const maxListings = Number((document.getElementById(`max-${salon.id}`) as HTMLInputElement)?.value || NaN);
-                        const featuredUntil = (document.getElementById(`feat-${salon.id}`) as HTMLInputElement)?.value;
-                        const body: any = { planCode };
-                        if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
-                        if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
-                        if (featuredUntil) body.featuredUntil = featuredUntil;
-                    const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
-                    if (r.ok) {
-                      toast.success('Salon plan updated');
-                      setAllSalons(prev => prev.map(s => s.id === salon.id ? {
-                        ...s,
-                        visibilityWeight: !Number.isNaN(visibilityWeight) ? visibilityWeight : s.visibilityWeight,
-                        maxListings: !Number.isNaN(maxListings) ? maxListings : s.maxListings,
-                        featuredUntil: featuredUntil || s.featuredUntil || null,
-                      } : s));
-                    } else {
-                      toast.error('Failed to update plan');
-                    }
-                      }}
-                      className={styles.approveButton}
-                    >Save</button>
-                  </div>
+                  {editingSalonId !== salon.id ? (
+                    <div style={{display:'flex', gap:'1rem', alignItems:'center', flexWrap:'wrap'}}>
+                      <span><strong>Visibility:</strong> {salon.visibilityWeight ?? '—'}</span>
+                      <span><strong>Max listings:</strong> {salon.maxListings ?? '—'}</span>
+                      <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString() : '—'}</span>
+                      <button
+                        className={styles.approveButton}
+                        onClick={() => {
+                          setEditingSalonId(salon.id);
+                          setDraftWeight(String(salon.visibilityWeight ?? ''));
+                          setDraftMax(String(salon.maxListings ?? ''));
+                          setDraftFeatured(salon.featuredUntil ? new Date(salon.featuredUntil).toISOString().slice(0,16) : '');
+                        }}
+                      >Edit</button>
+                    </div>
+                  ) : (
+                    <div style={{display:'flex', gap:'0.5rem', alignItems:'center', flexWrap:'wrap'}}>
+                      <label>Weight</label>
+                      <input value={draftWeight} onChange={e=>setDraftWeight(e.target.value)} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                      <label>Max listings</label>
+                      <input value={draftMax} onChange={e=>setDraftMax(e.target.value)} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                      <label>Featured until</label>
+                      <input value={draftFeatured} onChange={e=>setDraftFeatured(e.target.value)} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                      <button
+                        className={styles.approveButton}
+                        onClick={async ()=>{
+                          const visibilityWeight = Number(draftWeight);
+                          const maxListings = Number(draftMax);
+                          const featuredUntil = draftFeatured;
+                          const body: any = { planCode: 'STARTER' };
+                          if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
+                          if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
+                          if (featuredUntil) body.featuredUntil = featuredUntil;
+                          const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
+                          if (r.ok) {
+                            toast.success('Visibility updated');
+                            setAllSalons(prev => prev.map(s => s.id === salon.id ? {
+                              ...s,
+                              visibilityWeight: !Number.isNaN(visibilityWeight) ? visibilityWeight : s.visibilityWeight,
+                              maxListings: !Number.isNaN(maxListings) ? maxListings : s.maxListings,
+                              featuredUntil: featuredUntil || s.featuredUntil || null,
+                            } : s));
+                            setEditingSalonId(null);
+                          } else {
+                            toast.error('Failed to update');
+                          }
+                        }}
+                      >Save</button>
+                      <button className={styles.rejectButton} onClick={()=> setEditingSalonId(null)}>Cancel</button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className={styles.actions}>
