@@ -17,6 +17,7 @@ type PendingSalon = Pick<Salon, 'id'|'name'|'approvalStatus'|'createdAt'> & {
   visibilityWeight?: number;
   maxListings?: number;
   featuredUntil?: string | null;
+  planCode?: string | null;
 };
 type PendingService = Service & { salon: { name: string } };
 type PendingReview = Review & { author: { firstName: string }, salon: { name: string } };
@@ -34,6 +35,7 @@ export default function AdminPage() {
   const router = useRouter();
   // Inline edit state for salon visibility features
   const [editingSalonId, setEditingSalonId] = useState<string | null>(null);
+  const [draftPlan, setDraftPlan] = useState<string>('STARTER');
   const [draftWeight, setDraftWeight] = useState<string>('');
   const [draftMax, setDraftMax] = useState<string>('');
   const [draftFeatured, setDraftFeatured] = useState<string>('');
@@ -175,6 +177,7 @@ export default function AdminPage() {
                 <div style={{display:'grid', gap: '0.5rem', marginTop: '0.5rem'}}>
                   {editingSalonId !== salon.id ? (
                     <div style={{display:'flex', gap:'1rem', alignItems:'center', flexWrap:'wrap'}}>
+                      <span><strong>Package:</strong> {salon.planCode ?? '—'}</span>
                       <span><strong>Visibility:</strong> {salon.visibilityWeight ?? '—'}</span>
                       <span><strong>Max listings:</strong> {salon.maxListings ?? '—'}</span>
                       <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString() : '—'}</span>
@@ -182,6 +185,7 @@ export default function AdminPage() {
                         className={styles.approveButton}
                         onClick={() => {
                           setEditingSalonId(salon.id);
+                          setDraftPlan(salon.planCode ?? 'STARTER');
                           setDraftWeight(String(salon.visibilityWeight ?? ''));
                           setDraftMax(String(salon.maxListings ?? ''));
                           setDraftFeatured(salon.featuredUntil ? new Date(salon.featuredUntil).toISOString().slice(0,16) : '');
@@ -190,6 +194,14 @@ export default function AdminPage() {
                     </div>
                   ) : (
                     <div style={{display:'flex', gap:'0.5rem', alignItems:'center', flexWrap:'wrap'}}>
+                      <label>Package</label>
+                      <select value={draftPlan} onChange={e=>setDraftPlan(e.target.value)} style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}}>
+                        <option value="STARTER">Starter</option>
+                        <option value="ESSENTIAL">Essential</option>
+                        <option value="GROWTH">Growth</option>
+                        <option value="PRO">Pro</option>
+                        <option value="ELITE">Elite</option>
+                      </select>
                       <label>Weight</label>
                       <input value={draftWeight} onChange={e=>setDraftWeight(e.target.value)} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
                       <label>Max listings</label>
@@ -202,7 +214,7 @@ export default function AdminPage() {
                           const visibilityWeight = Number(draftWeight);
                           const maxListings = Number(draftMax);
                           const featuredUntil = draftFeatured;
-                          const body: any = { planCode: 'STARTER' };
+                          const body: any = { planCode: draftPlan };
                           if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
                           if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
                           if (featuredUntil) body.featuredUntil = featuredUntil;
@@ -211,6 +223,7 @@ export default function AdminPage() {
                             toast.success('Visibility updated');
                             setAllSalons(prev => prev.map(s => s.id === salon.id ? {
                               ...s,
+                              planCode: draftPlan,
                               visibilityWeight: !Number.isNaN(visibilityWeight) ? visibilityWeight : s.visibilityWeight,
                               maxListings: !Number.isNaN(maxListings) ? maxListings : s.maxListings,
                               featuredUntil: featuredUntil || s.featuredUntil || null,
