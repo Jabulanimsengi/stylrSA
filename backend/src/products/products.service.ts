@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { User, UserRole, ApprovalStatus } from '@prisma/client';
+import { calculateVisibilityScore } from 'src/common/visibility';
 
 @Injectable()
 export class ProductsService {
@@ -52,13 +53,12 @@ export class ProductsService {
       },
     });
 
-    const now = Date.now();
-    const score = (p: any) => {
-      const w = (p.seller as any)?.sellerVisibilityWeight ?? 1;
-      const fu = (p.seller as any)?.sellerFeaturedUntil as any;
-      const boost = fu && new Date(fu).getTime() > now ? 10 : 0;
-      return w + boost;
-    };
+    const score = (p: any) =>
+      calculateVisibilityScore({
+        visibilityWeight: (p.seller as any)?.sellerVisibilityWeight ?? 1,
+        featuredUntil: (p.seller as any)?.sellerFeaturedUntil ?? null,
+        createdAt: p.createdAt,
+      });
 
     return products.sort((a, b) => {
       const sb = score(b) - score(a);

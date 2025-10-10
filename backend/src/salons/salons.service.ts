@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSalonDto, UpdateSalonDto } from './dto';
 import { BookingType, User, Prisma } from '@prisma/client';
+import { compareByVisibilityThenRecency } from 'src/common/visibility';
 
 @Injectable()
 export class SalonsService {
@@ -271,17 +272,12 @@ export class SalonsService {
 
     // Default ranking by visibility score when no explicit distance/price sort
     if (!sortBy || sortBy === 'latest') {
-      const now = Date.now();
-      const visibilityScore = (s: any) => {
-        const w = s.visibilityWeight ?? 1;
-        const boost = s.featuredUntil && new Date(s.featuredUntil).getTime() > now ? 10 : 0;
-        return w + boost;
-      };
-      salons = salons.sort((a: any, b: any) => {
-        const sv = visibilityScore(b) - visibilityScore(a);
-        if (sv !== 0) return sv;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
+      salons = salons.sort((a: any, b: any) =>
+        compareByVisibilityThenRecency(
+          { visibilityWeight: a.visibilityWeight, featuredUntil: a.featuredUntil, createdAt: a.createdAt },
+          { visibilityWeight: b.visibilityWeight, featuredUntil: b.featuredUntil, createdAt: b.createdAt },
+        ),
+      );
     }
 
     // Sort by distance in memory if requested and coordinates provided
