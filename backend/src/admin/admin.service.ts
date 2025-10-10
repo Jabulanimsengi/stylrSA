@@ -201,13 +201,20 @@ export class AdminService {
     planCode: string,
     overrides?: { visibilityWeight?: number; maxListings?: number; featuredUntil?: Date | null },
   ) {
-    const plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
-    if (!plan) throw new Error('Plan not found');
-    const data: any = {
-      planCode,
-      visibilityWeight: overrides?.visibilityWeight ?? plan.visibilityWeight,
-      maxListings: overrides?.maxListings ?? plan.maxListings,
+    const FALLBACKS: Record<string, { visibilityWeight: number; maxListings: number }> = {
+      STARTER: { visibilityWeight: 1, maxListings: 2 },
+      ESSENTIAL: { visibilityWeight: 2, maxListings: 6 },
+      GROWTH: { visibilityWeight: 3, maxListings: 11 },
+      PRO: { visibilityWeight: 4, maxListings: 26 },
+      ELITE: { visibilityWeight: 5, maxListings: 9999 },
     };
+    let plan: any = null;
+    try {
+      plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
+    } catch {}
+    const visibilityWeight = overrides?.visibilityWeight ?? plan?.visibilityWeight ?? FALLBACKS[planCode]?.visibilityWeight ?? 1;
+    const maxListings = overrides?.maxListings ?? plan?.maxListings ?? FALLBACKS[planCode]?.maxListings ?? 2;
+    const data: any = { visibilityWeight, maxListings };
     if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
       data.featuredUntil = overrides.featuredUntil ?? null;
     }
@@ -219,13 +226,20 @@ export class AdminService {
     planCode: string,
     overrides?: { visibilityWeight?: number; maxListings?: number; featuredUntil?: Date | null },
   ) {
-    const plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
-    if (!plan) throw new Error('Plan not found');
-    const data: any = {
-      sellerPlanCode: planCode,
-      sellerVisibilityWeight: overrides?.visibilityWeight ?? plan.visibilityWeight,
-      sellerMaxListings: overrides?.maxListings ?? plan.maxListings,
+    const FALLBACKS: Record<string, { visibilityWeight: number; maxListings: number }> = {
+      STARTER: { visibilityWeight: 1, maxListings: 2 },
+      ESSENTIAL: { visibilityWeight: 2, maxListings: 6 },
+      GROWTH: { visibilityWeight: 3, maxListings: 11 },
+      PRO: { visibilityWeight: 4, maxListings: 26 },
+      ELITE: { visibilityWeight: 5, maxListings: 9999 },
     };
+    let plan: any = null;
+    try {
+      plan = await (this.prisma as any).plan.findUnique({ where: { code: planCode } });
+    } catch {}
+    const sellerVisibilityWeight = overrides?.visibilityWeight ?? plan?.visibilityWeight ?? FALLBACKS[planCode]?.visibilityWeight ?? 1;
+    const sellerMaxListings = overrides?.maxListings ?? plan?.maxListings ?? FALLBACKS[planCode]?.maxListings ?? 2;
+    const data: any = { sellerVisibilityWeight, sellerMaxListings };
     if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
       data.sellerFeaturedUntil = overrides.featuredUntil ?? null;
     }
