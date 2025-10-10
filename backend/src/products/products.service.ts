@@ -43,6 +43,16 @@ export class ProductsService {
     });
   }
 
+  async findProductsForSeller(user: User, sellerId: string) {
+    if (user.id !== sellerId && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException(
+        'You are not authorized to view these products.',
+      );
+    }
+
+    return this.prisma.product.findMany({ where: { sellerId } });
+  }
+
   async update(user: User, productId: string, dto: UpdateProductDto) {
     const product = await this.findProductAndCheckOwnership(productId, user);
     return this.prisma.product.update({

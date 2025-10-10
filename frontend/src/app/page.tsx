@@ -11,22 +11,13 @@ import FeaturedServiceCard from '@/components/FeaturedServiceCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const HERO_SLIDES = [
-  {
-    src: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2070&auto=format&fit=crop',
-    alt: 'Modern salon interior with stylish lighting',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1520338661084-680395057dc0?q=80&w=2070&auto=format&fit=crop',
-    alt: 'Stylist attending to a client in a bright salon',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=2070&auto=format&fit=crop',
-    alt: 'Salon workspace with premium hair products on shelves',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1502786129293-79981df4e689?q=80&w=2070&auto=format&fit=crop',
-    alt: 'Comfortable salon waiting area',
-  },
+  { src: '/image_01.png', alt: 'Salon hero 1' },
+  { src: '/image_02.png', alt: 'Salon hero 2' },
+  { src: '/image_03.png', alt: 'Salon hero 3' },
+  { src: '/image_04.png', alt: 'Salon hero 4' },
+  { src: '/image_05.png', alt: 'Salon hero 5' },
+  { src: '/image_06.png', alt: 'Salon hero 6' },
+  { src: '/image_07.png', alt: 'Salon hero 7' },
 ];
 
 const SLIDE_INTERVAL = 6000;
@@ -158,8 +149,8 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
             <span className={styles.heroBadge}>Your personal salon concierge</span>
-            <h1 className={styles.heroTitle}>Find &amp; Book Your Next Salon Visit</h1>
-            <p className={styles.heroSubtitle}>Discover top-rated salons, stylists, and premium experiences matched to your style.</p>
+            <h1 className={styles.heroTitle}>Find &amp; Book South Africa’s Most Trusted Salons</h1>
+            <p className={styles.heroSubtitle}>Discover verified salons and expert hairdressers ready to give you the care, style, and confidence you deserve.</p>
           </div>
           <div className={styles.filterContainer}>
             <FilterBar onSearch={handleSearch} isHomePage={true} />

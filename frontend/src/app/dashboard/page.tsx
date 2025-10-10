@@ -61,7 +61,17 @@ function DashboardPageContent() {
   const ownerId = user?.role === 'ADMIN' ? searchParams.get('ownerId') : user?.id;
 
   const fetchDashboardData = useCallback(async () => {
-    if (!ownerId) return;
+    if (!ownerId) {
+      // Avoid infinite spinner when admin forgets ownerId
+      setIsLoading(false);
+      setSalon(null);
+      setServices([]);
+      setBookings([] as any);
+      setGalleryImages([]);
+      setProducts([]);
+      setPromotions([]);
+      return;
+    }
     setIsLoading(true);
     try {
       const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}`, { credentials: 'include' });
@@ -71,7 +81,7 @@ function DashboardPageContent() {
       const salonData = await salonRes.json();
       setSalon(salonData);
 
-      const [servicesData, bookingsData, galleryData, productsData, promotionsData] = await Promise.all([
+      const results = await Promise.allSettled([
         apiJson(`/api/salons/mine/services?ownerId=${ownerId}`),
         apiJson(`/api/salons/mine/bookings?ownerId=${ownerId}`),
         apiJson(`/api/gallery/salon/${salonData.id}`),
@@ -79,11 +89,22 @@ function DashboardPageContent() {
         apiJson(`/api/promotions/salon/${salonData.id}`),
       ]);
 
-      setServices(servicesData);
-      setBookings(Array.isArray(bookingsData) ? bookingsData : []);
-      setGalleryImages(galleryData);
-      setProducts(productsData);
-      setPromotions(promotionsData);
+      const [servicesRes, bookingsRes, galleryRes, productsRes, promotionsRes] = results;
+
+      if (servicesRes.status === 'fulfilled') setServices(servicesRes.value);
+      else setServices([]);
+
+      if (bookingsRes.status === 'fulfilled') setBookings(Array.isArray(bookingsRes.value) ? bookingsRes.value : []);
+      else setBookings([] as any);
+
+      if (galleryRes.status === 'fulfilled') setGalleryImages(galleryRes.value);
+      else setGalleryImages([]);
+
+      if (productsRes.status === 'fulfilled') setProducts(productsRes.value);
+      else setProducts([]);
+
+      if (promotionsRes.status === 'fulfilled') setPromotions(promotionsRes.value);
+      else setPromotions([]);
 
     } catch (err: any) {
       const msg = toFriendlyMessage(err, 'Failed to load your dashboard.');
@@ -195,6 +216,18 @@ function DashboardPageContent() {
 
   if (isLoading || authStatus === 'loading') return <LoadingSpinner />;
   
+  if (user?.role === 'ADMIN' && !ownerId) {
+    return (
+      <div className={styles.welcomeContainer}>
+        <div className={styles.welcomeCard}>
+          <h2>Admin: select a service provider</h2>
+          <p>Open the Admin page and click "View Dashboard" for a salon owner to load their dashboard.</p>
+          <Link href="/admin" className="btn btn-primary">Go to Admin</Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!salon) {
     return (
         <div className={styles.welcomeContainer}>

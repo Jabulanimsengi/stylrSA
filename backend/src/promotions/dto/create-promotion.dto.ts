@@ -9,6 +9,10 @@ import {
 export class CreatePromotionDto {
   @IsString()
   @IsNotEmpty()
+  salonId: string;
+
+  @IsString()
+  @IsNotEmpty()
   description: string;
 
   @IsNumber()

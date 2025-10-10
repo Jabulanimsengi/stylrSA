@@ -48,6 +48,11 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
 
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const [hours, setHours] = useState<Record<string, { open: string; close: string }>>(
+    Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00' }])) as Record<string, { open: string; close: string }>
+  );
+
   useEffect(() => {
     if (salon) {
       setFormData({
@@ -69,6 +74,21 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       });
       setBackgroundImagePreview(salon.backgroundImage || null);
       setHeroImagesPreview(salon.heroImages || []);
+
+      // Pre-fill hours UI from existing operatingHours record like { Monday: "09:00-17:00" }
+      const nextHours: Record<string, { open: string; close: string }> = {} as any;
+      days.forEach((d) => {
+        const val = (salon.operatingHours as Record<string, string> | undefined)?.[d];
+        if (val && typeof val === 'string') {
+          const match = val.match(/(\d{1,2}:\d{2}).*(\d{1,2}:\d{2})/);
+          const open = match?.[1] || '09:00';
+          const close = match?.[2] || '17:00';
+          nextHours[d] = { open, close };
+        } else {
+          nextHours[d] = { open: '09:00', close: '17:00' };
+        }
+      });
+      setHours(nextHours);
     }
   }, [salon]);
 
@@ -138,14 +158,36 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       
       const finalHeroImageUrls = [...existingHeroImageUrls, ...newHeroImageUrls];
 
+      const isValidUrl = (value: string) => {
+        try { new URL(value); return true; } catch { return false; }
+      };
+
+      const cleanedWhatsapp = (formData.whatsapp || '').replace(/\D+/g, '');
+      const websiteValue = formData.website?.trim();
+
       // Validate payload (partial allowed)
       const payload = {
         ...formData,
+        whatsapp: cleanedWhatsapp || undefined,
+        website: websiteValue && isValidUrl(websiteValue) ? websiteValue : undefined,
         backgroundImage: finalBackgroundImageUrl,
         heroImages: finalHeroImageUrls,
         latitude: (formData as any).latitude !== '' ? Number((formData as any).latitude) : undefined,
         longitude: (formData as any).longitude !== '' ? Number((formData as any).longitude) : undefined,
       } as any;
+      // Compose operatingHours record from UI hours
+      const hoursRecord: Record<string, string> = {};
+      days.forEach((d) => { hoursRecord[d] = `${hours[d].open} - ${hours[d].close}`; });
+      payload.operatingHours = hoursRecord;
+
+      // Normalize mobileFee number
+      if (payload.bookingType !== 'ONSITE') {
+        const feeNum = Number(payload.mobileFee);
+        payload.mobileFee = Number.isFinite(feeNum) && feeNum >= 0 ? feeNum : 0;
+        payload.offersMobile = true;
+      } else {
+        payload.offersMobile = false;
+      }
       const parsed = SalonUpdateSchema.partial().safeParse(payload);
       if (!parsed.success) {
         throw new Error(parsed.error.issues?.[0]?.message || 'Invalid form data');
@@ -338,6 +380,49 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 </div>
               </div>
             </div>
+          <h3 className={styles.subheading}>Service Type</h3>
+          <div className={styles.grid}>
+            <div>
+              <label htmlFor="bookingType" className={styles.label}>Service Type</label>
+              <select id="bookingType" name="bookingType" value={formData.bookingType} onChange={handleChange} className={styles.input}>
+                <option value="ONSITE">On site</option>
+                <option value="MOBILE">Off site (mobile)</option>
+                <option value="BOTH">Both on site and off site</option>
+              </select>
+            </div>
+            {(formData.bookingType === 'MOBILE' || formData.bookingType === 'BOTH') && (
+              <div>
+                <label htmlFor="mobileFee" className={styles.label}>Mobile Fee (R)</label>
+                <input type="number" id="mobileFee" name="mobileFee" min={0} step="0.01" value={formData.mobileFee} onChange={handleChange} className={styles.input} />
+              </div>
+            )}
+          </div>
+
+          <h3 className={styles.subheading}>Operating Hours</h3>
+          <div className={styles.grid}>
+            <div className={styles.fullWidth}>
+              <div style={{display:'flex',gap:'0.5rem',alignItems:'center',marginBottom:8}}>
+                <span style={{minWidth:120,fontWeight:600}}>Apply to all</span>
+                <input type="time" value={hours['Monday'].open} onChange={(e)=>{
+                  const v=e.target.value; setHours(prev=>{ const next={...prev}; days.forEach(d=>next[d]={...next[d],open:v}); return next;});
+                }} className={styles.input} style={{maxWidth:160}} />
+                <span>to</span>
+                <input type="time" value={hours['Monday'].close} onChange={(e)=>{
+                  const v=e.target.value; setHours(prev=>{ const next={...prev}; days.forEach(d=>next[d]={...next[d],close:v}); return next;});
+                }} className={styles.input} style={{maxWidth:160}} />
+              </div>
+              <div style={{display:'grid',gap:8}}>
+                {days.map((d)=> (
+                  <div key={d} style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+                    <span style={{minWidth:120}}>{d}</span>
+                    <input type="time" value={hours[d].open} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],open:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
+                    <span>to</span>
+                    <input type="time" value={hours[d].close} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],close:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           </div>
 
           <div className={styles.buttonContainer}>

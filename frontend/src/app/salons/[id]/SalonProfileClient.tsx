@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -22,9 +22,10 @@ import { useStartConversation } from '@/hooks/useStartConversation';
 
 type Props = {
   initialSalon: Salon | null;
+  salonId: string;
 };
 
-export default function SalonProfileClient({ initialSalon }: Props) {
+export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const router = useRouter();
   const { authStatus, user } = useAuth();
   const { openModal } = useAuthModal();
@@ -42,6 +43,47 @@ export default function SalonProfileClient({ initialSalon }: Props) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const heroImagesCount = salon?.heroImages?.length ?? 0;
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applySalon = (data: Salon | null) => {
+      if (!isActive) return;
+      setSalon(data);
+      setServices(data?.services ?? []);
+      setGalleryImages(data?.gallery ?? []);
+      setIsLoading(false);
+    };
+
+    if (initialSalon) {
+      applySalon(initialSalon);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const loadSalon = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/salons/${salonId}`);
+        if (!res.ok) throw new Error('Failed to load salon');
+        const data: Salon = await res.json();
+        applySalon(data);
+      } catch (error) {
+        console.error('Failed to load salon', error);
+        if (isActive) {
+          toast.error('Unable to load salon details right now.');
+          applySalon(null);
+        }
+      }
+    };
+
+    void loadSalon();
+
+    return () => {
+      isActive = false;
+    };
+  }, [initialSalon, salonId]);
 
   useEffect(() => {
     if (heroImagesCount < 2) return;

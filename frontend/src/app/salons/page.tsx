@@ -168,6 +168,15 @@ function SalonsPageContent() {
                 <div className={styles.cardContent}>
                   <h2 className={styles.cardTitle}>{salon.name}</h2>
                   <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+                  {(() => {
+                    const oh = salon.operatingHours as unknown as Record<string, string> | null | undefined;
+                    if (!oh || typeof oh !== 'object') return null;
+                    const entries = Object.entries(oh);
+                    if (entries.length === 0) return null;
+                    const samples = entries.slice(0, 2).map(([day, hrs]) => `${day.substring(0,3)} ${hrs}`);
+                    const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
+                    return <p className={styles.cardMeta}>Hours: {samples.join(' • ')}{extra}</p>;
+                  })()}
                 </div>
               </Link>
             </div>

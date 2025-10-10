@@ -14,6 +14,16 @@ interface FeaturedServiceCardProps {
 }
 
 export default function FeaturedServiceCard({ service }: FeaturedServiceCardProps) {
+  const salonId = service.salon?.id ?? service.salonId;
+  if (!salonId) return null;
+
+  const salonName = service.salon?.name ?? 'Salon';
+  const salonLocationParts = [
+    service.salon?.city ?? (service as Partial<Service> & { city?: string }).city,
+    service.salon?.province ?? (service as Partial<Service> & { province?: string }).province,
+  ].filter(Boolean);
+  const salonLocation = salonLocationParts.length ? salonLocationParts.join(', ') : 'Location unavailable';
+
   const primaryImage = Array.isArray(service.images)
     ? service.images.find((img): img is string => Boolean(img))
     : undefined;
@@ -30,7 +40,7 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
   const isCloudinarySource = typeof primaryImage === 'string' && primaryImage.includes('/image/upload/');
 
   return (
-    <Link href={`/salons/${service.salon.id}`} className={styles.card}>
+    <Link href={`/salons/${salonId}`} className={styles.card}>
       <div className={styles.cardImageWrapper}>
         <Image
           src={optimizedSrc}
@@ -43,8 +53,8 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
       </div>
       <div className={styles.cardContent}>
         <h3 className={styles.cardTitle}>{service.title}</h3>
-        <p className={styles.salonName}>{service.salon.name}</p>
-        <p className={styles.salonLocation}>{service.salon.city}, {service.salon.province}</p>
+        <p className={styles.salonName}>{salonName}</p>
+        <p className={styles.salonLocation}>{salonLocation}</p>
         <p className={styles.price}>R{service.price.toFixed(2)}</p>
       </div>
     </Link>

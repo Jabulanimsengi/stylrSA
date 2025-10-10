@@ -39,6 +39,15 @@ export class ProductsController {
   }
 
   @UseGuards(JwtGuard)
+  @Get('seller/:sellerId')
+  findProductsForSeller(
+    @GetUser() user: User,
+    @Param('sellerId') sellerId: string,
+  ) {
+    return this.productsService.findProductsForSeller(user, sellerId);
+  }
+
+  @UseGuards(JwtGuard)
   @Patch(':id')
   update(
     @GetUser() user: User,
