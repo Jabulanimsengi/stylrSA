@@ -428,17 +428,55 @@ export class AdminService {
         },
       });
       if (snapshot) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        await (this.prisma as any).deletedSalonArchive?.create?.({
-          data: {
-            salonId: snapshot.id,
-            ownerId: snapshot.ownerId,
-            salon: snapshot as unknown as object,
-            services: (snapshot.services ?? []) as unknown as object,
-            reason: reason ?? null,
-            deletedBy: adminId,
-          },
-        });
+        let archived = false;
+        // Try via Prisma Client model (when generated)
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          await (this.prisma as any).deletedSalonArchive?.create?.({
+            data: {
+              salonId: snapshot.id,
+              ownerId: snapshot.ownerId,
+              salon: snapshot as unknown as object,
+              services: (snapshot.services ?? []) as unknown as object,
+              reason: reason ?? null,
+              deletedBy: adminId,
+            },
+          });
+          archived = true;
+        } catch {
+          // fall through to raw SQL
+        }
+
+        if (!archived) {
+          try {
+            const exists = (
+              await this.prisma.$queryRaw<{ exists: boolean }[]>`
+              SELECT to_regclass('"DeletedSalonArchive"') IS NOT NULL as exists
+            `
+            )[0]?.exists;
+            if (exists) {
+              // Use parameterized raw SQL with explicit JSONB casts
+              const svcJson = JSON.stringify(snapshot.services ?? []);
+              const salonJson = JSON.stringify({
+                ...snapshot,
+                services: undefined,
+              });
+              await this.prisma.$executeRawUnsafe(
+                `INSERT INTO "DeletedSalonArchive" ("salonId","ownerId","salon","services","reason","deletedBy")
+                 VALUES ($1,$2,$3::jsonb,$4::jsonb,$5,$6)`,
+                snapshot.id,
+                snapshot.ownerId,
+                salonJson,
+                svcJson,
+                reason ?? null,
+                adminId,
+              );
+              archived = true;
+            }
+          } catch {
+            // noop: archival fallback failed
+          }
+        }
       }
     } catch {
       // Archival is best-effort; proceed with deletion if archive table is unavailable
@@ -499,11 +537,21 @@ export class AdminService {
   }
 
   async getDeletedSalons() {
+    // Try typed client first
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       const rows = await (this.prisma as any).deletedSalonArchive?.findMany?.({
         orderBy: { deletedAt: 'desc' },
       });
+      if (Array.isArray(rows)) return rows;
+    } catch {
+      // fall through
+    }
+    // Fallback to raw SQL if model or client is not generated
+    try {
+      const rows = await this.prisma.$queryRawUnsafe(
+        'SELECT id, "salonId", "ownerId", salon, services, reason, "deletedBy", "deletedAt", "restoredAt" FROM "DeletedSalonArchive" ORDER BY "deletedAt" DESC',
+      );
       return Array.isArray(rows) ? rows : [];
     } catch {
       return [];
@@ -521,6 +569,17 @@ export class AdminService {
     } catch {
       archive = null;
     }
+    if (!archive) {
+      try {
+        const rows = await this.prisma.$queryRaw`
+          SELECT id, "salonId", "ownerId", salon, services, reason, "deletedBy", "deletedAt", "restoredAt"
+          FROM "DeletedSalonArchive" WHERE id = ${archiveId} LIMIT 1
+        `;
+        archive = rows?.[0] ?? null;
+      } catch {
+        archive = null;
+      }
+    }
     if (!archive) throw new NotFoundException('Archived profile not found');
 
     const salonId: string = archive.salonId as string;
@@ -531,9 +590,13 @@ export class AdminService {
       : [];
 
     // Ensure no existing salon blocks restoration (ownerId is unique on Salon)
-    const existing = await this.prisma.salon.findFirst({ where: { OR: [ { id: salonId }, { ownerId } ] } });
+    const existing = await this.prisma.salon.findFirst({
+      where: { OR: [{ id: salonId }, { ownerId }] },
+    });
     if (existing) {
-      throw new NotFoundException('Cannot restore: owner already has a salon or id is taken');
+      throw new NotFoundException(
+        'Cannot restore: owner already has a salon or id is taken',
+      );
     }
 
     // Re-create salon
@@ -566,7 +629,8 @@ export class AdminService {
           ? (salonData.operatingDays as string[])
           : [],
         approvalStatus: salonData.approvalStatus ?? 'PENDING',
-        avgRating: typeof salonData.avgRating === 'number' ? salonData.avgRating : 0,
+        avgRating:
+          typeof salonData.avgRating === 'number' ? salonData.avgRating : 0,
         planCode: salonData.planCode ?? 'STARTER',
         visibilityWeight:
           typeof salonData.visibilityWeight === 'number'
@@ -574,7 +638,9 @@ export class AdminService {
             : 1,
         maxListings:
           typeof salonData.maxListings === 'number' ? salonData.maxListings : 2,
-        featuredUntil: salonData.featuredUntil ? new Date(salonData.featuredUntil) : null,
+        featuredUntil: salonData.featuredUntil
+          ? new Date(salonData.featuredUntil)
+          : null,
       },
     });
 
@@ -606,7 +672,13 @@ export class AdminService {
         data: { restoredAt: new Date() },
       });
     } catch {
-      // noop
+      try {
+        await this.prisma.$executeRaw`
+          UPDATE "DeletedSalonArchive" SET "restoredAt" = NOW() WHERE id = ${archiveId}
+        `;
+      } catch {
+        // noop
+      }
     }
 
     return createdSalon;
