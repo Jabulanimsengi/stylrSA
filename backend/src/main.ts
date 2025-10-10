@@ -1,19 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import compression = require('compression');
+import compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security & performance middlewares
-  app.use(helmet());
-  app.use(compression());
-
-  app.use(cookieParser());
+  const helmetMw = (helmet as unknown as () => any)();
+  const compressionMw = (compression as unknown as () => any)();
+  const cookieMw = (cookieParser as unknown as () => any)();
+  app.use(helmetMw);
+  app.use(compressionMw);
+  app.use(cookieMw);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
   const allowedOrigins = (
@@ -25,4 +27,4 @@ async function bootstrap() {
   });
   await app.listen(3000);
 }
-bootstrap();
+void bootstrap();

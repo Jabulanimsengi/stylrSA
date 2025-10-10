@@ -5,7 +5,6 @@ import {
   IsArray,
   IsNumber,
   Min,
-  Max,
   IsUrl,
   MaxLength,
   IsPhoneNumber,

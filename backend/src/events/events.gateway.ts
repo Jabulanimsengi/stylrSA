@@ -33,7 +33,7 @@ export class EventsGateway {
     const userId = this.extractUserId(client);
     if (userId) {
       this.registerUserSocket(userId, client.id);
-      client.join(`user:${userId}`);
+      void client.join(`user:${userId}`);
     }
   }
 
@@ -59,7 +59,7 @@ export class EventsGateway {
       return;
     }
     this.registerUserSocket(userId, client.id);
-    client.join(`user:${userId}`);
+    void client.join(`user:${userId}`);
     this.logger.log(`User ${userId} registered with socket id ${client.id}`);
   }
 
@@ -71,7 +71,7 @@ export class EventsGateway {
     if (!conversationId) {
       return;
     }
-    client.join(this.getConversationRoom(conversationId));
+    void client.join(this.getConversationRoom(conversationId));
   }
 
   @SubscribeMessage('conversation:leave')
@@ -82,7 +82,7 @@ export class EventsGateway {
     if (!conversationId) {
       return;
     }
-    client.leave(this.getConversationRoom(conversationId));
+    void client.leave(this.getConversationRoom(conversationId));
   }
 
   @SubscribeMessage('sendMessage')

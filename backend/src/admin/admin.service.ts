@@ -227,12 +227,17 @@ export class AdminService {
       PRO: { visibilityWeight: 4, maxListings: 26 },
       ELITE: { visibilityWeight: 5, maxListings: 9999 },
     };
-    let plan: any = null;
+    type PlanPartial = {
+      visibilityWeight?: number | null;
+      maxListings?: number | null;
+    };
+    let plan: PlanPartial | null = null;
     try {
-      plan = await (this.prisma as any).plan.findUnique({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      plan = (await (this.prisma as any).plan.findUnique({
         where: { code: planCode },
-      });
-    } catch (_err) {
+      })) as unknown as PlanPartial;
+    } catch {
       // noop: Plan table may be absent in some environments; fallbacks cover values
     }
     const visibilityWeight =
@@ -245,7 +250,12 @@ export class AdminService {
       plan?.maxListings ??
       FALLBACKS[planCode]?.maxListings ??
       2;
-    const data: any = { planCode, visibilityWeight, maxListings };
+    const data: {
+      planCode: string;
+      visibilityWeight: number;
+      maxListings: number;
+      featuredUntil?: Date | null;
+    } = { planCode, visibilityWeight, maxListings };
     if (
       overrides &&
       Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')
@@ -261,7 +271,7 @@ export class AdminService {
         entity: 'salon',
         id: salonId,
       });
-    } catch (_err) {
+    } catch {
       // noop: websocket not critical for persistence
     }
     return updated;
@@ -286,12 +296,17 @@ export class AdminService {
       PRO: { visibilityWeight: 4, maxListings: 26 },
       ELITE: { visibilityWeight: 5, maxListings: 9999 },
     };
-    let plan: any = null;
+    type SellerPlanPartial = {
+      visibilityWeight?: number | null;
+      maxListings?: number | null;
+    };
+    let plan: SellerPlanPartial | null = null;
     try {
-      plan = await (this.prisma as any).plan.findUnique({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      plan = (await (this.prisma as any).plan.findUnique({
         where: { code: planCode },
-      });
-    } catch (_err) {
+      })) as unknown as SellerPlanPartial;
+    } catch {
       // noop: Plan table may be absent in some environments; fallbacks cover values
     }
     const sellerVisibilityWeight =
@@ -304,7 +319,12 @@ export class AdminService {
       plan?.maxListings ??
       FALLBACKS[planCode]?.maxListings ??
       2;
-    const data: any = {
+    const data: {
+      sellerPlanCode: string;
+      sellerVisibilityWeight: number;
+      sellerMaxListings: number;
+      sellerFeaturedUntil?: Date | null;
+    } = {
       sellerPlanCode: planCode,
       sellerVisibilityWeight,
       sellerMaxListings,
@@ -324,7 +344,7 @@ export class AdminService {
         entity: 'seller',
         id: sellerId,
       });
-    } catch (_err) {
+    } catch {
       // noop: websocket not critical for persistence
     }
     return updated;

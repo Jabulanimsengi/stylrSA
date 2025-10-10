@@ -16,14 +16,11 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    const { user } = context.switchToHttp().getRequest();
-
-    // FIX: Ensure user and user.role exist before checking.
-    if (!user || !user.role) {
-      return false;
-    }
-
-    // FIX: Correctly check if the user's single role is in the requiredRoles array.
-    return requiredRoles.includes(user.role);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const req = context.switchToHttp().getRequest();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const role = req.user?.role;
+    if (!role) return false;
+    return requiredRoles.includes(role);
   }
 }

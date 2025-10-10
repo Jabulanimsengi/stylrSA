@@ -26,7 +26,7 @@ export class AuthService {
     const hash = await argon2.hash(dto.password);
     // save the new user in the db
     try {
-      const user = await this.prisma.user.create({
+      await this.prisma.user.create({
         data: {
           email: dto.email,
           password: hash, // Changed from 'hash' to 'password' to match your schema
@@ -141,7 +141,7 @@ export class AuthService {
       email,
       role,
     };
-    const secret = this.config.get('JWT_SECRET');
+    const secret = this.config.get<string>('JWT_SECRET') ?? '';
 
     return this.jwt.signAsync(payload, {
       expiresIn: '1d',

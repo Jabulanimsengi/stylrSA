@@ -4,7 +4,7 @@ import { User } from '@prisma/client';
 
 export const GetUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): User => {
-    const request = ctx.switchToHttp().getRequest();
-    return request.user;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+    return ctx.switchToHttp().getRequest().user;
   },
 );

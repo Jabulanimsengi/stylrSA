@@ -18,7 +18,8 @@ export class ProductsService {
     const currentCount = await this.prisma.product.count({
       where: { sellerId: user.id },
     });
-    const maxListings = (user as any).sellerMaxListings ?? 2;
+    const maxListings =
+      (user as User & { sellerMaxListings?: number }).sellerMaxListings ?? 2;
     if (currentCount >= maxListings) {
       throw new ForbiddenException(
         `Listing limit reached for your plan (max ${maxListings} products). Upgrade your plan to add more.`,
@@ -53,7 +54,13 @@ export class ProductsService {
       },
     });
 
-    const score = (p: any) =>
+    const score = (p: {
+      seller?: {
+        sellerVisibilityWeight?: number | null;
+        sellerFeaturedUntil?: Date | string | null;
+      } | null;
+      createdAt: Date | string;
+    }) =>
       calculateVisibilityScore({
         visibilityWeight: p.seller?.sellerVisibilityWeight ?? 1,
         featuredUntil: p.seller?.sellerFeaturedUntil ?? null,
@@ -84,7 +91,7 @@ export class ProductsService {
   }
 
   async update(user: User, productId: string, dto: UpdateProductDto) {
-    const product = await this.findProductAndCheckOwnership(productId, user);
+    await this.findProductAndCheckOwnership(productId, user);
     return this.prisma.product.update({
       where: { id: productId },
       data: { ...dto, approvalStatus: ApprovalStatus.PENDING },

@@ -87,8 +87,10 @@ export class AdminController {
     @Param('salonId') salonId: string,
     @Body() dto: UpdatePlanDto,
   ) {
-    const featuredUntil = dto.featuredUntil ? new Date(dto.featuredUntil) : undefined;
-    return this.adminService.setSalonPlan(salonId, dto.planCode as any, {
+    const featuredUntil = dto.featuredUntil
+      ? new Date(dto.featuredUntil)
+      : undefined;
+    return this.adminService.setSalonPlan(salonId, String(dto.planCode), {
       visibilityWeight: dto.visibilityWeight,
       maxListings: dto.maxListings,
       featuredUntil,
@@ -100,8 +102,10 @@ export class AdminController {
     @Param('sellerId') sellerId: string,
     @Body() dto: UpdatePlanDto,
   ) {
-    const featuredUntil = dto.featuredUntil ? new Date(dto.featuredUntil) : undefined;
-    return this.adminService.setSellerPlan(sellerId, dto.planCode as any, {
+    const featuredUntil = dto.featuredUntil
+      ? new Date(dto.featuredUntil)
+      : undefined;
+    return this.adminService.setSellerPlan(sellerId, String(dto.planCode), {
       visibilityWeight: dto.visibilityWeight,
       maxListings: dto.maxListings,
       featuredUntil,
