@@ -11,7 +11,10 @@ async function getSalon(id: string): Promise<Salon | null> {
   }
 }
 
-export default async function SalonProfilePage({ params }: { params: { id: string } }) {
-  const salon = await getSalon(params.id);
+type RouteParams = { id: string } | Promise<{ id: string }>;
+
+export default async function SalonProfilePage({ params }: { params: RouteParams }) {
+  const { id } = await Promise.resolve(params);
+  const salon = await getSalon(id);
   return <SalonProfileClient initialSalon={salon} />;
 }

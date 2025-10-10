@@ -6,20 +6,39 @@ import { Service } from '@/types';
 import styles from './FeaturedServiceCard.module.css';
 import { transformCloudinary } from '@/utils/cloudinary';
 
+const DEFAULT_PLACEHOLDER_IMAGE =
+  'data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice"%3E%3Cdefs%3E%3ClinearGradient id="g" x1="0" x2="1" y1="0" y2="1"%3E%3Cstop offset="0%25" stop-color="%23f3f4f6"/%3E%3Cstop offset="100%25" stop-color="%23d1d5db"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="600" height="400" fill="url(%23g)"/%3E%3Cg fill="%239ca3af" font-family="Arial, sans-serif" font-size="28" font-weight="600" text-anchor="middle"%3E%3Ctext x="50%25" y="52%25"%3ENo Image%3C/text%3E%3C/g%3E%3C/svg%3E';
+
 interface FeaturedServiceCardProps {
   service: Service & { salon: { id: string; name: string; city: string; province: string } };
 }
 
 export default function FeaturedServiceCard({ service }: FeaturedServiceCardProps) {
+  const primaryImage = Array.isArray(service.images)
+    ? service.images.find((img): img is string => Boolean(img))
+    : undefined;
+
+  const optimizedSrc = primaryImage
+    ? transformCloudinary(primaryImage, {
+        width: 600,
+        quality: 'auto',
+        format: 'auto',
+        crop: 'fill',
+      })
+    : DEFAULT_PLACEHOLDER_IMAGE;
+
+  const isCloudinarySource = typeof primaryImage === 'string' && primaryImage.includes('/image/upload/');
+
   return (
     <Link href={`/salons/${service.salon.id}`} className={styles.card}>
       <div className={styles.cardImageWrapper}>
         <Image
-          src={transformCloudinary(service.images[0] || 'https://via.placeholder.com/300x150', { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
+          src={optimizedSrc}
           alt={service.title}
           className={styles.cardImage}
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
+          unoptimized={!isCloudinarySource}
         />
       </div>
       <div className={styles.cardContent}>
