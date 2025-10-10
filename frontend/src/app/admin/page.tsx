@@ -12,13 +12,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
 
 // FIX: Update PendingSalon to include the new fields from the backend response.
-type PendingSalon = Salon & { 
-  owner: { 
-    id: string; 
-    email: string;
-    firstName: string;
-    lastName: string;
-  } 
+type PendingSalon = Pick<Salon, 'id'|'name'|'approvalStatus'|'createdAt'> & { 
+  owner: { id: string; email: string; firstName: string; lastName: string; }
+  visibilityWeight?: number;
+  maxListings?: number;
+  featuredUntil?: string | null;
 };
 type PendingService = Service & { salon: { name: string } };
 type PendingReview = Review & { author: { firstName: string }, salon: { name: string } };
@@ -180,11 +178,11 @@ export default function AdminPage() {
                       <option value="ELITE">Elite</option>
                     </select>
                     <label>Weight</label>
-                    <input id={`weight-${salon.id}`} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                    <input id={`weight-${salon.id}`} defaultValue={String(salon.visibilityWeight ?? '')} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
                     <label>Max listings</label>
-                    <input id={`max-${salon.id}`} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                    <input id={`max-${salon.id}`} defaultValue={String(salon.maxListings ?? '')} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
                     <label>Featured until</label>
-                    <input id={`feat-${salon.id}`} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
+                    <input id={`feat-${salon.id}`} defaultValue={salon.featuredUntil ? new Date(salon.featuredUntil).toISOString().slice(0,16) : ''} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
                     <button
                       onClick={async ()=>{
                         const planCode = (document.getElementById(`plan-${salon.id}`) as HTMLSelectElement)?.value;
