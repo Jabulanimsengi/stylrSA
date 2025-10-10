@@ -44,6 +44,7 @@ export default function AdminPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
   const [deletingSalon, setDeletingSalon] = useState<PendingSalon | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (authStatus === 'loading') {
@@ -125,6 +126,7 @@ export default function AdminPage() {
     setDeletingSalon(salon);
     setDeleteReason('');
     setShowDeleteModal(true);
+    setIsDeleting(false);
   };
 
   const confirmDeleteSalon = async () => {
@@ -133,6 +135,8 @@ export default function AdminPage() {
       toast.error('Please provide a reason for deletion.');
       return;
     }
+    if (isDeleting) return;
+    setIsDeleting(true);
     const id = deletingSalon.id;
     const res = await fetch(`/api/admin/salons/${id}`, {
       method: 'DELETE',
@@ -140,11 +144,11 @@ export default function AdminPage() {
       credentials: 'include',
       body: JSON.stringify({ reason: deleteReason.trim() }),
     });
-    if (res.ok) {
+    if (res.ok || res.status === 404) {
       setAllSalons(prev => prev.filter(s => s.id !== id));
       setShowDeleteModal(false);
       setDeletingSalon(null);
-      toast.success('Profile deleted');
+      toast.success(res.status === 404 ? 'Profile was already removed' : 'Profile deleted');
       try {
         const r = await fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any });
         if (r.ok) setDeletedSalons(await r.json());
@@ -153,6 +157,7 @@ export default function AdminPage() {
       const msg = await res.text().catch(()=> '');
       toast.error(`Failed to delete (${res.status}). ${msg}`);
     }
+    setIsDeleting(false);
   };
 
   const restoreDeletedSalon = async (archiveId: string) => {
@@ -434,7 +439,7 @@ export default function AdminPage() {
             <label style={{display:'block', margin:'0.5rem 0'}}>Reason (required)</label>
             <textarea value={deleteReason} onChange={e=>setDeleteReason(e.target.value)} rows={4} style={{width:'100%', padding:'0.5rem', border:'1px solid var(--color-border)', borderRadius:6}} placeholder="Enter reason for deletion" />
             <div style={{display:'flex', gap:'0.5rem', justifyContent:'flex-end', marginTop:'0.75rem'}}>
-              <button className={styles.approveButton} onClick={confirmDeleteSalon}>Confirm Delete</button>
+              <button className={styles.approveButton} onClick={confirmDeleteSalon} disabled={isDeleting}>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</button>
               <button className={styles.rejectButton} onClick={()=>{setShowDeleteModal(false); setDeletingSalon(null);}}>Cancel</button>
             </div>
           </div>
