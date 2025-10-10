@@ -15,15 +15,21 @@ export class PromotionsService {
     const salon = await this.assertCanManageSalon(user, dto.salonId);
     // Optional safety checks: ensure referenced service/product belongs to this salon/seller
     if (dto.serviceId) {
-      const svc = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
+      const svc = await this.prisma.service.findUnique({
+        where: { id: dto.serviceId },
+      });
       if (!svc || svc.salonId !== salon.id) {
         throw new ForbiddenException('Service does not belong to this salon');
       }
     }
     if (dto.productId) {
-      const prod = await this.prisma.product.findUnique({ where: { id: dto.productId } });
+      const prod = await this.prisma.product.findUnique({
+        where: { id: dto.productId },
+      });
       if (!prod || prod.sellerId !== salon.ownerId) {
-        throw new ForbiddenException('Product not associated with this salon owner');
+        throw new ForbiddenException(
+          'Product not associated with this salon owner',
+        );
       }
     }
 

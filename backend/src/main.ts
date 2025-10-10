@@ -1,21 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import cookieParser from 'cookie-parser';
-import helmet from 'helmet';
+// Use CommonJS requires for CJS middlewares to avoid default interop issues at runtime
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cookieParser = require('cookie-parser');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const helmet = require('helmet');
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import compression from 'compression';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const compression = require('compression');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security & performance middlewares
-  const helmetMw = (helmet as unknown as () => any)();
-  const compressionMw = (compression as unknown as () => any)();
-  const cookieMw = (cookieParser as unknown as () => any)();
-  app.use(helmetMw);
-  app.use(compressionMw);
-  app.use(cookieMw);
+  app.use(helmet());
+  app.use(compression());
+  app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
   const allowedOrigins = (

@@ -274,8 +274,16 @@ export class SalonsService {
     if (!sortBy || sortBy === 'latest') {
       salons = salons.sort((a: any, b: any) =>
         compareByVisibilityThenRecency(
-          { visibilityWeight: a.visibilityWeight, featuredUntil: a.featuredUntil, createdAt: a.createdAt },
-          { visibilityWeight: b.visibilityWeight, featuredUntil: b.featuredUntil, createdAt: b.createdAt },
+          {
+            visibilityWeight: a.visibilityWeight,
+            featuredUntil: a.featuredUntil,
+            createdAt: a.createdAt,
+          },
+          {
+            visibilityWeight: b.visibilityWeight,
+            featuredUntil: b.featuredUntil,
+            createdAt: b.createdAt,
+          },
         ),
       );
     }

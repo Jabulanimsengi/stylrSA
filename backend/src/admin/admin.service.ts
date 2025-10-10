@@ -2,7 +2,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ApprovalStatus } from '@prisma/client';
+import { ApprovalStatus, PlanCode } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { EventsGateway } from 'src/events/events.gateway';
 
@@ -231,31 +231,33 @@ export class AdminService {
       visibilityWeight?: number | null;
       maxListings?: number | null;
     };
+    // Normalize and validate incoming plan code (handle 'undefined'/'null' strings)
+    const normalizedPlan = !planCode || planCode === 'undefined' || planCode === 'null' ? undefined : planCode;
+    const isValidPlan = !!normalizedPlan && ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(normalizedPlan);
     let plan: PlanPartial | null = null;
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      plan = (await (this.prisma as any).plan.findUnique({
-        where: { code: planCode },
-      })) as unknown as PlanPartial;
+      plan = isValidPlan
+        ? ((await (this.prisma as any).plan.findUnique({ where: { code: normalizedPlan } })) as unknown as PlanPartial)
+        : null;
     } catch {
       // noop: Plan table may be absent in some environments; fallbacks cover values
     }
     const visibilityWeight =
       overrides?.visibilityWeight ??
       plan?.visibilityWeight ??
-      FALLBACKS[planCode]?.visibilityWeight ??
+      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.visibilityWeight ??
       1;
     const maxListings =
       overrides?.maxListings ??
       plan?.maxListings ??
-      FALLBACKS[planCode]?.maxListings ??
+      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.maxListings ??
       2;
-    const data: {
-      planCode: string;
-      visibilityWeight: number;
-      maxListings: number;
-      featuredUntil?: Date | null;
-    } = { planCode, visibilityWeight, maxListings };
+    const data: any = {
+      visibilityWeight,
+      maxListings,
+    };
+    if (isValidPlan) data.planCode = normalizedPlan as PlanCode;
     if (
       overrides &&
       Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')
@@ -300,35 +302,32 @@ export class AdminService {
       visibilityWeight?: number | null;
       maxListings?: number | null;
     };
+    const normalizedPlan = !planCode || planCode === 'undefined' || planCode === 'null' ? undefined : planCode;
+    const isValidPlan = !!normalizedPlan && ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(normalizedPlan);
     let plan: SellerPlanPartial | null = null;
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      plan = (await (this.prisma as any).plan.findUnique({
-        where: { code: planCode },
-      })) as unknown as SellerPlanPartial;
+      plan = isValidPlan
+        ? ((await (this.prisma as any).plan.findUnique({ where: { code: normalizedPlan } })) as unknown as SellerPlanPartial)
+        : null;
     } catch {
       // noop: Plan table may be absent in some environments; fallbacks cover values
     }
     const sellerVisibilityWeight =
       overrides?.visibilityWeight ??
       plan?.visibilityWeight ??
-      FALLBACKS[planCode]?.visibilityWeight ??
+      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.visibilityWeight ??
       1;
     const sellerMaxListings =
       overrides?.maxListings ??
       plan?.maxListings ??
-      FALLBACKS[planCode]?.maxListings ??
+      (isValidPlan ? FALLBACKS[normalizedPlan!] : undefined)?.maxListings ??
       2;
-    const data: {
-      sellerPlanCode: string;
-      sellerVisibilityWeight: number;
-      sellerMaxListings: number;
-      sellerFeaturedUntil?: Date | null;
-    } = {
-      sellerPlanCode: planCode,
+    const data: any = {
       sellerVisibilityWeight,
       sellerMaxListings,
     };
+    if (isValidPlan) data.sellerPlanCode = normalizedPlan as PlanCode;
     if (
       overrides &&
       Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')

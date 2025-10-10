@@ -104,14 +104,23 @@ export class ServicesService {
     const items = await this.prisma.service.findMany({
       where: { approvalStatus: 'APPROVED' },
       include: {
-        salon: { select: { id: true, visibilityWeight: true, featuredUntil: true, createdAt: true } },
+        salon: {
+          select: {
+            id: true,
+            visibilityWeight: true,
+            featuredUntil: true,
+            createdAt: true,
+          },
+        },
       },
       take: 20,
     });
     const now = Date.now();
     const score = (s: any) => {
       const w = s.salon?.visibilityWeight ?? 1;
-      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const fu = s.salon?.featuredUntil
+        ? new Date(s.salon.featuredUntil).getTime()
+        : 0;
       const boost = fu > now ? 10 : 0;
       return w + boost;
     };
@@ -119,51 +128,53 @@ export class ServicesService {
       .sort((a: any, b: any) => {
         const sv = score(b) - score(a);
         if (sv !== 0) return sv;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       })
       .slice(0, 5);
   }
 
   async findAllApproved(page: number = 1, pageSize: number = 10) {
-    const [services, total] = await this.prisma.$transaction([
-      this.prisma.service.findMany({
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        where: {
-          approvalStatus: 'APPROVED',
-        },
-        include: {
-          salon: {
-            select: {
-              id: true,
-              name: true,
-              city: true,
-              province: true,
-              visibilityWeight: true,
-              featuredUntil: true,
-            },
+    // Rank globally by visibility score then recency, and only then paginate.
+    const items = await this.prisma.service.findMany({
+      where: { approvalStatus: 'APPROVED' },
+      include: {
+        salon: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            province: true,
+            visibilityWeight: true,
+            featuredUntil: true,
           },
         },
-      }),
-      this.prisma.service.count({ where: { approvalStatus: 'APPROVED' } }),
-    ]);
+      },
+    });
 
     const now = Date.now();
     const score = (s: any) => {
       const w = s.salon?.visibilityWeight ?? 1;
-      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const fu = s.salon?.featuredUntil
+        ? new Date(s.salon.featuredUntil).getTime()
+        : 0;
       const boost = fu > now ? 10 : 0;
       return w + boost;
     };
 
-    const ordered = services.sort((a: any, b: any) => {
+    const ordered = items.sort((a: any, b: any) => {
       const sv = score(b) - score(a);
       if (sv !== 0) return sv;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+    const total = ordered.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+
     return {
-      services: ordered,
+      services: ordered.slice(start, end),
       currentPage: page,
       totalPages: Math.ceil(total / pageSize),
     };
@@ -245,7 +256,9 @@ export class ServicesService {
     const now = Date.now();
     const score = (s: any) => {
       const w = s.salon?.visibilityWeight ?? 1;
-      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const fu = s.salon?.featuredUntil
+        ? new Date(s.salon.featuredUntil).getTime()
+        : 0;
       const boost = fu > now ? 10 : 0;
       return w + boost;
     };

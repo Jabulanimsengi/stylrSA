@@ -1,14 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
   handleRequest(
-    _err: unknown,
-    user: unknown,
-    _info?: unknown,
-    _context?: unknown,
-  ): unknown {
-    return user ?? null;
+    err: any,
+    user: any,
+    info: any,
+    context: ExecutionContext,
+    status?: any,
+  ): any {
+    // Ignore auth errors and allow anonymous access; return user when present
+    return user || null;
   }
 }

@@ -55,12 +55,14 @@ export default function AdminPage() {
       const requestOptions = { credentials: 'include' as const };
       
       try {
+        const ts = Date.now();
+        const noStore: RequestInit = { ...requestOptions, cache: 'no-store' } as any;
         const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes] = await Promise.all([
-          fetch('/api/admin/salons/pending', requestOptions),
-          fetch('/api/admin/salons/all', requestOptions),
-          fetch('/api/admin/services/pending', requestOptions),
-          fetch('/api/admin/reviews/pending', requestOptions),
-          fetch('/api/admin/products/pending', requestOptions),
+          fetch(`/api/admin/salons/pending?ts=${ts}`, noStore),
+          fetch(`/api/admin/salons/all?ts=${ts}`, noStore),
+          fetch(`/api/admin/services/pending?ts=${ts}`, noStore),
+          fetch(`/api/admin/reviews/pending?ts=${ts}`, noStore),
+          fetch(`/api/admin/products/pending?ts=${ts}`, noStore),
         ]);
 
         if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes].some(res => res.status === 401)) {
@@ -214,23 +216,37 @@ export default function AdminPage() {
                           const visibilityWeight = Number(draftWeight);
                           const maxListings = Number(draftMax);
                           const featuredUntil = draftFeatured;
-                          const body: any = { planCode: draftPlan };
-                          if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
-                          if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
-                          if (featuredUntil) body.featuredUntil = featuredUntil;
+                          const body: any = {};
+                          const allowedPlans = ['STARTER','ESSENTIAL','GROWTH','PRO','ELITE'];
+                          if (allowedPlans.includes(draftPlan)) body.planCode = draftPlan;
+                          if (!Number.isNaN(visibilityWeight) && draftWeight !== '') body.visibilityWeight = visibilityWeight;
+                          if (!Number.isNaN(maxListings) && draftMax !== '') body.maxListings = maxListings;
+                          // Always send featuredUntil to allow clearing on server (null when empty)
+                          body.featuredUntil = featuredUntil ? featuredUntil : null;
                           const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
                           if (r.ok) {
+                            const updated = await r.json();
                             toast.success('Visibility updated');
+                            // Trust server response to avoid client drift
                             setAllSalons(prev => prev.map(s => s.id === salon.id ? {
                               ...s,
-                              planCode: draftPlan,
-                              visibilityWeight: !Number.isNaN(visibilityWeight) ? visibilityWeight : s.visibilityWeight,
-                              maxListings: !Number.isNaN(maxListings) ? maxListings : s.maxListings,
-                              featuredUntil: featuredUntil || s.featuredUntil || null,
+                              planCode: updated.planCode ?? s.planCode,
+                              visibilityWeight: updated.visibilityWeight ?? s.visibilityWeight,
+                              maxListings: updated.maxListings ?? s.maxListings,
+                              featuredUntil: updated.featuredUntil ?? null,
                             } : s));
                             setEditingSalonId(null);
+                            // Re-fetch from server to ensure persistence and avoid stale UI
+                            try {
+                              const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any });
+                              if (allRes.ok) {
+                                const fresh = await allRes.json();
+                                setAllSalons(fresh);
+                              }
+                            } catch {}
                           } else {
-                            toast.error('Failed to update');
+                            const errText = await r.text().catch(()=> '');
+                            toast.error(`Failed to update (${r.status}). ${errText}`);
                           }
                         }}
                       >Save</button>
