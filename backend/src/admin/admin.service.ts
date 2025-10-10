@@ -39,6 +39,7 @@ export class AdminService {
         name: true,
         approvalStatus: true,
         createdAt: true,
+        planCode: true,
         visibilityWeight: true,
         maxListings: true,
         featuredUntil: true,
@@ -223,11 +224,13 @@ export class AdminService {
     } catch {}
     const visibilityWeight = overrides?.visibilityWeight ?? plan?.visibilityWeight ?? FALLBACKS[planCode]?.visibilityWeight ?? 1;
     const maxListings = overrides?.maxListings ?? plan?.maxListings ?? FALLBACKS[planCode]?.maxListings ?? 2;
-    const data: any = { visibilityWeight, maxListings };
+    const data: any = { planCode, visibilityWeight, maxListings };
     if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
       data.featuredUntil = overrides.featuredUntil ?? null;
     }
-    return this.prisma.salon.update({ where: { id: salonId }, data });
+    const updated = await this.prisma.salon.update({ where: { id: salonId }, data });
+    try { this.eventsGateway.server.emit('visibility:updated', { entity: 'salon', id: salonId }); } catch {}
+    return updated;
   }
 
   async setSellerPlan(
@@ -248,10 +251,12 @@ export class AdminService {
     } catch {}
     const sellerVisibilityWeight = overrides?.visibilityWeight ?? plan?.visibilityWeight ?? FALLBACKS[planCode]?.visibilityWeight ?? 1;
     const sellerMaxListings = overrides?.maxListings ?? plan?.maxListings ?? FALLBACKS[planCode]?.maxListings ?? 2;
-    const data: any = { sellerVisibilityWeight, sellerMaxListings };
+    const data: any = { sellerPlanCode: planCode, sellerVisibilityWeight, sellerMaxListings };
     if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')) {
       data.sellerFeaturedUntil = overrides.featuredUntil ?? null;
     }
-    return this.prisma.user.update({ where: { id: sellerId }, data });
+    const updated = await this.prisma.user.update({ where: { id: sellerId }, data });
+    try { this.eventsGateway.server.emit('visibility:updated', { entity: 'seller', id: sellerId }); } catch {}
+    return updated;
   }
 }

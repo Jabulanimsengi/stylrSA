@@ -10,6 +10,7 @@ import { Service } from "@/types";
 import { toast } from "react-toastify";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useStartConversation } from "@/hooks/useStartConversation";
+import { useSocket } from "@/context/SocketContext";
 
 function ServicesPageContent() {
   const params = useSearchParams();
@@ -19,6 +20,7 @@ function ServicesPageContent() {
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const { startConversation } = useStartConversation();
+  const socket = useSocket();
 
   const filters = useMemo(() => {
     const obj: Record<string, string> = {};
@@ -54,6 +56,13 @@ function ServicesPageContent() {
     fetchServices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => { void fetchServices(); };
+    socket.on('visibility:updated', handler);
+    return () => { socket.off('visibility:updated', handler); };
+  }, [socket]);
 
   const handleSearch = (nextFilters: any) => {
     // No-op here; FilterBar will push URL updates itself when on home page.

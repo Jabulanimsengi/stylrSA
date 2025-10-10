@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import styles from './HomePage.module.css';
 import FilterBar from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useSocket } from '@/context/SocketContext';
 import { Service } from '@/types';
 import FeaturedServiceCard from '@/components/FeaturedServiceCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -35,6 +36,7 @@ export default function HomePage() {
   const observer = useRef<IntersectionObserver | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = HERO_SLIDES.length;
+  const socket = useSocket();
 
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
@@ -66,6 +68,21 @@ export default function HomePage() {
   useEffect(() => {
     fetchServices(1);
   }, [fetchServices]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      // Re-fetch first page to reflect latest visibility ordering
+      setServices([]);
+      setPage(1);
+      setHasMore(true);
+      void fetchServices(1);
+    };
+    socket.on('visibility:updated', handler);
+    return () => {
+      socket.off('visibility:updated', handler);
+    };
+  }, [socket, fetchServices]);
 
   const handlePrevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
