@@ -32,7 +32,7 @@ export class ServicesService {
     const currentCount = await this.prisma.service.count({
       where: { salonId: salon.id },
     });
-    const maxListings = (salon as any).maxListings ?? 2;
+    const maxListings = salon.maxListings ?? 2;
     if (currentCount >= maxListings) {
       throw new ForbiddenException(
         `Listing limit reached for your plan (max ${maxListings} services). Upgrade your plan to add more.`,
@@ -93,7 +93,7 @@ export class ServicesService {
     return this.prisma.service.delete({ where: { id } });
   }
 
-  async findAllForSalon(salonId: string) {
+  findAllForSalon(salonId: string) {
     return this.prisma.service.findMany({
       where: { salonId: salonId },
     });

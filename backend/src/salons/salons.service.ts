@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSalonDto, UpdateSalonDto } from './dto';
 import { compareByVisibilityThenRecency } from 'src/common/visibility';
@@ -195,7 +196,7 @@ export class SalonsService {
     });
   }
 
-  async findMySalon(user: any, ownerId: string) {
+  findMySalon(user: any, ownerId: string) {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to view this salon');
     }
@@ -253,14 +254,14 @@ export class SalonsService {
     }
     if (priceMin || priceMax) {
       servicesFilter.price = {};
-      if (priceMin) (servicesFilter.price as any).gte = Number(priceMin);
-      if (priceMax) (servicesFilter.price as any).lte = Number(priceMax);
+      if (priceMin) servicesFilter.price.gte = Number(priceMin);
+      if (priceMax) servicesFilter.price.lte = Number(priceMax);
     }
     if (Object.keys(servicesFilter).length > 0) {
-      (where as any).services = { some: servicesFilter };
+      where.services = { some: servicesFilter };
     }
 
-    let orderBy: any | undefined;
+    let orderBy: Prisma.SalonOrderByWithRelationInput | undefined;
     if (sortBy === 'rating' || sortBy === 'top_rated')
       orderBy = { avgRating: 'desc' };
 
@@ -294,7 +295,7 @@ export class SalonsService {
       salons = salons
         .map((s) => {
           if (s.latitude == null || s.longitude == null)
-            return { ...s, __dist: Number.POSITIVE_INFINITY } as any;
+            return { ...s, __dist: Number.POSITIVE_INFINITY };
           const dLat = toRad(s.latitude - userLat);
           const dLon = toRad(s.longitude - userLon);
           const a =
@@ -305,7 +306,7 @@ export class SalonsService {
               Math.sin(dLon / 2);
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           const d = R * c;
-          return { ...s, __dist: d } as any;
+          return { ...s, __dist: d };
         })
         .sort((a: any, b: any) => a.__dist - b.__dist)
         .map(({ __dist, ...rest }: any) => rest);
@@ -321,7 +322,7 @@ export class SalonsService {
       salons = salons.map((salon) => ({
         ...salon,
         isFavorited: favoriteSalonIds.has(salon.id),
-      })) as any;
+      }));
     }
 
     // Optional price sort using min service price
@@ -340,7 +341,7 @@ export class SalonsService {
     return salons;
   }
 
-  async findNearby(lat: number, lon: number) {
+  findNearby(lat: number, lon: number) {
     console.log(`Finding salons near lat: ${lat}, lon: ${lon}`);
     return this.prisma.salon.findMany();
   }

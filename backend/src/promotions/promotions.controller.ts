@@ -10,10 +10,7 @@ export class PromotionsController {
   constructor(private readonly promotionsService: PromotionsService) {}
 
   @Post()
-  create(
-    @GetUser() user: any,
-    @Body() createPromotionDto: CreatePromotionDto,
-  ) {
+  create(@GetUser() user: any, @Body() createPromotionDto: CreatePromotionDto) {
     return this.promotionsService.create(user, createPromotionDto);
   }
 

@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FaGoogle } from 'react-icons/fa';
 import styles from '../auth.module.css';
 
 export default function LoginPage() {
@@ -76,12 +77,14 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        <div style={{marginTop:'1rem'}}>
+        <div className={styles.oauthSection}>
+          <div className={styles.oauthDivider}>or continue with</div>
           <button
             type="button"
-            className="btn btn-secondary"
+            className={styles.oauthButton}
             onClick={() => signIn('google', { callbackUrl: '/salons' })}
           >
+            <FaGoogle aria-hidden />
             Continue with Google
           </button>
         </div>

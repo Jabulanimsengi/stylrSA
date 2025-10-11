@@ -12,9 +12,13 @@ const prismaPkg: any = (() => {
   }
 })();
 // Fallback empty class if PrismaClient isn't available at build time (runtime should still provide it)
-const BasePrismaClient: any = prismaPkg.PrismaClient ?? class {
-  async $connect() {/* noop */}
-};
+const BasePrismaClient: any =
+  prismaPkg.PrismaClient ??
+  class {
+    async $connect() {
+      /* noop */
+    }
+  };
 
 @Injectable()
 export class PrismaService extends BasePrismaClient implements OnModuleInit {

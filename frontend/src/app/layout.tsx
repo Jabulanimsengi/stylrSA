@@ -56,10 +56,12 @@ export default function RootLayout({
             <AuthProvider> {/* Wrap with AuthProvider */}
               <SocketProvider>
                 <AuthModalProvider>
-                  <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                  <div className="app-shell">
                     <Navbar />
-                    <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
-                    <Footer />
+                    <div className="app-content">
+                      <main className="main-content">{children}</main>
+                      <Footer />
+                    </div>
                   </div>
                   <ClientChatWidget />
                   <ToastContainer position="bottom-right" theme="colored" />

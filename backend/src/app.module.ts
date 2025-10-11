@@ -24,6 +24,7 @@ import { LocationsModule } from './locations/locations.module';
 import { CategoriesModule } from './categories/categories.module'; // Import the new module
 import { ProductOrdersModule } from './product-orders/product-orders.module';
 import { SellersModule } from './sellers/sellers.module';
+import { MongoModule } from './mongo/mongo.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { SellersModule } from './sellers/sellers.module';
     CategoriesModule, // Add the new module here
     ProductOrdersModule,
     SellersModule,
+    MongoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

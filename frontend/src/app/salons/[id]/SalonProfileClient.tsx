@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { FaHome, FaArrowLeft, FaHeart, FaWhatsapp, FaGlobe } from 'react-icons/fa';
-import { Salon, Service, GalleryImage } from '@/types';
+import { Salon, Service, GalleryImage, Review } from '@/types';
 import BookingModal from '@/components/BookingModal';
 import styles from './SalonProfile.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -25,6 +25,12 @@ type Props = {
   salonId: string;
 };
 
+const INITIAL_SERVICES_BATCH = 12;
+const SERVICES_BATCH_SIZE = 8;
+const INITIAL_REVIEWS_BATCH = 4;
+const REVIEWS_BATCH_SIZE = 4;
+const EMPTY_REVIEWS: Review[] = [];
+
 export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const router = useRouter();
   const { authStatus, user } = useAuth();
@@ -41,8 +47,19 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [visibleServicesCount, setVisibleServicesCount] = useState(() => {
+    const initialCount = initialSalon?.services?.length ?? 0;
+    return initialCount > 0 ? Math.min(INITIAL_SERVICES_BATCH, initialCount) : 0;
+  });
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(() => {
+    const initialCount = initialSalon?.reviews?.length ?? 0;
+    return initialCount > 0 ? Math.min(INITIAL_REVIEWS_BATCH, initialCount) : 0;
+  });
+  const serviceLoadRef = useRef<HTMLDivElement | null>(null);
+  const reviewLoadRef = useRef<HTMLDivElement | null>(null);
 
   const heroImagesCount = salon?.heroImages?.length ?? 0;
+  const reviews = salon?.reviews ?? EMPTY_REVIEWS;
 
   useEffect(() => {
     let isActive = true;
@@ -84,6 +101,26 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
       isActive = false;
     };
   }, [initialSalon, salonId]);
+
+  useEffect(() => {
+    setVisibleServicesCount((prev) => {
+      if (services.length === 0) return 0;
+      if (prev === 0) {
+        return Math.min(INITIAL_SERVICES_BATCH, services.length);
+      }
+      return Math.min(prev, services.length);
+    });
+  }, [services.length]);
+
+  useEffect(() => {
+    setVisibleReviewsCount((prev) => {
+      if (reviews.length === 0) return 0;
+      if (prev === 0) {
+        return Math.min(INITIAL_REVIEWS_BATCH, reviews.length);
+      }
+      return Math.min(prev, reviews.length);
+    });
+  }, [reviews.length]);
 
   useEffect(() => {
     if (heroImagesCount < 2) return;
@@ -171,7 +208,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     if (!oh) return null;
     if (Array.isArray(oh)) {
       const rec: Record<string, string> = {};
-      (oh as Array<any>).forEach((it) => {
+      (oh as Array<{ day?: string; open?: string; close?: string }>).forEach((it) => {
         const day = it?.day;
         const open = it?.open;
         const close = it?.close;
@@ -192,6 +229,41 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
     return `${samples.join(' • ')}${extra}`;
   }, [hoursRecord]);
+
+  const visibleServices = useMemo(() => services.slice(0, visibleServicesCount), [services, visibleServicesCount]);
+  const visibleReviews = useMemo(() => reviews.slice(0, visibleReviewsCount), [reviews, visibleReviewsCount]);
+
+  useEffect(() => {
+    const node = serviceLoadRef.current;
+    if (!node) return;
+    if (visibleServicesCount >= services.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry?.isIntersecting) {
+        setVisibleServicesCount((prev) => Math.min(prev + SERVICES_BATCH_SIZE, services.length));
+      }
+    }, { rootMargin: '240px 0px' });
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+    };
+  }, [visibleServicesCount, services.length]);
+
+  useEffect(() => {
+    const node = reviewLoadRef.current;
+    if (!node) return;
+    if (visibleReviewsCount >= reviews.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry?.isIntersecting) {
+        setVisibleReviewsCount((prev) => Math.min(prev + REVIEWS_BATCH_SIZE, reviews.length));
+      }
+    }, { rootMargin: '200px 0px' });
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+    };
+  }, [visibleReviewsCount, reviews.length]);
 
   if (isLoading) return <LoadingSpinner />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
@@ -244,17 +316,19 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
       <div>
         <div className={styles.stickyHeader}>
-          <div className={styles.navButtonsContainer}>
-            <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-            <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-          </div>
-          <h1 className={styles.title}>{salon.name}</h1>
-          <div className={styles.headerSpacer}>
-            {authStatus === 'authenticated' && (
-              <button onClick={handleToggleFavorite} className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}>
-                <FaHeart />
-              </button>
-            )}
+          <div className={styles.stickyHeaderContent}>
+            <div className={styles.navButtonsContainer}>
+              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+            </div>
+            <h1 className={styles.title}>{salon.name}</h1>
+            <div className={styles.headerSpacer}>
+              {authStatus === 'authenticated' && (
+                <button onClick={handleToggleFavorite} className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}>
+                  <FaHeart />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -325,7 +399,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
               <section id="services-section">
                 <h2 className={styles.sectionTitle}>Services</h2>
                 <div className={styles.servicesGrid}>
-                  {services.map((service) => (
+                  {visibleServices.map((service) => (
                     <ServiceCard 
                       key={service.id} 
                       service={service} 
@@ -334,6 +408,9 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       onImageClick={openLightbox}
                     />
                   ))}
+                  {visibleServicesCount < services.length && (
+                    <div ref={serviceLoadRef} className={styles.lazySentinel} aria-hidden="true" />
+                  )}
                 </div>
               </section>
 
@@ -380,15 +457,22 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       )}
                     </>
                   ) : (
-                    <p className={styles.loginPrompt}>
-                      <Link href="/login">Log in</Link> to view detailed contact information and map.
-                    </p>
+                  <p className={styles.loginPrompt}>
+                    <button
+                      type="button"
+                      className={styles.loginPromptButton}
+                      onClick={() => openModal('login')}
+                    >
+                      Log in
+                    </button>{' '}
+                    to view detailed contact information and map.
+                  </p>
                   )}
                 </Accordion>
                 <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
-                  {salon.reviews && salon.reviews.length > 0 ? (
+                  {reviews.length > 0 ? (
                     <div>
-                      {salon.reviews.map(review => (
+                      {visibleReviews.map(review => (
                         <div key={review.id} style={{borderBottom: '1px dotted var(--color-border)', paddingBottom: '1rem', marginBottom: '1rem'}}>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                             <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
@@ -397,6 +481,9 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                           <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>&quot;{review.comment}&quot;</p>
                         </div>
                       ))}
+                      {visibleReviewsCount < reviews.length && (
+                        <div ref={reviewLoadRef} className={styles.lazySentinel} aria-hidden="true" />
+                      )}
                     </div>
                   ) : <p>No reviews yet.</p>}
                 </Accordion>

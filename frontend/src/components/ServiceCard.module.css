@@ -134,7 +134,7 @@
   cursor: pointer;
 }
 .footer {
-  @apply mt-4 flex items-center justify-between pt-3;
+  @apply mt-4 flex flex-col gap-2 pt-3;
   border-top: 1px solid var(--color-border);
 }
 .likeButton {
@@ -142,10 +142,13 @@
   color: var(--color-text-muted);
   border: none;
   cursor: pointer;
+  justify-content: center;
+  width: 100%;
+  padding: 0.35rem 0;
 }
 .likeButton svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   stroke: var(--text-muted);
   stroke-width: 1.5;
   fill: none;
@@ -159,5 +162,57 @@
   stroke: var(--primary-pink);
 }
 .actions {
-  @apply flex gap-3;
+  @apply flex items-center gap-2;
+  width: 100%;
+}
+.actions :global(.btn) {
+  flex: 1 1 0;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .card {
+    border-radius: 0.75rem;
+  }
+  .imageContainer {
+    height: 180px;
+  }
+  .header {
+    align-items: center;
+  }
+  .price {
+    font-size: 0.95rem;
+  }
+  .footer {
+    gap: 0.75rem;
+  }
+  .likeButton {
+    gap: 0.6rem;
+  }
+  .actions {
+    gap: 0.6rem;
+  }
+}
+
+@media (min-width: 641px) {
+  .footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .likeButton {
+    width: auto;
+    padding: 0.25rem 0;
+  }
+  .actions {
+    width: auto;
+    gap: 1rem;
+  }
+  .actions :global(.btn) {
+    flex: 0 0 auto;
+    padding: 0.55rem 1rem;
+    font-size: 0.95rem;
+  }
 }

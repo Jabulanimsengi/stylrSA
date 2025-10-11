@@ -2,23 +2,44 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
-import { FaBars, FaTimes, FaBell, FaCommentDots } from 'react-icons/fa';
+import {
+  FaBars,
+  FaTimes,
+  FaBell,
+  FaCommentDots,
+  FaHome,
+  FaCut,
+  FaMagic,
+  FaBoxOpen,
+  FaHeart,
+  FaCalendarCheck,
+  FaUser,
+  FaChartLine,
+  FaStore,
+  FaShieldAlt,
+  FaSignOutAlt,
+} from 'react-icons/fa';
+import type { IconType } from 'react-icons';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
-import Image from 'next/image';
 import { useSocket } from '@/context/SocketContext';
 import { Notification, PaginatedNotifications } from '@/types';
 import { toast } from 'react-toastify';
 import { ThemeToggle } from './ThemeToggle';
+import styles from './Navbar.module.css';
 
-const baseLinkClasses =
-  'relative rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--nav-link-active)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--nav-surface)]';
-const activeLinkClasses = 'text-[color:var(--nav-link-active)] bg-[color:var(--nav-surface-active)] shadow-sm';
-const inactiveLinkClasses = 'text-[color:var(--nav-link)] hover:text-[color:var(--nav-link-hover)] hover:bg-[color:var(--nav-surface-subtle)]';
-
+const NOTIFICATIONS_CACHE_KEY = 'nav-notifications-cache';
 const NOTIFICATIONS_PAGE_SIZE = 10;
+
+interface NavLinkItem {
+  href: string;
+  label: string;
+  icon: IconType;
+  match?: (path: string) => boolean;
+}
 
 export default function Navbar() {
   const { authStatus, user, logout } = useAuth();
@@ -27,9 +48,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const socket = useSocket();
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
- 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCountState, setUnreadCountState] = useState(0);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -38,11 +58,48 @@ export default function Navbar() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [viewFilter, setViewFilter] = useState<'all' | 'unread'>('all');
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const [hasPrefetchedRoutes, setHasPrefetchedRoutes] = useState(false);
+
+  const updateNotificationsCache = useCallback((items: Notification[], unread: number, cursor: string | null) => {
+    if (typeof window === 'undefined') return;
+    try {
+      sessionStorage.setItem(
+        NOTIFICATIONS_CACHE_KEY,
+        JSON.stringify({
+          items,
+          unreadCount: unread,
+          nextCursor: cursor,
+          timestamp: Date.now(),
+        }),
+      );
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const cached = sessionStorage.getItem(NOTIFICATIONS_CACHE_KEY);
+    if (!cached) return;
+    try {
+      const parsed = JSON.parse(cached) as {
+        items?: Notification[];
+        unreadCount?: number;
+        nextCursor?: string | null;
+      };
+      if (Array.isArray(parsed.items)) {
+        setNotifications(parsed.items);
+        setUnreadCountState(parsed.unreadCount ?? 0);
+        setNextCursor(parsed.nextCursor ?? null);
+      }
+    } catch {
+      sessionStorage.removeItem(NOTIFICATIONS_CACHE_KEY);
+    }
+  }, []);
 
   const handleLogout = async () => {
     try {
-        // FIX: Changed the API call to a relative path to use the Next.js proxy
-      await fetch(`/api/auth/logout`, {
+      await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
@@ -54,7 +111,7 @@ export default function Navbar() {
       toast.error('Logout failed. Please try again.');
     } finally {
       setIsLogoutModalOpen(false);
-      setIsMenuOpen(false);
+      setIsMobileOpen(false);
     }
   };
 
@@ -62,23 +119,21 @@ export default function Navbar() {
     if (authStatus !== 'authenticated') {
       toast.error('Please log in to access messages.');
       openModal('login');
-      setIsMenuOpen(false);
+      setIsMobileOpen(false);
       return;
     }
 
     let handled = false;
-    if (typeof window !== 'undefined') {
-      if (typeof window.showChatWidget === 'function') {
-        window.showChatWidget();
-        handled = true;
-      }
+    if (typeof window !== 'undefined' && typeof window.showChatWidget === 'function') {
+      window.showChatWidget();
+      handled = true;
     }
 
     if (!handled) {
       router.push('/chat');
     }
 
-    setIsMenuOpen(false);
+    setIsMobileOpen(false);
   };
 
   const fetchNotifications = useCallback(
@@ -106,13 +161,19 @@ export default function Navbar() {
         }
 
         const payload: PaginatedNotifications = await res.json();
-        setNextCursor(payload.nextCursor);
-        setUnreadCountState(payload.unreadCount);
+        let nextItems: Notification[] = [];
         setNotifications((prev) => {
           const existingIds = new Set(prev.map((n) => n.id));
-          const incoming = options?.append ? payload.items.filter((item) => !existingIds.has(item.id)) : payload.items;
-          return options?.append ? [...prev, ...incoming] : payload.items;
+          const incoming = options?.append
+            ? payload.items.filter((item) => !existingIds.has(item.id))
+            : payload.items;
+          nextItems = options?.append ? [...prev, ...incoming] : payload.items;
+          return nextItems;
         });
+        const unreadValue = payload.unreadCount ?? nextItems.filter((n) => !n.isRead).length;
+        setUnreadCountState(unreadValue);
+        setNextCursor(payload.nextCursor ?? null);
+        updateNotificationsCache(nextItems, unreadValue, payload.nextCursor ?? null);
       } catch (error) {
         console.error('Failed to load notifications', error);
       } finally {
@@ -120,7 +181,7 @@ export default function Navbar() {
         setIsLoadingMore(false);
       }
     },
-    [authStatus],
+    [authStatus, updateNotificationsCache],
   );
 
   useEffect(() => {
@@ -128,24 +189,30 @@ export default function Navbar() {
   }, [fetchNotifications]);
 
   useEffect(() => {
-    if (socket) {
-      socket.on('newNotification', (newNotification: Notification) => {
-        setUnreadCountState((count) => count + 1);
-        setNotifications((prev) => [newNotification, ...prev]);
-      });
-      return () => {
-        socket.off('newNotification');
-      };
-    }
+    if (!socket) return;
+    const handler = (newNotification: Notification) => {
+      setUnreadCountState((count) => count + 1);
+      setNotifications((prev) => [newNotification, ...prev]);
+    };
+    socket.on('newNotification', handler);
+    return () => {
+      socket.off('newNotification', handler);
+    };
   }, [socket]);
+
   const handleMarkAllRead = async () => {
     try {
-      await fetch(`/api/notifications/read-all`, {
+      await fetch('/api/notifications/read-all', {
         method: 'PATCH',
         credentials: 'include',
       });
+      let nextItems: Notification[] = [];
+      setNotifications((prev) => {
+        nextItems = prev.map((notif) => ({ ...notif, isRead: true }));
+        return nextItems;
+      });
       setUnreadCountState(0);
-      setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
+      updateNotificationsCache(nextItems, 0, nextCursor);
     } catch (error) {
       console.error('Failed to mark notifications as read', error);
     }
@@ -153,13 +220,14 @@ export default function Navbar() {
 
   const handleClearNotifications = async () => {
     try {
-      await fetch(`/api/notifications`, {
+      await fetch('/api/notifications', {
         method: 'DELETE',
         credentials: 'include',
       });
       setNotifications([]);
       setNextCursor(null);
       setUnreadCountState(0);
+      updateNotificationsCache([], 0, null);
     } catch (error) {
       console.error('Failed to clear notifications', error);
     }
@@ -172,10 +240,14 @@ export default function Navbar() {
           method: 'PATCH',
           credentials: 'include',
         });
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n)),
-        );
-        setUnreadCountState((count) => Math.max(count - 1, 0));
+        let updatedItems: Notification[] = [];
+        setNotifications((prev) => {
+          updatedItems = prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n));
+          return updatedItems;
+        });
+        const nextUnread = updatedItems.filter((n) => !n.isRead).length;
+        setUnreadCountState(nextUnread);
+        updateNotificationsCache(updatedItems, nextUnread, nextCursor);
       }
       setIsNotificationsOpen(false);
       if (notification.link) {
@@ -186,16 +258,20 @@ export default function Navbar() {
     }
   };
 
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
         setIsNotificationsOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    setIsMobileOpen(false);
+    setIsNotificationsOpen(false);
+  }, [pathname]);
 
   const handleLoadMore = async () => {
     if (!nextCursor || isLoadingMore) return;
@@ -223,287 +299,339 @@ export default function Navbar() {
       return '';
     }
   };
- 
-  const mainLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/salons', label: 'Salons' },
-    { href: '/products', label: 'Products' },
-  ];
 
-  const getLinks = () => {
+  const discoverLinks: NavLinkItem[] = useMemo(
+    () => [
+      { href: '/', label: 'Home Feed', icon: FaHome },
+      { href: '/salons', label: 'Salons', icon: FaCut },
+      { href: '/services', label: 'Services', icon: FaMagic },
+      { href: '/products', label: 'Products', icon: FaBoxOpen },
+    ],
+    [],
+  );
+
+  const personalLinks: NavLinkItem[] = useMemo(() => {
     if (!user) return [];
-    const baseLinks = [
-      { href: '/my-profile', label: 'My Profile' },
-      { href: '/my-bookings', label: 'My Bookings' },
-      { href: '/my-favorites', label: 'My Favorites' },
+    const base: NavLinkItem[] = [
+      { href: '/my-profile', label: 'My Profile', icon: FaUser },
+      { href: '/my-bookings', label: 'My Bookings', icon: FaCalendarCheck },
+      { href: '/my-favorites', label: 'Saved Salons', icon: FaHeart },
     ];
-    switch(user.role) {
-      case 'SALON_OWNER': return [{ href: '/dashboard', label: 'Salon Dashboard' }, ...baseLinks];
-      case 'PRODUCT_SELLER': return [{ href: '/product-dashboard', label: 'Product Dashboard' }, ...baseLinks];
-      case 'ADMIN': return [{ href: '/admin', label: 'Admin Dashboard' }, ...baseLinks];
-      default: return baseLinks;
+    if (user.role === 'SALON_OWNER') {
+      return [{ href: '/dashboard', label: 'Salon Dashboard', icon: FaChartLine }, ...base];
     }
+    if (user.role === 'PRODUCT_SELLER') {
+      return [{ href: '/product-dashboard', label: 'Product Dashboard', icon: FaStore }, ...base];
+    }
+    if (user.role === 'ADMIN') {
+      return [{ href: '/admin', label: 'Admin Console', icon: FaShieldAlt }, ...base];
+    }
+    return base;
+  }, [user]);
+
+  useEffect(() => {
+    if ((!isMobileOpen && !isNotificationsOpen) || authStatus !== 'authenticated' || hasPrefetchedRoutes) {
+      return;
+    }
+    if (typeof router.prefetch !== 'function') {
+      return;
+    }
+
+    const routes = new Set<string>(['/chat', '/my-profile', '/my-bookings', '/my-favorites']);
+    if (user?.role === 'SALON_OWNER') {
+      routes.add('/dashboard');
+    } else if (user?.role === 'PRODUCT_SELLER') {
+      routes.add('/product-dashboard');
+    } else if (user?.role === 'ADMIN') {
+      routes.add('/admin');
+    }
+    routes.forEach((route) => {
+      const maybePromise = router.prefetch(route);
+      if (maybePromise && typeof maybePromise.then === 'function') {
+        maybePromise.catch(() => {});
+      }
+    });
+    setHasPrefetchedRoutes(true);
+  }, [isMobileOpen, isNotificationsOpen, authStatus, user?.role, hasPrefetchedRoutes, router]);
+
+  const isLinkActive = (link: NavLinkItem) => {
+    if (link.match) {
+      return link.match(pathname ?? '');
+    }
+    if (!pathname) return false;
+    if (link.href === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(link.href);
   };
-  const authenticatedLinks = getLinks();
- 
-  return (
-    <>
-      <nav className="sticky top-0 z-50 border-b border-[color:var(--nav-border)] bg-[color:var(--nav-surface)] backdrop-blur">
-        <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo-transparent.png" alt="The Salon Hub" width={150} height={40} priority />
-          </Link>
 
-          <div className="hidden lg:flex items-center gap-2">
-            {mainLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
-              >
-                {link.label}
-              </Link>
-            ))}
+  const renderNavLink = (link: NavLinkItem) => {
+    const active = isLinkActive(link);
+    const cls = `${styles.navItem} ${active ? styles.navItemActive : ''}`.trim();
+    const Icon = link.icon;
+    return (
+      <li key={link.href}>
+        <Link href={link.href} className={cls} onClick={() => setIsMobileOpen(false)}>
+          <span className={styles.navIcon} aria-hidden>
+            <Icon />
+          </span>
+          <span className={styles.navLabel}>{link.label}</span>
+        </Link>
+      </li>
+    );
+  };
+
+  const notificationsButton = (
+    <div ref={notificationsRef} className={styles.notificationsWrapper}>
+      <button
+        type="button"
+        className={`${styles.navItem} ${styles.navButton}`}
+        onClick={() => setIsNotificationsOpen((prev) => !prev)}
+      >
+        <span className={styles.navIcon} aria-hidden>
+          <FaBell />
+        </span>
+        <span className={styles.navLabel}>Notifications</span>
+        {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+      </button>
+      {isNotificationsOpen && (
+        <div className={styles.notificationsPanel}>
+          <div className={styles.notificationsHeader}>
+            <span>Notifications</span>
+            {notifications.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', fontWeight: 600 }}>
+                <button
+                  type="button"
+                  className={styles.notificationsFooterButton}
+                  onClick={handleMarkAllRead}
+                  style={{ padding: '0.35rem 0.65rem' }}
+                >
+                  Mark all read
+                </button>
+                <button
+                  type="button"
+                  className={styles.notificationsFooterButton}
+                  onClick={handleClearNotifications}
+                  style={{ padding: '0.35rem 0.65rem' }}
+                >
+                  Clear
+                </button>
+              </div>
+            )}
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden lg:flex items-center gap-3">
-              {authStatus === 'loading' && <span className="text-sm text-[color:var(--nav-link)]/70">Loading...</span>}
-              {authStatus === 'unauthenticated' && (
-                <>
-                  <button onClick={() => openModal('login')} className="btn btn-ghost text-sm lowercase">
-                    Login
-                  </button>
-                  <button onClick={() => openModal('register')} className="btn btn-primary text-sm lowercase">
-                    Register
-                  </button>
-                </>
-              )}
-              {authStatus === 'authenticated' && (
-                <>
-                  {authenticatedLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                  <div className="h-6 w-px bg-[color:var(--nav-border)]" />
-                  <ThemeToggle />
-                  <div className="h-6 w-px bg-[color:var(--nav-border)]" />
-                  <button
-                    onClick={handleChatClick}
-                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--nav-icon-bg)] text-[color:var(--nav-text)] transition-colors hover:bg-[color:var(--nav-icon-hover-bg)]"
-                    aria-label="Messages"
-                  >
-                    <FaCommentDots />
-                  </button>
-                  <div ref={notificationsRef} className="relative">
-                    <button
-                      onClick={() => setIsNotificationsOpen((prev) => !prev)}
-                      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--nav-icon-bg)] text-[color:var(--nav-text)] transition-colors hover:bg-[color:var(--nav-icon-hover-bg)]"
-                      aria-label="Notifications"
-                    >
-                      <FaBell />
-                      {unreadCount > 0 && (
-                        <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-[color:var(--nav-badge-text)]">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
-                    {isNotificationsOpen && (
-                      <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[color:var(--nav-border)] bg-[color:var(--nav-surface-active)] p-3 shadow-lg">
-                        <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-[color:var(--nav-link)]/70">
-                          <span>Notifications</span>
-                          {notifications.length > 0 && (
-                            <div className="flex items-center gap-2 text-[11px] font-semibold normal-case">
-                              <button
-                                className="text-[color:var(--nav-link-hover)] hover:underline"
-                                onClick={handleMarkAllRead}
-                              >
-                                Mark all read
-                              </button>
-                              <span className="text-[color:var(--nav-border)]">•</span>
-                              <button
-                                className="text-[color:var(--color-error, #d64545)] hover:underline"
-                                onClick={handleClearNotifications}
-                              >
-                                Clear
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        <div className="mb-2 flex items-center gap-2 text-xs">
-                          <button
-                            type="button"
-                            className={`rounded-md px-2 py-1 font-semibold transition-colors ${
-                              viewFilter === 'all'
-                                ? 'bg-primary/20 text-[color:var(--nav-text)]'
-                                : 'bg-[color:var(--nav-surface-subtle)] text-[color:var(--nav-link)]/70 hover:text-[color:var(--nav-link)]'
-                            }`}
-                            onClick={() => setViewFilter('all')}
-                          >
-                            All ({notifications.length})
-                          </button>
-                          <button
-                            type="button"
-                            className={`rounded-md px-2 py-1 font-semibold transition-colors ${
-                              viewFilter === 'unread'
-                                ? 'bg-primary/20 text-[color:var(--nav-text)]'
-                                : 'bg-[color:var(--nav-surface-subtle)] text-[color:var(--nav-link)]/70 hover:text-[color:var(--nav-link)]'
-                            }`}
-                            onClick={() => setViewFilter('unread')}
-                          >
-                            Unread ({notifications.filter((n) => !n.isRead).length})
-                          </button>
-                        </div>
-                        <div className="max-h-72 space-y-2 overflow-y-auto">
-                          {isLoadingNotifications ? (
-                            <div className="space-y-2">
-                              {Array.from({ length: 3 }).map((_, idx) => (
-                                <div key={idx} className="h-12 animate-pulse rounded-lg bg-[color:var(--nav-surface-subtle)]" />
-                              ))}
-                            </div>
-                          ) : filteredNotifications.length > 0 ? (
-                            filteredNotifications.map((notif) => (
-                              <button
-                                key={notif.id}
-                                type="button"
-                                onClick={() => handleNotificationClick(notif)}
-                                className={`w-full rounded-lg border border-transparent px-3 py-2 text-sm text-left transition-colors ${
-                                  notif.isRead
-                                    ? 'text-[color:var(--nav-link)]/70 hover:bg-[color:var(--nav-surface-subtle)]'
-                                    : 'border-primary/30 bg-primary/10 text-[color:var(--nav-text)] hover:bg-primary/20'
-                                }`}
-                              >
-                                <div className="flex flex-col gap-1">
-                                  <span>{notif.message}</span>
-                                  <span className="text-[11px] font-medium text-[color:var(--nav-link)]/60">
-                                    {formatTimestamp(notif.createdAt)}
-                                  </span>
-                                </div>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="rounded-lg bg-[color:var(--nav-surface-subtle)] px-3 py-4 text-sm text-[color:var(--nav-link)]/70">
-                              No new notifications.
-                            </div>
-                          )}
-                        </div>
-                        {viewFilter === 'all' && nextCursor && (
-                          <button
-                            type="button"
-                            onClick={handleLoadMore}
-                            disabled={isLoadingMore}
-                            className="mt-3 w-full rounded-lg bg-[color:var(--nav-surface-subtle)] px-3 py-2 text-sm font-semibold text-[color:var(--nav-link)] hover:bg-[color:var(--nav-surface-subtle)]/80 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {isLoadingMore ? 'Loading…' : 'Load older notifications'}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <button onClick={() => setIsLogoutModalOpen(true)} className="btn btn-ghost text-sm lowercase">
-                    Logout
-                  </button>
-                </>
-              )}
-            </div>
-
+          <div className={styles.notificationsFilters}>
             <button
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--nav-icon-bg)] text-[color:var(--nav-text)] transition-colors hover:bg-[color:var(--nav-icon-hover-bg)] lg:hidden"
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              aria-label="Toggle navigation"
+              type="button"
+              className={`${styles.notificationsFilterButton} ${viewFilter === 'all' ? styles.notificationsFilterActive : ''}`}
+              onClick={() => setViewFilter('all')}
             >
-              {isMenuOpen ? <FaTimes /> : <FaBars />}
+              All ({notifications.length})
+            </button>
+            <button
+              type="button"
+              className={`${styles.notificationsFilterButton} ${viewFilter === 'unread' ? styles.notificationsFilterActive : ''}`}
+              onClick={() => setViewFilter('unread')}
+            >
+              Unread ({notifications.filter((n) => !n.isRead).length})
             </button>
           </div>
-        </div>
-      </nav>
-
-      <div
-        className={`lg:hidden ${
-          isMenuOpen
-            ? 'pointer-events-auto opacity-100'
-            : 'pointer-events-none opacity-0'
-        } fixed inset-x-0 top-20 z-40 bg-[color:var(--nav-surface)] backdrop-blur transition-opacity`}
-      >
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 sm:px-6 lg:px-8">
-          {mainLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsMenuOpen(false)}
-              className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
+          <div className={styles.notificationsList}>
+            {isLoadingNotifications ? (
+              Array.from({ length: 3 }).map((_, idx) => (
+                <div key={idx} className="skeleton" style={{ height: '3rem' }} />
+              ))
+            ) : filteredNotifications.length > 0 ? (
+              filteredNotifications.map((notif) => (
+                <button
+                  key={notif.id}
+                  type="button"
+                  onClick={() => handleNotificationClick(notif)}
+                  className={`${styles.notificationItem} ${!notif.isRead ? styles.notificationUnread : ''}`.trim()}
+                >
+                  <span>{notif.message}</span>
+                  <span className={styles.notificationMeta}>{formatTimestamp(notif.createdAt)}</span>
+                </button>
+              ))
+            ) : (
+              <div className={styles.notificationItem}>No new notifications.</div>
+            )}
+          </div>
+          {viewFilter === 'all' && nextCursor && (
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className={styles.notificationsFooterButton}
             >
-              {link.label}
-            </Link>
-          ))}
+              {isLoadingMore ? 'Loading…' : 'Load older notifications'}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
-          <div className="my-2 h-px bg-[color:var(--nav-border)]/80" />
-          <div className="flex items-center justify-between rounded-lg bg-[color:var(--nav-surface-subtle)] px-4 py-3 text-sm font-medium text-[color:var(--nav-link)]/70">
-            <span>Appearance</span>
+  const messagesButton = (
+    <button
+      type="button"
+      onClick={handleChatClick}
+      className={`${styles.navItem} ${styles.navButton}`}
+    >
+      <span className={styles.navIcon} aria-hidden>
+        <FaCommentDots />
+      </span>
+      <span className={styles.navLabel}>Messages</span>
+    </button>
+  );
+
+  const signOutButton = (
+    <button
+      type="button"
+      className={`${styles.navItem} ${styles.navButton}`}
+      onClick={() => setIsLogoutModalOpen(true)}
+    >
+      <span className={styles.navIcon} aria-hidden>
+        <FaSignOutAlt />
+      </span>
+      <span className={styles.navLabel}>Sign out</span>
+    </button>
+  );
+
+  const authButtons = (
+    <div className={styles.authActions}>
+      <button
+        type="button"
+        className="btn btn-ghost text-sm lowercase"
+        onClick={() => {
+          openModal('login');
+          setIsMobileOpen(false);
+        }}
+      >
+        Login
+      </button>
+      <button
+        type="button"
+        className="btn btn-primary text-sm lowercase"
+        onClick={() => {
+          openModal('register');
+          setIsMobileOpen(false);
+        }}
+      >
+        Register
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <header className={styles.mobileBar}>
+        <button
+          type="button"
+          className={styles.iconOnlyButton}
+          onClick={() => setIsMobileOpen((prev) => !prev)}
+          aria-label="Toggle navigation"
+        >
+          {isMobileOpen ? <FaTimes /> : <FaBars />}
+        </button>
+        <Link
+          href="/"
+          className={styles.brand}
+          onClick={() => setIsMobileOpen(false)}
+          aria-label="The Salon Hub home"
+        >
+          <Image src="/logo-transparent.png" alt="The Salon Hub" width={124} height={32} priority />
+        </Link>
+        <div className={styles.mobileActions}>
+          <div className={styles.mobileThemeToggle}>
             <ThemeToggle />
           </div>
-          <div className="my-2 h-px bg-[color:var(--nav-border)]/80" />
-
-          {authStatus === 'authenticated' && (
-            <div className="flex flex-col gap-2">
-              {authenticatedLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`${baseLinkClasses} ${pathname === link.href ? activeLinkClasses : inactiveLinkClasses}`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <button
-                onClick={() => {
-                  setIsLogoutModalOpen(true);
-                  setIsMenuOpen(false);
-                }}
-                className="btn btn-ghost text-sm lowercase"
-              >
-                Logout
-              </button>
-              <button onClick={handleChatClick} className="btn btn-primary text-sm lowercase">
-                Messages
-              </button>
-            </div>
-          )}
-
-          {authStatus === 'unauthenticated' && (
-            <div className="grid gap-2">
-              <button
-                onClick={() => {
-                  openModal('login');
-                  setIsMenuOpen(false);
-                }}
-                className="btn btn-ghost text-sm lowercase"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => {
-                  openModal('register');
-                  setIsMenuOpen(false);
-                }}
-                className="btn btn-primary text-sm lowercase"
-              >
-                Register
-              </button>
-            </div>
-          )}
-
-          {authStatus === 'loading' && (
-            <span className="text-sm text-[color:var(--nav-link)]/70">Checking session...</span>
+          {authStatus === 'authenticated' ? (
+            <button
+              type="button"
+              className={styles.iconOnlyButton}
+              onClick={() => setIsNotificationsOpen((prev) => !prev)}
+              aria-label="Notifications"
+            >
+              <FaBell />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary text-sm lowercase"
+              onClick={() => openModal('login')}
+            >
+              Sign in
+            </button>
           )}
         </div>
-      </div>
+      </header>
+
+      <div
+        className={`${styles.sidebarBackdrop} ${isMobileOpen ? styles.sidebarBackdropVisible : ''}`.trim()}
+        onClick={() => setIsMobileOpen(false)}
+      />
+
+      <aside className={`${styles.sidebar} ${isMobileOpen ? styles.sidebarOpen : ''}`.trim()}>
+        <div className={styles.sidebarContent}>
+          <div className={styles.logoRow}>
+            <Link
+              href="/"
+              className={styles.brand}
+              onClick={() => setIsMobileOpen(false)}
+              aria-label="The Salon Hub home"
+            >
+              <Image src="/logo-transparent.png" alt="The Salon Hub" width={140} height={36} priority />
+            </Link>
+            <button
+              type="button"
+              className={styles.closeButton}
+              onClick={() => setIsMobileOpen(false)}
+              aria-label="Close navigation"
+            >
+              <FaTimes />
+            </button>
+          </div>
+
+          <div className={styles.topControls}>
+            <div className={styles.themeToggleShell}>
+              <ThemeToggle />
+            </div>
+          </div>
+
+          <nav>
+            <p className={styles.sectionLabel}>Discover</p>
+            <ul className={styles.navList}>{discoverLinks.map(renderNavLink)}</ul>
+          </nav>
+
+          {authStatus === 'authenticated' && personalLinks.length > 0 && (
+            <nav>
+              <p className={styles.sectionLabel}>My Hub</p>
+              <ul className={styles.navList}>{personalLinks.map(renderNavLink)}</ul>
+            </nav>
+          )}
+
+          <div>
+            <p className={styles.sectionLabel}>Engage</p>
+            <div className={styles.supportActions}>
+              {authStatus === 'authenticated' ? (
+                <>
+                  {notificationsButton}
+                  {messagesButton}
+                  {signOutButton}
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={styles.spacer} />
+
+          <div className={styles.sidebarFooter}>
+            {authStatus === 'authenticated' ? null : (
+              authButtons
+            )}
+          </div>
+        </div>
+      </aside>
 
       {isLogoutModalOpen && (
         <ConfirmationModal

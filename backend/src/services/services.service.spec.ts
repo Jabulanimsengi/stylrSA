@@ -18,7 +18,7 @@ describe('ServicesService ordering by visibility', () => {
 
   test('findFeatured returns top 5 by salon visibility + featured boost', async () => {
     const now = Date.now();
-    (prisma.service.findMany as any).mockResolvedValue([
+    prisma.service.findMany.mockResolvedValue([
       {
         id: 'a',
         createdAt: new Date(now - 5000),
@@ -64,7 +64,7 @@ describe('ServicesService ordering by visibility', () => {
   test('findAllApproved ranks globally before pagination', async () => {
     const now = Date.now();
     // Six services across different salons; only future featured get boost
-    (prisma.service.findMany as any).mockResolvedValue([
+    prisma.service.findMany.mockResolvedValue([
       {
         id: 'a',
         createdAt: new Date(now - 6000),

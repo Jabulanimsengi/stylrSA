@@ -10,12 +10,13 @@ import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { FaHome, FaArrowLeft, FaHeart } from 'react-icons/fa';
-import FilterBar from '@/components/FilterBar/FilterBar';
+import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
+type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
 
 function SalonsPageContent() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
@@ -25,7 +26,7 @@ function SalonsPageContent() {
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
 
-  const getInitialFilters = useCallback(() => {
+  const getInitialFilters = useCallback((): SalonPageFilters => {
     const params = new URLSearchParams(searchParams.toString());
     return {
       province: params.get('province') || '',
@@ -43,9 +44,11 @@ function SalonsPageContent() {
     };
   }, [searchParams]);
 
-  const [initialFilters] = useState(getInitialFilters);
+  const [initialFilters] = useState<SalonPageFilters>(getInitialFilters);
 
-  const fetchSalons = useCallback(async (filters: any) => {
+  const fetchSalons = useCallback(async (
+    filters: FilterValues & { q?: string; lat?: number | string | null; lon?: number | string | null }
+  ) => {
     setIsLoading(true);
     const query = new URLSearchParams();
     

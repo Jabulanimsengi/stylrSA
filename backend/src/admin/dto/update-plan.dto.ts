@@ -1,9 +1,4 @@
-export type PlanCode =
-  | 'STARTER'
-  | 'ESSENTIAL'
-  | 'GROWTH'
-  | 'PRO'
-  | 'ELITE';
+export type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 
 export class UpdatePlanDto {
   planCode: PlanCode;
