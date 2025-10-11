@@ -43,6 +43,11 @@ export interface Salon {
   coverImage?: string;
   gallery?: GalleryImage[];
   isFavorited?: boolean;
+  // Plan & visibility controls (populated from backend)
+  planCode?: 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE' | null;
+  visibilityWeight?: number;
+  maxListings?: number;
+  featuredUntil?: string | null;
 }
 
 export interface Service {

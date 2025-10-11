@@ -166,15 +166,32 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     return 'Not Specified';
   };
 
-  const operatingDays = salon?.operatingHours ? Object.keys(salon.operatingHours) : [];
+  const hoursRecord = useMemo(() => {
+    const oh = salon?.operatingHours as unknown;
+    if (!oh) return null;
+    if (Array.isArray(oh)) {
+      const rec: Record<string, string> = {};
+      (oh as Array<any>).forEach((it) => {
+        const day = it?.day;
+        const open = it?.open;
+        const close = it?.close;
+        if (day && (open || close)) rec[day] = `${open ?? ''} - ${close ?? ''}`.trim();
+      });
+      return rec;
+    }
+    if (typeof oh === 'object') return oh as Record<string, string>;
+    return null;
+  }, [salon?.operatingHours]);
+
+  const operatingDays = hoursRecord ? Object.keys(hoursRecord) : [];
   const operatingSummary = useMemo(() => {
-    if (!salon?.operatingHours) return '';
-    const entries = Object.entries(salon.operatingHours as Record<string, string>);
+    if (!hoursRecord) return '';
+    const entries = Object.entries(hoursRecord);
     if (entries.length === 0) return '';
     const samples = entries.slice(0, 2).map(([day, hours]) => `${day.substring(0,3)} ${hours}`);
     const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
     return `${samples.join(' • ')}${extra}`;
-  }, [salon?.operatingHours]);
+  }, [hoursRecord]);
 
   if (isLoading) return <LoadingSpinner />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
@@ -324,12 +341,12 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <h2 className={styles.sectionTitle}>Details</h2>
 
                 <Accordion title="Operating Hours">
-                  {salon.operatingHours ? (
+                  {hoursRecord && operatingDays.length > 0 ? (
                     <ul>
                       {operatingDays.map(day => (
                         <li key={day}>
                           <span>{day.charAt(0).toUpperCase() + day.slice(1)}</span>
-                          <strong>{salon.operatingHours![day]}</strong>
+                          <strong>{hoursRecord[day]}</strong>
                         </li>
                       ))}
                     </ul>

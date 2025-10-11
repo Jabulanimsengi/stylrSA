@@ -5,25 +5,30 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
-import { User, UserRole } from '@prisma/client';
 
 @Injectable()
 export class PromotionsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(user: User, dto: CreatePromotionDto) {
+  async create(user: any, dto: CreatePromotionDto) {
     const salon = await this.assertCanManageSalon(user, dto.salonId);
     // Optional safety checks: ensure referenced service/product belongs to this salon/seller
     if (dto.serviceId) {
-      const svc = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
+      const svc = await this.prisma.service.findUnique({
+        where: { id: dto.serviceId },
+      });
       if (!svc || svc.salonId !== salon.id) {
         throw new ForbiddenException('Service does not belong to this salon');
       }
     }
     if (dto.productId) {
-      const prod = await this.prisma.product.findUnique({ where: { id: dto.productId } });
+      const prod = await this.prisma.product.findUnique({
+        where: { id: dto.productId },
+      });
       if (!prod || prod.sellerId !== salon.ownerId) {
-        throw new ForbiddenException('Product not associated with this salon owner');
+        throw new ForbiddenException(
+          'Product not associated with this salon owner',
+        );
       }
     }
 
@@ -39,7 +44,7 @@ export class PromotionsService {
     });
   }
 
-  async findForSalon(user: User, salonId: string) {
+  async findForSalon(user: any, salonId: string) {
     const salon = await this.assertCanManageSalon(user, salonId);
     return this.prisma.promotion.findMany({
       where: {
@@ -51,7 +56,7 @@ export class PromotionsService {
     });
   }
 
-  private async assertCanManageSalon(user: User, salonId: string) {
+  private async assertCanManageSalon(user: any, salonId: string) {
     const salon = await this.prisma.salon.findUnique({
       where: { id: salonId },
     });
@@ -59,7 +64,7 @@ export class PromotionsService {
       throw new NotFoundException('Salon not found');
     }
 
-    if (salon.ownerId !== user.id && user.role !== UserRole.ADMIN) {
+    if (salon.ownerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to manage promotions for this salon',
       );

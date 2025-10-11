@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../auth.module.css';
@@ -75,6 +76,15 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+        <div style={{marginTop:'1rem'}}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => signIn('google', { callbackUrl: '/salons' })}
+          >
+            Continue with Google
+          </button>
+        </div>
         <p className={styles.footerText}>
           Don't have an account?{' '}
           <Link href="/register" className={styles.footerLink}>

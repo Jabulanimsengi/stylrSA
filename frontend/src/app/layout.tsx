@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ClientChatWidget from '@/components/ClientChatWidget';
+import AuthSessionProvider from '@/components/AuthSessionProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -50,21 +51,23 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider>
-          <AuthProvider> {/* Wrap with AuthProvider */}
-            <SocketProvider>
-              <AuthModalProvider>
-                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                  <Navbar />
-                  <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
-                  <Footer />
-                </div>
-                <ClientChatWidget />
-                <ToastContainer position="bottom-right" theme="colored" />
-              </AuthModalProvider>
-            </SocketProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthSessionProvider>
+          <ThemeProvider>
+            <AuthProvider> {/* Wrap with AuthProvider */}
+              <SocketProvider>
+                <AuthModalProvider>
+                  <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                    <Navbar />
+                    <main className="main-content" style={{ flexGrow: 1 }}>{children}</main>
+                    <Footer />
+                  </div>
+                  <ClientChatWidget />
+                  <ToastContainer position="bottom-right" theme="colored" />
+                </AuthModalProvider>
+              </SocketProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

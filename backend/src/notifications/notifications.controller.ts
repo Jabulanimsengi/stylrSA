@@ -12,7 +12,6 @@ import {
 import { NotificationsService } from './notifications.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
-import { User } from '@prisma/client';
 
 @Controller('api/notifications')
 @UseGuards(AuthGuard('jwt'))
@@ -21,7 +20,7 @@ export class NotificationsController {
 
   @Get()
   getNotifications(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
   ) {
@@ -33,24 +32,24 @@ export class NotificationsController {
   }
 
   @Patch(':id/read')
-  markAsRead(@Param('id') id: string, @GetUser() user: User) {
+  markAsRead(@Param('id') id: string, @GetUser() user: any) {
     return this.notificationsService.markAsRead(id, user.id);
   }
 
   @Patch('read-all')
-  markAllAsRead(@GetUser() user: User) {
+  markAllAsRead(@GetUser() user: any) {
     return this.notificationsService.markAllAsRead(user.id);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteNotification(@Param('id') id: string, @GetUser() user: User) {
+  deleteNotification(@Param('id') id: string, @GetUser() user: any) {
     return this.notificationsService.deleteNotification(id, user.id);
   }
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
-  clearAll(@GetUser() user: User) {
+  clearAll(@GetUser() user: any) {
     return this.notificationsService.clearAll(user.id);
   }
 }

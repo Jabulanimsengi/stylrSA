@@ -6,14 +6,13 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { User, UserRole, ApprovalStatus } from '@prisma/client';
 import { calculateVisibilityScore } from 'src/common/visibility';
 
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(user: User, dto: CreateProductDto) {
+  async create(user: any, dto: CreateProductDto) {
     // Enforce plan-based listing cap for product seller
     const currentCount = await this.prisma.product.count({
       where: { sellerId: user.id },
@@ -35,7 +34,7 @@ export class ProductsService {
 
   async findAllApproved() {
     const products = await this.prisma.product.findMany({
-      where: { approvalStatus: ApprovalStatus.APPROVED },
+      where: { approvalStatus: 'APPROVED' },
       include: {
         seller: {
           select: {
@@ -44,19 +43,23 @@ export class ProductsService {
             lastName: true,
             email: true,
             // following fields may not exist in older prisma types
-            // @ts-ignore
             sellerVisibilityWeight: true,
-            // @ts-ignore
             sellerFeaturedUntil: true,
           },
         },
       },
     });
 
-    const score = (p: any) =>
+    const score = (p: {
+      seller?: {
+        sellerVisibilityWeight?: number | null;
+        sellerFeaturedUntil?: Date | string | null;
+      } | null;
+      createdAt: Date | string;
+    }) =>
       calculateVisibilityScore({
-        visibilityWeight: (p.seller as any)?.sellerVisibilityWeight ?? 1,
-        featuredUntil: (p.seller as any)?.sellerFeaturedUntil ?? null,
+        visibilityWeight: p.seller?.sellerVisibilityWeight ?? 1,
+        featuredUntil: p.seller?.sellerFeaturedUntil ?? null,
         createdAt: p.createdAt,
       });
 
@@ -67,14 +70,14 @@ export class ProductsService {
     });
   }
 
-  async findMyProducts(user: User) {
+  async findMyProducts(user: any) {
     return this.prisma.product.findMany({
       where: { sellerId: user.id },
     });
   }
 
-  async findProductsForSeller(user: User, sellerId: string) {
-    if (user.id !== sellerId && user.role !== UserRole.ADMIN) {
+  async findProductsForSeller(user: any, sellerId: string) {
+    if (user.id !== sellerId && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to view these products.',
       );
@@ -83,27 +86,27 @@ export class ProductsService {
     return this.prisma.product.findMany({ where: { sellerId } });
   }
 
-  async update(user: User, productId: string, dto: UpdateProductDto) {
-    const product = await this.findProductAndCheckOwnership(productId, user);
+  async update(user: any, productId: string, dto: UpdateProductDto) {
+    await this.findProductAndCheckOwnership(productId, user);
     return this.prisma.product.update({
       where: { id: productId },
-      data: { ...dto, approvalStatus: ApprovalStatus.PENDING },
+      data: { ...dto, approvalStatus: 'PENDING' },
     });
   }
 
-  async remove(user: User, productId: string) {
+  async remove(user: any, productId: string) {
     await this.findProductAndCheckOwnership(productId, user);
     await this.prisma.product.delete({ where: { id: productId } });
   }
 
-  private async findProductAndCheckOwnership(productId: string, user: User) {
+  private async findProductAndCheckOwnership(productId: string, user: any) {
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
     });
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    if (product.sellerId !== user.id && user.role !== UserRole.ADMIN) {
+    if (product.sellerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to perform this action.',
       );

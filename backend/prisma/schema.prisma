@@ -33,6 +33,7 @@ model User {
   notifications        Notification[]
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
+  oauthAccounts        OAuthAccount[]
 
   // Product seller plan fields (used when role = PRODUCT_SELLER)
   sellerPlanCode        PlanCode?
@@ -320,6 +321,18 @@ enum ProductOrderStatus {
   CANCELLED
 }
 
+// Social login linkage
+model OAuthAccount {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider           String
+  providerAccountId  String
+  createdAt          DateTime @default(now())
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
 // Subscription plans (seeded)
 model Plan {
   id               String   @id @default(uuid())
@@ -338,4 +351,32 @@ enum PlanCode {
   GROWTH
   PRO
   ELITE
+}
+
+// Archive for deleted provider profiles to enable restoration
+model DeletedSalonArchive {
+  id         String   @id @default(uuid())
+  salonId    String
+  ownerId    String
+  salon      Json
+  services   Json
+  reason     String?
+  deletedBy  String?
+  deletedAt  DateTime @default(now())
+  restoredAt DateTime?
+  @@index([deletedAt])
+}
+
+// Admin activity/audit log
+model AdminActionLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  @@index([createdAt])
+  @@index([targetType, targetId])
 }

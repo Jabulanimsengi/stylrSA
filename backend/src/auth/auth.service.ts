@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +27,7 @@ export class AuthService {
     const hash = await argon2.hash(dto.password);
     // save the new user in the db
     try {
-      const user = await this.prisma.user.create({
+      await this.prisma.user.create({
         data: {
           email: dto.email,
           password: hash, // Changed from 'hash' to 'password' to match your schema
@@ -141,11 +142,82 @@ export class AuthService {
       email,
       role,
     };
-    const secret = this.config.get('JWT_SECRET');
+    const secret = this.config.get<string>('JWT_SECRET') ?? '';
 
     return this.jwt.signAsync(payload, {
       expiresIn: '1d',
       secret: secret,
     });
+  }
+
+  async sso(body: {
+    provider: string;
+    providerAccountId: string;
+    email?: string | null;
+    name?: string | null;
+  }) {
+    const { provider, providerAccountId, email, name } = body;
+    if (!provider || !providerAccountId) {
+      throw new UnauthorizedException('Invalid SSO payload');
+    }
+
+    // Try to find existing OAuth account
+    let user = await this.prisma.user.findFirst({
+      where: {
+        oauthAccounts: {
+          some: { provider, providerAccountId },
+        },
+      },
+    });
+
+    // If not found, try link by email
+    if (!user && email) {
+      user = await this.prisma.user.findUnique({ where: { email } });
+      if (user) {
+        await this.prisma.oAuthAccount.create({
+          data: {
+            userId: user.id,
+            provider,
+            providerAccountId,
+          },
+        });
+      }
+    }
+
+    // If still no user, create a new one
+    if (!user) {
+      const fullName = (name ?? '').trim();
+      const [firstName, ...rest] = fullName ? fullName.split(' ') : ['User'];
+      const lastName = rest.join(' ') || 'Account';
+      const tempPassword = randomBytes(16).toString('hex');
+      const passwordHash = await argon2.hash(tempPassword);
+      user = await this.prisma.user.create({
+        data: {
+          email: email ?? `${provider}-${providerAccountId}@example.local`,
+          password: passwordHash,
+          firstName,
+          lastName,
+          // role defaults to CLIENT
+          oauthAccounts: {
+            create: { provider, providerAccountId },
+          },
+        },
+      });
+    }
+
+    const accessToken = await this.signToken(user.id, user.email, user.role);
+    const salon = await this.prisma.salon.findFirst({
+      where: { ownerId: user.id },
+      select: { id: true },
+    });
+    return {
+      jwt: accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        salonId: salon?.id,
+      },
+    };
   }
 }

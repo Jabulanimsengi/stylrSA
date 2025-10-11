@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductOrderDto } from './dto/create-product-order.dto';
-import { User, ProductOrderStatus } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { EventsGateway } from 'src/events/events.gateway';
 
@@ -18,7 +17,7 @@ export class ProductOrdersService {
     private readonly eventsGateway: EventsGateway,
   ) {}
 
-  async create(buyer: User, dto: CreateProductOrderDto) {
+  async create(buyer: any, dto: CreateProductOrderDto) {
     const product = await this.prisma.product.findUnique({
       where: { id: dto.productId },
       include: { seller: true },
@@ -79,7 +78,7 @@ export class ProductOrdersService {
     return order;
   }
 
-  findAllForBuyer(user: User) {
+  findAllForBuyer(user: any) {
     return this.prisma.productOrder.findMany({
       where: { buyerId: user.id },
       orderBy: { createdAt: 'desc' },
@@ -90,7 +89,7 @@ export class ProductOrdersService {
     });
   }
 
-  findAllForSeller(user: User) {
+  findAllForSeller(user: any) {
     return this.prisma.productOrder.findMany({
       where: { sellerId: user.id },
       orderBy: { createdAt: 'desc' },
@@ -101,7 +100,17 @@ export class ProductOrdersService {
     });
   }
 
-  async updateStatus(user: User, id: string, status: ProductOrderStatus) {
+  async updateStatus(
+    user: any,
+    id: string,
+    status:
+      | 'PENDING'
+      | 'CONFIRMED'
+      | 'PROCESSING'
+      | 'SHIPPED'
+      | 'DELIVERED'
+      | 'CANCELLED',
+  ) {
     const order = await this.prisma.productOrder.findUnique({
       where: { id },
       include: {

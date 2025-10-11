@@ -12,7 +12,6 @@ import {
 import { GalleryService } from './gallery.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
-import { User } from '@prisma/client';
 import { CreateGalleryImageDto } from './dto/create-gallery-image.dto';
 
 @Controller('api/gallery')
@@ -29,7 +28,7 @@ export class GalleryController {
   @UseGuards(AuthGuard('jwt'))
   @Post('salon/:salonId')
   addImage(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Param('salonId') salonId: string,
     @Body() dto: CreateGalleryImageDto,
   ) {
@@ -40,7 +39,7 @@ export class GalleryController {
   @UseGuards(AuthGuard('jwt'))
   @Delete(':imageId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteImage(@GetUser() user: User, @Param('imageId') imageId: string) {
+  deleteImage(@GetUser() user: any, @Param('imageId') imageId: string) {
     return this.galleryService.deleteImage(user, imageId);
   }
 }

@@ -14,7 +14,6 @@ import { LoginDto, RegisterDto } from './dto';
 import { Response } from 'express';
 import { JwtGuard } from './guard/jwt.guard';
 import { GetUser } from './decorator/get-user.decorator';
-import { User } from '@prisma/client';
 
 @Controller('api/auth')
 export class AuthController {
@@ -44,7 +43,7 @@ export class AuthController {
 
   @UseGuards(JwtGuard)
   @Get('status')
-  status(@GetUser() user: User) {
+  status(@GetUser() user: any) {
     return { status: 'authenticated', user };
   }
 
@@ -52,5 +51,19 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');
     return { message: 'Logout successful' };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('sso')
+  async sso(
+    @Body()
+    body: {
+      provider: string;
+      providerAccountId: string;
+      email?: string | null;
+      name?: string | null;
+    },
+  ) {
+    return this.authService.sso(body);
   }
 }

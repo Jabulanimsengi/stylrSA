@@ -7,13 +7,12 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class ServicesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(user: User, dto: CreateServiceDto) {
+  async create(user: any, dto: CreateServiceDto) {
     const salon = await this.prisma.salon.findUnique({
       where: { id: dto.salonId },
     });
@@ -51,7 +50,7 @@ export class ServicesService {
     return this.prisma.service.findUnique({ where: { id } });
   }
 
-  async update(user: User, id: string, dto: UpdateServiceDto) {
+  async update(user: any, id: string, dto: UpdateServiceDto) {
     const service = await this.prisma.service.findUnique({
       where: { id },
       include: { salon: true },
@@ -74,7 +73,7 @@ export class ServicesService {
     });
   }
 
-  async remove(user: User, id: string) {
+  async remove(user: any, id: string) {
     const service = await this.prisma.service.findUnique({
       where: { id },
       include: { salon: true },
@@ -104,14 +103,23 @@ export class ServicesService {
     const items = await this.prisma.service.findMany({
       where: { approvalStatus: 'APPROVED' },
       include: {
-        salon: { select: { id: true, visibilityWeight: true, featuredUntil: true, createdAt: true } },
+        salon: {
+          select: {
+            id: true,
+            visibilityWeight: true,
+            featuredUntil: true,
+            createdAt: true,
+          },
+        },
       },
       take: 20,
     });
     const now = Date.now();
     const score = (s: any) => {
       const w = s.salon?.visibilityWeight ?? 1;
-      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const fu = s.salon?.featuredUntil
+        ? new Date(s.salon.featuredUntil).getTime()
+        : 0;
       const boost = fu > now ? 10 : 0;
       return w + boost;
     };
@@ -119,51 +127,53 @@ export class ServicesService {
       .sort((a: any, b: any) => {
         const sv = score(b) - score(a);
         if (sv !== 0) return sv;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       })
       .slice(0, 5);
   }
 
   async findAllApproved(page: number = 1, pageSize: number = 10) {
-    const [services, total] = await this.prisma.$transaction([
-      this.prisma.service.findMany({
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        where: {
-          approvalStatus: 'APPROVED',
-        },
-        include: {
-          salon: {
-            select: {
-              id: true,
-              name: true,
-              city: true,
-              province: true,
-              visibilityWeight: true,
-              featuredUntil: true,
-            },
+    // Rank globally by visibility score then recency, and only then paginate.
+    const items = await this.prisma.service.findMany({
+      where: { approvalStatus: 'APPROVED' },
+      include: {
+        salon: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            province: true,
+            visibilityWeight: true,
+            featuredUntil: true,
           },
         },
-      }),
-      this.prisma.service.count({ where: { approvalStatus: 'APPROVED' } }),
-    ]);
+      },
+    });
 
     const now = Date.now();
     const score = (s: any) => {
       const w = s.salon?.visibilityWeight ?? 1;
-      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const fu = s.salon?.featuredUntil
+        ? new Date(s.salon.featuredUntil).getTime()
+        : 0;
       const boost = fu > now ? 10 : 0;
       return w + boost;
     };
 
-    const ordered = services.sort((a: any, b: any) => {
+    const ordered = items.sort((a: any, b: any) => {
       const sv = score(b) - score(a);
       if (sv !== 0) return sv;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+    const total = ordered.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+
     return {
-      services: ordered,
+      services: ordered.slice(start, end),
       currentPage: page,
       totalPages: Math.ceil(total / pageSize),
     };
@@ -181,7 +191,7 @@ export class ServicesService {
       sortBy,
     } = filters || {};
 
-    const where: Prisma.ServiceWhereInput = {
+    const where: any = {
       approvalStatus: 'APPROVED',
     };
 
@@ -200,7 +210,7 @@ export class ServicesService {
       if (priceMin) where.price.gte = Number(priceMin);
       if (priceMax) where.price.lte = Number(priceMax);
     }
-    const salonFilter: Prisma.SalonWhereInput = {};
+    const salonFilter: any = {};
     if (province) {
       salonFilter.province = {
         equals: String(province),
@@ -245,7 +255,9 @@ export class ServicesService {
     const now = Date.now();
     const score = (s: any) => {
       const w = s.salon?.visibilityWeight ?? 1;
-      const fu = s.salon?.featuredUntil ? new Date(s.salon.featuredUntil).getTime() : 0;
+      const fu = s.salon?.featuredUntil
+        ? new Date(s.salon.featuredUntil).getTime()
+        : 0;
       const boost = fu > now ? 10 : 0;
       return w + boost;
     };

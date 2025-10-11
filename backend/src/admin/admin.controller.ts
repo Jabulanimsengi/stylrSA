@@ -1,15 +1,26 @@
-import { Controller, Patch, Param, Body, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Get,
+  Delete,
+  Req,
+  Post,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/guard/roles.decorator';
-import { UserRole, ApprovalStatus } from '@prisma/client';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
+import { DeleteEntityDto } from './dto/delete-entity.dto';
+import { Request } from 'express';
 
 @Controller('api/admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles('ADMIN')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -32,10 +43,13 @@ export class AdminController {
   updateServiceStatus(
     @Param('serviceId') serviceId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateServiceStatus(
       serviceId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
+      adminId,
     );
   }
 
@@ -43,10 +57,13 @@ export class AdminController {
   updateSalonStatus(
     @Param('salonId') salonId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateSalonStatus(
       salonId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
+      adminId,
     );
   }
 
@@ -55,14 +72,22 @@ export class AdminController {
     return this.adminService.getPendingReviews();
   }
 
+  @Get('salons/deleted')
+  getDeletedSalons() {
+    return this.adminService.getDeletedSalons();
+  }
+
   @Patch('reviews/:reviewId/status')
   updateReviewStatus(
     @Param('reviewId') reviewId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateReviewStatus(
       reviewId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
+      adminId,
     );
   }
 
@@ -75,10 +100,13 @@ export class AdminController {
   updateProductStatus(
     @Param('productId') productId: string,
     @Body() { approvalStatus }: UpdateServiceStatusDto,
+    @Req() req: Request,
   ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
     return this.adminService.updateProductStatus(
       productId,
-      approvalStatus as ApprovalStatus,
+      approvalStatus as any,
+      adminId,
     );
   }
 
@@ -87,8 +115,10 @@ export class AdminController {
     @Param('salonId') salonId: string,
     @Body() dto: UpdatePlanDto,
   ) {
-    const featuredUntil = dto.featuredUntil ? new Date(dto.featuredUntil) : undefined;
-    return this.adminService.setSalonPlan(salonId, dto.planCode as any, {
+    const featuredUntil = dto.featuredUntil
+      ? new Date(dto.featuredUntil)
+      : undefined;
+    return this.adminService.setSalonPlan(salonId, String(dto.planCode), {
       visibilityWeight: dto.visibilityWeight,
       maxListings: dto.maxListings,
       featuredUntil,
@@ -100,11 +130,51 @@ export class AdminController {
     @Param('sellerId') sellerId: string,
     @Body() dto: UpdatePlanDto,
   ) {
-    const featuredUntil = dto.featuredUntil ? new Date(dto.featuredUntil) : undefined;
-    return this.adminService.setSellerPlan(sellerId, dto.planCode as any, {
+    const featuredUntil = dto.featuredUntil
+      ? new Date(dto.featuredUntil)
+      : undefined;
+    return this.adminService.setSellerPlan(sellerId, String(dto.planCode), {
       visibilityWeight: dto.visibilityWeight,
       maxListings: dto.maxListings,
       featuredUntil,
     });
+  }
+
+  @Delete('salons/:salonId')
+  deleteSalon(
+    @Param('salonId') salonId: string,
+    @Body() dto: DeleteEntityDto,
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.deleteSalonWithCascade(
+      salonId,
+      adminId ?? 'unknown',
+      dto?.reason,
+    );
+  }
+
+  @Post('salons/deleted/:archiveId/restore')
+  restoreSalon(@Param('archiveId') archiveId: string) {
+    return this.adminService.restoreDeletedSalon(archiveId);
+  }
+
+  @Get('audit')
+  getAudit() {
+    // Simple list; can be extended with query filters later
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    return (this.adminService as any).prisma?.adminActionLog
+      ? (this.adminService as any).prisma.adminActionLog.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 200,
+        })
+      : (this.adminService as any).prisma.$queryRawUnsafe(
+          'SELECT id, "adminId", action, "targetType", "targetId", reason, metadata, "createdAt" FROM "AdminActionLog" ORDER BY "createdAt" DESC LIMIT 200',
+        );
+  }
+
+  @Get('metrics')
+  getMetrics() {
+    return this.adminService.getMetrics();
   }
 }

@@ -15,7 +15,6 @@ import { SalonsService } from './salons.service';
 import { CreateSalonDto, UpdateSalonDto } from './dto';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { JwtGuard } from '../auth/guard/jwt.guard';
-import { User } from '@prisma/client';
 import { OptionalJwtAuthGuard } from 'src/auth/guard/optional-jwt.guard';
 
 @Controller('api/salons')
@@ -24,13 +23,13 @@ export class SalonsController {
 
   @UseGuards(JwtGuard)
   @Post()
-  create(@GetUser() user: User, @Body() createSalonDto: CreateSalonDto) {
+  create(@GetUser() user: any, @Body() createSalonDto: CreateSalonDto) {
     return this.salonsService.create(user.id, createSalonDto);
   }
 
   @UseGuards(JwtGuard)
   @Get('my-salon')
-  findMySalon(@GetUser() user: User, @Query('ownerId') ownerId?: string) {
+  findMySalon(@GetUser() user: any, @Query('ownerId') ownerId?: string) {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
     return this.salonsService.findMySalon(user, id);
   }
@@ -51,7 +50,7 @@ export class SalonsController {
     @Query('priceMax') priceMax: string,
     @Query('lat') lat: string,
     @Query('lon') lon: string,
-    @GetUser() user: User,
+    @GetUser() user: any,
   ) {
     return this.salonsService.findAllApproved(
       {
@@ -86,7 +85,7 @@ export class SalonsController {
   @UseGuards(JwtGuard)
   @Put('mine') // FIX: Changed from @Patch to @Put to match the frontend request
   updateMySalon(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Body() updateSalonDto: UpdateSalonDto,
     @Query('ownerId') ownerId?: string,
   ) {
@@ -97,7 +96,7 @@ export class SalonsController {
   @UseGuards(JwtGuard)
   @Patch('mine/availability')
   toggleAvailability(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Query('ownerId') ownerId?: string,
   ) {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
@@ -107,7 +106,7 @@ export class SalonsController {
   @UseGuards(JwtGuard)
   @Get('mine/bookings')
   findBookingsForMySalon(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Query('ownerId') ownerId?: string,
   ) {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
@@ -117,7 +116,7 @@ export class SalonsController {
   @UseGuards(JwtGuard)
   @Get('mine/services')
   findServicesForMySalon(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Query('ownerId') ownerId?: string,
   ) {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
@@ -126,7 +125,7 @@ export class SalonsController {
 
   @UseGuards(JwtGuard)
   @Delete(':id')
-  remove(@GetUser() user: User, @Param('id') id: string) {
+  remove(@GetUser() user: any, @Param('id') id: string) {
     return this.salonsService.remove(user, id);
   }
 }

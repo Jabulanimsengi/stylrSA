@@ -74,7 +74,7 @@ function DashboardPageContent() {
     }
     setIsLoading(true);
     try {
-      const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}`, { credentials: 'include' });
+      const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}`, { credentials: 'include', cache: 'no-store' as any });
       if (salonRes.status === 401) { router.push('/'); return; }
       if (salonRes.status === 404) { setSalon(null); setIsLoading(false); return; }
       if (!salonRes.ok) throw new Error('Could not fetch salon data.');
@@ -122,6 +122,24 @@ function DashboardPageContent() {
       fetchDashboardData();
     }
   }, [authStatus, ownerId, fetchDashboardData, router]);
+
+  // Refresh dashboard when admin updates visibility for this salon
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (payload: any) => {
+      try {
+        if (payload?.entity === 'salon') {
+          // If the currently viewed salon or owner matches, refresh
+          if ((salon?.id && payload.id === salon.id) || payload.id === ownerId) {
+            fetchDashboardData();
+            toast.success('Visibility updated');
+          }
+        }
+      } catch {}
+    };
+    socket.on('visibility:updated', handler);
+    return () => { socket.off('visibility:updated', handler); };
+  }, [socket, salon?.id, ownerId, fetchDashboardData]);
   
   const handleServiceSaved = (savedService: Service) => {
     if (editingService) {
@@ -324,6 +342,13 @@ function DashboardPageContent() {
                 <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">View Public Profile</Link>
                 <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary"><FaEdit /> Edit Profile</button>
               </div>
+            </div>
+            {/* Plan & Visibility summary */}
+            <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', marginTop: 8, fontSize: '0.95rem'}}>
+              <span><strong>Package:</strong> {salon.planCode ?? 'STARTER'}</span>
+              <span><strong>Visibility:</strong> {salon.visibilityWeight ?? 1}</span>
+              <span><strong>Max listings:</strong> {salon.maxListings ?? 2}</span>
+              <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString() : '—'}</span>
             </div>
         </header>
 
