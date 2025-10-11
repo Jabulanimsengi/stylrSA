@@ -17,7 +17,6 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { JwtGuard } from '../auth/guard/jwt.guard';
-import { User } from '@prisma/client';
 
 @Controller('api/services')
 export class ServicesController {
@@ -25,7 +24,7 @@ export class ServicesController {
 
   @UseGuards(JwtGuard)
   @Post()
-  create(@GetUser() user: User, @Body() createServiceDto: CreateServiceDto) {
+  create(@GetUser() user: any, @Body() createServiceDto: CreateServiceDto) {
     return this.servicesService.create(user, createServiceDto);
   }
 
@@ -88,7 +87,7 @@ export class ServicesController {
   @UseGuards(JwtGuard)
   @Patch(':id')
   update(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Param('id') id: string,
     @Body() updateServiceDto: UpdateServiceDto,
   ) {
@@ -97,7 +96,7 @@ export class ServicesController {
 
   @UseGuards(JwtGuard)
   @Delete(':id')
-  remove(@GetUser() user: User, @Param('id') id: string) {
+  remove(@GetUser() user: any, @Param('id') id: string) {
     return this.servicesService.remove(user, id);
   }
 }

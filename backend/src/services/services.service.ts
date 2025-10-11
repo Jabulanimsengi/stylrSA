@@ -7,13 +7,12 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class ServicesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(user: User, dto: CreateServiceDto) {
+  async create(user: any, dto: CreateServiceDto) {
     const salon = await this.prisma.salon.findUnique({
       where: { id: dto.salonId },
     });
@@ -51,7 +50,7 @@ export class ServicesService {
     return this.prisma.service.findUnique({ where: { id } });
   }
 
-  async update(user: User, id: string, dto: UpdateServiceDto) {
+  async update(user: any, id: string, dto: UpdateServiceDto) {
     const service = await this.prisma.service.findUnique({
       where: { id },
       include: { salon: true },
@@ -74,7 +73,7 @@ export class ServicesService {
     });
   }
 
-  async remove(user: User, id: string) {
+  async remove(user: any, id: string) {
     const service = await this.prisma.service.findUnique({
       where: { id },
       include: { salon: true },
@@ -192,7 +191,7 @@ export class ServicesService {
       sortBy,
     } = filters || {};
 
-    const where: Prisma.ServiceWhereInput = {
+    const where: any = {
       approvalStatus: 'APPROVED',
     };
 
@@ -211,7 +210,7 @@ export class ServicesService {
       if (priceMin) where.price.gte = Number(priceMin);
       if (priceMax) where.price.lte = Number(priceMax);
     }
-    const salonFilter: Prisma.SalonWhereInput = {};
+    const salonFilter: any = {};
     if (province) {
       salonFilter.province = {
         equals: String(province),

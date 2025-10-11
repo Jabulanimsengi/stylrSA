@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSalonDto, UpdateSalonDto } from './dto';
-import { BookingType, User, Prisma } from '@prisma/client';
 import { compareByVisibilityThenRecency } from 'src/common/visibility';
 
 @Injectable()
@@ -35,8 +34,8 @@ export class SalonsService {
       phoneNumber: (dto as any).phone ?? (dto as any).phoneNumber,
       offersMobile: (dto as any).offersMobile,
       mobileFee: (dto as any).mobileFee,
-      bookingType: ((dto as any).bookingType as BookingType) ?? 'ONSITE',
-      operatingHours: (dto as any).operatingHours || Prisma.JsonNull,
+      bookingType: (dto as any).bookingType ?? 'ONSITE',
+      operatingHours: (dto as any).operatingHours ?? null,
       // Ensure required array field is always provided
       operatingDays: (Array.isArray((dto as any).operatingDays)
         ? (dto as any).operatingDays
@@ -116,7 +115,7 @@ export class SalonsService {
     return salon;
   }
 
-  async update(user: User, id: string, dto: UpdateSalonDto) {
+  async update(user: any, id: string, dto: UpdateSalonDto) {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
     });
@@ -166,9 +165,7 @@ export class SalonsService {
       }
     }
 
-    if (updateData.bookingType) {
-      updateData.bookingType = updateData.bookingType as BookingType;
-    }
+    // bookingType passes through as a string
     // operatingHours already whitelisted above; no extra transformation required
 
     return this.prisma.salon.update({
@@ -177,7 +174,7 @@ export class SalonsService {
     });
   }
 
-  async remove(user: User, id: string) {
+  async remove(user: any, id: string) {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
     });
@@ -198,14 +195,14 @@ export class SalonsService {
     });
   }
 
-  async findMySalon(user: User, ownerId: string) {
+  async findMySalon(user: any, ownerId: string) {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to view this salon');
     }
     return this.prisma.salon.findFirst({ where: { ownerId } });
   }
 
-  async findAllApproved(filters: any, user: User) {
+  async findAllApproved(filters: any, user: any) {
     const {
       province,
       city,
@@ -221,7 +218,7 @@ export class SalonsService {
       lon,
     } = filters || {};
 
-    const where: Prisma.SalonWhereInput = {
+    const where: any = {
       approvalStatus: 'APPROVED',
     };
 
@@ -238,7 +235,7 @@ export class SalonsService {
     if (openNow === 'true' || openNow === true) where.isAvailableNow = true;
 
     // Service-based filters
-    const servicesFilter: Prisma.ServiceWhereInput = {};
+    const servicesFilter: any = {};
     if (service || q) {
       servicesFilter.title = {
         contains: String(service || q),
@@ -263,7 +260,7 @@ export class SalonsService {
       (where as any).services = { some: servicesFilter };
     }
 
-    let orderBy: Prisma.SalonOrderByWithRelationInput | undefined;
+    let orderBy: any | undefined;
     if (sortBy === 'rating' || sortBy === 'top_rated')
       orderBy = { avgRating: 'desc' };
 
@@ -336,7 +333,7 @@ export class SalonsService {
       });
       const minMap = new Map(mins.map((m) => [m.salonId, m._min.price ?? 0]));
       salons = salons.sort(
-        (a, b) => (minMap.get(a.id) ?? 0) - (minMap.get(b.id) ?? 0),
+        (a, b) => Number(minMap.get(a.id) ?? 0) - Number(minMap.get(b.id) ?? 0),
       );
     }
 
@@ -348,7 +345,7 @@ export class SalonsService {
     return this.prisma.salon.findMany();
   }
 
-  async updateMySalon(user: User, dto: UpdateSalonDto, ownerId: string) {
+  async updateMySalon(user: any, dto: UpdateSalonDto, ownerId: string) {
     // FIX: Allow ADMIN to update any salon
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException(
@@ -364,7 +361,7 @@ export class SalonsService {
     return this.update(user, salon.id, dto);
   }
 
-  async toggleAvailability(user: User, ownerId: string) {
+  async toggleAvailability(user: any, ownerId: string) {
     // FIX: Allow ADMIN to update any salon
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException(
@@ -383,7 +380,7 @@ export class SalonsService {
     });
   }
 
-  async findBookingsForMySalon(user: User, ownerId: string) {
+  async findBookingsForMySalon(user: any, ownerId: string) {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to view these bookings',
@@ -404,7 +401,7 @@ export class SalonsService {
     });
   }
 
-  async findServicesForMySalon(user: User, ownerId: string) {
+  async findServicesForMySalon(user: any, ownerId: string) {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to view these services',

@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -63,11 +62,7 @@ export class ChatService {
           readAt: true,
         },
       },
-    } satisfies Prisma.ConversationInclude;
-
-    type ConversationWithRelations = Prisma.ConversationGetPayload<{
-      include: typeof conversationInclude;
-    }>;
+    } as const;
 
     const conversations = await this.prisma.conversation.findMany({
       where: {
@@ -80,7 +75,7 @@ export class ChatService {
     });
 
     return Promise.all(
-      conversations.map(async (conversation: ConversationWithRelations) => {
+      conversations.map(async (conversation: any) => {
         const {
           messages: messagesList = [],
           user1,

@@ -3,7 +3,6 @@ import { PromotionsService } from './promotions.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { GetUser } from '../auth/decorator/get-user.decorator';
-import { User } from '@prisma/client';
 
 @UseGuards(JwtGuard)
 @Controller('api/promotions')
@@ -12,14 +11,14 @@ export class PromotionsController {
 
   @Post()
   create(
-    @GetUser() user: User,
+    @GetUser() user: any,
     @Body() createPromotionDto: CreatePromotionDto,
   ) {
     return this.promotionsService.create(user, createPromotionDto);
   }
 
   @Get('salon/:salonId')
-  findForSalon(@GetUser() user: User, @Param('salonId') salonId: string) {
+  findForSalon(@GetUser() user: any, @Param('salonId') salonId: string) {
     return this.promotionsService.findForSalon(user, salonId);
   }
 }

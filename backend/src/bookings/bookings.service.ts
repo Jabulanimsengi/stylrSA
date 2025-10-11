@@ -5,12 +5,11 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { User, Service, Salon, Booking } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
-type ServiceWithSalon = Service & { salon: Salon };
-type BookingWithServiceAndSalon = Booking & { service: ServiceWithSalon };
+type ServiceWithSalon = any;
+type BookingWithServiceAndSalon = any;
 
 @Injectable()
 export class BookingsService {
@@ -20,7 +19,7 @@ export class BookingsService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async create(user: User, dto: CreateBookingDto) {
+  async create(user: any, dto: CreateBookingDto) {
     const service: ServiceWithSalon | null =
       await this.prisma.service.findUnique({
         where: { id: dto.serviceId },
@@ -66,7 +65,7 @@ export class BookingsService {
     return booking;
   }
 
-  async findAllForUser(user: User) {
+  async findAllForUser(user: any) {
     return this.prisma.booking.findMany({
       where: { userId: user.id },
       include: {
@@ -79,7 +78,7 @@ export class BookingsService {
     });
   }
 
-  async findOne(user: User, id: string) {
+  async findOne(user: any, id: string) {
     const booking: BookingWithServiceAndSalon | null =
       await this.prisma.booking.findUnique({
         where: { id },
@@ -109,7 +108,7 @@ export class BookingsService {
   }
 
   async updateStatus(
-    user: User,
+    user: any,
     id: string,
     status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED',
   ) {
@@ -159,7 +158,7 @@ export class BookingsService {
     return updatedBooking;
   }
 
-  async remove(user: User, id: string) {
+  async remove(user: any, id: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
     });

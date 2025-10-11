@@ -8,7 +8,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Message } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @WebSocketGateway({
@@ -312,7 +311,7 @@ export class EventsGateway {
     return `conversation:${conversationId}`;
   }
 
-  private serializeMessage(message: Message) {
+  private serializeMessage(message: any) {
     return {
       ...message,
       createdAt: message.createdAt.toISOString(),
