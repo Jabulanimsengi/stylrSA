@@ -675,7 +675,7 @@ export class AdminService {
 
   async restoreDeletedSalon(archiveId: string) {
     // Load archive
-    let archive: any | null = null;
+    let archive: Record<string, any> | null = null;
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       archive = await (this.prisma as any).deletedSalonArchive?.findUnique?.({
@@ -701,7 +701,7 @@ export class AdminService {
     const ownerId: string = archive.ownerId as string;
     const salonData: any = archive.salon ?? {};
     const servicesData: any[] = Array.isArray(archive.services)
-      ? (archive.services as any[])
+      ? archive.services
       : [];
 
     // Ensure no existing salon blocks restoration (ownerId is unique on Salon)
@@ -805,7 +805,9 @@ export class AdminService {
         targetType: 'SALON',
         targetId: createdSalon.id,
       });
-    } catch {}
+    } catch {
+      // noop
+    }
 
     return createdSalon;
   }

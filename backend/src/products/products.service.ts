@@ -44,10 +44,8 @@ export class ProductsService {
             firstName: true,
             lastName: true,
             email: true,
-            // following fields may not exist in older prisma types (ignore type mismatch if any)
-            // @ts-ignore
+            // following fields may not exist in older prisma types
             sellerVisibilityWeight: true,
-            // @ts-ignore
             sellerFeaturedUntil: true,
           },
         },
