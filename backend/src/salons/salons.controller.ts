@@ -95,10 +95,7 @@ export class SalonsController {
 
   @UseGuards(JwtGuard)
   @Patch('mine/availability')
-  toggleAvailability(
-    @GetUser() user: any,
-    @Query('ownerId') ownerId?: string,
-  ) {
+  toggleAvailability(@GetUser() user: any, @Query('ownerId') ownerId?: string) {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
     return this.salonsService.toggleAvailability(user, id);
   }

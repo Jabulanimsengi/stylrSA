@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from './HomePage.module.css';
-import FilterBar from '@/components/FilterBar/FilterBar';
+import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSocket } from '@/context/SocketContext';
 import { Service } from '@/types';
@@ -128,9 +128,23 @@ export default function HomePage() {
     };
   }, [handleObserver]);
 
-  const handleSearch = (filters: any) => {
-    const query = new URLSearchParams(filters).toString();
-    router.push(`/salons?${query}`);
+  const handleSearch = (filters: FilterValues) => {
+    const query = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (typeof value === 'boolean') {
+        if (value) {
+          query.append(key, 'true');
+        }
+        return;
+      }
+      if (value.trim().length > 0) {
+        query.append(key, value);
+      }
+    });
+    const queryString = query.toString();
+    const hasServiceQuery = filters.service.trim().length > 0;
+    const targetPath = hasServiceQuery ? '/services' : '/salons';
+    router.push(`${targetPath}${queryString ? `?${queryString}` : ''}`);
   };
 
   return (

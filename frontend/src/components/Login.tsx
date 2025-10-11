@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { signIn } from 'next-auth/react';
 import styles from '../app/auth.module.css';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 import { User } from '@/types';
 import { apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
+import { FaGoogle } from 'react-icons/fa';
 
 // Define the props that this component will accept
 interface LoginProps {
@@ -80,6 +82,17 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             </button>
           </div>
         </form>
+        <div className={styles.oauthSection}>
+          <div className={styles.oauthDivider}>or continue with</div>
+          <button
+            type="button"
+            className={styles.oauthButton}
+            onClick={() => signIn('google', { callbackUrl: '/salons' })}
+          >
+            <FaGoogle aria-hidden />
+            Continue with Google
+          </button>
+        </div>
         <p className={styles.footerText}>
           Don't have an account?{' '}
           <a href="#" onClick={(e) => { e.preventDefault(); switchToRegister(); }} className={styles.footerLink}>

@@ -1,14 +1,41 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './FilterBar.module.css';
 import { apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 
+export interface FilterValues {
+  province: string;
+  city: string;
+  service: string;
+  category: string;
+  offersMobile: boolean;
+  sortBy: string;
+  openNow: boolean;
+  priceMin: string;
+  priceMax: string;
+}
+
+type LocationsByProvince = Record<string, string[]>;
+
+interface ServiceSuggestion {
+  id: string;
+  title: string;
+  salon?: string;
+}
+
+type AutocompletePayload = Array<{
+  id?: string;
+  title?: string | null;
+  salon?: { name?: string | null } | null;
+  salonName?: string | null;
+}>;
+
 interface FilterBarProps {
-  onSearch: (filters: any) => void;
-  initialFilters?: any;
+  onSearch: (filters: FilterValues) => void;
+  initialFilters?: Partial<FilterValues>;
   isHomePage?: boolean;
 }
 
@@ -17,7 +44,7 @@ export default function FilterBar({
   initialFilters = {},
   isHomePage = false,
 }: FilterBarProps) {
-  const [locations, setLocations] = useState<any>({});
+  const [locations, setLocations] = useState<LocationsByProvince>({});
   const [province, setProvince] = useState(initialFilters.province || '');
   const [city, setCity] = useState(initialFilters.city || '');
   const [serviceSearch, setServiceSearch] = useState(initialFilters.service || '');
@@ -31,17 +58,21 @@ export default function FilterBar({
   const [priceMax, setPriceMax] = useState(initialFilters.priceMax || '');
   const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [serviceSuggestions, setServiceSuggestions] = useState<{ id: string; title: string; salon?: string }[]>([]);
+  const [serviceSuggestions, setServiceSuggestions] = useState<ServiceSuggestion[]>([]);
   const [isServiceLoading, setIsServiceLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionsRef = useRef<HTMLUListElement | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deferredServiceSearch = useDeferredValue(serviceSearch);
   const router = useRouter();
 
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const data = await apiJson('/api/locations');
-        setLocations(data);
+        const data = await apiJson<LocationsByProvince>('/api/locations');
+        if (data && typeof data === 'object') {
+          setLocations(data);
+        }
       } catch (e) {
         // Non-blocking: silently ignore, fields remain empty
         console.debug('Locations load failed:', toFriendlyMessage(e));
@@ -49,8 +80,10 @@ export default function FilterBar({
     };
     const fetchCategories = async () => {
       try {
-        const data = await apiJson('/api/categories');
-        setCategories(data);
+        const data = await apiJson<Array<{ id: string; name: string }>>('/api/categories');
+        if (Array.isArray(data)) {
+          setCategories(data);
+        }
       } catch (e) {
         console.debug('Categories load failed:', toFriendlyMessage(e));
       }
@@ -59,43 +92,43 @@ export default function FilterBar({
     fetchCategories();
   }, []);
 
-  const handleSearch = useCallback(() => {
-    onSearch({
-      province,
-      city,
-      service: serviceSearch,
-      category,
-      offersMobile,
-      sortBy,
-      openNow,
-      priceMin,
-      priceMax,
-    });
-  }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, onSearch]);
+  const buildFilters = useCallback((): FilterValues => ({
+    province,
+    city,
+    service: serviceSearch,
+    category,
+    offersMobile,
+    sortBy,
+    openNow,
+    priceMin,
+    priceMax,
+  }), [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax]);
+
+  const triggerSearch = useCallback((filters: FilterValues) => {
+    onSearch(filters);
+  }, [onSearch]);
 
   useEffect(() => {
     if (!isHomePage) {
       const handler = setTimeout(() => {
-        handleSearch();
+        const nextFilters = buildFilters();
+        triggerSearch(nextFilters);
       }, 300); // Debounce
       return () => clearTimeout(handler);
     }
-  }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, isHomePage, handleSearch]);
+  }, [buildFilters, triggerSearch, isHomePage]);
 
   const handleSearchClick = () => {
-    const query = new URLSearchParams({
-      province,
-      city,
-      service: serviceSearch,
-      category,
-      offersMobile: String(offersMobile),
-      sortBy,
-      openNow: String(openNow),
-    });
-    if (priceMin) query.set('priceMin', String(priceMin));
-    if (priceMax) query.set('priceMax', String(priceMax));
-    const hasServiceQuery = serviceSearch && serviceSearch.trim().length > 0;
-    router.push(`${hasServiceQuery ? '/services' : '/salons'}?${query.toString()}`);
+    if (isSubmitting) return;
+    const filters = buildFilters();
+    setIsSubmitting(true);
+    triggerSearch(filters);
+    if (submitResetTimer.current) {
+      clearTimeout(submitResetTimer.current);
+    }
+    submitResetTimer.current = setTimeout(() => {
+      setIsSubmitting(false);
+    }, 1500);
   };
 
   const handleFindNearby = () => {
@@ -118,9 +151,61 @@ export default function FilterBar({
     );
   };
 
-  const handleWeekendFilter = (day: 'Saturday' | 'Sunday', isChecked: boolean) => {
-    // Deprecated in favor of openNow; keep function to avoid runtime errors if referenced
-  };
+  useEffect(() => {
+    const query = deferredServiceSearch.trim();
+    if (query.length <= 1) {
+      setServiceSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsServiceLoading(true);
+    const controller = new AbortController();
+
+    apiJson<AutocompletePayload>(`/api/services/autocomplete?q=${encodeURIComponent(query)}`, {
+      signal: controller.signal,
+    })
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) {
+          return;
+        }
+        const suggestions = data.reduce<ServiceSuggestion[]>((acc, item, index) => {
+          const title = (item?.title ?? '').trim();
+          if (!title) return acc;
+          const id = item?.id ?? `suggestion-${index}`;
+          const salonName = item?.salon?.name ?? item?.salonName ?? undefined;
+          acc.push({ id, title, salon: salonName ?? undefined });
+          return acc;
+        }, []);
+        setServiceSuggestions(suggestions);
+        setShowSuggestions(suggestions.length > 0);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setServiceSuggestions([]);
+          setShowSuggestions(false);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsServiceLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [deferredServiceSearch]);
+
+  useEffect(() => {
+    return () => {
+      if (submitResetTimer.current) {
+        clearTimeout(submitResetTimer.current);
+      }
+    };
+  }, []);
 
   return (
     <div
@@ -175,29 +260,7 @@ export default function FilterBar({
           onChange={(e) => {
             const val = e.target.value;
             setServiceSearch(val);
-            if (val.trim().length > 1) {
-              const q = encodeURIComponent(val);
-              setIsServiceLoading(true);
-              apiJson(`/api/services/autocomplete?q=${q}`)
-                .then((data: any) => {
-                  const mapped = Array.isArray(data)
-                    ? data
-                        .map((item) => ({
-                          id: item?.id ?? `${item?.title}-${Math.random()}`,
-                          title: item?.title ?? '',
-                          salon: item?.salon?.name ?? item?.salonName ?? '',
-                        }))
-                        .filter((item) => item.title.trim().length > 0)
-                    : [];
-                  setServiceSuggestions(mapped);
-                  setShowSuggestions(mapped.length > 0);
-                })
-                .catch(() => {
-                  setServiceSuggestions([]);
-                  setShowSuggestions(false);
-                })
-                .finally(() => setIsServiceLoading(false));
-            } else {
+            if (val.trim().length <= 1) {
               setServiceSuggestions([]);
               setShowSuggestions(false);
             }
@@ -211,7 +274,7 @@ export default function FilterBar({
           }}
         />
         {showSuggestions && (
-          <ul className={styles.suggestionsList} ref={suggestionsRef}>
+          <ul className={styles.suggestionsList}>
             {isServiceLoading && (
               <li className={`${styles.suggestionItem} ${styles.suggestionLoading}`}>Searching…</li>
             )}
@@ -310,8 +373,8 @@ export default function FilterBar({
         {isGeoLoading ? 'Finding...' : '📍 Near Me'}
       </button>
       {isHomePage && (
-        <button onClick={handleSearchClick} className={styles.searchButton}>
-          Search
+        <button onClick={handleSearchClick} className={styles.searchButton} disabled={isSubmitting}>
+          {isSubmitting ? 'Searching…' : 'Search'}
         </button>
       )}
     </div>

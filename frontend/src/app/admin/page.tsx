@@ -376,7 +376,7 @@ export default function AdminPage() {
                         className={styles.approveButton}
                         onClick={() => {
                           setEditingSalonId(salon.id);
-                          setDraftPlan(salon.planCode ?? 'STARTER');
+                          setDraftPlan((salon.planCode ?? 'STARTER').toUpperCase());
                           setDraftWeight(String(salon.visibilityWeight ?? ''));
                           setDraftMax(String(salon.maxListings ?? ''));
                           setDraftFeatured(salon.featuredUntil ? new Date(salon.featuredUntil).toISOString().slice(0,16) : '');
@@ -402,16 +402,19 @@ export default function AdminPage() {
                       <button
                         className={styles.approveButton}
                         onClick={async ()=>{
+                          const allowedPlans = ['STARTER','ESSENTIAL','GROWTH','PRO','ELITE'] as const;
+                          const normalizedPlan = (draftPlan ?? '').toUpperCase();
                           const visibilityWeight = Number(draftWeight);
                           const maxListings = Number(draftMax);
                           const featuredUntil = draftFeatured;
-                          const body: any = {};
-                          const allowedPlans = ['STARTER','ESSENTIAL','GROWTH','PRO','ELITE'];
-                          if (allowedPlans.includes(draftPlan)) body.planCode = draftPlan;
+                          const body: Record<string, unknown> = {};
+                          if (allowedPlans.includes(normalizedPlan as typeof allowedPlans[number])) {
+                            body.planCode = normalizedPlan;
+                          }
                           if (!Number.isNaN(visibilityWeight) && draftWeight !== '') body.visibilityWeight = visibilityWeight;
                           if (!Number.isNaN(maxListings) && draftMax !== '') body.maxListings = maxListings;
                           // Always send featuredUntil to allow clearing on server (null when empty)
-                          body.featuredUntil = featuredUntil ? featuredUntil : null;
+                          body.featuredUntil = featuredUntil ? new Date(featuredUntil).toISOString() : null;
                           const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
                           const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders}, credentials:'include', body: JSON.stringify(body)});
                           if (r.ok) {
@@ -420,10 +423,10 @@ export default function AdminPage() {
                             // Trust server response to avoid client drift
                             setAllSalons(prev => prev.map(s => s.id === salon.id ? {
                               ...s,
-                              planCode: updated.planCode ?? s.planCode,
-                              visibilityWeight: updated.visibilityWeight ?? s.visibilityWeight,
-                              maxListings: updated.maxListings ?? s.maxListings,
-                              featuredUntil: updated.featuredUntil ?? null,
+                              planCode: (updated?.planCode ?? body.planCode ?? s.planCode) as typeof s.planCode,
+                              visibilityWeight: updated?.visibilityWeight ?? (body.visibilityWeight as number | undefined) ?? s.visibilityWeight,
+                              maxListings: updated?.maxListings ?? (body.maxListings as number | undefined) ?? s.maxListings,
+                              featuredUntil: updated?.featuredUntil ?? (body.featuredUntil as string | null) ?? null,
                             } : s));
                             setEditingSalonId(null);
                             // Re-fetch from server to ensure persistence and avoid stale UI

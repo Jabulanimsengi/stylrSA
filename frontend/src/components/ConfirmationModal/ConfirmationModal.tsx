@@ -19,12 +19,12 @@ export default function ConfirmationModal({
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <p>{message}</p>
+        <p className={styles.message}>{message}</p>
         <div className={styles.buttonGroup}>
-          <button className="btn btn-secondary" onClick={onCancel}>
+          <button className={`${styles.actionButton} ${styles.cancelButton}`} onClick={onCancel}>
             {cancelText}
           </button>
-          <button className="btn btn-danger" onClick={onConfirm}>
+          <button className={`${styles.actionButton} ${styles.confirmButton}`} onClick={onConfirm}>
             {confirmText}
           </button>
         </div>

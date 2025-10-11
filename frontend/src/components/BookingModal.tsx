@@ -1,5 +1,5 @@
 // frontend/src/components/BookingModal.tsx
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useTransition } from 'react';
 import { Salon, Service, Booking } from '@/types';
 import styles from './BookingModal.module.css';
 import { toast } from 'react-toastify';
@@ -24,6 +24,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
   const [clientPhone, setClientPhone] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const { authStatus, user } = useAuth(); // Get the user object
   const { openModal } = useAuthModal();
   const socket = useSocket(); // Get the socket instance
@@ -83,7 +84,9 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } catch {}
-      onBookingSuccess(newBooking);
+      startTransition(() => {
+        onBookingSuccess(newBooking);
+      });
 
     } catch (error: any) {
       toast.error(toFriendlyMessage(error, 'Could not send booking request. Please try again.'));
@@ -93,6 +96,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
   };
 
   const totalCost = service.price + (isMobile && salon.mobileFee ? salon.mobileFee : 0);
+  const isSubmitDisabled = isLoading || isPending;
 
   return (
     <div className={styles.modalOverlay}>
@@ -157,8 +161,8 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
 
             <div className={styles.buttonContainer}>
                 <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-                <button type="submit" disabled={isLoading} className="btn btn-primary">
-                    {isLoading ? 'Sending Request...' : 'Request Booking'}
+                <button type="submit" disabled={isSubmitDisabled} className="btn btn-primary">
+                    {isLoading ? 'Sending Request...' : isPending ? 'Finalising…' : 'Request Booking'}
                 </button>
             </div>
         </form>

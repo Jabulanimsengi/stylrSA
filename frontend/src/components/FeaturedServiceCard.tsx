@@ -40,7 +40,7 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
   const isCloudinarySource = typeof primaryImage === 'string' && primaryImage.includes('/image/upload/');
 
   return (
-    <Link href={`/salons/${salonId}`} className={styles.card}>
+    <Link href={`/salons/${salonId}`} className={styles.card} prefetch>
       <div className={styles.cardImageWrapper}>
         <Image
           src={optimizedSrc}

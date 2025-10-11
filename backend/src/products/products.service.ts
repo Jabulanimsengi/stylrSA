@@ -17,7 +17,7 @@ export class ProductsService {
     const currentCount = await this.prisma.product.count({
       where: { sellerId: user.id },
     });
-    const maxListings = (user as any).sellerMaxListings ?? 2;
+    const maxListings = user.sellerMaxListings ?? 2;
     if (currentCount >= maxListings) {
       throw new ForbiddenException(
         `Listing limit reached for your plan (max ${maxListings} products). Upgrade your plan to add more.`,
@@ -70,13 +70,13 @@ export class ProductsService {
     });
   }
 
-  async findMyProducts(user: any) {
+  findMyProducts(user: any) {
     return this.prisma.product.findMany({
       where: { sellerId: user.id },
     });
   }
 
-  async findProductsForSeller(user: any, sellerId: string) {
+  findProductsForSeller(user: any, sellerId: string) {
     if (user.id !== sellerId && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'You are not authorized to view these products.',

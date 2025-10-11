@@ -27,21 +27,26 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    return [
-      // Keep NextAuth routes on the frontend, do not proxy to backend
-      {
-        source: "/api/auth/:path*",
-        destination: "/api/auth/:path*",
-      },
-      {
-        source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:3000"}/api/:path*`,
-      },
-      {
-        source: "/socket.io/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:3000"}/socket.io/:path*`,
-      },
-    ];
+    const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:3000";
+    return {
+      beforeFiles: [
+        // Proxy credential REST endpoints to backend while keeping NextAuth handled locally
+        { source: "/api/auth/login", destination: `${apiOrigin}/api/auth/login` },
+        { source: "/api/auth/register", destination: `${apiOrigin}/api/auth/register` },
+        { source: "/api/auth/status", destination: `${apiOrigin}/api/auth/status` },
+        { source: "/api/auth/logout", destination: `${apiOrigin}/api/auth/logout` },
+      ],
+      fallback: [
+        {
+          source: "/socket.io/:path*",
+          destination: `${apiOrigin}/socket.io/:path*`,
+        },
+        {
+          source: "/api/:path*",
+          destination: `${apiOrigin}/api/:path*`,
+        },
+      ],
+    };
   },
 };
 

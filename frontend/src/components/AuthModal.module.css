@@ -8,15 +8,17 @@
   justify-content: center;
   align-items: center;
   z-index: 1001;
+  padding: clamp(1rem, 2vw, 2.5rem);
 }
 
 .modalContent {
   position: relative;
   background-color: var(--color-surface-elevated);
   border-radius: 0.5rem;
-  padding: 2rem;
-  width: 100%;
-  max-width: 28rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  width: min(100%, 28rem);
+  max-height: min(92vh, 720px);
+  overflow-y: auto;
   color: var(--color-text-strong);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -60,6 +62,13 @@
   color: var(--color-primary);
   border-bottom: 2px solid var(--color-primary);
   font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .modalContent {
+    border-radius: 0.35rem;
+    padding: clamp(1.25rem, 4vw, 1.75rem);
+  }
 }
 
 /* General styles for form elements within the modal */
