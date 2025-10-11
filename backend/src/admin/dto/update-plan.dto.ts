@@ -1,4 +1,9 @@
-import { PlanCode } from '@prisma/client';
+export type PlanCode =
+  | 'STARTER'
+  | 'ESSENTIAL'
+  | 'GROWTH'
+  | 'PRO'
+  | 'ELITE';
 
 export class UpdatePlanDto {
   planCode: PlanCode;
