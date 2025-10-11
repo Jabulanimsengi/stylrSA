@@ -9,8 +9,8 @@ export default function Footer() {
       <div className={styles.footerContent}>
         <div className={styles.footerSection}>
           <Link href="/" className={styles.logoLink}>
-            <Image 
-              src="/logo-transparent.png" 
+            <Image
+              src="/logo-white.png"
               alt="Mzansi Salon Hub Logo"
               width={185}
               height={45}

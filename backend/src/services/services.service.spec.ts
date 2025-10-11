@@ -13,6 +13,7 @@ describe('ServicesService ordering by visibility', () => {
         findUnique: jest.fn(),
       },
     } as any;
+    // @ts-ignore
     service = new ServicesService(prisma);
   });
 

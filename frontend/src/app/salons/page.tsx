@@ -11,6 +11,7 @@ import styles from './SalonsPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { FaHome, FaArrowLeft, FaHeart } from 'react-icons/fa';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
+import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
@@ -144,7 +145,13 @@ function SalonsPageContent() {
       <FilterBar onSearch={fetchSalons} initialFilters={initialFilters} />
 
       {isLoading ? (
-        <LoadingSpinner />
+        salons.length === 0 ? (
+          <SkeletonGroup count={8} className={styles.salonGrid}>
+            {() => <SkeletonCard hasImage lines={3} />}
+          </SkeletonGroup>
+        ) : (
+          <LoadingSpinner />
+        )
       ) : salons.length === 0 ? (
         <p>No salons found matching your criteria.</p>
       ) : (

@@ -37,12 +37,18 @@ interface FilterBarProps {
   onSearch: (filters: FilterValues) => void;
   initialFilters?: Partial<FilterValues>;
   isHomePage?: boolean;
+  autoSearch?: boolean;
+  showSearchButton?: boolean;
+  isSearching?: boolean;
 }
 
 export default function FilterBar({
   onSearch,
   initialFilters = {},
   isHomePage = false,
+  autoSearch,
+  showSearchButton = isHomePage,
+  isSearching = false,
 }: FilterBarProps) {
   const [locations, setLocations] = useState<LocationsByProvince>({});
   const [province, setProvince] = useState(initialFilters.province || '');
@@ -50,10 +56,10 @@ export default function FilterBar({
   const [serviceSearch, setServiceSearch] = useState(initialFilters.service || '');
   const [category, setCategory] = useState(initialFilters.category || '');
   const [offersMobile, setOffersMobile] = useState(
-    initialFilters.offersMobile || false
+    initialFilters.offersMobile ?? false
   );
   const [sortBy, setSortBy] = useState(initialFilters.sortBy || '');
-  const [openNow, setOpenNow] = useState(initialFilters.openNow || false);
+  const [openNow, setOpenNow] = useState(initialFilters.openNow ?? false);
   const [priceMin, setPriceMin] = useState(initialFilters.priceMin || '');
   const [priceMax, setPriceMax] = useState(initialFilters.priceMax || '');
   const [isGeoLoading, setIsGeoLoading] = useState(false);
@@ -61,10 +67,20 @@ export default function FilterBar({
   const [serviceSuggestions, setServiceSuggestions] = useState<ServiceSuggestion[]>([]);
   const [isServiceLoading, setIsServiceLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const submitResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deferredServiceSearch = useDeferredValue(serviceSearch);
   const router = useRouter();
+  const enableAutoSearch = autoSearch ?? !isHomePage;
+  const lastEmittedFiltersRef = useRef<string>('');
+
+  const initialProvince = initialFilters.province ?? '';
+  const initialCity = initialFilters.city ?? '';
+  const initialService = initialFilters.service ?? '';
+  const initialCategory = initialFilters.category ?? '';
+  const initialOffersMobile = initialFilters.offersMobile ?? false;
+  const initialSortBy = initialFilters.sortBy ?? '';
+  const initialOpenNow = initialFilters.openNow ?? false;
+  const initialPriceMin = initialFilters.priceMin ?? '';
+  const initialPriceMax = initialFilters.priceMax ?? '';
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -104,31 +120,29 @@ export default function FilterBar({
     priceMax,
   }), [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax]);
 
-  const triggerSearch = useCallback((filters: FilterValues) => {
+  const triggerSearch = useCallback((filters: FilterValues, force = false) => {
+    const serialized = JSON.stringify(filters);
+    if (!force && serialized === lastEmittedFiltersRef.current) {
+      return;
+    }
+    lastEmittedFiltersRef.current = serialized;
     onSearch(filters);
   }, [onSearch]);
 
   useEffect(() => {
-    if (!isHomePage) {
-      const handler = setTimeout(() => {
-        const nextFilters = buildFilters();
-        triggerSearch(nextFilters);
-      }, 300); // Debounce
-      return () => clearTimeout(handler);
+    if (!enableAutoSearch) {
+      return;
     }
-  }, [buildFilters, triggerSearch, isHomePage]);
+    const handler = setTimeout(() => {
+      const nextFilters = buildFilters();
+      triggerSearch(nextFilters);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [buildFilters, triggerSearch, enableAutoSearch]);
 
   const handleSearchClick = () => {
-    if (isSubmitting) return;
     const filters = buildFilters();
-    setIsSubmitting(true);
-    triggerSearch(filters);
-    if (submitResetTimer.current) {
-      clearTimeout(submitResetTimer.current);
-    }
-    submitResetTimer.current = setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
+    triggerSearch(filters, true);
   };
 
   const handleFindNearby = () => {
@@ -200,12 +214,26 @@ export default function FilterBar({
   }, [deferredServiceSearch]);
 
   useEffect(() => {
-    return () => {
-      if (submitResetTimer.current) {
-        clearTimeout(submitResetTimer.current);
-      }
-    };
-  }, []);
+    setProvince((prev) => (prev === initialProvince ? prev : initialProvince));
+    setCity((prev) => (prev === initialCity ? prev : initialCity));
+    setServiceSearch((prev) => (prev === initialService ? prev : initialService));
+    setCategory((prev) => (prev === initialCategory ? prev : initialCategory));
+    setOffersMobile((prev) => (prev === initialOffersMobile ? prev : initialOffersMobile));
+    setSortBy((prev) => (prev === initialSortBy ? prev : initialSortBy));
+    setOpenNow((prev) => (prev === initialOpenNow ? prev : initialOpenNow));
+    setPriceMin((prev) => (prev === initialPriceMin ? prev : initialPriceMin));
+    setPriceMax((prev) => (prev === initialPriceMax ? prev : initialPriceMax));
+  }, [
+    initialProvince,
+    initialCity,
+    initialService,
+    initialCategory,
+    initialOffersMobile,
+    initialSortBy,
+    initialOpenNow,
+    initialPriceMin,
+    initialPriceMax,
+  ]);
 
   return (
     <div
@@ -372,9 +400,9 @@ export default function FilterBar({
       >
         {isGeoLoading ? 'Finding...' : '📍 Near Me'}
       </button>
-      {isHomePage && (
-        <button onClick={handleSearchClick} className={styles.searchButton} disabled={isSubmitting}>
-          {isSubmitting ? 'Searching…' : 'Search'}
+      {showSearchButton && (
+        <button onClick={handleSearchClick} className={styles.searchButton} disabled={isSearching}>
+          {isSearching ? 'Searching…' : 'Search'}
         </button>
       )}
     </div>

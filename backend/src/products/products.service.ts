@@ -8,6 +8,14 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { calculateVisibilityScore } from 'src/common/visibility';
 
+interface ProductFilters {
+  category?: string;
+  priceMin?: string;
+  priceMax?: string;
+  search?: string;
+  inStock?: string;
+}
+
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
@@ -32,9 +40,45 @@ export class ProductsService {
     });
   }
 
-  async findAllApproved() {
+  async findAllApproved(filters: ProductFilters = {}) {
+    const { category, priceMin, priceMax, search, inStock } = filters;
+
+    const where: any = {
+      approvalStatus: 'APPROVED',
+    };
+
+    if (category) {
+      where.category = { equals: category, mode: 'insensitive' };
+    }
+
+    if (search) {
+      const term = search.trim();
+      if (term.length > 0) {
+        where.OR = [
+          { name: { contains: term, mode: 'insensitive' } },
+          { description: { contains: term, mode: 'insensitive' } },
+        ];
+      }
+    }
+
+    if (priceMin || priceMax) {
+      where.price = {};
+      if (priceMin) {
+        const min = Number(priceMin);
+        if (!Number.isNaN(min)) where.price.gte = min;
+      }
+      if (priceMax) {
+        const max = Number(priceMax);
+        if (!Number.isNaN(max)) where.price.lte = max;
+      }
+    }
+
+    if (inStock === 'true') {
+      where.stock = { gt: 0 };
+    }
+
     const products = await this.prisma.product.findMany({
-      where: { approvalStatus: 'APPROVED' },
+      where,
       include: {
         seller: {
           select: {

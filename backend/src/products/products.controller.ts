@@ -9,6 +9,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -27,8 +28,20 @@ export class ProductsController {
   }
 
   @Get()
-  findAllApproved() {
-    return this.productsService.findAllApproved();
+  findAllApproved(
+    @Query('category') category?: string,
+    @Query('priceMin') priceMin?: string,
+    @Query('priceMax') priceMax?: string,
+    @Query('q') search?: string,
+    @Query('inStock') inStock?: string,
+  ) {
+    return this.productsService.findAllApproved({
+      category,
+      priceMin,
+      priceMax,
+      search,
+      inStock,
+    });
   }
 
   @UseGuards(JwtGuard)

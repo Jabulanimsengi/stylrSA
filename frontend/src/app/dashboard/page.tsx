@@ -11,7 +11,6 @@ import styles from './Dashboard.module.css';
 import ServiceFormModal from '@/components/ServiceFormModal';
 import EditSalonModal from '@/components/EditSalonModal';
 import { useSocket } from '@/context/SocketContext';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import GalleryUploadModal from '@/components/GalleryUploadModal';
 import ProductFormModal from '@/components/ProductFormModal';
@@ -22,6 +21,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { apiFetch, apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
@@ -232,7 +232,59 @@ function DashboardPageContent() {
     return styles.statusRejected;
   };
 
-  if (isLoading || authStatus === 'loading') return <LoadingSpinner />;
+  if (isLoading || authStatus === 'loading') {
+    return (
+      <div className={styles.container}>
+        <div className={styles.stickyHeader}>
+          <div className={styles.navButtonsContainer}>
+              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+          </div>
+          <Skeleton variant="text" style={{ width: '30%', height: 32 }} />
+          <div className={styles.headerSpacer}></div>
+        </div>
+
+        <header className={styles.header} aria-hidden>
+          <div className={styles.headerTop}>
+            <Skeleton variant="text" style={{ width: '45%', height: 28 }} />
+            <div className={styles.headerActions}>
+              <Skeleton variant="button" style={{ width: 160 }} />
+              <Skeleton variant="button" style={{ width: 180 }} />
+              <Skeleton variant="button" style={{ width: 140 }} />
+            </div>
+          </div>
+          <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', marginTop: 8}}>
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <Skeleton key={idx} variant="text" style={{ width: '18%', minWidth: 120, height: 20 }} />
+            ))}
+          </div>
+        </header>
+
+        <div className={styles.contentGrid} aria-hidden>
+          {Array.from({ length: 3 }).map((_, cardIdx) => (
+            <div key={cardIdx} className={styles.contentCard}>
+              <div className={styles.cardHeader}>
+                <Skeleton variant="text" style={{ width: '50%', height: 24 }} />
+                <Skeleton variant="button" style={{ width: '35%' }} />
+              </div>
+              <div className={styles.list}>
+                {Array.from({ length: 3 }).map((_, rowIdx) => (
+                  <div key={rowIdx} className={styles.listItem}>
+                    <Skeleton variant="text" style={{ width: '70%', height: 18 }} />
+                    <div className={styles.actions}>
+                      <Skeleton variant="text" style={{ width: 80, height: 18 }} />
+                      <Skeleton variant="button" style={{ width: 40 }} />
+                      <Skeleton variant="button" style={{ width: 40 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   
   if (user?.role === 'ADMIN' && !ownerId) {
     return (

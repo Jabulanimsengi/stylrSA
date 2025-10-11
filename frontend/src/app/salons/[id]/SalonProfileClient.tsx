@@ -10,7 +10,6 @@ import { FaHome, FaArrowLeft, FaHeart, FaWhatsapp, FaGlobe } from 'react-icons/f
 import { Salon, Service, GalleryImage, Review } from '@/types';
 import BookingModal from '@/components/BookingModal';
 import styles from './SalonProfile.module.css';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
 import { toast } from 'react-toastify';
@@ -19,6 +18,7 @@ import ImageLightbox from '@/components/ImageLightbox';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { useStartConversation } from '@/hooks/useStartConversation';
+import SalonProfileSkeleton from '@/components/Skeleton/SalonProfileSkeleton';
 
 type Props = {
   initialSalon: Salon | null;
@@ -265,7 +265,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     };
   }, [visibleReviewsCount, reviews.length]);
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading) return <SalonProfileSkeleton />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
 
   const heroImages = salon.heroImages || [];

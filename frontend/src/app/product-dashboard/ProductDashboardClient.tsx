@@ -6,10 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/useAuth';
 import { Product, ProductOrder, ProductOrderStatus } from '@/types';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import ProductFormModal from '@/components/ProductFormModal';
 import ConfirmationModal from '@/components/ConfirmationModal/ConfirmationModal';
 import styles from './ProductDashboard.module.css';
+import { Skeleton, SkeletonGroup } from '@/components/Skeleton/Skeleton';
 
 type TabKey = 'products' | 'orders';
 const tabs: { key: TabKey; label: string }[] = [
@@ -152,7 +152,41 @@ export default function ProductDashboardClient() {
   }, [authStatus, activeTab, isProductsLoading]);
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>Product Dashboard</h1>
+        <div className={styles.tabBar} aria-hidden>
+          {tabs.map((tab) => (
+            <Skeleton
+              key={tab.key}
+              variant="button"
+              style={{ width: '45%' }}
+            />
+          ))}
+        </div>
+        <div className={styles.toolbar} aria-hidden>
+          <Skeleton variant="button" style={{ width: '30%' }} />
+        </div>
+        <SkeletonGroup count={3} className={styles.productList}>
+          {() => (
+            <div className={styles.productCard} aria-hidden>
+              <div className={styles.productImageWrapper}>
+                <Skeleton style={{ width: '100%', height: '100%' }} />
+              </div>
+              <div className={styles.productInfo}>
+                <Skeleton variant="text" style={{ width: '60%' }} />
+                <Skeleton variant="text" style={{ width: '40%' }} />
+                <Skeleton variant="text" style={{ width: '30%' }} />
+                <div className={styles.actions}>
+                  <Skeleton variant="button" style={{ width: '45%' }} />
+                  <Skeleton variant="button" style={{ width: '45%' }} />
+                </div>
+              </div>
+            </div>
+          )}
+        </SkeletonGroup>
+      </div>
+    );
   }
 
   return (
@@ -220,7 +254,27 @@ export default function ProductDashboardClient() {
       {activeTab === 'orders' && (
         <div className={styles.ordersSection}>
           {isOrdersLoading ? (
-            <LoadingSpinner />
+            <SkeletonGroup count={3} className={styles.orderList}>
+              {() => (
+                <div className={styles.orderCard} aria-hidden>
+                  <div className={styles.orderSummary}>
+                    <div className={styles.orderImageWrapper}>
+                      <Skeleton style={{ width: '100%', height: '100%' }} />
+                    </div>
+                    <div className={styles.orderDetails}>
+                      <Skeleton variant="text" style={{ width: '70%' }} />
+                      <Skeleton variant="text" style={{ width: '50%' }} />
+                      <Skeleton variant="text" style={{ width: '40%' }} />
+                    </div>
+                  </div>
+                  <div className={styles.statusRow}>
+                    <Skeleton variant="text" style={{ width: '35%' }} />
+                    <Skeleton variant="button" style={{ width: '45%' }} />
+                  </div>
+                  <Skeleton variant="text" style={{ width: '60%' }} />
+                </div>
+              )}
+            </SkeletonGroup>
           ) : orders.length === 0 ? (
             <div className={styles.emptyState}>No orders yet.</div>
           ) : (

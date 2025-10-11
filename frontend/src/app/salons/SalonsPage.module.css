@@ -29,7 +29,9 @@
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .pageHeading h1 {
@@ -53,7 +55,7 @@
   color: var(--color-text-strong);
   margin: 0;
   text-align: center;
-  flex-shrink: 0; /* Prevents title from shrinking */
+  flex: 1 1 240px;
 }
 
 .navButton {
@@ -200,7 +202,10 @@
   .pageHeading {
     margin-bottom: 1.5rem;
     padding: 0.75rem 0;
-    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    row-gap: 0.75rem;
   }
   .navButtonsContainer {
     width: 100%;

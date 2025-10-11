@@ -8,8 +8,8 @@ import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSocket } from '@/context/SocketContext';
 import { Service } from '@/types';
-import FeaturedServiceCard from '@/components/FeaturedServiceCard';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import FeaturedServiceCard, { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
+import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -150,17 +150,9 @@ export default function HomePage() {
   return (
     <div className={styles.container}>
       {isLoading && services.length === 0 && (
-        <div className={styles.grid} aria-hidden>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} style={{
-              height: 220,
-              borderRadius: 12,
-              background: 'linear-gradient(90deg, #eee 25%, #f5f5f5 37%, #eee 63%)',
-              backgroundSize: '400% 100%',
-              animation: 'pulse 1.4s ease infinite'
-            }} />
-          ))}
-        </div>
+        <SkeletonGroup count={8} className={styles.grid}>
+          {() => <FeaturedServiceCardSkeleton />}
+        </SkeletonGroup>
       )}
       <section className={styles.hero}>
         <div className={styles.heroMedia} aria-hidden="true">
@@ -219,7 +211,9 @@ export default function HomePage() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>
         {isLoading && services.length === 0 ? (
-          <div className={styles.spinnerContainer}><LoadingSpinner /></div>
+          <SkeletonGroup count={8} className={styles.grid}>
+            {() => <FeaturedServiceCardSkeleton />}
+          </SkeletonGroup>
         ) : (
           services.length > 0 && (
             <div className={styles.grid}>

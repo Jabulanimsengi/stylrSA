@@ -1,16 +1,21 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState, useCallback, useRef } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import FilterBar, { type FilterValues } from "@/components/FilterBar/FilterBar";
+import { SkeletonGroup, SkeletonCard } from "@/components/Skeleton/Skeleton";
 import styles from "../salons/SalonsPage.module.css";
 import { Service } from "@/types";
 import { toast } from "react-toastify";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useStartConversation } from "@/hooks/useStartConversation";
 import { useSocket } from "@/context/SocketContext";
+import { FaArrowLeft, FaHome } from "react-icons/fa";
+
+const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
 
 function ServicesPageContent() {
   const params = useSearchParams();
@@ -21,6 +26,9 @@ function ServicesPageContent() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const { startConversation } = useStartConversation();
   const socket = useSocket();
+  const router = useRouter();
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const latestRequestIdRef = useRef(0);
 
   const derivedFilters = useMemo<FilterValues>(() => ({
     province: params.get("province") ?? "",
@@ -35,10 +43,16 @@ function ServicesPageContent() {
   }), [params]);
 
   const [activeFilters, setActiveFilters] = useState<FilterValues>(derivedFilters);
+  const activeFiltersKey = useMemo(() => filtersToKey(activeFilters), [activeFilters]);
 
   const fetchServices = useCallback(async (filtersToUse: FilterValues) => {
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
+    const requestId = ++latestRequestIdRef.current;
+
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const query = new URLSearchParams();
       if (filtersToUse.province) query.append("province", filtersToUse.province);
       if (filtersToUse.city) query.append("city", filtersToUse.city);
@@ -53,21 +67,34 @@ function ServicesPageContent() {
       if (filtersToUse.priceMax) query.append("priceMax", filtersToUse.priceMax);
 
       const url = `/api/services/search${query.toString() ? `?${query.toString()}` : ""}`;
-      const res = await fetch(url, { credentials: "include" });
+      const res = await fetch(url, { credentials: "include", signal: controller.signal });
       if (!res.ok) throw new Error("Failed to search services");
       const data = await res.json();
+      if (requestId !== latestRequestIdRef.current) {
+        return;
+      }
       setServices(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      toast.error(err.message || "Search failed");
+    } catch (error) {
+      if (controller.signal.aborted) {
+        return;
+      }
+      const message = error instanceof Error ? error.message : "Search failed";
+      toast.error(message);
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequestIdRef.current) {
+        setIsLoading(false);
+        requestControllerRef.current = null;
+      }
     }
   }, []);
 
   useEffect(() => {
     setActiveFilters(derivedFilters);
-    void fetchServices(derivedFilters);
-  }, [derivedFilters, fetchServices]);
+  }, [derivedFilters]);
+
+  useEffect(() => {
+    void fetchServices(activeFilters);
+  }, [fetchServices, activeFilters]);
 
   useEffect(() => {
     if (!socket) return;
@@ -77,9 +104,19 @@ function ServicesPageContent() {
   }, [socket, fetchServices, activeFilters]);
 
   const handleSearch = (nextFilters: FilterValues) => {
+    const nextKey = filtersToKey(nextFilters);
+    if (nextKey === activeFiltersKey) {
+      void fetchServices(nextFilters);
+      return;
+    }
     setActiveFilters(nextFilters);
-    void fetchServices(nextFilters);
   };
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort();
+    };
+  }, []);
 
   const handleOpenLightbox = (images: string[], index: number) => {
     if (!images || images.length === 0) return;
@@ -91,20 +128,38 @@ function ServicesPageContent() {
   return (
     <div className={styles.container}>
       <div className={styles.pageHeading}>
+        <div className={styles.navButtonsContainer}>
+          <button type="button" onClick={() => router.back()} className={styles.navButton}>
+            <FaArrowLeft />
+            <span>Back</span>
+          </button>
+          <Link href="/" className={styles.navButton}>
+            <FaHome />
+            <span>Home</span>
+          </Link>
+        </div>
         <h1 className={styles.title}>Services</h1>
+        <div className={styles.headerSpacer}></div>
       </div>
 
       <FilterBar
         onSearch={handleSearch}
         initialFilters={activeFilters}
-        key={JSON.stringify(activeFilters)}
+        showSearchButton
+        isSearching={isLoading}
       />
 
       <div className={styles.resultsShell}>
         {isLoading ? (
-          <div className={styles.loadingState}>
-            <LoadingSpinner />
-          </div>
+          services.length === 0 ? (
+            <SkeletonGroup count={6} className={styles.servicesGrid}>
+              {() => <SkeletonCard hasImage lines={3} />}
+            </SkeletonGroup>
+          ) : (
+            <div className={styles.loadingState}>
+              <LoadingSpinner />
+            </div>
+          )
         ) : services.length === 0 ? (
           <div className={styles.emptyState}>
             <h2>No services found</h2>

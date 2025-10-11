@@ -12,6 +12,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ClientChatWidget from '@/components/ClientChatWidget';
 import AuthSessionProvider from '@/components/AuthSessionProvider';
+import CookieBanner from '@/components/CookieBanner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -65,6 +66,7 @@ export default function RootLayout({
                   </div>
                   <ClientChatWidget />
                   <ToastContainer position="bottom-right" theme="colored" />
+                  <CookieBanner />
                 </AuthModalProvider>
               </SocketProvider>
             </AuthProvider>

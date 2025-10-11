@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Service } from '@/types';
 import styles from './FeaturedServiceCard.module.css';
 import { transformCloudinary } from '@/utils/cloudinary';
+import { SkeletonCard } from './Skeleton/Skeleton';
 
 const DEFAULT_PLACEHOLDER_IMAGE =
   'data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice"%3E%3Cdefs%3E%3ClinearGradient id="g" x1="0" x2="1" y1="0" y2="1"%3E%3Cstop offset="0%25" stop-color="%23f3f4f6"/%3E%3Cstop offset="100%25" stop-color="%23d1d5db"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="600" height="400" fill="url(%23g)"/%3E%3Cg fill="%239ca3af" font-family="Arial, sans-serif" font-size="28" font-weight="600" text-anchor="middle"%3E%3Ctext x="50%25" y="52%25"%3ENo Image%3C/text%3E%3C/g%3E%3C/svg%3E';
@@ -59,4 +60,8 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
       </div>
     </Link>
   );
+}
+
+export function FeaturedServiceCardSkeleton() {
+  return <SkeletonCard hasImage lines={3} />;
 }

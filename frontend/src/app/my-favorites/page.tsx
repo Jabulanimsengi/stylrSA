@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './MyFavoritesPage.module.css';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
+import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 
 export default function MyFavoritesPage() {
   const [favorites, setFavorites] = useState<Salon[]>([]);
@@ -51,7 +51,22 @@ export default function MyFavoritesPage() {
   }, [authStatus, router]);
 
   if (isLoading || authStatus === 'loading') {
-    return <LoadingSpinner />;
+    return (
+      <div className={styles.container}>
+        <div className={styles.stickyHeader}>
+          <div className={styles.navButtonsContainer}>
+              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+          </div>
+          <h1 className={styles.title}>My Favorite Salons</h1>
+          <div className={styles.headerSpacer}></div>
+        </div>
+
+        <SkeletonGroup count={8} className={styles.salonGrid}>
+          {() => <SkeletonCard hasImage lines={3} />}
+        </SkeletonGroup>
+      </div>
+    );
   }
 
   return (

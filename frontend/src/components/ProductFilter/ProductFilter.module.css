@@ -1,0 +1,132 @@
+.filterShell {
+  background-color: var(--color-surface-elevated);
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 160px;
+  flex: 1 1 180px;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-strong);
+}
+
+.input,
+.select {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  padding: 0.55rem 0.75rem;
+  background-color: var(--color-surface);
+  color: var(--color-text-strong);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--input-border-strong);
+  box-shadow: 0 0 0 2px var(--input-border-focus);
+}
+
+.priceRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.priceRow .input {
+  flex: 1 1 0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex: 1 1 220px;
+  justify-content: flex-end;
+}
+
+.clearButton {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--dark-gray);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clearButton:hover {
+  background-color: var(--color-surface-subtle);
+}
+
+.submitButton {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submitButton:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.15);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.3rem;
+}
+
+.toggleRow input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .filterShell {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .field,
+  .actions {
+    flex: 1 1 100%;
+  }
+
+  .priceRow {
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .submitButton,
+  .clearButton {
+    width: 100%;
+  }
+}

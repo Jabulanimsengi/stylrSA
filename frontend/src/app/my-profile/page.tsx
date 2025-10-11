@@ -3,11 +3,11 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './MyProfilePage.module.css';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 interface UserProfile {
   firstName: string;
@@ -75,8 +75,43 @@ export default function MyProfilePage() {
     }
   };
 
-  if (isLoading) {
-    return <LoadingSpinner />;
+  if (isLoading || authStatus === 'loading') {
+    return (
+      <div className={styles.container}>
+        <div className={styles.stickyHeader}>
+          <div className={styles.navButtonsContainer}>
+            <button onClick={() => router.back()} className={styles.navButton}>
+              <FaArrowLeft /> Back
+            </button>
+            <Link href="/" className={styles.navButton}>
+              <FaHome /> Home
+            </Link>
+          </div>
+          <h1 className={styles.title}>My Profile</h1>
+          <div className={styles.headerSpacer}></div>
+        </div>
+
+        <div className={styles.card} aria-hidden>
+          <div className={styles.form}>
+            <div className={styles.inputGroup}>
+              <label>Email</label>
+              <Skeleton variant="rounded" style={{ width: '100%', height: 44, borderRadius: '0.5rem' }} />
+            </div>
+            <div className={styles.inputGroup}>
+              <label>First Name</label>
+              <Skeleton variant="rounded" style={{ width: '100%', height: 44, borderRadius: '0.5rem' }} />
+            </div>
+            <div className={styles.inputGroup}>
+              <label>Last Name</label>
+              <Skeleton variant="rounded" style={{ width: '100%', height: 44, borderRadius: '0.5rem' }} />
+            </div>
+            <div className={styles.buttonContainer}>
+              <Skeleton variant="button" style={{ width: '40%' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

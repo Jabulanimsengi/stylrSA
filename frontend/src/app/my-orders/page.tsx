@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import { ProductOrder } from '@/types';
 import styles from './MyOrders.module.css';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { Skeleton, SkeletonGroup } from '@/components/Skeleton/Skeleton';
 
 export default function MyOrdersPage() {
   const { authStatus } = useAuth();
@@ -41,8 +41,33 @@ export default function MyOrdersPage() {
 
   if (authStatus === 'loading' || isLoading) {
     return (
-      <div className={styles.loadingState}>
-        <LoadingSpinner />
+      <div className={styles.container}>
+        <h1 className={styles.title}>My Orders</h1>
+        <SkeletonGroup count={3} className={styles.list}>
+          {() => (
+            <div className={styles.orderCard} aria-hidden>
+              <div className={styles.orderHeader}>
+                <div className={styles.orderImage}>
+                  <Skeleton style={{ width: '100%', height: '100%' }} />
+                </div>
+                <div className={styles.orderInfo}>
+                  <Skeleton variant="text" style={{ width: '70%' }} />
+                  <div className={styles.orderMeta}>
+                    <Skeleton variant="text" style={{ width: '40%' }} />
+                    <Skeleton variant="text" style={{ width: '35%' }} />
+                    <Skeleton variant="text" style={{ width: '30%' }} />
+                  </div>
+                </div>
+              </div>
+              <div className={styles.orderFooter}>
+                <Skeleton variant="text" style={{ width: '45%' }} />
+                <Skeleton variant="text" style={{ width: '40%' }} />
+                <Skeleton variant="text" style={{ width: '30%' }} />
+                <Skeleton variant="text" style={{ width: '80%' }} />
+              </div>
+            </div>
+          )}
+        </SkeletonGroup>
       </div>
     );
   }

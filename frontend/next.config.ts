@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:3000";
+    const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:5000";
     return {
       beforeFiles: [
         // Proxy credential REST endpoints to backend while keeping NextAuth handled locally

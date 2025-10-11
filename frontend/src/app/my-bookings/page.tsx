@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Booking, Salon, Service, Review as ReviewType } from '@/types'; // Import all needed types
 import styles from './MyBookingsPage.module.css';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import ReviewModal from '@/components/ReviewModal';
 import Link from 'next/link';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
+import { Skeleton, SkeletonGroup } from '@/components/Skeleton/Skeleton';
 
 // FIX 1: Create a more detailed Booking type that matches the actual API response data
 // This includes the full salon and service objects, and optional review/totalCost fields.
@@ -102,7 +102,37 @@ export default function MyBookingsPage() {
   const pastBookings = bookings.filter(b => b.status === 'COMPLETED' || b.status === 'DECLINED');
   const bookingsToShow = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
 
-  if (authStatus === 'loading' || isLoading) return <LoadingSpinner />;
+  if (authStatus === 'loading' || isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.stickyHeader}>
+            <div className={styles.navButtonsContainer}>
+              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
+              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
+            </div>
+            <h1 className={styles.title}>My Bookings</h1>
+            <div className={styles.headerSpacer}></div>
+        </div>
+
+        <div className={styles.tabs} aria-hidden>
+          <Skeleton variant="button" style={{ width: '45%' }} />
+          <Skeleton variant="button" style={{ width: '45%' }} />
+        </div>
+
+        <SkeletonGroup count={3} className={styles.list}>
+          {() => (
+            <div className={styles.card} aria-hidden>
+              <Skeleton variant="text" style={{ width: '30%', height: 16 }} />
+              <Skeleton variant="text" style={{ width: '60%', height: 20 }} />
+              <Skeleton variant="text" style={{ width: '50%', height: 16 }} />
+              <Skeleton variant="text" style={{ width: '40%', height: 16 }} />
+              <Skeleton variant="button" style={{ width: '35%', marginTop: '1rem' }} />
+            </div>
+          )}
+        </SkeletonGroup>
+      </div>
+    );
+  }
   
   if (authStatus === 'unauthenticated') return <p>Redirecting to login...</p>;
 

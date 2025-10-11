@@ -20,12 +20,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
   const allowedOrigins = (
-    process.env.CORS_ORIGIN || 'http://localhost:3001'
+    process.env.CORS_ORIGIN || 'http://localhost:3001,http://localhost:3000'
   ).split(',');
   app.enableCors({
     origin: allowedOrigins,
     credentials: true,
   });
-  await app.listen(3000);
+  const port = Number(process.env.PORT ?? 3000);
+  await app.listen(port);
 }
 void bootstrap();
