@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import { FaArrowLeft, FaHome } from 'react-icons/fa';
 import Link from 'next/link';
+import { APP_PLANS, PLAN_BY_CODE, PlanCode } from '@/constants/plans';
 
 export default function CreateSalonPage() {
   const [name, setName] = useState('');
@@ -22,6 +23,9 @@ export default function CreateSalonPage() {
   const [description, setDescription] = useState('');
   const [bookingType, setBookingType] = useState<'ONSITE'|'MOBILE'|'BOTH'>('ONSITE');
   const [mobileFee, setMobileFee] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<PlanCode>('STARTER');
+  const [hasSentProof, setHasSentProof] = useState(false);
+  const [paymentReference, setPaymentReference] = useState('');
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const [hours, setHours] = useState<Record<string,{open:string,close:string}>>(
     Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00' }])) as Record<string,{open:string,close:string}>
@@ -29,6 +33,14 @@ export default function CreateSalonPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { authStatus } = useAuth();
   const router = useRouter();
+
+  const selectedPlanDetails = PLAN_BY_CODE[selectedPlan];
+  const BANK_DETAILS = {
+    bank: 'Capitec Bank',
+    accountNumber: '1618097723',
+    accountHolder: 'J Msengi',
+    whatsapp: '0787770524',
+  };
  
 
   useEffect(() => {
@@ -82,9 +94,19 @@ export default function CreateSalonPage() {
         if (!Number.isNaN(feeNum) && feeNum >= 0) payload.mobileFee = feeNum;
       }
       // Send operatingHours as a record Day -> "HH:MM - HH:MM" to match details view
-      const hoursRecord: Record<string, string> = {};
-      days.forEach(d => { hoursRecord[d] = `${hours[d].open} - ${hours[d].close}`; });
-      payload.operatingHours = hoursRecord;
+      const hoursArray = days.map((d) => ({
+        day: d,
+        open: hours[d].open,
+        close: hours[d].close,
+      }));
+      payload.operatingHours = hoursArray;
+      payload.operatingDays = hoursArray.map((entry) => entry.day);
+      payload.planCode = selectedPlan;
+      payload.hasSentProof = hasSentProof;
+      const effectiveReference = paymentReference.trim().length > 0 ? paymentReference.trim() : name.trim();
+      if (effectiveReference.length > 0) {
+        payload.paymentReference = effectiveReference;
+      }
 
       const response = await fetch(`/api/salons`, {
         method: 'POST',
@@ -129,7 +151,69 @@ export default function CreateSalonPage() {
 
       <div className={styles.card}>
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputGroup}>
+          <div className={styles.planSection}>
+            <div>
+              <h2 className={styles.sectionTitle}>Select your package</h2>
+              <p className={styles.sectionHint}>
+                Choose the plan that matches your growth goals. These packages apply to both salon owners and product sellers.
+              </p>
+            </div>
+            <div className={styles.planGrid}>
+              {APP_PLANS.map((plan) => {
+                const isSelected = plan.code === selectedPlan;
+                return (
+                  <button
+                    type="button"
+                    key={plan.code}
+                    onClick={() => setSelectedPlan(plan.code)}
+                    className={`${styles.planCard} ${isSelected ? styles.planCardSelected : ''}`}
+                    aria-pressed={isSelected}
+                  >
+                    <div className={styles.planCardHeader}>
+                      <span className={styles.planName}>{plan.name}</span>
+                      <span className={styles.planPrice}>{plan.price}<span className={styles.planPerMonth}>/mo</span></span>
+                    </div>
+                    <div className={styles.planDetails}>
+                      <span>Max listings: <strong>{plan.maxListings}</strong></span>
+                      <span>Visibility weight: <strong>{plan.visibilityWeight}</strong></span>
+                    </div>
+                    <ul className={styles.planFeatures}>
+                      {plan.features.map((feature) => (
+                        <li key={feature}>{feature}</li>
+                      ))}
+                    </ul>
+                  </button>
+                );
+              })}
+            </div>
+            <div className={styles.paymentNotice}>
+              <p>
+                Send the package amount of <strong>{selectedPlanDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>). Use <strong>{(paymentReference.trim() || name || 'your salon name')}</strong> as the payment reference and WhatsApp the proof to <strong>{BANK_DETAILS.whatsapp}</strong> immediately after payment.
+              </p>
+            </div>
+            <div className={styles.planControls}>
+              <div className={styles.inputGroup}>
+                <label htmlFor="paymentReference">Payment reference</label>
+                <input
+                  id="paymentReference"
+                  type="text"
+                  value={paymentReference}
+                  onChange={(e) => setPaymentReference(e.target.value)}
+                  placeholder={name || 'Salon name'}
+                  className={styles.input}
+                />
+              </div>
+              <label className={styles.proofCheckbox}>
+                <input
+                  type="checkbox"
+                  checked={hasSentProof}
+                  onChange={(e) => setHasSentProof(e.target.checked)}
+                />
+                <span>I have sent the proof of payment via WhatsApp</span>
+              </label>
+            </div>
+          </div>
+          <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
             <label htmlFor="name">Salon Name</label>
             <input
               id="name"
@@ -231,7 +315,7 @@ export default function CreateSalonPage() {
               className={styles.input}
             />
           </div>
-          <div className={styles.inputGroup}>
+          <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
             <label htmlFor="description">Description</label>
             <textarea
               id="description"
@@ -255,7 +339,7 @@ export default function CreateSalonPage() {
               <input id="mobileFee" type="number" min="0" step="0.01" value={mobileFee} onChange={(e) => setMobileFee(e.target.value)} className={styles.input} />
             </div>
           )}
-          <div className={styles.inputGroup}>
+          <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
             <label>Operating Hours</label>
             <div style={{display:'grid',gap:'0.5rem'}}>
               <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>

@@ -5,6 +5,7 @@ export type ApiError = {
   code?: string;
   message?: string;
   userMessage?: string;
+  referenceId?: string;
 };
 
 const DEFAULT_MESSAGE = 'Something went wrong. Please try again.';
@@ -28,8 +29,14 @@ export function toFriendlyMessage(err: unknown, fallback?: string): string {
 }
 
 export function showError(err: unknown, fallback?: string) {
-  const msg = toFriendlyMessage(err, fallback);
-  toast.error(msg);
+  const apiErr = (err && typeof err === 'object' ? (err as ApiError) : undefined);
+  const msg = toFriendlyMessage(apiErr ?? err, fallback);
+  const reference = apiErr?.referenceId;
+  const toastMessage = reference ? `${msg} (Ref: ${reference.slice(0, 8)})` : msg;
+  if (reference) {
+    console.warn(`Error reference ${reference}`, apiErr);
+  }
+  toast.error(toastMessage);
 }
 
 export async function parseErrorResponse(res: Response) {

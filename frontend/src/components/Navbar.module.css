@@ -255,6 +255,17 @@
   z-index: 130;
 }
 
+.notificationsPortalPanel {
+  position: fixed;
+  top: calc(var(--app-shell-top-gap, 0px) + 20px);
+  right: clamp(12px, 3vw, 32px);
+  left: auto;
+  transform: none;
+  width: clamp(420px, 28vw, 560px);
+  max-height: min(70vh, 640px);
+  overflow: hidden;
+}
+
 .notificationsHeader {
   display: flex;
   align-items: center;

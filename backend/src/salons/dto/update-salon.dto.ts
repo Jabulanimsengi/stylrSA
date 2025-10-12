@@ -7,14 +7,14 @@ import {
   IsLongitude,
   IsPhoneNumber,
   IsEmail,
-  IsObject,
   ValidateNested,
   IsArray,
   MaxLength,
   IsEnum,
   IsBoolean,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+import { coerceOperatingHoursArray } from '../utils/operating-hours.util';
 
 enum BookingType {
   ONSITE = 'ONSITE',
@@ -25,31 +25,15 @@ enum BookingType {
 class OperatingHoursDto {
   @IsString()
   @IsOptional()
-  monday?: string;
+  day?: string;
 
   @IsString()
   @IsOptional()
-  tuesday?: string;
+  open?: string;
 
   @IsString()
   @IsOptional()
-  wednesday?: string;
-
-  @IsString()
-  @IsOptional()
-  thursday?: string;
-
-  @IsString()
-  @IsOptional()
-  friday?: string;
-
-  @IsString()
-  @IsOptional()
-  saturday?: string;
-
-  @IsString()
-  @IsOptional()
-  sunday?: string;
+  close?: string;
 }
 
 export class UpdateSalonDto {
@@ -115,11 +99,15 @@ export class UpdateSalonDto {
   @IsOptional()
   heroImages?: string[];
 
-  @IsObject()
-  @ValidateNested()
-  @Type(() => OperatingHoursDto)
   @IsOptional()
-  operatingHours?: OperatingHoursDto;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OperatingHoursDto)
+  @Transform(({ value }) => {
+    const entries = coerceOperatingHoursArray(value);
+    return entries.length > 0 ? entries : undefined;
+  })
+  operatingHours?: OperatingHoursDto[];
 
   @IsEnum(BookingType)
   @IsOptional()
@@ -132,4 +120,9 @@ export class UpdateSalonDto {
   @IsNumber()
   @IsOptional()
   mobileFee?: number;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  operatingDays?: string[];
 }

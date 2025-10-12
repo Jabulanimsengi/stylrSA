@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { cookies } from "next/headers";
 
 const handler = NextAuth({
   providers: [
@@ -18,7 +19,8 @@ const handler = NextAuth({
     async jwt({ token, account, profile }) {
       if (account) {
         try {
-          const r = await fetch(`${process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:3000"}/api/auth/sso`, {
+          const backendOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:5000";
+          const r = await fetch(`${backendOrigin}/api/auth/sso`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -33,6 +35,17 @@ const handler = NextAuth({
             (token as any).backendJwt = data.jwt;
             (token as any).userId = data.user?.id;
             (token as any).role = data.user?.role;
+            // Attach backend JWT as httpOnly cookie for API rewrites
+            try {
+              const secure = process.env.NODE_ENV === 'production';
+              cookies().set('access_token', String(data.jwt), {
+                httpOnly: true,
+                sameSite: 'lax',
+                secure,
+                path: '/',
+                maxAge: 60 * 60 * 24, // 1 day
+              });
+            } catch {}
           }
         } catch {
           // ignore

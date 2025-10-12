@@ -1,5 +1,18 @@
 // frontend/src/types/index.ts
 
+export type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+export type PlanPaymentStatus =
+  | 'PENDING_SELECTION'
+  | 'AWAITING_PROOF'
+  | 'PROOF_SUBMITTED'
+  | 'VERIFIED';
+
+export type OperatingHourEntry = {
+  day: string;
+  open: string;
+  close: string;
+};
+
 export interface User {
   id: string;
   email: string;
@@ -9,6 +22,14 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   profileImage?: string;
+  sellerPlanCode?: PlanCode | null;
+  sellerPlanPriceCents?: number | null;
+  sellerPlanPaymentStatus?: PlanPaymentStatus | null;
+  sellerPlanPaymentReference?: string | null;
+  sellerPlanProofSubmittedAt?: string | null;
+  sellerPlanVerifiedAt?: string | null;
+  sellerVisibilityWeight?: number | null;
+  sellerMaxListings?: number | null;
 }
 
 export interface Salon {
@@ -31,7 +52,7 @@ export interface Salon {
   offersMobile?: boolean;
   mobileFee?: number | null;
   isAvailableNow?: boolean;
-  operatingHours?: Record<string, string> | null;
+  operatingHours?: Record<string, string> | OperatingHourEntry[] | null;
   operatingDays?: string[];
   approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
   avgRating?: number;
@@ -44,10 +65,15 @@ export interface Salon {
   gallery?: GalleryImage[];
   isFavorited?: boolean;
   // Plan & visibility controls (populated from backend)
-  planCode?: 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE' | null;
+  planCode?: PlanCode | null;
   visibilityWeight?: number;
   maxListings?: number;
   featuredUntil?: string | null;
+  planPriceCents?: number | null;
+  planPaymentStatus?: PlanPaymentStatus | null;
+  planPaymentReference?: string | null;
+  planProofSubmittedAt?: string | null;
+  planVerifiedAt?: string | null;
 }
 
 export interface Service {

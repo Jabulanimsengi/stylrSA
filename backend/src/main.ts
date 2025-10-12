@@ -9,9 +9,13 @@ const helmet = require('helmet');
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const compression = require('compression');
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Ensure Socket.IO gateway is attached to the underlying HTTP server
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   // Security & performance middlewares
   app.use(helmet());

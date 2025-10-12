@@ -6,7 +6,18 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { transformCloudinary } from '@/utils/cloudinary';
-import { FaHome, FaArrowLeft, FaHeart, FaWhatsapp, FaGlobe } from 'react-icons/fa';
+import {
+  FaHome,
+  FaArrowLeft,
+  FaHeart,
+  FaWhatsapp,
+  FaGlobe,
+  FaMapMarkerAlt,
+  FaClock,
+  FaBolt,
+  FaRegCopy,
+  FaExternalLinkAlt,
+} from 'react-icons/fa';
 import { Salon, Service, GalleryImage, Review } from '@/types';
 import BookingModal from '@/components/BookingModal';
 import styles from './SalonProfile.module.css';
@@ -46,7 +57,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [showWeek, setShowWeek] = useState(false);
   const [visibleServicesCount, setVisibleServicesCount] = useState(() => {
     const initialCount = initialSalon?.services?.length ?? 0;
     return initialCount > 0 ? Math.min(INITIAL_SERVICES_BATCH, initialCount) : 0;
@@ -58,7 +69,6 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const serviceLoadRef = useRef<HTMLDivElement | null>(null);
   const reviewLoadRef = useRef<HTMLDivElement | null>(null);
 
-  const heroImagesCount = salon?.heroImages?.length ?? 0;
   const reviews = salon?.reviews ?? EMPTY_REVIEWS;
 
   useEffect(() => {
@@ -122,13 +132,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     });
   }, [reviews.length]);
 
-  useEffect(() => {
-    if (heroImagesCount < 2) return;
-    const id = setInterval(() => {
-      setCurrentSlide((prev) => (prev === heroImagesCount - 1 ? 0 : prev + 1));
-    }, 5000);
-    return () => clearInterval(id);
-  }, [heroImagesCount]);
+  // removed hero slider auto-advance
 
   useEffect(() => {
     if (!salon?.id || !socket) return;
@@ -216,20 +220,27 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
       });
       return rec;
     }
-    if (typeof oh === 'object') return oh as Record<string, string>;
+    if (typeof oh === 'object') {
+      const rec: Record<string, string> = {};
+      const dayMap: Record<string, string> = {
+        sunday: 'Sunday', monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
+        thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday',
+      };
+      Object.entries(oh as Record<string, string>).forEach(([k, v]) => {
+        const norm = dayMap[k.trim().toLowerCase().replace(/\./g, '')];
+        if (norm) rec[norm] = v;
+      });
+      return Object.keys(rec).length > 0 ? rec : (oh as Record<string, string>);
+    }
     return null;
   }, [salon?.operatingHours]);
 
-  const operatingDays = hoursRecord ? Object.keys(hoursRecord) : [];
-  const operatingSummary = useMemo(() => {
-    if (!hoursRecord) return '';
-    const entries = Object.entries(hoursRecord);
-    if (entries.length === 0) return '';
-    const samples = entries.slice(0, 2).map(([day, hours]) => `${day.substring(0,3)} ${hours}`);
-    const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
-    return `${samples.join(' • ')}${extra}`;
+  const orderedOperatingDays = useMemo(() => {
+    if (!hoursRecord) return [] as string[];
+    const order = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    return order.filter((d) => d in hoursRecord);
   }, [hoursRecord]);
-
+  
   const visibleServices = useMemo(() => services.slice(0, visibleServicesCount), [services, visibleServicesCount]);
   const visibleReviews = useMemo(() => reviews.slice(0, visibleReviewsCount), [reviews, visibleReviewsCount]);
 
@@ -268,11 +279,34 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   if (isLoading) return <SalonProfileSkeleton />;
   if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
 
-  const heroImages = salon.heroImages || [];
-  const nextSlide = () => setCurrentSlide(prev => (prev === heroImages.length - 1 ? 0 : prev + 1));
-  const prevSlide = () => setCurrentSlide(prev => (prev === 0 ? heroImages.length - 1 : prev - 1));
+  // hero section removed; using compact info board instead
+  const availabilityLabel = salon.isAvailableNow ? 'Open now' : 'Currently closed';
+  const bookingSummary = (() => {
+    const type = salon.bookingType;
+    if (type === 'MOBILE') return 'Mobile visits available';
+    if (type === 'BOTH') return 'On-site & mobile visits';
+    if (type === 'REQUEST') return 'Request-led appointments';
+    return 'On-site appointments';
+  })();
+  
 
   const galleryImageUrls = galleryImages.map(img => img.imageUrl);
+  const addressText = (() => {
+    if (salon.address && salon.address.trim().length > 0) return salon.address;
+    const parts = [salon.town, salon.city, salon.province].filter(Boolean);
+    return parts.join(', ');
+  })();
+  const mapsHref = salon.latitude && salon.longitude
+    ? `https://www.google.com/maps?q=${salon.latitude},${salon.longitude}`
+    : `https://www.google.com/maps?q=${encodeURIComponent(addressText)}`;
+  const handleCopyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(addressText);
+      toast.success('Address copied');
+    } catch {
+      toast.error('Could not copy address');
+    }
+  };
   const mapSrc = (() => {
     if (!salon.latitude || !salon.longitude) return '';
     const lat = salon.latitude;
@@ -281,6 +315,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     const bbox = `${lon - d},${lat - d},${lon + d},${lat + d}`;
     return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
   })();
+  const daysNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const todayLabel = daysNames[new Date().getDay()];
 
   return (
     <>
@@ -333,44 +369,61 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         </div>
 
         <div className={styles.container}>
-          <div className={styles.heroSlider}>
-            {heroImages.length > 0 ? (
-              <>
-                <div className={styles.sliderWrapper} style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-                  {heroImages.map((img: string, index: number) => (
-                    <div key={index} className={styles.slide}>
-                      <Image
-                        src={transformCloudinary(img, { width: 1200, quality: 'auto', format: 'auto', crop: 'fill' })}
-                        alt={`${salon.name} gallery image ${index + 1}`}
-                        className={styles.heroImage}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 1024px"
-                        priority={index === 0}
-                      />
-                    </div>
-                  ))}
+          <div className={styles.infoBoard}>
+            <div className={styles.infoGrid}>
+              <div className={`${styles.infoCard} ${styles.infoLocation}`}>
+                <span className={styles.infoIcon} aria-hidden="true"><FaMapMarkerAlt /></span>
+                <div className={styles.infoContent}>
+                  <p className={styles.infoLabel}>Location</p>
+                  <p className={styles.infoValue}>{salon.town}, {salon.province}</p>
+                  {salon.city && <p className={styles.infoDetail}>{salon.city}</p>}
+                  <div className={styles.infoActions}>
+                    <button type="button" onClick={handleCopyAddress} className={styles.infoActionBtn}>
+                      <FaRegCopy /> Copy
+                    </button>
+                    <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={styles.infoActionBtn}>
+                      <FaExternalLinkAlt /> Maps
+                    </a>
+                  </div>
                 </div>
-                {heroImages.length > 1 && (
-                  <>
-                    <button onClick={prevSlide} className={`${styles.sliderButton} ${styles.prev}`}>❮</button>
-                    <button onClick={nextSlide} className={`${styles.sliderButton} ${styles.next}`}>❯</button>
-                  </>
-                )}
-              </>
-            ) : (
-              <div className={styles.placeholderHero}>
-                <p>No images available for this salon</p>
               </div>
-            )}
-            <div className={styles.heroOverlay}>
-              <p className={styles.heroLocation}>{salon.town}, {salon.province}</p>
-              {operatingSummary && (
-                <p className={styles.heroHours}>Hours: {operatingSummary}</p>
-              )}
-              {!!salon.isAvailableNow && (
-                <div className={styles.availabilityIndicator}>
-                  <span className={styles.availabilityDot}></span>
-                  Available Now
+              <div className={`${styles.infoCard} ${styles.infoAvailability}`} role="status" aria-live="polite">
+                <span className={styles.infoIcon} aria-hidden="true"><FaBolt /></span>
+                <div className={styles.infoContent}>
+                  <p className={styles.infoLabel}>Availability</p>
+                  <p className={`${styles.infoValue} ${salon.isAvailableNow ? styles.open : styles.closed}`}>{availabilityLabel}</p>
+                  <p className={styles.infoDetail}>{bookingSummary}</p>
+                </div>
+              </div>
+              <div className={`${styles.infoCard} ${styles.infoToday}`}>
+                <span className={styles.infoIcon} aria-hidden="true"><FaClock /></span>
+                <div className={styles.infoContent}>
+                  <p className={styles.infoLabel}>Today</p>
+                  <p className={styles.infoValue}>
+                    {todayLabel}: {hoursRecord?.[todayLabel] ?? '—'}
+                  </p>
+                  {hoursRecord && (
+                    <button type="button" onClick={() => setShowWeek(v => !v)} className={styles.infoActionBtn}>
+                      {showWeek ? 'Hide week' : 'View week'}
+                    </button>
+                  )}
+                </div>
+              </div>
+              {hoursRecord && (
+                <div className={`${styles.infoCard} ${styles.infoWeek}`}>
+                  <span className={styles.infoIcon} aria-hidden="true"><FaClock /></span>
+                  <div className={styles.infoContent}>
+                    <p className={styles.infoLabel}>Weekly hours</p>
+                    {showWeek ? (
+                      <ul className={styles.weekList}>
+                        {orderedOperatingDays.map((day) => (
+                          <li key={day}><span>{day}</span><strong>{hoursRecord[day]}</strong></li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className={styles.infoDetail}>Tap "View week" to expand full schedule.</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -418,11 +471,11 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <h2 className={styles.sectionTitle}>Details</h2>
 
                 <Accordion title="Operating Hours">
-                  {hoursRecord && operatingDays.length > 0 ? (
+                  {hoursRecord && orderedOperatingDays.length > 0 ? (
                     <ul>
-                      {operatingDays.map(day => (
+                      {orderedOperatingDays.map(day => (
                         <li key={day}>
-                          <span>{day.charAt(0).toUpperCase() + day.slice(1)}</span>
+                          <span>{day}</span>
                           <strong>{hoursRecord[day]}</strong>
                         </li>
                       ))}

@@ -40,6 +40,11 @@ model User {
   sellerVisibilityWeight Int?         @default(1)
   sellerMaxListings      Int?         @default(2)
   sellerFeaturedUntil    DateTime?
+  sellerPlanPriceCents   Int?
+  sellerPlanPaymentStatus PlanPaymentStatus @default(PENDING_SELECTION)
+  sellerPlanPaymentReference String?
+  sellerPlanProofSubmittedAt DateTime?
+  sellerPlanVerifiedAt   DateTime?
 }
 
 model Salon {
@@ -81,6 +86,11 @@ model Salon {
   visibilityWeight     Int            @default(1)
   maxListings          Int            @default(2)
   featuredUntil        DateTime?
+  planPriceCents       Int?
+  planPaymentStatus    PlanPaymentStatus @default(PENDING_SELECTION)
+  planPaymentReference String?
+  planProofSubmittedAt DateTime?
+  planVerifiedAt       DateTime?
   @@index([approvalStatus])
   @@index([city])
   @@index([province])
@@ -351,6 +361,13 @@ enum PlanCode {
   GROWTH
   PRO
   ELITE
+}
+
+enum PlanPaymentStatus {
+  PENDING_SELECTION
+  AWAITING_PROOF
+  PROOF_SUBMITTED
+  VERIFIED
 }
 
 // Archive for deleted provider profiles to enable restoration

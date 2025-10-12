@@ -5,11 +5,18 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/useAuth';
-import { Product, ProductOrder, ProductOrderStatus } from '@/types';
+import {
+  Product,
+  ProductOrder,
+  ProductOrderStatus,
+  PlanCode,
+  PlanPaymentStatus,
+} from '@/types';
 import ProductFormModal from '@/components/ProductFormModal';
 import ConfirmationModal from '@/components/ConfirmationModal/ConfirmationModal';
 import styles from './ProductDashboard.module.css';
 import { Skeleton, SkeletonGroup } from '@/components/Skeleton/Skeleton';
+import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 
 type TabKey = 'products' | 'orders';
 const tabs: { key: TabKey; label: string }[] = [
@@ -24,6 +31,20 @@ const statusOptions: ProductOrderStatus[] = [
   'DELIVERED',
   'CANCELLED',
 ];
+
+const BANK_DETAILS = {
+  bank: 'Capitec Bank',
+  accountNumber: '1618097723',
+  accountHolder: 'J Msengi',
+  whatsapp: '0787770524',
+};
+
+const PLAN_PAYMENT_LABELS: Record<PlanPaymentStatus, string> = {
+  PENDING_SELECTION: 'Package not selected',
+  AWAITING_PROOF: 'Awaiting proof of payment',
+  PROOF_SUBMITTED: 'Proof submitted — pending review',
+  VERIFIED: 'Payment verified',
+};
 
 export default function ProductDashboardClient() {
   const { user, authStatus } = useAuth();
@@ -40,6 +61,14 @@ export default function ProductDashboardClient() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [sellerPlanCode, setSellerPlanCode] = useState<PlanCode>('STARTER');
+  const [sellerPlanStatus, setSellerPlanStatus] = useState<PlanPaymentStatus>('PENDING_SELECTION');
+  const [sellerPlanReference, setSellerPlanReference] = useState('');
+  const [sellerPlanProofAt, setSellerPlanProofAt] = useState<string | null>(null);
+  const [sellerPlanVerifiedAt, setSellerPlanVerifiedAt] = useState<string | null>(null);
+  const [sellerPlanPriceCents, setSellerPlanPriceCents] = useState<number | null>(null);
+  const [hasSentProof, setHasSentProof] = useState(false);
+  const [isPlanUpdating, setIsPlanUpdating] = useState(false);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -75,10 +104,43 @@ export default function ProductDashboardClient() {
     }
   }, [user]);
 
+  const fetchSellerPlan = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await fetch('/api/users/me', {
+        credentials: 'include',
+        cache: 'no-store' as any,
+      });
+      if (!res.ok) throw new Error('Failed to load profile');
+      const data = await res.json();
+      const code = (data.sellerPlanCode ?? 'STARTER') as PlanCode;
+      const status = (data.sellerPlanPaymentStatus ?? 'PENDING_SELECTION') as PlanPaymentStatus;
+      setSellerPlanCode(code);
+      setSellerPlanStatus(status);
+      setSellerPlanReference(
+        data.sellerPlanPaymentReference ?? `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim(),
+      );
+      setSellerPlanProofAt(data.sellerPlanProofSubmittedAt ?? null);
+      setSellerPlanVerifiedAt(data.sellerPlanVerifiedAt ?? null);
+      setSellerPlanPriceCents(
+        typeof data.sellerPlanPriceCents === 'number' ? data.sellerPlanPriceCents : null,
+      );
+      setHasSentProof(status === 'PROOF_SUBMITTED' || status === 'VERIFIED');
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to load your seller package details.');
+    }
+  }, [user]);
+
   useEffect(() => {
     if (authStatus !== 'authenticated') return;
     fetchProducts();
   }, [authStatus, fetchProducts]);
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+    fetchSellerPlan();
+  }, [authStatus, fetchSellerPlan]);
 
   useEffect(() => {
     if (authStatus !== 'authenticated') return;
@@ -93,6 +155,20 @@ export default function ProductDashboardClient() {
     params.set('tab', tab);
     router.replace(`/product-dashboard?${params.toString()}`);
   };
+
+  const planDetails = PLAN_BY_CODE[sellerPlanCode] ?? APP_PLANS[0];
+  const planAmountDisplay = typeof sellerPlanPriceCents === 'number'
+    ? `R${(sellerPlanPriceCents / 100).toFixed(2)}`
+    : planDetails.price;
+  const proofAtDisplay = sellerPlanProofAt
+    ? new Date(sellerPlanProofAt).toLocaleString('en-ZA')
+    : null;
+  const verifiedAtDisplay = sellerPlanVerifiedAt
+    ? new Date(sellerPlanVerifiedAt).toLocaleString('en-ZA')
+    : null;
+  const defaultReference = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim();
+  const fallbackReference = defaultReference || 'Your business name';
+  const effectiveReference = (sellerPlanReference || '').trim() || fallbackReference;
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -122,6 +198,56 @@ export default function ProductDashboardClient() {
       toast.error('Failed to delete product.');
     } finally {
       setDeletingProduct(null);
+    }
+  };
+
+  const handleCopyReference = async () => {
+    try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        throw new Error('Clipboard API unavailable');
+      }
+      await navigator.clipboard.writeText(effectiveReference);
+      toast.success('Reference copied');
+    } catch {
+      toast.error('Unable to copy reference automatically');
+    }
+  };
+
+  const handlePlanSubmit = async () => {
+    const paymentReference = effectiveReference;
+    setIsPlanUpdating(true);
+    try {
+      const res = await fetch('/api/users/me/seller-plan', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planCode: sellerPlanCode,
+          hasSentProof,
+          paymentReference,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to update plan');
+      const updated = await res.json();
+      const nextCode = (updated.sellerPlanCode ?? sellerPlanCode) as PlanCode;
+      const nextStatus = (updated.sellerPlanPaymentStatus ?? sellerPlanStatus) as PlanPaymentStatus;
+      setSellerPlanCode(nextCode);
+      setSellerPlanStatus(nextStatus);
+      setSellerPlanReference(updated.sellerPlanPaymentReference ?? paymentReference);
+      setSellerPlanProofAt(updated.sellerPlanProofSubmittedAt ?? null);
+      setSellerPlanVerifiedAt(updated.sellerPlanVerifiedAt ?? null);
+      setSellerPlanPriceCents(
+        typeof updated.sellerPlanPriceCents === 'number'
+          ? updated.sellerPlanPriceCents
+          : sellerPlanPriceCents,
+      );
+      setHasSentProof(nextStatus === 'PROOF_SUBMITTED' || nextStatus === 'VERIFIED');
+      toast.success('Seller package updated');
+    } catch (error) {
+      console.error(error);
+      toast.error('Could not update your seller package.');
+    } finally {
+      setIsPlanUpdating(false);
     }
   };
 
@@ -205,13 +331,102 @@ export default function ProductDashboardClient() {
         ))}
       </div>
 
+      <section className={styles.planSection}>
+        <header className={styles.planHeader}>
+          <div>
+            <h2>Seller package</h2>
+            <p>Choose your package, send payment, and submit proof to unlock full marketplace visibility.</p>
+          </div>
+          <span className={`${styles.planStatusBadge} ${styles[`planStatus_${sellerPlanStatus.toLowerCase()}`]}`}>
+            {PLAN_PAYMENT_LABELS[sellerPlanStatus]}
+          </span>
+        </header>
+        <div className={styles.planMeta}>
+          <span><strong>Selected package:</strong> {planDetails.name}</span>
+          <span><strong>Amount due:</strong> {planAmountDisplay}</span>
+          {proofAtDisplay && <span>Proof submitted: {proofAtDisplay}</span>}
+          {verifiedAtDisplay && <span>Verified on: {verifiedAtDisplay}</span>}
+        </div>
+        <div className={styles.planGrid}>
+          {APP_PLANS.map((plan) => {
+            const isSelected = plan.code === sellerPlanCode;
+            return (
+              <button
+                key={plan.code}
+                type="button"
+                className={`${styles.planCard} ${isSelected ? styles.selectedPlan : ''}`}
+                onClick={() => setSellerPlanCode(plan.code)}
+              >
+                <span className={styles.planName}>{plan.name}</span>
+                <span className={styles.planPrice}>{plan.price}</span>
+                <ul className={styles.planFeatures}>
+                  <li>Visibility weight: {plan.visibilityWeight}</li>
+                  <li>Max listings: {plan.maxListings}</li>
+                  {plan.features.slice(0, 2).map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+              </button>
+            );
+          })}
+        </div>
+        <div className={styles.planNotice}>
+          {sellerPlanStatus !== 'VERIFIED' && (
+            <p className={styles.planWarning}>
+              Your products remain hidden until payment is verified.
+            </p>
+          )}
+          <p>
+            Pay <strong>{planAmountDisplay}</strong> to <strong>{BANK_DETAILS.bank}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>, Account number: <strong>{BANK_DETAILS.accountNumber}</strong>). Use <strong>{effectiveReference}</strong> as your payment reference and WhatsApp the proof to <strong>{BANK_DETAILS.whatsapp}</strong>.
+          </p>
+          <div className={styles.planControls}>
+            <label className={styles.planReferenceLabel}>
+              Payment reference
+              <input
+                type="text"
+                value={sellerPlanReference}
+                placeholder={fallbackReference}
+                onChange={(e) => setSellerPlanReference(e.target.value)}
+                className={styles.planReferenceInput}
+              />
+            </label>
+            <button type="button" className={styles.copyButton} onClick={handleCopyReference}>Copy</button>
+            <label className={styles.proofCheckbox}>
+              <input
+                type="checkbox"
+                checked={hasSentProof}
+                onChange={(e) => setHasSentProof(e.target.checked)}
+                disabled={sellerPlanStatus === 'VERIFIED'}
+              />
+              I have sent proof via WhatsApp
+            </label>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handlePlanSubmit}
+              disabled={isPlanUpdating}
+            >
+              {isPlanUpdating ? 'Saving…' : 'Save package & status'}
+            </button>
+          </div>
+        </div>
+      </section>
+
       {activeTab === 'products' && (
         <>
           <div className={styles.toolbar}>
-            <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="btn btn-primary"
+              disabled={sellerPlanStatus === 'PENDING_SELECTION'}
+              title={sellerPlanStatus === 'PENDING_SELECTION' ? 'Select a package and submit proof before adding products.' : undefined}
+            >
               Add New Product
             </button>
           </div>
+          {sellerPlanStatus === 'PENDING_SELECTION' && (
+            <p className={styles.planGuard}>Select a seller package and submit payment proof to unlock product uploads.</p>
+          )}
           <div className={styles.productList}>
             {products.map((product) => (
               <div key={product.id} className={styles.productCard}>

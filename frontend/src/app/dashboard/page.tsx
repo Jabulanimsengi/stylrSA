@@ -5,7 +5,17 @@
 
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import Image from 'next/image';
-import { Salon, Service, ApprovalStatus, Booking, GalleryImage, Product, Promotion } from '@/types';
+import {
+  Salon,
+  Service,
+  ApprovalStatus,
+  Booking,
+  GalleryImage,
+  Product,
+  Promotion,
+  PlanPaymentStatus,
+  PlanCode,
+} from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './Dashboard.module.css';
 import ServiceFormModal from '@/components/ServiceFormModal';
@@ -22,12 +32,27 @@ import { useAuth } from '@/hooks/useAuth';
 import { apiFetch, apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
   service: { title: string };
   status: 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'COMPLETED' | 'CANCELLED';
   clientPhone?: string;
+};
+
+const BANK_DETAILS = {
+  bank: 'Capitec Bank',
+  accountNumber: '1618097723',
+  accountHolder: 'J Msengi',
+  whatsapp: '0787770524',
+};
+
+const PLAN_PAYMENT_LABELS: Record<PlanPaymentStatus, string> = {
+  PENDING_SELECTION: 'Package not yet selected',
+  AWAITING_PROOF: 'Awaiting proof of payment',
+  PROOF_SUBMITTED: 'Proof submitted • pending admin review',
+  VERIFIED: 'Payment verified',
 };
 
 function DashboardPageContent() {
@@ -39,6 +64,7 @@ function DashboardPageContent() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isPlanUpdating, setIsPlanUpdating] = useState(false);
 
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isEditSalonModalOpen, setIsEditSalonModalOpen] = useState(false);
@@ -59,6 +85,34 @@ function DashboardPageContent() {
   const { authStatus, user } = useAuth(); 
 
   const ownerId = user?.role === 'ADMIN' ? searchParams.get('ownerId') : user?.id;
+
+  const handlePlanProofUpdate = useCallback(
+    async (hasProof: boolean) => {
+      if (!ownerId) return;
+      setIsPlanUpdating(true);
+      try {
+        const res = await fetch(`/api/salons/mine/plan?ownerId=${ownerId}` , {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hasSentProof: hasProof }),
+        });
+        if (!res.ok) throw new Error('Failed to update plan status');
+        const updatedSalon = await res.json();
+        setSalon(updatedSalon);
+        toast.success(
+          hasProof
+            ? 'Thanks! We will review and approve your payment shortly.'
+            : 'Status updated. Please send proof of payment when ready.',
+        );
+      } catch (err) {
+        toast.error('Could not update your payment status.');
+      } finally {
+        setIsPlanUpdating(false);
+      }
+    },
+    [ownerId],
+  );
 
   const fetchDashboardData = useCallback(async () => {
     if (!ownerId) {
@@ -232,6 +286,28 @@ function DashboardPageContent() {
     return styles.statusRejected;
   };
 
+  const planCode = (salon?.planCode as PlanCode | null) ?? 'STARTER';
+  const planDetails = PLAN_BY_CODE[planCode] ?? APP_PLANS[0];
+  const planStatus = (salon?.planPaymentStatus as PlanPaymentStatus | null) ?? 'PENDING_SELECTION';
+  const planReference = salon?.planPaymentReference ?? salon?.name ?? 'your salon name';
+  const proofSubmittedAt = salon?.planProofSubmittedAt
+    ? new Date(salon.planProofSubmittedAt).toLocaleString('en-ZA')
+    : null;
+  const planVerifiedAt = salon?.planVerifiedAt
+    ? new Date(salon.planVerifiedAt).toLocaleString('en-ZA')
+    : null;
+  const handleCopyReference = useCallback(async () => {
+    try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        throw new Error('Clipboard API unavailable');
+      }
+      await navigator.clipboard.writeText(String(planReference));
+      toast.success('Payment reference copied');
+    } catch {
+      toast.error('Unable to copy reference automatically');
+    }
+  }, [planReference]);
+
   if (isLoading || authStatus === 'loading') {
     return (
       <div className={styles.container}>
@@ -395,12 +471,58 @@ function DashboardPageContent() {
                 <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary"><FaEdit /> Edit Profile</button>
               </div>
             </div>
-            {/* Plan & Visibility summary */}
-            <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', marginTop: 8, fontSize: '0.95rem'}}>
-              <span><strong>Package:</strong> {salon.planCode ?? 'STARTER'}</span>
-              <span><strong>Visibility:</strong> {salon.visibilityWeight ?? 1}</span>
-              <span><strong>Max listings:</strong> {salon.maxListings ?? 2}</span>
-              <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString() : '—'}</span>
+            <div className={styles.planSummary}>
+              <div className={styles.planSummaryRow}>
+                <span><strong>Package:</strong> {planDetails.name}</span>
+                <span><strong>Amount due:</strong> {planDetails.price}</span>
+                <span><strong>Visibility weight:</strong> {salon.visibilityWeight ?? planDetails.visibilityWeight}</span>
+                <span><strong>Max listings:</strong> {salon.maxListings ?? planDetails.maxListings}</span>
+                <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString('en-ZA') : '—'}</span>
+              </div>
+              <div className={styles.planStatusRow}>
+                <span className={`${styles.planStatusBadge} ${styles[`planStatus_${planStatus.toLowerCase()}`]}`}>
+                  {PLAN_PAYMENT_LABELS[planStatus]}
+                </span>
+                {planStatus === 'PROOF_SUBMITTED' && proofSubmittedAt && (
+                  <span>Proof submitted: {proofSubmittedAt}</span>
+                )}
+                {planStatus === 'VERIFIED' && planVerifiedAt && (
+                  <span>Verified on: {planVerifiedAt}</span>
+                )}
+              </div>
+              <div className={styles.planNotice}>
+                <p>
+                  Pay <strong>{planDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>). Use <strong>{planReference}</strong> as the payment reference and WhatsApp proof to <strong>{BANK_DETAILS.whatsapp}</strong> as soon as you pay.
+                </p>
+                <div className={styles.planActions}>
+                  <button type="button" className={styles.copyButton} onClick={handleCopyReference}>Copy reference</button>
+                  <Link href="/prices" className={`${styles.planLink} btn btn-ghost`}>View packages</Link>
+                  {planStatus !== 'VERIFIED' && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => handlePlanProofUpdate(true)}
+                      disabled={isPlanUpdating || planStatus === 'PROOF_SUBMITTED'}
+                    >
+                      {isPlanUpdating
+                        ? 'Saving...'
+                        : planStatus === 'PROOF_SUBMITTED'
+                          ? 'Proof submitted'
+                          : 'I have sent proof'}
+                    </button>
+                  )}
+                  {planStatus === 'PROOF_SUBMITTED' && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => handlePlanProofUpdate(false)}
+                      disabled={isPlanUpdating}
+                    >
+                      {isPlanUpdating ? 'Saving...' : 'Mark as awaiting proof'}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
         </header>
 

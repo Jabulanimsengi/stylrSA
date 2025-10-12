@@ -2,6 +2,17 @@ import { z } from 'zod';
 
 export const BookingTypeEnum = z.enum(['ONSITE', 'MOBILE', 'BOTH']);
 
+const OperatingHoursEntrySchema = z.object({
+  day: z.string().min(1),
+  open: z.string().min(1),
+  close: z.string().min(1),
+});
+
+const OperatingHoursSchema = z.union([
+  z.record(z.string()),
+  z.array(OperatingHoursEntrySchema),
+]);
+
 export const SalonUpdateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional().nullable(),
@@ -18,7 +29,8 @@ export const SalonUpdateSchema = z.object({
   mobileFee: z.number().min(0).optional().nullable(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
-  operatingHours: z.record(z.string()).optional().nullable(),
+  operatingDays: z.array(z.string()).optional().nullable(),
+  operatingHours: OperatingHoursSchema.optional().nullable(),
   backgroundImage: z.string().url().optional().nullable(),
   heroImages: z.array(z.string().url()).optional(),
 });

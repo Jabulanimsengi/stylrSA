@@ -75,10 +75,25 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       setBackgroundImagePreview(salon.backgroundImage || null);
       setHeroImagesPreview(salon.heroImages || []);
 
-      // Pre-fill hours UI from existing operatingHours record like { Monday: "09:00-17:00" }
+      const rawHours = salon.operatingHours as unknown;
+      let hoursRecord: Record<string, string> | null = null;
+      if (Array.isArray(rawHours)) {
+        const derived: Record<string, string> = {};
+        rawHours.forEach((entry: { day?: string; open?: string; close?: string }) => {
+          if (!entry?.day) return;
+          const open = entry.open ?? '';
+          const close = entry.close ?? '';
+          if (!open && !close) return;
+          derived[entry.day] = `${open} - ${close}`.trim();
+        });
+        hoursRecord = Object.keys(derived).length > 0 ? derived : null;
+      } else if (rawHours && typeof rawHours === 'object') {
+        hoursRecord = rawHours as Record<string, string>;
+      }
+
       const nextHours: Record<string, { open: string; close: string }> = {} as any;
       days.forEach((d) => {
-        const val = (salon.operatingHours as Record<string, string> | undefined)?.[d];
+        const val = hoursRecord?.[d];
         if (val && typeof val === 'string') {
           const match = val.match(/(\d{1,2}:\d{2}).*(\d{1,2}:\d{2})/);
           const open = match?.[1] || '09:00';
@@ -175,10 +190,14 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         latitude: (formData as any).latitude !== '' ? Number((formData as any).latitude) : undefined,
         longitude: (formData as any).longitude !== '' ? Number((formData as any).longitude) : undefined,
       } as any;
-      // Compose operatingHours record from UI hours
-      const hoursRecord: Record<string, string> = {};
-      days.forEach((d) => { hoursRecord[d] = `${hours[d].open} - ${hours[d].close}`; });
-      payload.operatingHours = hoursRecord;
+      // Compose operatingHours as array entries compatible with backend DTO
+      const hoursArray = days.map((d) => ({
+        day: d,
+        open: hours[d].open,
+        close: hours[d].close,
+      }));
+      payload.operatingHours = hoursArray;
+      payload.operatingDays = hoursArray.map((entry) => entry.day);
 
       // Normalize mobileFee number
       if (payload.bookingType !== 'ONSITE') {

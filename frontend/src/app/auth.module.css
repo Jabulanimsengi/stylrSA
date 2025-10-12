@@ -35,6 +35,32 @@
   flex-direction: column;
 }
 
+.passwordField {
+  position: relative;
+}
+
+.inputWithToggle {
+  padding-right: 2.5rem;
+}
+
+.toggleButton {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  color: var(--primary-plum);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+.toggleButton:focus-visible {
+  outline: 2px solid var(--primary-plum);
+  outline-offset: 2px;
+}
+
 .inputGroupRow {
   display: flex;
   gap: 1rem;

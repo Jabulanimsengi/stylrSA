@@ -179,9 +179,24 @@ function SalonsPageContent() {
                   <h2 className={styles.cardTitle}>{salon.name}</h2>
                   <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
                   {(() => {
-                    const oh = salon.operatingHours as unknown as Record<string, string> | null | undefined;
-                    if (!oh || typeof oh !== 'object') return null;
-                    const entries = Object.entries(oh);
+                    const oh = salon.operatingHours as unknown;
+                    let hoursRecord: Record<string, string> | null = null;
+                    if (Array.isArray(oh)) {
+                      const derived: Record<string, string> = {};
+                      oh.forEach((entry: { day?: string; open?: string; close?: string }) => {
+                        const day = entry?.day;
+                        if (!day) return;
+                        const open = entry.open;
+                        const close = entry.close;
+                        if (!open && !close) return;
+                        derived[day] = `${open ?? ''} - ${close ?? ''}`.trim();
+                      });
+                      hoursRecord = Object.keys(derived).length > 0 ? derived : null;
+                    } else if (oh && typeof oh === 'object') {
+                      hoursRecord = oh as Record<string, string>;
+                    }
+                    if (!hoursRecord) return null;
+                    const entries = Object.entries(hoursRecord);
                     if (entries.length === 0) return null;
                     const samples = entries.slice(0, 2).map(([day, hrs]) => `${day.substring(0,3)} ${hrs}`);
                     const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';

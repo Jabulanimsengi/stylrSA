@@ -5,25 +5,63 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './AdminPage.module.css';
-import { Salon, Service, ApprovalStatus, Review, Product } from '@/types';
+import {
+  Salon,
+  Service,
+  ApprovalStatus,
+  Review,
+  Product,
+  PlanPaymentStatus,
+  PlanCode,
+} from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
 import { useSession } from 'next-auth/react';
+import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
+
+const ensureArray = <T,>(value: unknown): T[] =>
+  Array.isArray(value) ? (value as T[]) : [];
 
 // FIX: Update PendingSalon to include the new fields from the backend response.
-type PendingSalon = Pick<Salon, 'id'|'name'|'approvalStatus'|'createdAt'> & { 
-  owner: { id: string; email: string; firstName: string; lastName: string; }
+type PendingSalon = Pick<Salon, 'id' | 'name' | 'approvalStatus' | 'createdAt'> & {
+  owner: { id: string; email: string; firstName: string; lastName: string; };
   visibilityWeight?: number;
   maxListings?: number;
   featuredUntil?: string | null;
-  planCode?: string | null;
+  planCode?: PlanCode | null;
+  planPriceCents?: number | null;
+  planPaymentStatus?: PlanPaymentStatus | null;
+  planPaymentReference?: string | null;
+  planProofSubmittedAt?: string | null;
+  planVerifiedAt?: string | null;
 };
 type PendingService = Service & { salon: { name: string } };
-type PendingReview = Review & { author: { firstName: string }, salon: { name: string } };
-type PendingProduct = Product & { seller: { firstName: string, lastName: string } };
+type PendingReview = Review & { author: { firstName: string }; salon: { name: string } };
+type PendingProduct = Product & {
+  seller: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    sellerPlanCode?: PlanCode | null;
+    sellerPlanPriceCents?: number | null;
+    sellerPlanPaymentStatus?: PlanPaymentStatus | null;
+    sellerPlanPaymentReference?: string | null;
+    sellerPlanProofSubmittedAt?: string | null;
+    sellerPlanVerifiedAt?: string | null;
+  };
+};
+
+const PLAN_PAYMENT_LABELS: Record<PlanPaymentStatus, string> = {
+  PENDING_SELECTION: 'Package not selected',
+  AWAITING_PROOF: 'Awaiting proof of payment',
+  PROOF_SUBMITTED: 'Proof submitted',
+  VERIFIED: 'Payment verified',
+};
+
+const formatRand = (value: number) => `R${(value / 100).toFixed(2)}`;
 
 export default function AdminPage() {
   const { data: session } = useSession();
@@ -67,8 +105,147 @@ export default function AdminPage() {
   const [selServices, setSelServices] = useState<Set<string>>(new Set());
   const [selReviews, setSelReviews] = useState<Set<string>>(new Set());
   const [selProducts, setSelProducts] = useState<Set<string>>(new Set());
+  const [updatingSalonPlanId, setUpdatingSalonPlanId] = useState<string | null>(null);
+  const [updatingSellerPlanId, setUpdatingSellerPlanId] = useState<string | null>(null);
 
   const clearSelections = () => { setSelSalons(new Set()); setSelServices(new Set()); setSelReviews(new Set()); setSelProducts(new Set()); };
+
+  const copyToClipboard = async (value: string, successMessage: string) => {
+    try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        throw new Error('Clipboard unavailable');
+      }
+      await navigator.clipboard.writeText(value);
+      toast.success(successMessage);
+    } catch {
+      toast.error('Unable to copy to clipboard');
+    }
+  };
+
+  const updateSalonPaymentStatus = async (
+    salonId: string,
+    status: PlanPaymentStatus,
+  ) => {
+    const authHeaders: Record<string, string> = session?.backendJwt
+      ? { Authorization: `Bearer ${session.backendJwt}` }
+      : {};
+    setUpdatingSalonPlanId(salonId);
+    try {
+      const res = await fetch(`/api/admin/salons/${salonId}/plan/payment`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'include',
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => '');
+        toast.error(`Failed to update payment status (${res.status}). ${msg}`);
+        return;
+      }
+      const updated = await res.json();
+      setPendingSalons((prev) =>
+        prev.map((salon) =>
+          salon.id === salonId
+            ? {
+                ...salon,
+                planPaymentStatus: updated.planPaymentStatus ?? status,
+                planPaymentReference:
+                  updated.planPaymentReference ?? salon.planPaymentReference,
+                planProofSubmittedAt:
+                  updated.planProofSubmittedAt ?? salon.planProofSubmittedAt,
+                planVerifiedAt: updated.planVerifiedAt ?? salon.planVerifiedAt,
+                planPriceCents:
+                  typeof updated.planPriceCents === 'number'
+                    ? updated.planPriceCents
+                    : salon.planPriceCents,
+              }
+            : salon,
+        ),
+      );
+      setAllSalons((prev) =>
+        prev.map((salon) =>
+          salon.id === salonId
+            ? {
+                ...salon,
+                planPaymentStatus: updated.planPaymentStatus ?? status,
+                planPaymentReference:
+                  updated.planPaymentReference ?? salon.planPaymentReference,
+                planProofSubmittedAt:
+                  updated.planProofSubmittedAt ?? salon.planProofSubmittedAt,
+                planVerifiedAt: updated.planVerifiedAt ?? salon.planVerifiedAt,
+                planPriceCents:
+                  typeof updated.planPriceCents === 'number'
+                    ? updated.planPriceCents
+                    : salon.planPriceCents,
+              }
+            : salon,
+        ),
+      );
+      toast.success('Payment status updated');
+    } catch (error) {
+      toast.error('Failed to update payment status');
+    } finally {
+      setUpdatingSalonPlanId(null);
+    }
+  };
+
+  const updateSellerPaymentStatus = async (
+    sellerId: string,
+    status: PlanPaymentStatus,
+  ) => {
+    const authHeaders: Record<string, string> = session?.backendJwt
+      ? { Authorization: `Bearer ${session.backendJwt}` }
+      : {};
+    setUpdatingSellerPlanId(sellerId);
+    try {
+      const res = await fetch(`/api/admin/sellers/${sellerId}/plan/payment`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'include',
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => '');
+        toast.error(`Failed to update seller payment (${res.status}). ${msg}`);
+        return;
+      }
+      const updated = await res.json();
+      toast.success('Seller payment status updated');
+      setPendingProducts((prev) =>
+        prev.map((product) =>
+          product.seller.id === sellerId
+            ? {
+                ...product,
+                seller: {
+                  ...product.seller,
+                  sellerPlanPaymentStatus:
+                    updated.sellerPlanPaymentStatus ?? status,
+                  sellerPlanPaymentReference:
+                    updated.sellerPlanPaymentReference ??
+                    product.seller.sellerPlanPaymentReference,
+                  sellerPlanProofSubmittedAt:
+                    updated.sellerPlanProofSubmittedAt ??
+                    product.seller.sellerPlanProofSubmittedAt,
+                  sellerPlanVerifiedAt:
+                    updated.sellerPlanVerifiedAt ??
+                    product.seller.sellerPlanVerifiedAt,
+                  sellerPlanPriceCents:
+                    typeof updated.sellerPlanPriceCents === 'number'
+                      ? updated.sellerPlanPriceCents
+                      : product.seller.sellerPlanPriceCents,
+                  sellerPlanCode:
+                    updated.sellerPlanCode ?? product.seller.sellerPlanCode,
+                },
+              }
+            : product,
+        ),
+      );
+    } catch (error) {
+      toast.error('Failed to update seller payment status');
+    } finally {
+      setUpdatingSellerPlanId(null);
+    }
+  };
 
   const bulkUpdate = async (type: 'salon'|'service'|'review'|'product', ids: string[], status: ApprovalStatus) => {
     if (ids.length === 0) return;
@@ -120,12 +297,12 @@ export default function AdminPage() {
         }
         
         // This is where the original error happened. With the backend fix, it should now work.
-        setPendingSalons(await pendingSalonsRes.json());
-        setAllSalons(await allSalonsRes.json());
-        setPendingServices(await servicesRes.json());
-        setPendingReviews(await reviewsRes.json());
-        setPendingProducts(await productsRes.json());
-        setDeletedSalons(await deletedSalonsRes.json());
+        setPendingSalons(ensureArray<PendingSalon>(await pendingSalonsRes.json()));
+        setAllSalons(ensureArray<PendingSalon>(await allSalonsRes.json()));
+        setPendingServices(ensureArray<PendingService>(await servicesRes.json()));
+        setPendingReviews(ensureArray<PendingReview>(await reviewsRes.json()));
+        setPendingProducts(ensureArray<PendingProduct>(await productsRes.json()));
+        setDeletedSalons(ensureArray<PendingSalon>(await deletedSalonsRes.json()));
         setMetrics(await metricsRes.json());
 
       } catch (error) {
@@ -149,14 +326,14 @@ export default function AdminPage() {
             fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
             fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
           ]);
-          if (allRes.ok) setAllSalons(await allRes.json());
-          if (delRes.ok) setDeletedSalons(await delRes.json());
+          if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
+          if (delRes.ok) setDeletedSalons(ensureArray<PendingSalon>(await delRes.json()));
         } catch {}
       });
       socket.on('visibility:updated', async () => {
         try {
           const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
-          if (allRes.ok) setAllSalons(await allRes.json());
+          if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
         } catch {}
       });
     } catch {}
@@ -179,12 +356,18 @@ export default function AdminPage() {
     }
 
     const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
-    await fetch(url, {
+    const res = await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...authHeaders },
       credentials: 'include',
       body: JSON.stringify({ approvalStatus: status }),
     });
+
+    if (!res.ok) {
+      const msg = await res.text().catch(() => '');
+      toast.error(`Failed to update status (${res.status}). ${msg}`);
+      return;
+    }
 
     if (type === 'salon') setPendingSalons(pendingSalons.filter(s => s.id !== id));
     if (type === 'service') setPendingServices(pendingServices.filter(s => s.id !== id));
@@ -245,7 +428,7 @@ export default function AdminPage() {
           fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
           fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
         ]);
-        if (allRes.ok) setAllSalons(await allRes.json());
+        if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
         if (delRes.ok) setDeletedSalons(await delRes.json());
       } catch {}
     } else {
@@ -324,21 +507,100 @@ export default function AdminPage() {
               <button className={styles.rejectButton} disabled={selSalons.size===0} onClick={()=> bulkUpdate('salon', Array.from(selSalons), 'REJECTED')}>Reject selected</button>
             </div>
           )}
-          {pendingSalons.length > 0 ? pendingSalons.map(salon => (
-            <div key={salon.id} className={styles.listItem}>
-              <div className={styles.info}>
-                <input type="checkbox" checked={selSalons.has(salon.id)} onChange={e=> { const ns = new Set(selSalons); if(e.target.checked) ns.add(salon.id); else ns.delete(salon.id); setSelSalons(ns); }} />
-                <h4>{salon.name}</h4>
-                {/* FIX: Display the full name and email of the owner. */}
-                <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email})</p>
+          {pendingSalons.length > 0 ? pendingSalons.map((salon) => {
+            const planCode = (salon.planCode ?? 'STARTER') as PlanCode;
+            const plan = PLAN_BY_CODE[planCode] ?? APP_PLANS[0];
+            const amountDue =
+              typeof salon.planPriceCents === 'number'
+                ? formatRand(salon.planPriceCents)
+                : plan.price;
+            const paymentStatus = (salon.planPaymentStatus ??
+              'PENDING_SELECTION') as PlanPaymentStatus;
+            const proofSubmittedAt = salon.planProofSubmittedAt
+              ? new Date(salon.planProofSubmittedAt).toLocaleString('en-ZA')
+              : null;
+            const verifiedAt = salon.planVerifiedAt
+              ? new Date(salon.planVerifiedAt).toLocaleString('en-ZA')
+              : null;
+            const isUpdating = updatingSalonPlanId === salon.id;
+            const reference = salon.planPaymentReference ?? salon.name;
+            return (
+              <div key={salon.id} className={styles.listItem}>
+                <div className={styles.info}>
+                  <input
+                    type="checkbox"
+                    checked={selSalons.has(salon.id)}
+                    onChange={(e) => {
+                      const ns = new Set(selSalons);
+                      if (e.target.checked) ns.add(salon.id);
+                      else ns.delete(salon.id);
+                      setSelSalons(ns);
+                    }}
+                  />
+                  <h4>{salon.name}</h4>
+                  <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email})</p>
+                  <div className={styles.planInfo}>
+                    <div className={styles.planInfoRow}>
+                      <span><strong>Package:</strong> {plan.name}</span>
+                      <span><strong>Amount due:</strong> {amountDue}</span>
+                      <span>
+                        <strong>Status:</strong>{' '}
+                        <span className={`${styles.planBadge} ${styles[`planStatus_${paymentStatus.toLowerCase()}`]}`}>
+                          {PLAN_PAYMENT_LABELS[paymentStatus]}
+                        </span>
+                      </span>
+                    </div>
+                    <div className={styles.planInfoRow}>
+                      <span>
+                        <strong>Reference:</strong>{' '}
+                        <code className={styles.planReference}>{reference}</code>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(reference, 'Reference copied')}
+                        >
+                          Copy
+                        </button>
+                      </span>
+                      {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
+                      {verifiedAt && <span>Verified on: {verifiedAt}</span>}
+                    </div>
+                    <div className={styles.planAdminActions}>
+                      <button
+                        type="button"
+                        className={styles.approveButton}
+                        onClick={() => updateSalonPaymentStatus(salon.id, 'VERIFIED')}
+                        disabled={isUpdating || paymentStatus === 'VERIFIED'}
+                      >
+                        {isUpdating && paymentStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.approveButton}
+                        onClick={() => updateSalonPaymentStatus(salon.id, 'PROOF_SUBMITTED')}
+                        disabled={isUpdating || paymentStatus === 'PROOF_SUBMITTED'}
+                      >
+                        {isUpdating && paymentStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.rejectButton}
+                        onClick={() => updateSalonPaymentStatus(salon.id, 'AWAITING_PROOF')}
+                        disabled={isUpdating || paymentStatus === 'AWAITING_PROOF'}
+                      >
+                        {isUpdating && paymentStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.actions}>
+                  <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
+                  <button onClick={() => handleUpdateStatus('salon', salon.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
+                  <button onClick={() => handleUpdateStatus('salon', salon.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
+                </div>
               </div>
-              <div className={styles.actions}>
-                <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
-                <button onClick={() => handleUpdateStatus('salon', salon.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
-                <button onClick={() => handleUpdateStatus('salon', salon.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
-              </div>
-            </div>
-          )) : <p>No pending salons.</p>}
+            );
+          }) : <p>No pending salons.</p>}
           </>
         )}
         
@@ -433,7 +695,7 @@ export default function AdminPage() {
                             try {
                               const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
                               if (allRes.ok) {
-                                const fresh = await allRes.json();
+                                const fresh = ensureArray<PendingSalon>(await allRes.json());
                                 setAllSalons(fresh);
                               }
                             } catch {}
@@ -537,50 +799,101 @@ export default function AdminPage() {
               <button className={styles.rejectButton} disabled={selProducts.size===0} onClick={()=> bulkUpdate('product', Array.from(selProducts), 'REJECTED')}>Reject selected</button>
             </div>
           )}
-          {pendingProducts.length > 0 ? pendingProducts.map(product => (
-            <div key={product.id} className={styles.listItem}>
-              <div className={styles.info}>
-                <input type="checkbox" checked={selProducts.has(product.id)} onChange={e=> { const ns = new Set(selProducts); if(e.target.checked) ns.add(product.id); else ns.delete(product.id); setSelProducts(ns); }} />
-                <h4>{product.name}</h4>
-                <p>Seller: {product.seller.firstName} {product.seller.lastName}</p>
-                <div style={{display:'flex', gap: '0.5rem', alignItems:'center', flexWrap:'wrap', marginTop:'0.5rem'}}>
-                  <label>Seller Plan</label>
-                  <select id={`splan-${product.id}`} defaultValue="STARTER" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}}>
-                    <option value="STARTER">Starter</option>
-                    <option value="ESSENTIAL">Essential</option>
-                    <option value="GROWTH">Growth</option>
-                    <option value="PRO">Pro</option>
-                    <option value="ELITE">Elite</option>
-                  </select>
-                  <label>Weight</label>
-                  <input id={`sweight-${product.id}`} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                  <label>Max listings</label>
-                  <input id={`smax-${product.id}`} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                  <label>Featured until</label>
-                  <input id={`sfeat-${product.id}`} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                  <button
-                    onClick={async ()=>{
-                      const planCode = (document.getElementById(`splan-${product.id}`) as HTMLSelectElement)?.value;
-                      const visibilityWeight = Number((document.getElementById(`sweight-${product.id}`) as HTMLInputElement)?.value || NaN);
-                      const maxListings = Number((document.getElementById(`smax-${product.id}`) as HTMLInputElement)?.value || NaN);
-                      const featuredUntil = (document.getElementById(`sfeat-${product.id}`) as HTMLInputElement)?.value;
-                      const body: any = { planCode };
-                      if (!Number.isNaN(visibilityWeight)) body.visibilityWeight = visibilityWeight;
-                      if (!Number.isNaN(maxListings)) body.maxListings = maxListings;
-                      if (featuredUntil) body.featuredUntil = featuredUntil;
-                      const r = await fetch(`/api/admin/sellers/${product.seller.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)});
-                      if (r.ok) toast.success('Seller plan updated'); else toast.error('Failed to update plan');
+          {pendingProducts.length > 0 ? pendingProducts.map((product) => {
+            const sellerPlanCode = (product.seller.sellerPlanCode ?? 'STARTER') as PlanCode;
+            const plan = PLAN_BY_CODE[sellerPlanCode] ?? APP_PLANS[0];
+            const planAmount =
+              typeof product.seller.sellerPlanPriceCents === 'number'
+                ? formatRand(product.seller.sellerPlanPriceCents)
+                : plan.price;
+            const sellerStatus = (product.seller.sellerPlanPaymentStatus ??
+              'PENDING_SELECTION') as PlanPaymentStatus;
+            const proofSubmittedAt = product.seller.sellerPlanProofSubmittedAt
+              ? new Date(product.seller.sellerPlanProofSubmittedAt).toLocaleString('en-ZA')
+              : null;
+            const sellerVerifiedAt = product.seller.sellerPlanVerifiedAt
+              ? new Date(product.seller.sellerPlanVerifiedAt).toLocaleString('en-ZA')
+              : null;
+            const isSellerUpdating = updatingSellerPlanId === product.seller.id;
+            const sellerReference =
+              product.seller.sellerPlanPaymentReference ??
+              `${product.seller.firstName} ${product.seller.lastName}`.trim();
+            return (
+              <div key={product.id} className={styles.listItem}>
+                <div className={styles.info}>
+                  <input
+                    type="checkbox"
+                    checked={selProducts.has(product.id)}
+                    onChange={(e) => {
+                      const ns = new Set(selProducts);
+                      if (e.target.checked) ns.add(product.id);
+                      else ns.delete(product.id);
+                      setSelProducts(ns);
                     }}
-                    className={styles.approveButton}
-                  >Save</button>
+                  />
+                  <h4>{product.name}</h4>
+                  <p>Seller: {product.seller.firstName} {product.seller.lastName}</p>
+                  <div className={styles.planInfo}>
+                    <div className={styles.planInfoRow}>
+                      <span><strong>Package:</strong> {plan.name}</span>
+                      <span><strong>Amount due:</strong> {planAmount}</span>
+                      <span>
+                        <strong>Status:</strong>{' '}
+                        <span className={`${styles.planBadge} ${styles[`planStatus_${sellerStatus.toLowerCase()}`]}`}>
+                          {PLAN_PAYMENT_LABELS[sellerStatus]}
+                        </span>
+                      </span>
+                    </div>
+                    <div className={styles.planInfoRow}>
+                      <span>
+                        <strong>Reference:</strong>{' '}
+                        <code className={styles.planReference}>{sellerReference}</code>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(sellerReference, 'Reference copied')}
+                        >
+                          Copy
+                        </button>
+                      </span>
+                      {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
+                      {sellerVerifiedAt && <span>Verified on: {sellerVerifiedAt}</span>}
+                    </div>
+                    <div className={styles.planAdminActions}>
+                      <button
+                        type="button"
+                        className={styles.approveButton}
+                        onClick={() => updateSellerPaymentStatus(product.seller.id, 'VERIFIED')}
+                        disabled={isSellerUpdating || sellerStatus === 'VERIFIED'}
+                      >
+                        {isSellerUpdating && sellerStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.approveButton}
+                        onClick={() => updateSellerPaymentStatus(product.seller.id, 'PROOF_SUBMITTED')}
+                        disabled={isSellerUpdating || sellerStatus === 'PROOF_SUBMITTED'}
+                      >
+                        {isSellerUpdating && sellerStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.rejectButton}
+                        onClick={() => updateSellerPaymentStatus(product.seller.id, 'AWAITING_PROOF')}
+                        disabled={isSellerUpdating || sellerStatus === 'AWAITING_PROOF'}
+                      >
+                        {isSellerUpdating && sellerStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.actions}>
+                  <button onClick={() => handleUpdateStatus('product', product.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
+                  <button onClick={() => handleUpdateStatus('product', product.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
                 </div>
               </div>
-              <div className={styles.actions}>
-                <button onClick={() => handleUpdateStatus('product', product.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
-                <button onClick={() => handleUpdateStatus('product', product.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
-              </div>
-            </div>
-          )) : <p>No pending products.</p>}
+            );
+          }) : <p>No pending products.</p>}
           </>
         )}
 

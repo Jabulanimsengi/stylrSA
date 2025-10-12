@@ -1,9 +1,14 @@
 // backend/src/admin/admin.service.ts
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+type PlanPaymentStatus =
+  | 'PENDING_SELECTION'
+  | 'AWAITING_PROOF'
+  | 'PROOF_SUBMITTED'
+  | 'VERIFIED';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { EventsGateway } from 'src/events/events.gateway';
 
@@ -67,8 +72,20 @@ export class AdminService {
   async getPendingSalons() {
     return this.prisma.salon.findMany({
       where: { approvalStatus: 'PENDING' },
-      // FIX: Use `select` to prevent circular references and leaking sensitive data.
-      include: {
+      select: {
+        id: true,
+        name: true,
+        approvalStatus: true,
+        createdAt: true,
+        planCode: true,
+        planPriceCents: true,
+        planPaymentStatus: true,
+        planPaymentReference: true,
+        planProofSubmittedAt: true,
+        planVerifiedAt: true,
+        visibilityWeight: true,
+        maxListings: true,
+        featuredUntil: true,
         owner: {
           select: {
             id: true,
@@ -90,6 +107,11 @@ export class AdminService {
         approvalStatus: true,
         createdAt: true,
         planCode: true,
+        planPriceCents: true,
+        planPaymentStatus: true,
+        planPaymentReference: true,
+        planProofSubmittedAt: true,
+        planVerifiedAt: true,
         visibilityWeight: true,
         maxListings: true,
         featuredUntil: true,
@@ -105,6 +127,18 @@ export class AdminService {
     status: ApprovalStatus,
     adminId?: string,
   ) {
+    const current = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+      select: { planPaymentStatus: true },
+    });
+    if (!current) {
+      throw new NotFoundException('Salon not found');
+    }
+    if (status === 'APPROVED' && current.planPaymentStatus !== 'VERIFIED') {
+      throw new ForbiddenException(
+        'Cannot approve salon until payment has been verified.',
+      );
+    }
     const updated = await this.prisma.salon.update({
       where: { id: salonId },
       data: { approvalStatus: status },
@@ -270,7 +304,21 @@ export class AdminService {
   async getPendingProducts() {
     return this.prisma.product.findMany({
       where: { approvalStatus: 'PENDING' },
-      include: { seller: { select: { firstName: true, lastName: true } } },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            sellerPlanCode: true,
+            sellerPlanPriceCents: true,
+            sellerPlanPaymentStatus: true,
+            sellerPlanPaymentReference: true,
+            sellerPlanProofSubmittedAt: true,
+            sellerPlanVerifiedAt: true,
+          },
+        },
+      },
     });
   }
 
@@ -279,6 +327,28 @@ export class AdminService {
     status: ApprovalStatus,
     adminId?: string,
   ) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: {
+        seller: {
+          select: {
+            id: true,
+            sellerPlanPaymentStatus: true,
+          },
+        },
+      },
+    });
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+    if (
+      status === 'APPROVED' &&
+      product.seller?.sellerPlanPaymentStatus !== 'VERIFIED'
+    ) {
+      throw new ForbiddenException(
+        'Cannot approve product until seller payment has been verified.',
+      );
+    }
     const updated = await this.prisma.product.update({
       where: { id: productId },
       data: { approvalStatus: status },
@@ -325,17 +395,18 @@ export class AdminService {
   ) {
     const FALLBACKS: Record<
       string,
-      { visibilityWeight: number; maxListings: number }
+      { visibilityWeight: number; maxListings: number; priceCents: number }
     > = {
-      STARTER: { visibilityWeight: 1, maxListings: 2 },
-      ESSENTIAL: { visibilityWeight: 2, maxListings: 6 },
-      GROWTH: { visibilityWeight: 3, maxListings: 11 },
-      PRO: { visibilityWeight: 4, maxListings: 26 },
-      ELITE: { visibilityWeight: 5, maxListings: 9999 },
+      STARTER: { visibilityWeight: 1, maxListings: 2, priceCents: 4900 },
+      ESSENTIAL: { visibilityWeight: 2, maxListings: 6, priceCents: 9900 },
+      GROWTH: { visibilityWeight: 3, maxListings: 11, priceCents: 19900 },
+      PRO: { visibilityWeight: 4, maxListings: 26, priceCents: 29900 },
+      ELITE: { visibilityWeight: 5, maxListings: 9999, priceCents: 49900 },
     };
     type PlanPartial = {
       visibilityWeight?: number | null;
       maxListings?: number | null;
+      priceCents?: number | null;
     };
     // Normalize and validate incoming plan code (handle 'undefined'/'null' strings)
     const normalizedPlan =
@@ -368,11 +439,15 @@ export class AdminService {
       plan?.maxListings ??
       (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.maxListings ??
       2;
+    const planPriceCents =
+      (plan?.priceCents ?? undefined) ??
+      (isValidPlan ? FALLBACKS[normalizedPlan]?.priceCents : undefined);
     const data: any = {
       visibilityWeight,
       maxListings,
     };
     if (isValidPlan) data.planCode = normalizedPlan as PlanCode;
+    if (planPriceCents !== undefined) data.planPriceCents = planPriceCents;
     if (
       overrides &&
       Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')
@@ -405,17 +480,18 @@ export class AdminService {
   ) {
     const FALLBACKS: Record<
       string,
-      { visibilityWeight: number; maxListings: number }
+      { visibilityWeight: number; maxListings: number; priceCents: number }
     > = {
-      STARTER: { visibilityWeight: 1, maxListings: 2 },
-      ESSENTIAL: { visibilityWeight: 2, maxListings: 6 },
-      GROWTH: { visibilityWeight: 3, maxListings: 11 },
-      PRO: { visibilityWeight: 4, maxListings: 26 },
-      ELITE: { visibilityWeight: 5, maxListings: 9999 },
+      STARTER: { visibilityWeight: 1, maxListings: 2, priceCents: 4900 },
+      ESSENTIAL: { visibilityWeight: 2, maxListings: 6, priceCents: 9900 },
+      GROWTH: { visibilityWeight: 3, maxListings: 11, priceCents: 19900 },
+      PRO: { visibilityWeight: 4, maxListings: 26, priceCents: 29900 },
+      ELITE: { visibilityWeight: 5, maxListings: 9999, priceCents: 49900 },
     };
     type SellerPlanPartial = {
       visibilityWeight?: number | null;
       maxListings?: number | null;
+      priceCents?: number | null;
     };
     const normalizedPlan =
       !planCode || planCode === 'undefined' || planCode === 'null'
@@ -447,11 +523,16 @@ export class AdminService {
       plan?.maxListings ??
       (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.maxListings ??
       2;
+    const sellerPlanPriceCents =
+      (plan?.priceCents ?? undefined) ??
+      (isValidPlan ? FALLBACKS[normalizedPlan]?.priceCents : undefined);
     const data: any = {
       sellerVisibilityWeight,
       sellerMaxListings,
     };
     if (isValidPlan) data.sellerPlanCode = normalizedPlan as PlanCode;
+    if (sellerPlanPriceCents !== undefined)
+      data.sellerPlanPriceCents = sellerPlanPriceCents;
     if (
       overrides &&
       Object.prototype.hasOwnProperty.call(overrides, 'featuredUntil')
@@ -470,6 +551,117 @@ export class AdminService {
     } catch {
       // noop: websocket not critical for persistence
     }
+    return updated;
+  }
+
+  async updateSalonPlanPaymentStatus(params: {
+    salonId: string;
+    status: PlanPaymentStatus;
+    adminId?: string;
+    paymentReference?: string | null;
+  }) {
+    const { salonId, status, adminId, paymentReference } = params;
+    const existing = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+      select: {
+        planPaymentStatus: true,
+        planProofSubmittedAt: true,
+      },
+    });
+    if (!existing) {
+      throw new NotFoundException('Salon not found');
+    }
+    const data: any = { planPaymentStatus: status };
+    if (typeof paymentReference !== 'undefined') {
+      data.planPaymentReference = paymentReference?.trim().length
+        ? paymentReference.trim()
+        : null;
+    }
+    const now = new Date();
+    if (status === 'VERIFIED') {
+      data.planVerifiedAt = now;
+    } else {
+      data.planVerifiedAt = null;
+    }
+    if (status === 'PROOF_SUBMITTED') {
+      data.planProofSubmittedAt = existing.planProofSubmittedAt ?? now;
+    }
+    if (status === 'AWAITING_PROOF' || status === 'PENDING_SELECTION') {
+      data.planProofSubmittedAt = null;
+    }
+
+    const updated = await this.prisma.salon.update({
+      where: { id: salonId },
+      data,
+    });
+
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'SALON_PLAN_PAYMENT_UPDATE',
+        targetType: 'SALON',
+        targetId: salonId,
+        metadata: { status, paymentReference: data.planPaymentReference ?? null },
+      });
+    }
+
+    return updated;
+  }
+
+  async updateSellerPlanPaymentStatus(params: {
+    sellerId: string;
+    status: PlanPaymentStatus;
+    adminId?: string;
+    paymentReference?: string | null;
+  }) {
+    const { sellerId, status, adminId, paymentReference } = params;
+    const existing = await this.prisma.user.findUnique({
+      where: { id: sellerId },
+      select: {
+        role: true,
+        sellerPlanPaymentStatus: true,
+        sellerPlanProofSubmittedAt: true,
+      },
+    });
+    if (!existing || existing.role !== 'PRODUCT_SELLER') {
+      throw new NotFoundException('Seller not found');
+    }
+
+    const data: any = { sellerPlanPaymentStatus: status };
+    if (typeof paymentReference !== 'undefined') {
+      data.sellerPlanPaymentReference = paymentReference?.trim().length
+        ? paymentReference.trim()
+        : null;
+    }
+    const now = new Date();
+    if (status === 'VERIFIED') {
+      data.sellerPlanVerifiedAt = now;
+    } else {
+      data.sellerPlanVerifiedAt = null;
+    }
+    if (status === 'PROOF_SUBMITTED') {
+      data.sellerPlanProofSubmittedAt =
+        existing.sellerPlanProofSubmittedAt ?? now;
+    }
+    if (status === 'AWAITING_PROOF' || status === 'PENDING_SELECTION') {
+      data.sellerPlanProofSubmittedAt = null;
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: sellerId },
+      data,
+    });
+
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'SELLER_PLAN_PAYMENT_UPDATE',
+        targetType: 'SELLER',
+        targetId: sellerId,
+        metadata: { status, paymentReference: data.sellerPlanPaymentReference ?? null },
+      });
+    }
+
     return updated;
   }
 

@@ -38,37 +38,35 @@ export default function GlobalError({ error: _error, reset }: { error: Error & {
   };
 
   return (
-    <html>
-      <body style={containerStyle}>
-        <div style={panelStyle}>
-          <h1 style={{ fontSize: 28, marginBottom: 12 }}>Something went wrong</h1>
-          <p style={subtitleStyle}>
-            An unexpected error occurred. Please try again. If the problem persists, contact support.
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-            <button
-              onClick={() => reset()}
-              style={{
-                ...buttonStyle,
-                background: 'var(--color-primary)',
-                color: 'var(--color-text-inverse)',
-              }}
-            >
-              Try again
-            </button>
-            <Link
-              href="/"
-              style={{
-                ...buttonStyle,
-                background: 'var(--color-secondary)',
-                color: 'var(--color-text-inverse)',
-              }}
-            >
-              Go home
-            </Link>
-          </div>
+    <div style={containerStyle}>
+      <div style={panelStyle}>
+        <h1 style={{ fontSize: 28, marginBottom: 12 }}>Something went wrong</h1>
+        <p style={subtitleStyle}>
+          An unexpected error occurred. Please try again. If the problem persists, contact support.
+        </p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <button
+            onClick={() => reset()}
+            style={{
+              ...buttonStyle,
+              background: 'var(--color-primary)',
+              color: 'var(--color-text-inverse)',
+            }}
+          >
+            Try again
+          </button>
+          <Link
+            href="/"
+            style={{
+              ...buttonStyle,
+              background: 'var(--color-secondary)',
+              color: 'var(--color-text-inverse)',
+            }}
+          >
+            Go home
+          </Link>
         </div>
-      </body>
-    </html>
+      </div>
+    </div>
   );
 }

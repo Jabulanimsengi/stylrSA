@@ -18,6 +18,7 @@ interface LoginProps {
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { switchToRegister } = useAuthModal();
@@ -38,7 +39,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       // On success, call the function passed down from the parent component
       onLoginSuccess(data.user);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg = toFriendlyMessage(err, 'Login failed. Please check your credentials.');
       setError(msg);
       toast.error(msg);
@@ -65,11 +66,25 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             <label htmlFor="password" className={styles.label}>
               Password
             </label>
-            <input
-              id="password" type="password" required value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
-            />
+            <div className={styles.passwordField}>
+              <input
+                id="password"
+                type={isPasswordVisible ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`${styles.input} ${styles.inputWithToggle}`}
+              />
+              <button
+                type="button"
+                onClick={() => setIsPasswordVisible((prev) => !prev)}
+                className={styles.toggleButton}
+                aria-label={isPasswordVisible ? 'Hide password' : 'Show password'}
+                aria-pressed={isPasswordVisible}
+              >
+                {isPasswordVisible ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           {error && <p className={styles.errorMessage}>{error}</p>}
           <div>

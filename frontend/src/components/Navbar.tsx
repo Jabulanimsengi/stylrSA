@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { signOut } from 'next-auth/react';
 import { useAuthModal } from '@/context/AuthModalContext';
 import {
   FaBars,
@@ -58,6 +60,8 @@ export default function Navbar() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [viewFilter, setViewFilter] = useState<'all' | 'unread'>('all');
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const notificationsPortalRef = useRef<HTMLDivElement>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [hasPrefetchedRoutes, setHasPrefetchedRoutes] = useState(false);
 
   const updateNotificationsCache = useCallback((items: Notification[], unread: number, cursor: string | null) => {
@@ -99,6 +103,8 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
+      // Clear NextAuth session (Google/OAuth)
+      try { await signOut({ redirect: false }); } catch {}
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
@@ -260,12 +266,22 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedInsideAnchor = notificationsRef.current?.contains(target);
+      const clickedInsidePortal = notificationsPortalRef.current?.contains(target);
+      if (!clickedInsideAnchor && !clickedInsidePortal) {
         setIsNotificationsOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const update = () => setIsDesktop(typeof window !== 'undefined' ? window.innerWidth > 1024 : false);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
   }, []);
 
   useEffect(() => {
@@ -381,6 +397,81 @@ export default function Navbar() {
     );
   };
 
+  const panelBody = (
+    <>
+      <div className={styles.notificationsHeader}>
+        <span>Notifications</span>
+        {notifications.length > 0 && (
+          <div style={{ display: 'flex', gap: '0.5rem', fontWeight: 600 }}>
+            <button
+              type="button"
+              className={styles.notificationsFooterButton}
+              onClick={handleMarkAllRead}
+              style={{ padding: '0.35rem 0.65rem' }}
+            >
+              Mark all read
+            </button>
+            <button
+              type="button"
+              className={styles.notificationsFooterButton}
+              onClick={handleClearNotifications}
+              style={{ padding: '0.35rem 0.65rem' }}
+            >
+              Clear
+            </button>
+          </div>
+        )}
+      </div>
+      <div className={styles.notificationsFilters}>
+        <button
+          type="button"
+          className={`${styles.notificationsFilterButton} ${viewFilter === 'all' ? styles.notificationsFilterActive : ''}`}
+          onClick={() => setViewFilter('all')}
+        >
+          All ({notifications.length})
+        </button>
+        <button
+          type="button"
+          className={`${styles.notificationsFilterButton} ${viewFilter === 'unread' ? styles.notificationsFilterActive : ''}`}
+          onClick={() => setViewFilter('unread')}
+        >
+          Unread ({notifications.filter((n) => !n.isRead).length})
+        </button>
+      </div>
+      <div className={styles.notificationsList}>
+        {isLoadingNotifications ? (
+          Array.from({ length: 3 }).map((_, idx) => (
+            <div key={idx} className="skeleton" style={{ height: '3rem' }} />
+          ))
+        ) : filteredNotifications.length > 0 ? (
+          filteredNotifications.map((notif) => (
+            <button
+              key={notif.id}
+              type="button"
+              onClick={() => handleNotificationClick(notif)}
+              className={`${styles.notificationItem} ${!notif.isRead ? styles.notificationUnread : ''}`.trim()}
+            >
+              <span>{notif.message}</span>
+              <span className={styles.notificationMeta}>{formatTimestamp(notif.createdAt)}</span>
+            </button>
+          ))
+        ) : (
+          <div className={styles.notificationItem}>No new notifications.</div>
+        )}
+      </div>
+      {viewFilter === 'all' && nextCursor && (
+        <button
+          type="button"
+          onClick={handleLoadMore}
+          disabled={isLoadingMore}
+          className={styles.notificationsFooterButton}
+        >
+          {isLoadingMore ? 'Loading…' : 'Load older notifications'}
+        </button>
+      )}
+    </>
+  );
+
   const notificationsButton = (
     <div ref={notificationsRef} className={styles.notificationsWrapper}>
       <button
@@ -395,78 +486,18 @@ export default function Navbar() {
         {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
       </button>
       {isNotificationsOpen && (
-        <div className={styles.notificationsPanel}>
-          <div className={styles.notificationsHeader}>
-            <span>Notifications</span>
-            {notifications.length > 0 && (
-              <div style={{ display: 'flex', gap: '0.5rem', fontWeight: 600 }}>
-                <button
-                  type="button"
-                  className={styles.notificationsFooterButton}
-                  onClick={handleMarkAllRead}
-                  style={{ padding: '0.35rem 0.65rem' }}
-                >
-                  Mark all read
-                </button>
-                <button
-                  type="button"
-                  className={styles.notificationsFooterButton}
-                  onClick={handleClearNotifications}
-                  style={{ padding: '0.35rem 0.65rem' }}
-                >
-                  Clear
-                </button>
+        isDesktop
+          ? createPortal(
+              <div ref={notificationsPortalRef} className={`${styles.notificationsPanel} ${styles.notificationsPortalPanel}`}>
+                {panelBody}
+              </div>,
+              document.body,
+            )
+          : (
+              <div className={styles.notificationsPanel}>
+                {panelBody}
               </div>
-            )}
-          </div>
-          <div className={styles.notificationsFilters}>
-            <button
-              type="button"
-              className={`${styles.notificationsFilterButton} ${viewFilter === 'all' ? styles.notificationsFilterActive : ''}`}
-              onClick={() => setViewFilter('all')}
-            >
-              All ({notifications.length})
-            </button>
-            <button
-              type="button"
-              className={`${styles.notificationsFilterButton} ${viewFilter === 'unread' ? styles.notificationsFilterActive : ''}`}
-              onClick={() => setViewFilter('unread')}
-            >
-              Unread ({notifications.filter((n) => !n.isRead).length})
-            </button>
-          </div>
-          <div className={styles.notificationsList}>
-            {isLoadingNotifications ? (
-              Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} className="skeleton" style={{ height: '3rem' }} />
-              ))
-            ) : filteredNotifications.length > 0 ? (
-              filteredNotifications.map((notif) => (
-                <button
-                  key={notif.id}
-                  type="button"
-                  onClick={() => handleNotificationClick(notif)}
-                  className={`${styles.notificationItem} ${!notif.isRead ? styles.notificationUnread : ''}`.trim()}
-                >
-                  <span>{notif.message}</span>
-                  <span className={styles.notificationMeta}>{formatTimestamp(notif.createdAt)}</span>
-                </button>
-              ))
-            ) : (
-              <div className={styles.notificationItem}>No new notifications.</div>
-            )}
-          </div>
-          {viewFilter === 'all' && nextCursor && (
-            <button
-              type="button"
-              onClick={handleLoadMore}
-              disabled={isLoadingMore}
-              className={styles.notificationsFooterButton}
-            >
-              {isLoadingMore ? 'Loading…' : 'Load older notifications'}
-            </button>
-          )}
-        </div>
+            )
       )}
     </div>
   );

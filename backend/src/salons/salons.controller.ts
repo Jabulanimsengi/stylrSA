@@ -12,7 +12,7 @@ import {
   Put, // Import the Put decorator
 } from '@nestjs/common';
 import { SalonsService } from './salons.service';
-import { CreateSalonDto, UpdateSalonDto } from './dto';
+import { CreateSalonDto, UpdateSalonDto, UpdateSalonPlanDto } from './dto';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { OptionalJwtAuthGuard } from 'src/auth/guard/optional-jwt.guard';
@@ -91,6 +91,17 @@ export class SalonsController {
   ) {
     const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
     return this.salonsService.updateMySalon(user, updateSalonDto, id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Patch('mine/plan')
+  updateMySalonPlan(
+    @GetUser() user: any,
+    @Body() dto: UpdateSalonPlanDto,
+    @Query('ownerId') ownerId?: string,
+  ) {
+    const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
+    return this.salonsService.updatePlan(user, dto, id);
   }
 
   @UseGuards(JwtGuard)

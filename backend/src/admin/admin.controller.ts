@@ -15,6 +15,7 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/guard/roles.decorator';
 import { UpdateServiceStatusDto } from './dto/update-service-status.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
+import { UpdatePlanPaymentStatusDto } from './dto/update-plan-payment-status.dto';
 import { DeleteEntityDto } from './dto/delete-entity.dto';
 import { Request } from 'express';
 
@@ -152,6 +153,36 @@ export class AdminController {
       adminId ?? 'unknown',
       dto?.reason,
     );
+  }
+
+  @Patch('salons/:salonId/plan/payment')
+  updateSalonPlanPaymentStatus(
+    @Param('salonId') salonId: string,
+    @Body() dto: UpdatePlanPaymentStatusDto,
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.updateSalonPlanPaymentStatus({
+      salonId,
+      status: dto.status,
+      adminId,
+      paymentReference: dto.paymentReference ?? null,
+    });
+  }
+
+  @Patch('sellers/:sellerId/plan/payment')
+  updateSellerPlanPaymentStatus(
+    @Param('sellerId') sellerId: string,
+    @Body() dto: UpdatePlanPaymentStatusDto,
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.updateSellerPlanPaymentStatus({
+      sellerId,
+      status: dto.status,
+      adminId,
+      paymentReference: dto.paymentReference ?? null,
+    });
   }
 
   @Post('salons/deleted/:archiveId/restore')

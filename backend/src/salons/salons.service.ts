@@ -5,18 +5,82 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateSalonDto, UpdateSalonDto } from './dto';
+import { CreateSalonDto, UpdateSalonDto, UpdateSalonPlanDto } from './dto';
 import { compareByVisibilityThenRecency } from 'src/common/visibility';
+import { normalizeOperatingHours } from './utils/operating-hours.util';
+
+type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+type PlanPaymentStatus =
+  | 'PENDING_SELECTION'
+  | 'AWAITING_PROOF'
+  | 'PROOF_SUBMITTED'
+  | 'VERIFIED';
+
+const PLAN_FALLBACKS: Record<
+  PlanCode,
+  { visibilityWeight: number; maxListings: number; priceCents: number }
+> = {
+  STARTER: { visibilityWeight: 1, maxListings: 2, priceCents: 4900 },
+  ESSENTIAL: { visibilityWeight: 2, maxListings: 6, priceCents: 9900 },
+  GROWTH: { visibilityWeight: 3, maxListings: 11, priceCents: 19900 },
+  PRO: { visibilityWeight: 4, maxListings: 26, priceCents: 29900 },
+  ELITE: { visibilityWeight: 5, maxListings: 9999, priceCents: 49900 },
+};
 
 @Injectable()
 export class SalonsService {
   constructor(private prisma: PrismaService) {}
+
+  private async resolvePlanMeta(planCode: PlanCode) {
+    try {
+      const plan = await this.prisma.plan.findUnique({
+        where: { code: planCode },
+        select: {
+          visibilityWeight: true,
+          maxListings: true,
+          priceCents: true,
+        },
+      });
+      if (plan) {
+        return plan;
+      }
+    } catch {
+      // fall back to static defaults below
+    }
+    return PLAN_FALLBACKS[planCode];
+  }
 
   async create(userId: string, dto: CreateSalonDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.role !== 'SALON_OWNER') {
       throw new ForbiddenException('You are not authorized to create a salon');
     }
+
+    const requestedPlan = (dto as any).planCode as PlanCode | undefined;
+    if (!requestedPlan || !PLAN_FALLBACKS[requestedPlan]) {
+      throw new ForbiddenException('Please select a valid package.');
+    }
+
+    const planMeta = await this.resolvePlanMeta(requestedPlan);
+    const hasSentProof = Boolean((dto as any).hasSentProof);
+    const paymentReferenceRaw = (dto as any).paymentReference;
+    const paymentReference =
+      typeof paymentReferenceRaw === 'string' && paymentReferenceRaw.trim().length > 0
+        ? paymentReferenceRaw.trim()
+        : dto.name.trim();
+    const planPaymentStatus: PlanPaymentStatus = hasSentProof
+      ? 'PROOF_SUBMITTED'
+      : 'AWAITING_PROOF';
+
+    const normalizedOperatingHours = normalizeOperatingHours(
+      (dto as any).operatingHours,
+    );
+
+    const normalizedOperatingDays = Array.isArray((dto as any).operatingDays)
+      ? (dto as any).operatingDays.filter(
+          (day: any) => typeof day === 'string' && day.trim().length > 0,
+        )
+      : normalizedOperatingHours.map((oh) => oh.day);
 
     const data: any = {
       ownerId: userId,
@@ -36,15 +100,16 @@ export class SalonsService {
       offersMobile: (dto as any).offersMobile,
       mobileFee: (dto as any).mobileFee,
       bookingType: (dto as any).bookingType ?? 'ONSITE',
-      operatingHours: (dto as any).operatingHours ?? null,
-      // Ensure required array field is always provided
-      operatingDays: (Array.isArray((dto as any).operatingDays)
-        ? (dto as any).operatingDays
-        : Array.isArray((dto as any).operatingHours)
-          ? (dto as any).operatingHours
-              .map((oh: any) => oh?.day)
-              .filter((d: any) => typeof d === 'string' && d.length > 0)
-          : []) as string[],
+      operatingHours: normalizedOperatingHours,
+      operatingDays: normalizedOperatingDays,
+      planCode: requestedPlan,
+      visibilityWeight: planMeta.visibilityWeight,
+      maxListings: planMeta.maxListings,
+      planPriceCents: planMeta.priceCents,
+      planPaymentStatus,
+      planPaymentReference: paymentReference,
+      planProofSubmittedAt: hasSentProof ? new Date() : null,
+      planVerifiedAt: null,
     };
 
     try {
@@ -67,6 +132,102 @@ export class SalonsService {
         reviews: true,
         services: true,
       },
+    });
+  }
+
+  async updatePlan(user: any, dto: UpdateSalonPlanDto, ownerId: string) {
+    if (user.id !== ownerId && user.role !== 'ADMIN') {
+      throw new ForbiddenException(
+        'You are not authorized to update this plan',
+      );
+    }
+
+    const salon = await this.prisma.salon.findFirst({
+      where: { ownerId },
+      select: {
+        id: true,
+        name: true,
+        planCode: true,
+        planPaymentStatus: true,
+        planPaymentReference: true,
+        planProofSubmittedAt: true,
+        planVerifiedAt: true,
+      },
+    });
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
+
+    const data: any = {};
+    const planCodeRaw = dto.planCode
+      ? (dto.planCode as string).toUpperCase()
+      : undefined;
+    let normalizedPlan: PlanCode | undefined;
+    if (planCodeRaw) {
+      if (!PLAN_FALLBACKS[planCodeRaw as PlanCode]) {
+        throw new ForbiddenException('Invalid package selection.');
+      }
+      normalizedPlan = planCodeRaw as PlanCode;
+      const planMeta = await this.resolvePlanMeta(normalizedPlan);
+      data.planCode = normalizedPlan;
+      data.visibilityWeight = planMeta.visibilityWeight;
+      data.maxListings = planMeta.maxListings;
+      data.planPriceCents = planMeta.priceCents;
+    }
+
+    const planChanged =
+      normalizedPlan && normalizedPlan !== (salon.planCode as PlanCode | null);
+    const currentStatus = (salon.planPaymentStatus ??
+      'PENDING_SELECTION') as PlanPaymentStatus;
+    let nextStatus: PlanPaymentStatus | undefined;
+
+    if (planChanged) {
+      nextStatus = dto.hasSentProof ? 'PROOF_SUBMITTED' : 'AWAITING_PROOF';
+    }
+    if (typeof dto.hasSentProof === 'boolean') {
+      if (dto.hasSentProof) {
+        nextStatus = 'PROOF_SUBMITTED';
+      } else {
+        nextStatus = planChanged || currentStatus !== 'PENDING_SELECTION'
+          ? 'AWAITING_PROOF'
+          : 'PENDING_SELECTION';
+      }
+    }
+    if (!planChanged && currentStatus === 'VERIFIED') {
+      nextStatus = 'VERIFIED';
+    }
+
+    if (nextStatus) {
+      data.planPaymentStatus = nextStatus;
+      if (nextStatus === 'PROOF_SUBMITTED') {
+        data.planProofSubmittedAt =
+          salon.planProofSubmittedAt ?? new Date();
+        data.planVerifiedAt = null;
+      } else if (nextStatus === 'AWAITING_PROOF' || nextStatus === 'PENDING_SELECTION') {
+        data.planProofSubmittedAt = null;
+        data.planVerifiedAt = null;
+      } else if (nextStatus === 'VERIFIED') {
+        // Preserve existing verification timestamp when already verified
+        data.planVerifiedAt = salon.planVerifiedAt ?? new Date();
+      }
+    }
+
+    if (typeof dto.paymentReference !== 'undefined') {
+      const trimmed =
+        typeof dto.paymentReference === 'string' &&
+        dto.paymentReference.trim().length > 0
+          ? dto.paymentReference.trim()
+          : salon.name.trim();
+      data.planPaymentReference = trimmed;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return this.prisma.salon.findFirst({ where: { ownerId } });
+    }
+
+    return this.prisma.salon.update({
+      where: { id: salon.id },
+      data,
     });
   }
 
@@ -168,6 +329,12 @@ export class SalonsService {
 
     // bookingType passes through as a string
     // operatingHours already whitelisted above; no extra transformation required
+
+    if (updateData.operatingHours) {
+      const normalizedHours = normalizeOperatingHours(updateData.operatingHours);
+      updateData.operatingHours = normalizedHours;
+      updateData.operatingDays = normalizedHours.map((entry) => entry.day);
+    }
 
     return this.prisma.salon.update({
       where: { id },

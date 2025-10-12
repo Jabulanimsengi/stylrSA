@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import * as cookieParser from 'cookie-parser';
+import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -13,13 +15,20 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+    app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('/api/health (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/health')
       .expect(200)
-      .expect('Hello World!');
+      .expect({ status: 'Backend is running! 🚀' });
   });
 });
