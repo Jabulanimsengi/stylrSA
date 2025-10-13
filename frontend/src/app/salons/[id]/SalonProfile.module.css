@@ -518,6 +518,7 @@
   .heroMeta {
     width: 100%;
     gap: 0.625rem;
+    overflow: hidden;
   }
   .metaRow {
     display: flex;
@@ -528,13 +529,16 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    width: 100%;
+    padding-bottom: 0.5rem;
+    margin-bottom: -0.5rem;
   }
   .metaRow::-webkit-scrollbar {
     display: none;
   }
   .metaCard {
     padding: 0.75rem 0.875rem;
-    min-width: 280px;
+    min-width: 85%;
     flex-shrink: 0;
     scroll-snap-align: start;
   }
@@ -652,7 +656,7 @@
   }
   .metaCard {
     padding: 0.55rem 0.65rem;
-    min-width: 260px;
+    min-width: 88%;
   }
   .metaIcon {
     width: 1.625rem;
