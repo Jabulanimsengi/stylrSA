@@ -1,9 +1,13 @@
  .pageNav {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
  }
  .navButton {
   display: inline-flex;
