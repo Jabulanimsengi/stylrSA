@@ -172,8 +172,8 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
             <span className={styles.heroBadge}>Your personal salon concierge</span>
-            <h1 className={styles.heroTitle}>Find &amp; Book South Africa’s Most Trusted Salons</h1>
-            <p className={styles.heroSubtitle}>Discover verified salons and expert hairdressers ready to give you the care, style, and confidence you deserve.</p>
+            <h1 className={styles.heroTitle}>Discover &amp; Book South Africa’s Most Trusted Salons Near You</h1>
+            <p className={styles.heroSubtitle}>Connect with verified hairdressers, barbers, and beauty specialists devoted to delivering exceptional care, timeless style, and the confidence you deserve.</p>
           </div>
           <div className={styles.filterContainer}>
             <FilterBar onSearch={handleSearch} isHomePage={true} />
