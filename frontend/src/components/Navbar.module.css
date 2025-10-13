@@ -401,6 +401,10 @@
 }
 
 @media (max-width: 1024px) {
+  .desktopOnlyActions {
+    display: none;
+  }
+
   .mobileBar {
     position: sticky;
     top: 0;

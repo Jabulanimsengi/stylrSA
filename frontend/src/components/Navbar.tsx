@@ -653,6 +653,10 @@ export default function Navbar() {
             <div className={styles.supportActions}>
               {authStatus === 'authenticated' ? (
                 <>
+                  <div className={styles.desktopOnlyActions}>
+                    {notificationsButton}
+                    {messagesButton}
+                  </div>
                   {signOutButton}
                 </>
               ) : null}
