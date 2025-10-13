@@ -7,6 +7,7 @@ import styles from './HomePage.module.css';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSocket } from '@/context/SocketContext';
+import { useAuthModal } from '@/context/AuthModalContext';
 import { Service } from '@/types';
 import FeaturedServiceCard, { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
 import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
@@ -27,6 +28,7 @@ type ServiceWithSalon = Service & { salon: { id: string; name: string, city: str
 
 export default function HomePage() {
   const router = useRouter();
+  const { openModal } = useAuthModal();
   const [services, setServices] = useState<ServiceWithSalon[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -185,6 +187,13 @@ export default function HomePage() {
             <Link href="/services" className="btn btn-ghost">
               Browse Services
             </Link>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => openModal('register')}
+            >
+              List your services
+            </button>
           </div>
         </div>
         <div className={styles.heroControls}>
