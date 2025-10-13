@@ -521,7 +521,8 @@
     overflow: hidden;
   }
   .metaRow {
-    display: flex;
+    display: flex !important;
+    grid-template-columns: unset;
     overflow-x: auto;
     overflow-y: hidden;
     gap: 0.625rem;
@@ -616,8 +617,16 @@
   .hero {
     height: 14rem;
   }
+  .metaRow {
+    display: flex !important;
+    overflow-x: auto;
+    grid-template-columns: unset;
+  }
   .metaCard {
     padding: 0.65rem 0.75rem;
+    min-width: 87%;
+    flex-shrink: 0;
+    scroll-snap-align: start;
   }
   .metaIcon {
     width: 1.75rem;
@@ -652,11 +661,16 @@
     gap: 0.5rem;
   }
   .metaRow {
+    display: flex !important;
+    overflow-x: auto;
     gap: 0.5rem;
+    grid-template-columns: unset;
   }
   .metaCard {
     padding: 0.55rem 0.65rem;
     min-width: 88%;
+    flex-shrink: 0;
+    scroll-snap-align: start;
   }
   .metaIcon {
     width: 1.625rem;
