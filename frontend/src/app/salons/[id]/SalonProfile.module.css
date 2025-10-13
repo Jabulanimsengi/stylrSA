@@ -515,6 +515,47 @@
   .hero {
     height: 16rem;
   }
+  .infoBoard {
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .infoGrid {
+    display: flex !important;
+    grid-template-columns: unset;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.625rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    padding-bottom: 0.5rem;
+    margin-bottom: -0.5rem;
+  }
+  .infoGrid::-webkit-scrollbar {
+    display: none;
+  }
+  .infoCard {
+    padding: 0.75rem 0.875rem;
+    min-width: 85%;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  .infoIcon {
+    width: 1.875rem;
+    height: 1.875rem;
+    font-size: 0.95rem;
+  }
+  .infoLabel {
+    font-size: 0.7rem;
+  }
+  .infoValue {
+    font-size: 0.9rem;
+  }
+  .infoDetail {
+    font-size: 0.8rem;
+  }
   .heroMeta {
     width: 100%;
     gap: 0.625rem;
@@ -617,6 +658,32 @@
   .hero {
     height: 14rem;
   }
+  .infoGrid {
+    display: flex !important;
+    overflow-x: auto;
+    grid-template-columns: unset;
+    gap: 0.625rem;
+  }
+  .infoCard {
+    padding: 0.65rem 0.75rem;
+    min-width: 87%;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  .infoIcon {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.875rem;
+  }
+  .infoLabel {
+    font-size: 0.65rem;
+  }
+  .infoValue {
+    font-size: 0.85rem;
+  }
+  .infoDetail {
+    font-size: 0.75rem;
+  }
   .metaRow {
     display: flex !important;
     overflow-x: auto;
@@ -659,6 +726,35 @@
   }
   .heroMeta {
     gap: 0.5rem;
+  }
+  .infoBoard {
+    margin-bottom: 1rem;
+  }
+  .infoGrid {
+    display: flex !important;
+    overflow-x: auto;
+    gap: 0.5rem;
+    grid-template-columns: unset;
+  }
+  .infoCard {
+    padding: 0.55rem 0.65rem;
+    min-width: 88%;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  .infoIcon {
+    width: 1.625rem;
+    height: 1.625rem;
+    font-size: 0.8rem;
+  }
+  .infoLabel {
+    font-size: 0.6rem;
+  }
+  .infoValue {
+    font-size: 0.8rem;
+  }
+  .infoDetail {
+    font-size: 0.7rem;
   }
   .metaRow {
     display: flex !important;
