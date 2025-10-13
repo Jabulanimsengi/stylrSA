@@ -463,6 +463,10 @@
     width: 34px;
     height: 34px;
   }
+
+  .navLabel {
+    font-size: 0.85rem;
+  }
 }
 
 @media (max-width: 600px) {
@@ -515,5 +519,14 @@
 
   .mobileThemeToggle {
     transform: scale(0.9);
+  }
+
+  .navLabel {
+    font-size: 0.75rem;
+  }
+
+  .navIcon {
+    width: 30px;
+    height: 30px;
   }
 }

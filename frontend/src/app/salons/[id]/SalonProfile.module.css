@@ -510,32 +510,55 @@
 
 @media (max-width: 768px) {
   .stickyHeader {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .hero {
+    height: 16rem;
   }
   .heroMeta {
     width: 100%;
-    gap: 0.75rem;
+    gap: 0.625rem;
   }
   .metaRow {
     grid-template-columns: minmax(0, 1fr);
+    gap: 0.625rem;
+  }
+  .metaCard {
+    padding: 0.75rem 0.875rem;
+  }
+  .metaIcon {
+    width: 1.875rem;
+    height: 1.875rem;
+    font-size: 0.95rem;
+  }
+  .metaLabel {
+    font-size: 0.7rem;
+  }
+  .metaValue {
+    font-size: 0.9rem;
+  }
+  .metaDetail {
+    font-size: 0.8rem;
   }
   .availabilityPill {
     max-width: 100%;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
   }
   .stickyHeaderContent {
-    --page-inline-padding: clamp(1rem, 5vw, 1.5rem);
-    gap: 0.75rem;
-    padding: 0.75rem var(--page-inline-padding);
+    --page-inline-padding: clamp(0.875rem, 4vw, 1.25rem);
+    gap: 0.625rem;
+    padding: 0.625rem var(--page-inline-padding);
     justify-items: center;
     display: grid;
     grid-template-columns: 1fr;
   }
   .container {
-    --page-inline-padding: clamp(1rem, 5vw, 1.5rem);
+    --page-inline-padding: clamp(0.875rem, 4vw, 1.25rem);
     margin-top: 1rem;
   }
   .title {
-    font-size: 1.1rem;
+    font-size: 1rem;
     flex-grow: 1;
     text-align: center;
   }
@@ -545,20 +568,132 @@
   .navButtonsContainer {
     width: 100%;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.625rem;
   }
   .navButton {
     flex: 1 1 45%;
     justify-content: center;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  .servicesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem;
+  }
+  .galleryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .galleryItem {
+    height: 120px;
+  }
+  .section {
+    padding: 1.5rem 0;
+  }
+  .sectionTitle {
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
   }
 }
 
 @media (max-width: 640px) {
+  .hero {
+    height: 14rem;
+  }
   .metaCard {
-    padding: 0.85rem 1rem;
+    padding: 0.65rem 0.75rem;
+  }
+  .metaIcon {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.875rem;
+  }
+  .metaLabel {
+    font-size: 0.65rem;
   }
   .metaValue {
-    font-size: 1rem;
+    font-size: 0.85rem;
+  }
+  .metaDetail {
+    font-size: 0.75rem;
+  }
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+  .galleryItem {
+    height: 100px;
+  }
+}
+
+@media (max-width: 400px) {
+  .hero {
+    height: 12rem;
+  }
+  .heroOverlay {
+    padding: 1.25rem;
+  }
+  .heroMeta {
+    gap: 0.5rem;
+  }
+  .metaRow {
+    gap: 0.5rem;
+  }
+  .metaCard {
+    padding: 0.55rem 0.65rem;
+  }
+  .metaIcon {
+    width: 1.625rem;
+    height: 1.625rem;
+    font-size: 0.8rem;
+  }
+  .metaLabel {
+    font-size: 0.6rem;
+  }
+  .metaValue {
+    font-size: 0.75rem;
+  }
+  .metaDetail {
+    font-size: 0.7rem;
+  }
+  .availabilityPill {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.625rem;
+  }
+  .stickyHeaderContent {
+    --page-inline-padding: 0.625rem;
+    gap: 0.5rem;
+    padding: 0.5rem var(--page-inline-padding);
+  }
+  .container {
+    --page-inline-padding: 0.625rem;
+  }
+  .title {
+    font-size: 0.9rem;
+  }
+  .navButtonsContainer {
+    gap: 0.5rem;
+  }
+  .navButton {
+    padding: 0.35rem 0.625rem;
+    font-size: 0.7rem;
+  }
+  .servicesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+  .galleryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .galleryItem {
+    height: 85px;
+  }
+  .section {
+    padding: 1.25rem 0;
+  }
+  .sectionTitle {
+    font-size: 1.1rem;
+    margin-bottom: 0.875rem;
   }
 }
 
