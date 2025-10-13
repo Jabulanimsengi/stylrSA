@@ -60,3 +60,52 @@
 .accordionContent li:last-child {
   border-bottom: none;
 }
+
+@media (max-width: 768px) {
+  .accordionItem {
+    margin-bottom: 0.625rem;
+    border-radius: 0.4rem;
+  }
+  .accordionHeader {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+  .icon {
+    font-size: 1.3rem;
+  }
+  .accordionContent {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .accordionContent li {
+    padding: 0.25rem 0;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .accordionItem {
+    margin-bottom: 0.5rem;
+    border-radius: 0.35rem;
+  }
+  .accordionHeader {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.85rem;
+  }
+  .icon {
+    font-size: 1.2rem;
+  }
+  .accordionContent {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+  .accordionContent li {
+    padding: 0.2rem 0;
+    font-size: 0.75rem;
+  }
+  .accordionContent ul {
+    margin: 0.375rem 0;
+  }
+}

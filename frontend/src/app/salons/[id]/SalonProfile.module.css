@@ -520,11 +520,23 @@
     gap: 0.625rem;
   }
   .metaRow {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
     gap: 0.625rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .metaRow::-webkit-scrollbar {
+    display: none;
   }
   .metaCard {
     padding: 0.75rem 0.875rem;
+    min-width: 280px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
   }
   .metaIcon {
     width: 1.875rem;
@@ -640,6 +652,7 @@
   }
   .metaCard {
     padding: 0.55rem 0.65rem;
+    min-width: 260px;
   }
   .metaIcon {
     width: 1.625rem;
