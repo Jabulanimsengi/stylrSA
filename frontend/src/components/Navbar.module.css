@@ -468,9 +468,25 @@
 @media (max-width: 600px) {
   .mobileBar {
     padding: 0 var(--space-md);
+    height: 56px;
+  }
+
+  .brand {
+    font-size: 0.9rem;
   }
 
   .brand span {
     display: none;
+  }
+
+  .iconOnlyButton {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .authActions :global(.btn) {
+    padding: 0.45rem 0.875rem;
+    font-size: 0.85rem;
   }
 }

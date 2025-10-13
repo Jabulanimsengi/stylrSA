@@ -129,3 +129,32 @@
 .searchButton {
   background-color: var(--color-primary);
 }
+
+@media (max-width: 768px) {
+  .filterBar {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .homeFilterBar {
+    padding: 0.875rem;
+  }
+
+  .filterGroup {
+    min-width: 120px;
+  }
+
+  .filterInput, .filterSelect {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.9rem;
+  }
+
+  .geoButton, .searchButton {
+    padding: 0.45rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .checkboxGroup {
+    font-size: 0.9rem;
+  }
+}

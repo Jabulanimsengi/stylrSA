@@ -221,6 +221,13 @@
   text-align: center;
 }
 
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
 .btn-primary {
   @apply text-white;
   background-color: var(--color-primary);
