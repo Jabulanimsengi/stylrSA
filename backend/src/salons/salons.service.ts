@@ -7,7 +7,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSalonDto, UpdateSalonDto, UpdateSalonPlanDto } from './dto';
 import { compareByVisibilityThenRecency } from 'src/common/visibility';
-import { normalizeOperatingHours } from './utils/operating-hours.util';
+import { normalizeOperatingHours, isOpenNowFromHours } from './utils/operating-hours.util';
 
 type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 type PlanPaymentStatus =
@@ -400,7 +400,6 @@ export class SalonsService {
     }
     if (offersMobile === 'true' || offersMobile === true)
       where.offersMobile = true;
-    if (openNow === 'true' || openNow === true) where.isAvailableNow = true;
 
     // Service-based filters
     const servicesFilter: any = {};
@@ -434,6 +433,18 @@ export class SalonsService {
 
     // Fetch base list
     let salons = await this.prisma.salon.findMany({ where, orderBy });
+
+    // Derive availability from operatingHours at query-time
+    const now = new Date();
+    salons = salons.map((s: any) => ({
+      ...s,
+      isAvailableNow: isOpenNowFromHours(s.operatingHours, now),
+    }));
+
+    // Filter by availability if requested
+    if (openNow === 'true' || openNow === true) {
+      salons = salons.filter((s: any) => s.isAvailableNow);
+    }
 
     // Default ranking by visibility score when no explicit distance/price sort
     if (!sortBy || sortBy === 'latest') {
