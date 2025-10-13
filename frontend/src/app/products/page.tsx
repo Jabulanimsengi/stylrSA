@@ -98,7 +98,7 @@ export default function ProductsPage() {
             <span>Home</span>
           </Link>
         </div>
-        <h1 className={styles.title}>Hair Products</h1>
+        <h1 className={styles.title}>Products</h1>
         <div className={styles.headerSpacer}></div>
       </div>
 

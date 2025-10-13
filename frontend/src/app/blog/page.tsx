@@ -1,8 +1,10 @@
 import styles from '../info-page.module.css';
+import PageNav from '@/components/PageNav';
 
 export default function BlogPage() {
   return (
     <div className={styles.container}>
+      <PageNav />
       <h1 className={styles.pageTitle}>The Hub Blog</h1>
       <p className={styles.paragraph}>
         Welcome to The Hub—your source for everything beauty, wellness, and business. Our blog is a resource for both our

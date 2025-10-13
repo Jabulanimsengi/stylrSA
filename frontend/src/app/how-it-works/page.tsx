@@ -1,8 +1,10 @@
 import styles from '../info-page.module.css';
+import PageNav from '@/components/PageNav';
 
 export default function HowItWorksPage() {
   return (
     <div className={styles.container}>
+      <PageNav />
       <h1 className={styles.pageTitle}>How It Works</h1>
       <p className={styles.paragraph}>
         Your next favorite salon is just a few clicks away. We&apos;ve made our platform simple and intuitive for everyone.

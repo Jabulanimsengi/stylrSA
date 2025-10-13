@@ -1,8 +1,10 @@
 import styles from '../info-page.module.css';
+import PageNav from '@/components/PageNav';
 
 export default function AdvicePage() {
   return (
     <div className={styles.container}>
+      <PageNav />
       <h1 className={styles.pageTitle}>Advice</h1>
       <p className={styles.paragraph}>
         Get more from your Salon Hub experience with expert advice tailored for you.

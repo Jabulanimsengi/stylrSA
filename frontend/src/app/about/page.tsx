@@ -1,8 +1,10 @@
 import styles from '../info-page.module.css';
+import PageNav from '@/components/PageNav';
 
 export default function AboutPage() {
   return (
     <div className={styles.container}>
+      <PageNav />
       <h1 className={styles.pageTitle}>About Us</h1>
       <p className={styles.paragraph}>
         In a world full of choices, finding the right beauty and wellness professional shouldn&apos;t be a chore. The Salon Hub was

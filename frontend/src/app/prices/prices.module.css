@@ -10,3 +10,11 @@
  .features { list-style: none; padding: 0; margin: .5rem 0 1rem; display: grid; gap: .35rem; }
  .cta { margin-top: auto; border: 1px solid var(--color-border); border-radius: 8px; padding: .6rem .9rem; background: var(--color-primary); color: white; font-weight: 600; }
  .cta:hover { filter: brightness(1.03); }
+ .modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 50; }
+ .modal { position: relative; width: min(520px, 92vw); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 1.25rem; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+ .modalTitle { margin: 0 0 .5rem; font-size: 1.25rem; font-weight: 800; }
+ .modalText { margin: 0 0 1rem; color: var(--color-text-soft); }
+ .modalActions { display: flex; gap: .75rem; justify-content: flex-end; }
+ .modalButton { border: 1px solid var(--color-border); border-radius: 8px; padding: .5rem .9rem; background: var(--color-surface-elevated); color: var(--color-text-strong); text-decoration: none; font-weight: 600; }
+ .modalButtonPrimary { border: 1px solid var(--color-border); border-radius: 8px; padding: .5rem .9rem; background: var(--color-primary); color: #fff; text-decoration: none; font-weight: 700; }
+ .modalClose { position: absolute; top: .35rem; right: .5rem; border: none; background: transparent; font-size: 1.25rem; line-height: 1; cursor: pointer; color: var(--color-text-strong); }
