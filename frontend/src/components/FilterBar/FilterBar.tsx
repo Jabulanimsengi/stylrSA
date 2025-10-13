@@ -324,9 +324,13 @@ export default function FilterBar({
               <li
                 key={s.id}
                 className={styles.suggestionItem}
-                onClick={() => {
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  const base = buildFilters();
+                  const next = { ...base, service: s.title };
                   setServiceSearch(s.title);
                   setShowSuggestions(false);
+                  triggerSearch(next, true);
                 }}
               >
                 <span className={styles.suggestionTitle}>{s.title}</span>
