@@ -473,33 +473,32 @@ export default function Navbar() {
   );
 
   const notificationsButton = (
-    <div ref={notificationsRef} className={styles.notificationsWrapper}>
-      <button
-        type="button"
-        className={`${styles.navItem} ${styles.navButton}`}
-        onClick={() => setIsNotificationsOpen((prev) => !prev)}
-      >
-        <span className={styles.navIcon} aria-hidden>
-          <FaBell />
-        </span>
-        <span className={styles.navLabel}>Notifications</span>
-        {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-      </button>
-      {isNotificationsOpen && (
-        isDesktop
-          ? createPortal(
-              <div ref={notificationsPortalRef} className={`${styles.notificationsPanel} ${styles.notificationsPortalPanel}`}>
-                {panelBody}
-              </div>,
-              document.body,
-            )
-          : (
-              <div className={styles.notificationsPanel}>
-                {panelBody}
-              </div>
-            )
-      )}
-    </div>
+    <button
+      type="button"
+      className={`${styles.navItem} ${styles.navButton}`}
+      onClick={() => setIsNotificationsOpen((prev) => !prev)}
+    >
+      <span className={styles.navIcon} aria-hidden>
+        <FaBell />
+      </span>
+      <span className={styles.navLabel}>Notifications</span>
+      {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+    </button>
+  );
+
+  const notificationsPanel = isNotificationsOpen && (
+    isDesktop
+      ? createPortal(
+          <div ref={notificationsPortalRef} className={`${styles.notificationsPanel} ${styles.notificationsPortalPanel}`}>
+            {panelBody}
+          </div>,
+          document.body,
+        )
+      : (
+          <div ref={notificationsRef} className={styles.notificationsPanel}>
+            {panelBody}
+          </div>
+        )
   );
 
   const messagesButton = (
@@ -672,6 +671,8 @@ export default function Navbar() {
           </div>
         </div>
       </aside>
+
+      {notificationsPanel}
 
       {isLogoutModalOpen && (
         <ConfirmationModal
