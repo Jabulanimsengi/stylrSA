@@ -184,7 +184,7 @@ export default function HomePage() {
             <Link href="/salons" className="btn btn-primary">
               Explore Salons
             </Link>
-            <Link href="/services" className="btn btn-ghost">
+            <Link href="/services" className="btn btn-primary">
               Browse Services
             </Link>
             <button
