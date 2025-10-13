@@ -64,3 +64,49 @@
   color: var(--white);
   border: none;
 }
+
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0.75rem;
+  }
+  .modalContent {
+    padding: 1.5rem;
+    max-width: 90vw;
+  }
+  .message {
+    font-size: 1rem;
+    margin: 0 0 1.25rem 0;
+  }
+  .buttonGroup {
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .actionButton {
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+    min-width: 6.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .modalOverlay {
+    padding: 0.5rem;
+  }
+  .modalContent {
+    padding: 1.25rem;
+    border-radius: 0.4rem;
+  }
+  .message {
+    font-size: 0.9rem;
+    margin: 0 0 1rem 0;
+  }
+  .buttonGroup {
+    gap: 0.625rem;
+    margin-top: 1.25rem;
+  }
+  .actionButton {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.825rem;
+    min-width: 6rem;
+  }
+}

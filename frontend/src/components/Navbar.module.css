@@ -452,11 +452,30 @@
 
   .notificationsPanel {
     position: fixed;
-    top: 92px;
+    top: 70px;
     left: 50%;
     transform: translateX(-50%);
     width: min(92vw, 340px);
     max-height: 65vh;
+    z-index: 999;
+  }
+  .notificationsHeader {
+    font-size: 0.7rem;
+  }
+  .notificationsFilterButton {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.7rem;
+  }
+  .notificationItem {
+    padding: 0.625rem;
+    font-size: 0.85rem;
+  }
+  .notificationMeta {
+    font-size: 0.65rem;
+  }
+  .notificationsFooterButton {
+    padding: 0.55rem;
+    font-size: 0.85rem;
   }
 
   .navIcon {

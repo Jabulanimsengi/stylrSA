@@ -92,6 +92,106 @@
     flex: 1 1 45%;
     justify-content: center;
   }
+  .welcomeCard {
+    padding: 2rem;
+    max-width: 90%;
+  }
+  .welcomeCard h2 {
+    font-size: 1.5rem;
+  }
+  .welcomeCard p {
+    font-size: 1rem;
+  }
+  .header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+  }
+  .salonName {
+    font-size: 1.1rem;
+  }
+  .planSummary {
+    padding: 0.875rem;
+  }
+  .planSummaryRow,
+  .planStatusRow {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .container {
+    --page-inline-padding: 0.75rem;
+  }
+  .stickyHeader {
+    margin-bottom: 1rem;
+    padding: 0.625rem 0;
+  }
+  .title {
+    font-size: 1.1rem;
+  }
+  .navButtonsContainer {
+    gap: 0.5rem;
+  }
+  .navButton {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    gap: 0.375rem;
+  }
+  .welcomeContainer {
+    padding-top: 2rem;
+  }
+  .welcomeCard {
+    padding: 1.5rem;
+    max-width: 95%;
+    border-radius: 0.5rem;
+  }
+  .welcomeCard h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .welcomeCard p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+  .salonName {
+    font-size: 1rem;
+    margin-top: 0.2rem;
+  }
+  .headerTop {
+    gap: 0.75rem;
+  }
+  .headerActions {
+    gap: 0.75rem;
+  }
+  .planSummary {
+    padding: 0.75rem;
+    gap: 0.625rem;
+  }
+  .planSummaryRow,
+  .planStatusRow {
+    font-size: 0.8rem;
+    gap: 0.5rem;
+  }
+  .planStatusBadge {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+  }
+  .planNotice {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    gap: 0.625rem;
+  }
+  .planActions {
+    gap: 0.5rem;
+  }
+  .copyButton {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.825rem;
+  }
 }
 
 /* --- Styles for the "Create Profile" view --- */
