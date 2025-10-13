@@ -178,6 +178,9 @@
   .imageContainer {
     height: 100px;
   }
+  .carouselButton {
+    display: none;
+  }
   .content {
     padding: 0.5rem;
   }

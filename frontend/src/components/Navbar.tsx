@@ -573,18 +573,25 @@ export default function Navbar() {
           <Image src="/logo-transparent.png" alt="Stylr SA" width={124} height={32} priority />
         </Link>
         <div className={styles.mobileActions}>
-          <div className={styles.mobileThemeToggle}>
-            <ThemeToggle />
-          </div>
           {authStatus === 'authenticated' ? (
-            <button
-              type="button"
-              className={styles.iconOnlyButton}
-              onClick={() => setIsNotificationsOpen((prev) => !prev)}
-              aria-label="Notifications"
-            >
-              <FaBell />
-            </button>
+            <>
+              <button
+                type="button"
+                className={styles.iconOnlyButton}
+                onClick={handleChatClick}
+                aria-label="Messages"
+              >
+                <FaCommentDots />
+              </button>
+              <button
+                type="button"
+                className={styles.iconOnlyButton}
+                onClick={() => setIsNotificationsOpen((prev) => !prev)}
+                aria-label="Notifications"
+              >
+                <FaBell />
+              </button>
+            </>
           ) : (
             <button
               type="button"
@@ -646,8 +653,6 @@ export default function Navbar() {
             <div className={styles.supportActions}>
               {authStatus === 'authenticated' ? (
                 <>
-                  {notificationsButton}
-                  {messagesButton}
                   {signOutButton}
                 </>
               ) : null}

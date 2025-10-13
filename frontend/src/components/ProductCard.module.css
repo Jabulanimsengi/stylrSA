@@ -229,6 +229,10 @@
     padding: 0.9rem 1rem 1.15rem;
   }
 
+  .carouselButton {
+    display: none;
+  }
+
   .footer {
     flex-direction: column;
     align-items: stretch;

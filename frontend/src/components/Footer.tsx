@@ -18,7 +18,7 @@ export default function Footer() {
             />
           </Link>
           <p className={styles.description}>
-            Stylr SA helps South Africa discover trusted salons and beauty sellers.
+            At Stylr SA, we believe beauty begins with trust. Our platform helps you find verified salons, barbers, and beauty experts near you — so you can book with confidence, connect with professionals, and experience quality service every time.
           </p>
           <div className={styles.socials}>
             <a href="#" aria-label="Facebook" className={styles.socialLink}><FaFacebook /></a>
