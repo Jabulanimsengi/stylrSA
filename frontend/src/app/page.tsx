@@ -7,6 +7,7 @@ import styles from './HomePage.module.css';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSocket } from '@/context/SocketContext';
+import { useAuthModal } from '@/context/AuthModalContext';
 import { Service } from '@/types';
 import FeaturedServiceCard, { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
 import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
@@ -27,6 +28,7 @@ type ServiceWithSalon = Service & { salon: { id: string; name: string, city: str
 
 export default function HomePage() {
   const router = useRouter();
+  const { openModal } = useAuthModal();
   const [services, setServices] = useState<ServiceWithSalon[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -172,8 +174,8 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
             <span className={styles.heroBadge}>Your personal salon concierge</span>
-            <h1 className={styles.heroTitle}>Find &amp; Book South Africa’s Most Trusted Salons</h1>
-            <p className={styles.heroSubtitle}>Discover verified salons and expert hairdressers ready to give you the care, style, and confidence you deserve.</p>
+            <h1 className={styles.heroTitle}>Discover &amp; Book South Africa’s Most Trusted Salons Near You</h1>
+            <p className={styles.heroSubtitle}>Connect with verified hairdressers, barbers, and beauty specialists devoted to delivering exceptional care, timeless style, and the confidence you deserve.</p>
           </div>
           <div className={styles.filterContainer}>
             <FilterBar onSearch={handleSearch} isHomePage={true} />
@@ -182,9 +184,16 @@ export default function HomePage() {
             <Link href="/salons" className="btn btn-primary">
               Explore Salons
             </Link>
-            <Link href="/services" className="btn btn-ghost">
+            <Link href="/services" className="btn btn-primary">
               Browse Services
             </Link>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => openModal('register')}
+            >
+              List your services
+            </button>
           </div>
         </div>
         <div className={styles.heroControls}>

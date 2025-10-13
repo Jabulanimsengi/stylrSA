@@ -1,11 +1,13 @@
 import styles from '../info-page.module.css';
+import PageNav from '@/components/PageNav';
 
 export default function BlogPage() {
   return (
     <div className={styles.container}>
-      <h1 className={styles.pageTitle}>The Hub Blog</h1>
+      <PageNav />
+      <h1 className={styles.pageTitle}>Stylr SA Blog</h1>
       <p className={styles.paragraph}>
-        Welcome to The Hub—your source for everything beauty, wellness, and business. Our blog is a resource for both our
+        Welcome to Stylr SA—your source for everything beauty, wellness, and business. Our blog is a resource for both our
         clients and our professional partners.
       </p>
       

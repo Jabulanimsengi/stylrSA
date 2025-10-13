@@ -118,6 +118,19 @@
   font-weight: 600;
 }
 
+/* Ensure hero buttons have white text by default and invert on hover */
+.heroActions :global(a.btn.btn-primary),
+.heroActions :global(button.btn.btn-primary) {
+  color: var(--color-text-inverse);
+}
+
+.heroActions :global(a.btn.btn-primary:hover),
+.heroActions :global(button.btn.btn-primary:hover) {
+  background-color: #ffffff;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
 .heroControls {
   position: absolute;
   inset: 0;

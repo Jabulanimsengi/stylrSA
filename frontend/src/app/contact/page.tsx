@@ -1,8 +1,10 @@
 import styles from '../info-page.module.css';
+import PageNav from '@/components/PageNav';
 
 export default function ContactPage() {
   return (
     <div className={styles.container}>
+      <PageNav />
       <h1 className={styles.pageTitle}>Contact Us</h1>
       <p className={styles.paragraph}>
         We&apos;re here to help! Whether you&apos;re a client with a question or a salon owner needing support, we want to hear from you.

@@ -1,8 +1,10 @@
 import styles from '../info-page.module.css';
+import PageNav from '@/components/PageNav';
 
 export default function FaqPage() {
   return (
     <div className={styles.container}>
+      <PageNav />
       <h1 className={styles.pageTitle}>FAQ</h1>
       <p className={styles.paragraph}>Have questions? We have answers.</p>
 

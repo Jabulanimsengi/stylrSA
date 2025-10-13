@@ -162,3 +162,31 @@ export function normalizeOperatingHours(raw: unknown): OperatingHourEntry[] {
   const entries = coerceOperatingHoursArray(raw);
   return entries.length > 0 ? entries : DEFAULT_OPERATING_HOURS;
 }
+
+function hhmmToMinutes(hhmm: string): number | null {
+  const m = /^([0-2]?\d):([0-5]\d)$/.exec(hhmm);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const mm = Number(m[2]);
+  if (h > 23) return null;
+  return h * 60 + mm;
+}
+
+export function isOpenNowFromHours(raw: unknown, at: Date = new Date()): boolean {
+  const entries = coerceOperatingHoursArray(raw);
+  if (!entries || entries.length === 0) return false;
+  const dayIndex = at.getDay(); // 0=Sunday..6=Saturday
+  const label = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dayIndex];
+  const today = entries.find(e => e.day === label);
+  if (!today) return false;
+  const openMins = hhmmToMinutes(today.open);
+  const closeMins = hhmmToMinutes(today.close);
+  if (openMins == null || closeMins == null) return false;
+  const nowMins = at.getHours() * 60 + at.getMinutes();
+
+  // Handle overnight ranges (e.g., 20:00 - 02:00)
+  if (closeMins < openMins) {
+    return nowMins >= openMins || nowMins < closeMins;
+  }
+  return nowMins >= openMins && nowMins < closeMins;
+}

@@ -126,6 +126,7 @@ export default function FilterBar({
       return;
     }
     lastEmittedFiltersRef.current = serialized;
+    setShowSuggestions(false);
     onSearch(filters);
   }, [onSearch]);
 
@@ -235,6 +236,12 @@ export default function FilterBar({
     initialPriceMax,
   ]);
 
+  useEffect(() => {
+    if (!isSearching) {
+      setShowSuggestions(false);
+    }
+  }, [isSearching]);
+
   return (
     <div
       className={`${styles.filterBar} ${
@@ -303,6 +310,9 @@ export default function FilterBar({
         />
         {showSuggestions && (
           <ul className={styles.suggestionsList}>
+            <li className={styles.suggestionsHeader}>
+              <button type="button" className={styles.dismissButton} onClick={() => setShowSuggestions(false)}>×</button>
+            </li>
             {isServiceLoading && (
               <li className={`${styles.suggestionItem} ${styles.suggestionLoading}`}>Searching…</li>
             )}
@@ -314,9 +324,13 @@ export default function FilterBar({
               <li
                 key={s.id}
                 className={styles.suggestionItem}
-                onClick={() => {
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  const base = buildFilters();
+                  const next = { ...base, service: s.title };
                   setServiceSearch(s.title);
                   setShowSuggestions(false);
+                  triggerSearch(next, true);
                 }}
               >
                 <span className={styles.suggestionTitle}>{s.title}</span>

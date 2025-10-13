@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import styles from './ProductCard.module.css';
+import styles from './ServiceCard.module.css';
 import { Product } from '@/types';
 import ProductOrderModal from './ProductOrderModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,7 +27,7 @@ export default function ProductCard({
   const { authStatus, user } = useAuth();
   const { openModal } = useAuthModal();
   const [isOrderOpen, setIsOrderOpen] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { startConversation } = useStartConversation();
 
   const images = useMemo(() => {
@@ -129,54 +129,33 @@ export default function ProductCard({
             <h3 className={styles.title}>{product.name}</h3>
             <p className={styles.price}>R{product.price.toFixed(2)}</p>
           </div>
-          <button
-            type="button"
-            className={styles.detailsToggle}
-            onClick={(event) => {
-              event.stopPropagation();
-              setShowDetails((prev) => !prev);
-            }}
-          >
-            {showDetails ? 'Hide details' : 'View details'}
-          </button>
-          {showDetails && (
-            <div className={styles.detailsSection}>
-              {product.description && (
-                <p className={styles.description}>{product.description}</p>
-              )}
-              <div className={styles.metaRow}>
-                <span className={styles.metaLabel}>In stock</span>
-                <span>{product.stock ?? 0}</span>
-              </div>
-              {showSellerLink && product.sellerId && product.seller && (
-                <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Seller</span>
-                  <Link href={`/sellers/${product.sellerId}`} className={styles.sellerLink}>
-                    {`${product.seller.firstName ?? ''} ${product.seller.lastName ?? ''}`.trim() || 'View profile'}
-                  </Link>
-                </div>
-              )}
-            </div>
+          {product.description && (
+            <p className={`${styles.description} ${isExpanded ? styles.expanded : ''}`}>
+              {product.description}
+            </p>
           )}
-          <div className={styles.footer}>
+          {product.description && (
             <button
               type="button"
-              className={`${styles.actionButton} btn btn-ghost`}
-              onClick={(event) => {
-                event.stopPropagation();
-                handleMessageSeller();
-              }}
+              onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+              className={styles.expandButton}
             >
-              Message
+              {isExpanded ? 'View Less' : 'View More'}
             </button>
+          )}
+          <div className={styles.footer}>
             <div className={styles.actions}>
               <button
                 type="button"
-                className={`${styles.actionButton} ${styles.primaryAction} btn btn-primary`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleOrderClick();
-                }}
+                className="btn btn-ghost"
+                onClick={(event) => { event.stopPropagation(); handleMessageSeller(); }}
+              >
+                Message
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={(event) => { event.stopPropagation(); handleOrderClick(); }}
               >
                 Order
               </button>

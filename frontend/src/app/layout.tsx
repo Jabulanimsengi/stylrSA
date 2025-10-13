@@ -17,15 +17,15 @@ import CookieBanner from '@/components/CookieBanner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'The Salon Hub - Find and Book Salon Appointments Online',
+  title: 'Stylr SA - Find and Book Salon Appointments Online',
   description: 'Your one-stop platform for discovering, booking, and managing salon services. Find the best salons and stylists near you.',
   keywords: 'salon, booking, appointment, beauty, haircut, nails, stylist, hairdresser',
-  authors: [{ name: 'The Salon Hub Team' }],
+  authors: [{ name: 'Stylr SA Team' }],
   openGraph: {
-    title: 'The Salon Hub - Find and Book Salon Appointments Online',
+    title: 'Stylr SA - Find and Book Salon Appointments Online',
     description: 'Your one-stop platform for discovering, booking, and managing salon services.',
     url: 'https://thesalonhub.com', // Replace with your actual domain
-    siteName: 'The Salon Hub',
+    siteName: 'Stylr SA',
     images: [
       {
         url: 'https://thesalonhub.com/logo-transparent.png', // Replace with a link to your logo
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Salon Hub - Find and Book Salon Appointments Online',
+    title: 'Stylr SA - Find and Book Salon Appointments Online',
     description: 'Your one-stop platform for discovering, booking, and managing salon services.',
     images: ['https://thesalonhub.com/logo-transparent.png'], // Replace with a link to your logo
   },
