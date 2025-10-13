@@ -7,7 +7,7 @@ export default function AdvicePage() {
       <PageNav />
       <h1 className={styles.pageTitle}>Advice</h1>
       <p className={styles.paragraph}>
-        Get more from your Salon Hub experience with expert advice tailored for you.
+        Get more from your Stylr SA experience with expert advice tailored for you.
       </p>
 
       <div className={styles.infoBlock}>

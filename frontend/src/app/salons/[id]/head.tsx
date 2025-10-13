@@ -60,7 +60,7 @@ export default async function Head({ params }: Props) {
 
   return (
     <>
-      <title>{salon ? `${salon.name} - The Salon Hub` : 'Salon - The Salon Hub'}</title>
+      <title>{salon ? `${salon.name} - Stylr SA` : 'Salon - Stylr SA'}</title>
       <meta
         name="description"
         content={

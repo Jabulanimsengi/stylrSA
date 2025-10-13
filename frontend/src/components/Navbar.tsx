@@ -568,9 +568,9 @@ export default function Navbar() {
           href="/"
           className={styles.brand}
           onClick={() => setIsMobileOpen(false)}
-          aria-label="The Salon Hub home"
+          aria-label="Stylr SA home"
         >
-          <Image src="/logo-transparent.png" alt="The Salon Hub" width={124} height={32} priority />
+          <Image src="/logo-transparent.png" alt="Stylr SA" width={124} height={32} priority />
         </Link>
         <div className={styles.mobileActions}>
           <div className={styles.mobileThemeToggle}>
@@ -609,9 +609,9 @@ export default function Navbar() {
               href="/"
               className={styles.brand}
               onClick={() => setIsMobileOpen(false)}
-              aria-label="The Salon Hub home"
+              aria-label="Stylr SA home"
             >
-              <Image src="/logo-transparent.png" alt="The Salon Hub" width={140} height={36} priority />
+              <Image src="/logo-transparent.png" alt="Stylr SA" width={140} height={36} priority />
             </Link>
             <button
               type="button"

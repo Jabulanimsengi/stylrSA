@@ -321,10 +321,10 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   return (
     <>
       <Head>
-        <title>{`${salon.name} - The Salon Hub`}</title>
+        <title>{`${salon.name} - Stylr SA`}</title>
         <meta name="description" content={`Find the best beauty services at ${salon.name} in ${salon.city}. Book online today!`} />
         <meta name="keywords" content={`salon, ${salon.name}, ${salon.city}, beauty, haircut, nails, stylist, hairdresser`} />
-        <meta property="og:title" content={`${salon.name} - The Salon Hub`} />
+        <meta property="og:title" content={`${salon.name} - Stylr SA`} />
         <meta property="og:description" content={`Find the best beauty services at ${salon.name} in ${salon.city}. Book online today!`} />
         <meta property="og:image" content={salon.backgroundImage || '/logo-transparent.png'} />
         <meta property="og:url" content={`https://thesalonhub.com/salons/${salon.id}`} />
