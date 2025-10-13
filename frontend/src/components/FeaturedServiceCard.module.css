@@ -34,6 +34,68 @@
   color: var(--color-text-muted);
 }
 
+.salonLocation {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
 .price {
   @apply font-semibold text-primary;
+}
+
+@media (max-width: 640px) {
+  .card {
+    border-radius: 0.5rem;
+  }
+  .cardImageWrapper {
+    height: 100px;
+  }
+  .cardContent {
+    padding: 0.5rem;
+  }
+  .cardTitle {
+    font-size: 0.8rem;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+  }
+  .salonName {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  .salonLocation {
+    font-size: 0.7rem;
+    margin-bottom: 0.25rem;
+  }
+  .price {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .card {
+    border-radius: 0.3rem;
+  }
+  .cardImageWrapper {
+    height: 85px;
+  }
+  .cardContent {
+    padding: 0.4rem;
+  }
+  .cardTitle {
+    font-size: 0.75rem;
+    line-height: 1.15;
+    margin-bottom: 0.2rem;
+  }
+  .salonName {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+  }
+  .salonLocation {
+    font-size: 0.65rem;
+    margin-bottom: 0.2rem;
+  }
+  .price {
+    font-size: 0.7rem;
+  }
 }
