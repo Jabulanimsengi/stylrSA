@@ -126,3 +126,31 @@
     gap: 0.625rem; 
   }
 }
+
+@media (max-width: 400px) {
+  .container {
+    margin: 0.75rem auto 1.25rem;
+    padding: 0 0.5rem;
+  }
+
+  .header {
+    row-gap: 0.4rem;
+  }
+
+  .navButton {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .filterShell {
+    margin-bottom: 0.75rem;
+  }
+
+  .grid { 
+    gap: 0.5rem; 
+  }
+}

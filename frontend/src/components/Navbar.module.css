@@ -490,3 +490,30 @@
     font-size: 0.75rem;
   }
 }
+
+@media (max-width: 400px) {
+  .mobileBar {
+    padding: 0 0.5rem;
+    height: 48px;
+  }
+
+  .brand {
+    font-size: 0.75rem;
+  }
+
+  .iconOnlyButton {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .authActions :global(.btn) {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+
+  .mobileThemeToggle {
+    transform: scale(0.9);
+  }
+}

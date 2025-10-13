@@ -235,6 +235,13 @@
   }
 }
 
+@media (max-width: 400px) {
+  .btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+  }
+}
+
 .btn-primary {
   @apply text-white;
   background-color: var(--color-primary);

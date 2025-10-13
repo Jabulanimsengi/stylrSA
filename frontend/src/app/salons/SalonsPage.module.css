@@ -263,3 +263,54 @@
     height: 28px;
   }
 }
+
+@media (max-width: 400px) {
+  .container {
+    --page-inline-padding: 0.5rem;
+  }
+  .stickyHeader, .pageHeading {
+    margin-bottom: 0.875rem;
+    padding: 0.4rem 0;
+    row-gap: 0.4rem;
+  }
+  .navButtonsContainer {
+    gap: 0.4rem;
+  }
+  .navButton {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+  .title {
+    font-size: 1rem;
+  }
+  .salonGrid,
+  .servicesGrid {
+    gap: 0.5rem;
+  }
+  .imageWrapper {
+    height: 85px;
+  }
+  .cardContent {
+    padding: 0.4rem;
+  }
+  .cardTitle {
+    font-size: 0.75rem;
+    line-height: 1.15;
+  }
+  .cardLocation {
+    font-size: 0.65rem;
+    margin-top: 0.1rem;
+  }
+  .cardMeta {
+    font-size: 0.6rem;
+    margin-top: 0.15rem;
+    line-height: 1.25;
+  }
+  .favoriteButton {
+    top: 0.3rem;
+    right: 0.3rem;
+    font-size: 1rem;
+    width: 26px;
+    height: 26px;
+  }
+}

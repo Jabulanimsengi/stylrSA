@@ -360,3 +360,67 @@
     gap: 0.625rem;
   }
 }
+
+@media (max-width: 400px) {
+  .hero {
+    min-height: clamp(340px, 65vh, 500px);
+  }
+
+  .heroContent {
+    padding: 1.25rem 0.75rem;
+    gap: 1rem;
+  }
+
+  .heroTitle {
+    font-size: clamp(1.25rem, 4.5vw, 1.75rem);
+    line-height: 1.15;
+  }
+
+  .heroSubtitle {
+    font-size: clamp(0.75rem, 1.8vw, 0.9rem);
+    line-height: 1.4;
+  }
+
+  .heroBadge {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.65rem;
+  }
+
+  .filterContainer {
+    padding: 0.625rem;
+  }
+
+  .heroActions {
+    gap: 0.4rem;
+  }
+
+  .heroActions :global(.btn) {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.7rem;
+  }
+
+  .heroDot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .heroNavButton {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+  }
+
+  .section {
+    padding-inline: 0.625rem;
+    padding-block: 1.25rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .grid {
+    gap: 0.5rem;
+  }
+}
