@@ -1,9 +1,23 @@
 #!/usr/bin/env node
 
 const { spawnSync } = require('node:child_process');
+const { existsSync } = require('node:fs');
 const { join } = require('node:path');
 
-const npmCli = join(
+const cwd = join(__dirname, '..', 'frontend');
+const env = { ...process.env };
+
+const attempts = [];
+
+if (env.npm_execpath && existsSync(env.npm_execpath)) {
+  attempts.push({
+    label: 'npm_execpath',
+    command: process.execPath,
+    args: [env.npm_execpath, 'install'],
+  });
+}
+
+const bundledCli = join(
   process.execPath,
   '..',
   'node_modules',
@@ -12,20 +26,47 @@ const npmCli = join(
   'npm-cli.js'
 );
 
-const result = spawnSync(process.execPath, [npmCli, 'install'], {
-  cwd: join(__dirname, '..', 'frontend'),
-  stdio: 'inherit',
-  env: process.env,
+if (existsSync(bundledCli)) {
+  attempts.push({
+    label: 'bundled npm-cli',
+    command: process.execPath,
+    args: [bundledCli, 'install'],
+  });
+}
+
+const npmBinary = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+attempts.push({
+  label: 'npm binary',
+  command: npmBinary,
+  args: ['install'],
+  options: { shell: process.platform === 'win32' },
 });
 
-if (result.error) {
-  console.error('[install-frontend] Failed to launch npm:', result.error);
-  process.exit(1);
+for (const attempt of attempts) {
+  const result = spawnSync(attempt.command, attempt.args, {
+    cwd,
+    stdio: 'inherit',
+    env,
+    ...(attempt.options ?? {}),
+  });
+
+  if (result.error) {
+    console.warn(
+      `[install-frontend] ${attempt.label} failed to launch:`,
+      result.error.message
+    );
+    continue;
+  }
+
+  if ((result.status ?? 1) === 0) {
+    console.log('[install-frontend] frontend dependencies installed');
+    process.exit(0);
+  }
+
+  console.warn(
+    `[install-frontend] ${attempt.label} exited with code ${result.status}`
+  );
 }
 
-if (result.status !== 0) {
-  console.error('[install-frontend] npm install exited with code', result.status);
-  process.exit(result.status ?? 1);
-}
-
-console.log('[install-frontend] frontend dependencies installed');
+console.error('[install-frontend] Unable to install frontend dependencies.');
+process.exit(1);
