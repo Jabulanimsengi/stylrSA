@@ -646,27 +646,25 @@ export default function Navbar() {
             <ul className={styles.navList}>{discoverLinks.map(renderNavLink)}</ul>
           </nav>
 
+          {authStatus === 'authenticated' && (
+            <div>
+              <p className={styles.sectionLabel}>Account</p>
+              <div className={styles.supportActions}>
+                <div className={styles.desktopOnlyActions}>
+                  {notificationsButton}
+                  {messagesButton}
+                </div>
+                {signOutButton}
+              </div>
+            </div>
+          )}
+
           {authStatus === 'authenticated' && personalLinks.length > 0 && (
             <nav>
               <p className={styles.sectionLabel}>My Hub</p>
               <ul className={styles.navList}>{personalLinks.map(renderNavLink)}</ul>
             </nav>
           )}
-
-          <div>
-            <p className={styles.sectionLabel}>Engage</p>
-            <div className={styles.supportActions}>
-              {authStatus === 'authenticated' ? (
-                <>
-                  <div className={styles.desktopOnlyActions}>
-                    {notificationsButton}
-                    {messagesButton}
-                  </div>
-                  {signOutButton}
-                </>
-              ) : null}
-            </div>
-          </div>
 
           <div className={styles.spacer} />
 

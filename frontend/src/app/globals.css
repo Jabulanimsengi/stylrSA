@@ -363,3 +363,64 @@ h3 {
     transform: translateX(20%);
   }
 }
+
+/* Mobile touch targets and typography improvements */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  input[type="search"],
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 0.75rem;
+  }
+  
+  button:not(.iconOnlyButton) {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Improve link touch targets */
+  a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Mobile typography fine-tuning */
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  
+  h1 { font-size: clamp(1.5rem, 5vw, 2rem); }
+  h2 { font-size: clamp(1.25rem, 4vw, 1.75rem); }
+  h3 { font-size: clamp(1.1rem, 3.5vw, 1.5rem); }
+  
+  p {
+    max-width: 100%;
+  }
+  
+  /* Ensure readability */
+  .main-content {
+    padding: var(--space-md);
+    padding-top: calc(var(--app-shell-top-gap) + var(--space-md));
+  }
+}
+
+@media (max-width: 400px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 { font-size: clamp(1.25rem, 5vw, 1.75rem); }
+  h2 { font-size: clamp(1.1rem, 4vw, 1.5rem); }
+  h3 { font-size: clamp(1rem, 3.5vw, 1.25rem); }
+}

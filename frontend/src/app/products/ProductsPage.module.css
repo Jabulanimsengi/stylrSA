@@ -90,7 +90,7 @@
 
 @media (max-width: 768px) {
   .container {
-    --page-inline-padding: clamp(1rem, 5vw, 1.5rem);
+    --page-inline-padding: 0.5rem;
   }
 
   .header {
@@ -155,7 +155,7 @@
 
 @media (max-width: 400px) {
   .container {
-    --page-inline-padding: 0.75rem;
+    --page-inline-padding: 0.25rem;
   }
 
   .header {

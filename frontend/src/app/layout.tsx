@@ -10,6 +10,7 @@ import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
 import { ThemeProvider } from '@/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import MobileBottomNav from '@/components/MobileBottomNav';
 import ClientChatWidget from '@/components/ClientChatWidget';
 import AuthSessionProvider from '@/components/AuthSessionProvider';
 import CookieBanner from '@/components/CookieBanner';
@@ -63,6 +64,7 @@ export default function RootLayout({
                       <main className="main-content">{children}</main>
                       <Footer />
                     </div>
+                    <MobileBottomNav />
                   </div>
                   <ClientChatWidget />
                   <ToastContainer position="bottom-right" theme="colored" />

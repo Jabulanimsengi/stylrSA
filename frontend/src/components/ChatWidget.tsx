@@ -43,6 +43,7 @@ export default function ChatWidget() {
   const [recentConversations, setRecentConversations] = useState<Conversation[]>([]);
   const [isRecentLoading, setIsRecentLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const loadedConversationRef = useRef<string | null>(null);
 
   const userId = user?.id;
 
@@ -104,9 +105,21 @@ export default function ChatWidget() {
       setIsOpen(true);
       setIsMinimized(false);
 
-      const msgsRes = await fetch(`/api/chat/conversations/${convo.id}`, { credentials: "include" });
-      const msgs = (await msgsRes.json()) as ChatMessage[];
-      setMessages(msgs.map((m) => ({ ...m, pending: false })));
+      // Fetch messages with error handling
+      try {
+        const msgsRes = await fetch(`/api/chat/conversations/${convo.id}`, { credentials: "include" });
+        if (!msgsRes.ok) {
+          console.error("Failed to fetch messages:", msgsRes.status);
+          setMessages([]);
+        } else {
+          const msgs = (await msgsRes.json()) as ChatMessage[];
+          setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false })) : []);
+        }
+      } catch (msgError) {
+        console.error("Error fetching messages:", msgError);
+        setMessages([]);
+      }
+      
       setTimeout(() => scrollToBottom("auto"), 50);
       refreshConversations();
       if (convo.id) {
@@ -137,13 +150,15 @@ export default function ChatWidget() {
               }
             : null,
         );
-        setMessages(msgs.map((m) => ({ ...m, pending: false })));
+        setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false })) : []);
         setIsOpen(true);
         setIsMinimized(false);
         rememberConversation(convo.id);
         setTimeout(() => scrollToBottom("auto"), 50);
       } catch (error) {
-        console.debug("Failed to open conversation by id", error);
+        console.error("Failed to open conversation by id", error);
+        toast.error("Could not load conversation history");
+        setMessages([]);
       }
     },
     [authStatus, userId, rememberConversation, scrollToBottom],
@@ -159,13 +174,15 @@ export default function ChatWidget() {
         const other = convo.user1?.id === userId ? convo.user2 : convo.user1;
         setConversation(convo);
         setRecipient(other ? { id: other.id, name: `${other.firstName ?? ""} ${other.lastName ?? ""}`.trim() || other.email } : null);
-        setMessages(msgs.map((m) => ({ ...m, pending: false })));
+        setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false })) : []);
         setIsOpen(true);
         setIsMinimized(false);
         setTimeout(() => scrollToBottom("auto"), 50);
         rememberConversation(convo.id);
       } catch (error: unknown) {
-        showError(error, "Unable to load conversation");
+        console.error("Failed to load conversation:", error);
+        showError(error, "Unable to load conversation history");
+        setMessages([]);
       }
     },
     [authStatus, userId, rememberConversation, scrollToBottom],
@@ -199,6 +216,9 @@ export default function ChatWidget() {
       })();
 
       if (storedId && storedId !== conversation?.id) {
+        void openConversationById(storedId);
+      } else if (storedId && storedId === conversation?.id) {
+        // Same conversation - refetch messages to ensure they're up to date
         void openConversationById(storedId);
       } else if (!storedId) {
         void refreshConversations();
@@ -288,6 +308,35 @@ export default function ChatWidget() {
     refreshConversations();
   }, [isOpen, refreshConversations]);
 
+  // Ensure messages are loaded when conversation is active
+  useEffect(() => {
+    if (!conversation?.id || !isOpen || isMinimized) return;
+    
+    // Check if we've already loaded messages for this conversation
+    if (loadedConversationRef.current === conversation.id && messages.length > 0) {
+      return;
+    }
+    
+    const loadMessages = async () => {
+      try {
+        const msgs = await apiJson<ChatMessage[]>(`/api/chat/conversations/${conversation.id}`, {
+          credentials: "include",
+        });
+        if (Array.isArray(msgs)) {
+          setMessages(msgs.map((m) => ({ ...m, pending: false })));
+          loadedConversationRef.current = conversation.id;
+        }
+      } catch (error) {
+        console.error("Failed to refresh messages:", error);
+      }
+    };
+
+    // Load messages if we have a conversation but no messages, or if it's a different conversation
+    if (messages.length === 0 || loadedConversationRef.current !== conversation.id) {
+      void loadMessages();
+    }
+  }, [conversation?.id, isOpen, isMinimized, messages.length]);
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!socket || !userId || !conversation?.id) return;
@@ -347,6 +396,7 @@ export default function ChatWidget() {
                 setConversation(null);
                 setRecipient(null);
                 setMessages([]);
+                loadedConversationRef.current = null;
                 rememberConversation(null);
               }}
               aria-label="Back to conversations"
