@@ -28,6 +28,8 @@ import { useSocket } from '@/context/SocketContext';
 import ImageLightbox from '@/components/ImageLightbox';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import SalonProfileSkeleton from '@/components/Skeleton/SalonProfileSkeleton';
 
@@ -97,9 +99,9 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         const data: Salon = await res.json();
         applySalon(data);
       } catch (error) {
-        console.error('Failed to load salon', error);
+        logger.error('Failed to load salon', error);
         if (isActive) {
-          toast.error('Unable to load salon details right now.');
+          toast.error(toFriendlyMessage(error, 'Unable to load salon details right now.'));
           applySalon(null);
         }
       }

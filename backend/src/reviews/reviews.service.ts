@@ -5,16 +5,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateReviewDto } from './dto/create-review.dto'; // Corrected typo here
+import { CreateReviewDto } from './dto/create-review.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   async create(userId: string, dto: CreateReviewDto) {
-    // Corrected typo here
     const booking = await this.prisma.booking.findUnique({
       where: { id: dto.bookingId },
+      include: { salon: { select: { name: true } } },
     });
 
     if (!booking) {
@@ -24,8 +30,7 @@ export class ReviewsService {
       throw new ForbiddenException('You can only review your own bookings.');
     }
 
-    // This is the correct syntax for your schema
-    return this.prisma.review.create({
+    const review = await this.prisma.review.create({
       data: {
         rating: dto.rating,
         comment: dto.comment,
@@ -39,6 +44,33 @@ export class ReviewsService {
           connect: { id: dto.bookingId },
         },
       },
+      include: {
+        author: { select: { firstName: true, lastName: true } },
+      },
     });
+
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+
+    const authorName = review.author 
+      ? `${review.author.firstName || ''} ${review.author.lastName || ''}`.trim() 
+      : 'A user';
+
+    for (const admin of admins) {
+      const notification = await this.notificationsService.create(
+        admin.id,
+        `New review by ${authorName} for salon "${booking.salon.name}" is pending approval.`,
+        { link: '/admin?tab=reviews' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        admin.id,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return review;
   }
 }

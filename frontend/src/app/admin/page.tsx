@@ -21,6 +21,8 @@ import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
 import { useSession } from 'next-auth/react';
 import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 const ensureArray = <T,>(value: unknown): T[] =>
   Array.isArray(value) ? (value as T[]) : [];
@@ -306,7 +308,8 @@ export default function AdminPage() {
         setMetrics(await metricsRes.json());
 
       } catch (error) {
-        console.error("Failed to fetch admin data:", error);
+        logger.error("Failed to fetch admin data:", error);
+        toast.error(toFriendlyMessage(error, 'Failed to load admin data. Please try again.'));
       } finally {
         setIsLoading(false);
       }

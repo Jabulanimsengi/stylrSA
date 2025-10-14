@@ -9,6 +9,9 @@ import Image from 'next/image';
 import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
+import { toast } from 'react-toastify';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export default function MyFavoritesPage() {
   const [favorites, setFavorites] = useState<Salon[]>([]);
@@ -40,7 +43,8 @@ export default function MyFavoritesPage() {
           const data = await res.json();
           setFavorites(data.map((fav: { salon: Salon }) => fav.salon));
         } catch (error) {
-          console.error(error);
+          logger.error('Failed to fetch favorites:', error);
+          toast.error(toFriendlyMessage(error, 'Failed to load your favorites.'));
         } finally {
           setIsLoading(false);
         }

@@ -33,6 +33,6 @@ export class CreateServiceDto {
   salonId: string;
 
   @IsUUID() // Use IsUUID to validate that it's a valid UUID
-  @IsNotEmpty()
-  categoryId: string; // Add the new categoryId property
+  @IsOptional() // Make categoryId optional to match the database schema
+  categoryId?: string; // Add the new categoryId property
 }

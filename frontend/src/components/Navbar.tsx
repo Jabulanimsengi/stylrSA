@@ -32,6 +32,8 @@ import { Notification, PaginatedNotifications } from '@/types';
 import { toast } from 'react-toastify';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './Navbar.module.css';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 const NOTIFICATIONS_CACHE_KEY = 'nav-notifications-cache';
 const NOTIFICATIONS_PAGE_SIZE = 10;
@@ -113,8 +115,8 @@ export default function Navbar() {
       toast.success('You have been logged out successfully.');
       router.push('/');
     } catch (error) {
-      console.error('Logout failed:', error);
-      toast.error('Logout failed. Please try again.');
+      logger.error('Logout failed:', error);
+      toast.error(toFriendlyMessage(error, 'Logout failed. Please try again.'));
     } finally {
       setIsLogoutModalOpen(false);
       setIsMobileOpen(false);
@@ -181,7 +183,8 @@ export default function Navbar() {
         setNextCursor(payload.nextCursor ?? null);
         updateNotificationsCache(nextItems, unreadValue, payload.nextCursor ?? null);
       } catch (error) {
-        console.error('Failed to load notifications', error);
+        logger.error('Failed to load notifications', error);
+        toast.error(toFriendlyMessage(error, 'Failed to load notifications.'));
       } finally {
         setIsLoadingNotifications(false);
         setIsLoadingMore(false);
@@ -220,7 +223,8 @@ export default function Navbar() {
       setUnreadCountState(0);
       updateNotificationsCache(nextItems, 0, nextCursor);
     } catch (error) {
-      console.error('Failed to mark notifications as read', error);
+      logger.error('Failed to mark notifications as read', error);
+      toast.error(toFriendlyMessage(error, 'Failed to mark notifications as read.'));
     }
   };
 
@@ -235,7 +239,8 @@ export default function Navbar() {
       setUnreadCountState(0);
       updateNotificationsCache([], 0, null);
     } catch (error) {
-      console.error('Failed to clear notifications', error);
+      logger.error('Failed to clear notifications', error);
+      toast.error(toFriendlyMessage(error, 'Failed to clear notifications.'));
     }
   };
 
@@ -260,7 +265,8 @@ export default function Navbar() {
         router.push(notification.link);
       }
     } catch (error) {
-      console.error('Failed to update notification', error);
+      logger.error('Failed to update notification', error);
+      toast.error(toFriendlyMessage(error, 'Failed to update notification.'));
     }
   };
 

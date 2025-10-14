@@ -7,10 +7,16 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class ServicesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   async create(user: any, dto: CreateServiceDto) {
     const salon = await this.prisma.salon.findUnique({
@@ -39,7 +45,33 @@ export class ServicesService {
       );
     }
 
-    return this.prisma.service.create({ data: dto });
+    // Handle empty string categoryId by converting to undefined
+    const createData = {
+      ...dto,
+      categoryId: dto.categoryId && dto.categoryId.trim() !== '' ? dto.categoryId : undefined,
+    };
+
+    const service = await this.prisma.service.create({ data: createData });
+
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+
+    for (const admin of admins) {
+      const notification = await this.notificationsService.create(
+        admin.id,
+        `New service "${service.title}" for salon "${salon.name}" is pending approval.`,
+        { link: '/admin?tab=services' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        admin.id,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return service;
   }
 
   findAll() {
@@ -67,9 +99,15 @@ export class ServicesService {
       );
     }
 
+    // Handle empty string categoryId by converting to undefined
+    const updateData = {
+      ...dto,
+      categoryId: dto.categoryId !== undefined && dto.categoryId.trim() === '' ? undefined : dto.categoryId,
+    };
+
     return this.prisma.service.update({
       where: { id },
-      data: dto,
+      data: updateData,
     });
   }
 

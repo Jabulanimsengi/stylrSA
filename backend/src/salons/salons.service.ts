@@ -8,6 +8,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateSalonDto, UpdateSalonDto, UpdateSalonPlanDto } from './dto';
 import { compareByVisibilityThenRecency } from 'src/common/visibility';
 import { normalizeOperatingHours, isOpenNowFromHours } from './utils/operating-hours.util';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EventsGateway } from '../events/events.gateway';
 
 type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 type PlanPaymentStatus =
@@ -29,7 +31,11 @@ const PLAN_FALLBACKS: Record<
 
 @Injectable()
 export class SalonsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   private async resolvePlanMeta(planCode: PlanCode) {
     try {
@@ -112,8 +118,9 @@ export class SalonsService {
       planVerifiedAt: null,
     };
 
+    let salon;
     try {
-      return await this.prisma.salon.create({ data });
+      salon = await this.prisma.salon.create({ data });
     } catch (err: any) {
       // Log the actual Prisma error for debugging in development
       // eslint-disable-next-line no-console
@@ -124,6 +131,26 @@ export class SalonsService {
       );
       throw err; // Let global filter map to friendly message
     }
+
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+
+    for (const admin of admins) {
+      const notification = await this.notificationsService.create(
+        admin.id,
+        `New salon "${salon.name}" created by ${user.firstName || 'a user'} is pending approval.`,
+        { link: '/admin?tab=salons' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        admin.id,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return salon;
   }
 
   findAll() {

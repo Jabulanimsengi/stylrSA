@@ -17,6 +17,9 @@ import ConfirmationModal from '@/components/ConfirmationModal/ConfirmationModal'
 import styles from './ProductDashboard.module.css';
 import { Skeleton, SkeletonGroup } from '@/components/Skeleton/Skeleton';
 import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
+import { useSocket } from '@/context/SocketContext';
 
 type TabKey = 'products' | 'orders';
 const tabs: { key: TabKey; label: string }[] = [
@@ -50,6 +53,7 @@ export default function ProductDashboardClient() {
   const { user, authStatus } = useAuth();
   const router = useRouter();
   const search = useSearchParams();
+  const socket = useSocket();
   const initialTab = (search.get('tab') as TabKey) || 'products';
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
 
@@ -82,8 +86,8 @@ export default function ProductDashboardClient() {
       if (!res.ok) throw new Error('Failed to fetch products');
       setProducts(await res.json());
     } catch (error) {
-      console.error(error);
-      toast.error('Could not load your products.');
+      logger.error('Failed to fetch products:', error);
+      toast.error(toFriendlyMessage(error, 'Could not load your products.'));
     } finally {
       setIsProductsLoading(false);
     }
@@ -97,8 +101,8 @@ export default function ProductDashboardClient() {
       if (!res.ok) throw new Error('Failed to fetch orders');
       setOrders(await res.json());
     } catch (error) {
-      console.error(error);
-      toast.error('Could not load orders.');
+      logger.error('Failed to fetch orders:', error);
+      toast.error(toFriendlyMessage(error, 'Could not load orders.'));
     } finally {
       setIsOrdersLoading(false);
     }
@@ -127,8 +131,8 @@ export default function ProductDashboardClient() {
       );
       setHasSentProof(status === 'PROOF_SUBMITTED' || status === 'VERIFIED');
     } catch (error) {
-      console.error(error);
-      toast.error('Unable to load your seller package details.');
+      logger.error('Error in product dashboard:', error);
+      toast.error(toFriendlyMessage(error, 'Unable to load your seller package details.'));
     }
   }, [user]);
 
@@ -148,6 +152,22 @@ export default function ProductDashboardClient() {
       fetchOrders();
     }
   }, [authStatus, activeTab, fetchOrders]);
+
+  useEffect(() => {
+    if (!socket || !user) return;
+    const handler = (payload: any) => {
+      try {
+        if (payload?.entity === 'seller' && payload.id === user.id) {
+          fetchSellerPlan();
+          toast.success('Your package has been updated by an admin');
+        }
+      } catch (err) {
+        logger.error('Error handling visibility update:', err);
+      }
+    };
+    socket.on('visibility:updated', handler);
+    return () => { socket.off('visibility:updated', handler); };
+  }, [socket, user, fetchSellerPlan]);
 
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
@@ -194,8 +214,8 @@ export default function ProductDashboardClient() {
       setProducts((prev) => prev.filter((p) => p.id !== deletingProduct.id));
       toast.success('Product deleted successfully.');
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to delete product.');
+      logger.error('Error in product dashboard:', error);
+      toast.error(toFriendlyMessage(error, 'Failed to delete product.'));
     } finally {
       setDeletingProduct(null);
     }
@@ -244,8 +264,8 @@ export default function ProductDashboardClient() {
       setHasSentProof(nextStatus === 'PROOF_SUBMITTED' || nextStatus === 'VERIFIED');
       toast.success('Seller package updated');
     } catch (error) {
-      console.error(error);
-      toast.error('Could not update your seller package.');
+      logger.error('Error in product dashboard:', error);
+      toast.error(toFriendlyMessage(error, 'Could not update your seller package.'));
     } finally {
       setIsPlanUpdating(false);
     }
@@ -264,8 +284,8 @@ export default function ProductDashboardClient() {
       setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status } : order)));
       toast.success('Order updated');
     } catch (error) {
-      console.error(error);
-      toast.error('Could not update order status.');
+      logger.error('Error in product dashboard:', error);
+      toast.error(toFriendlyMessage(error, 'Could not update order status.'));
     } finally {
       setUpdatingOrderId(null);
     }

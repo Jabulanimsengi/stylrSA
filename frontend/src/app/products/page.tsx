@@ -10,6 +10,9 @@ import ImageLightbox from '@/components/ImageLightbox';
 import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import ProductFilter, { type ProductFilterValues } from '@/components/ProductFilter/ProductFilter';
 import { FaArrowLeft, FaHome } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 const DEFAULT_FILTERS: ProductFilterValues = {
   search: '',
@@ -59,7 +62,8 @@ export default function ProductsPage() {
       }
     } catch (error) {
       if (!controller.signal.aborted) {
-        console.error('Failed to fetch products:', error);
+        logger.error('Failed to fetch products:', error);
+        toast.error(toFriendlyMessage(error, 'Failed to load products. Please try again.'));
       }
     } finally {
       if (requestId === requestIdRef.current) {

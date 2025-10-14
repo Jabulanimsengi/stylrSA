@@ -15,6 +15,8 @@ import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -79,7 +81,8 @@ function SalonsPageContent() {
       const data = await res.json();
       setSalons(data);
     } catch (error) {
-      console.error(error);
+      logger.error('Failed to fetch salons:', error);
+      toast.error(toFriendlyMessage(error, 'Failed to load salons. Please try again.'));
       setSalons([]);
     } finally {
       setIsLoading(false);

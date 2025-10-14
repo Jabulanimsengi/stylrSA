@@ -9,6 +9,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { FaArrowLeft, FaHome } from 'react-icons/fa';
 import Link from 'next/link';
 import { APP_PLANS, PLAN_BY_CODE, PlanCode } from '@/constants/plans';
+import { toFriendlyMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export default function CreateSalonPage() {
   const [name, setName] = useState('');
@@ -124,7 +126,8 @@ export default function CreateSalonPage() {
       toast.success('Salon created successfully! It will be reviewed by an admin.');
       router.push('/dashboard');
     } catch (error: any) {
-      toast.error(error.message);
+      logger.error('Failed to create salon:', error);
+      toast.error(toFriendlyMessage(error, 'Failed to create salon. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }

@@ -161,7 +161,8 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
         duration: Number(data.duration),
         images: uploadedImageUrls,
         salonId,
-        categoryId: data.categoryId,
+        // Only include categoryId if it's a valid non-empty value
+        ...(data.categoryId && data.categoryId.trim() !== '' && { categoryId: data.categoryId }),
       };
 
       const url = initialService

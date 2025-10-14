@@ -7,6 +7,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { calculateVisibilityScore } from 'src/common/visibility';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EventsGateway } from '../events/events.gateway';
 
 interface ProductFilters {
   category?: string;
@@ -18,7 +20,11 @@ interface ProductFilters {
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   async create(user: any, dto: CreateProductDto) {
     // Enforce plan-based listing cap for product seller
@@ -32,12 +38,36 @@ export class ProductsService {
       );
     }
 
-    return this.prisma.product.create({
+    const product = await this.prisma.product.create({
       data: {
         ...dto,
         sellerId: user.id,
       },
     });
+
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+
+    const sellerName = user.firstName 
+      ? `${user.firstName} ${user.lastName || ''}`.trim() 
+      : 'A seller';
+
+    for (const admin of admins) {
+      const notification = await this.notificationsService.create(
+        admin.id,
+        `New product "${product.name}" by ${sellerName} is pending approval.`,
+        { link: '/admin?tab=products' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        admin.id,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return product;
   }
 
   async findAllApproved(filters: ProductFilters = {}) {

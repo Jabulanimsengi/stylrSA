@@ -22,6 +22,7 @@ import ServiceFormModal from '@/components/ServiceFormModal';
 import EditSalonModal from '@/components/EditSalonModal';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
+import { logger } from '@/lib/logger';
 import GalleryUploadModal from '@/components/GalleryUploadModal';
 import ProductFormModal from '@/components/ProductFormModal';
 import PromotionModal from '@/components/PromotionModal';
@@ -133,6 +134,14 @@ function DashboardPageContent() {
       if (salonRes.status === 404) { setSalon(null); setIsLoading(false); return; }
       if (!salonRes.ok) throw new Error('Could not fetch salon data.');
       const salonData = await salonRes.json();
+      
+      // If no salon exists (backend returns null), stop here and show welcome screen
+      if (!salonData) {
+        setSalon(null);
+        setIsLoading(false);
+        return;
+      }
+      
       setSalon(salonData);
 
       const results = await Promise.allSettled([
@@ -179,21 +188,20 @@ function DashboardPageContent() {
 
   // Refresh dashboard when admin updates visibility for this salon
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !salon?.id) return;
     const handler = (payload: any) => {
       try {
-        if (payload?.entity === 'salon') {
-          // If the currently viewed salon or owner matches, refresh
-          if ((salon?.id && payload.id === salon.id) || payload.id === ownerId) {
-            fetchDashboardData();
-            toast.success('Visibility updated');
-          }
+        if (payload?.entity === 'salon' && payload.id === salon.id) {
+          fetchDashboardData();
+          toast.success('Your package has been updated by an admin');
         }
-      } catch {}
+      } catch (err) {
+        logger.error('Error handling visibility update:', err);
+      }
     };
     socket.on('visibility:updated', handler);
     return () => { socket.off('visibility:updated', handler); };
-  }, [socket, salon?.id, ownerId, fetchDashboardData]);
+  }, [socket, salon?.id, fetchDashboardData]);
   
   const handleServiceSaved = (savedService: Service) => {
     if (editingService) {
