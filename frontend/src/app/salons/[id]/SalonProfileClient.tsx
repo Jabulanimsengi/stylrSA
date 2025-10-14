@@ -148,6 +148,47 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     };
   }, [socket, salon?.id]);
 
+  // Refetch salon data when page becomes visible (fixes operating hours not updating)
+  useEffect(() => {
+    let isActive = true;
+
+    const refetchSalon = async () => {
+      try {
+        const res = await fetch(`/api/salons/${salonId}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data: Salon = await res.json();
+        if (isActive) {
+          setSalon(data);
+          setServices(data?.services ?? []);
+          setGalleryImages(data?.gallery ?? []);
+        }
+      } catch (error) {
+        logger.error('Failed to refetch salon on visibility change', error);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && salon) {
+        void refetchSalon();
+      }
+    };
+
+    const handleFocus = () => {
+      if (salon) {
+        void refetchSalon();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      isActive = false;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [salonId, salon]);
+
   const openLightbox = (images: string[], index: number) => {
     setLightboxImages(images);
     setLightboxStartIndex(index);
