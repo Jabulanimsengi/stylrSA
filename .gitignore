@@ -35,6 +35,7 @@ Thumbs.db
 
 # --- Frontend - Next.js ---
 # Ignore build output
+/.next/
 /frontend/.next/
 /frontend/out/
 
