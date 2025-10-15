@@ -15,14 +15,16 @@ export const DAY_NAMES = [
 ];
 
 export const DEFAULT_OPERATING_HOURS: OperatingHourEntry[] = [
-  { day: 'Monday', open: '09:00', close: '17:00' },
-  { day: 'Tuesday', open: '09:00', close: '17:00' },
-  { day: 'Wednesday', open: '09:00', close: '17:00' },
-  { day: 'Thursday', open: '09:00', close: '17:00' },
-  { day: 'Friday', open: '09:00', close: '17:00' },
+  { day: 'Monday', open: '08:00', close: '19:00' },
+  { day: 'Tuesday', open: '08:00', close: '19:00' },
+  { day: 'Wednesday', open: '08:00', close: '19:00' },
+  { day: 'Thursday', open: '08:00', close: '19:00' },
+  { day: 'Friday', open: '08:00', close: '19:00' },
+  { day: 'Saturday', open: '08:00', close: '19:00' },
+  { day: 'Sunday', open: '08:00', close: '19:00' },
 ];
 
-const TIME_REGEX = /^([0-2]?\d):([0-5]\d)$/;
+const TIME_REGEX = /^([0-2]?\d):([0-5]\d)(?::([0-5]\d))?$/;
 
 const DAY_ALIASES = DAY_NAMES.reduce<Record<string, string>>((acc, day) => {
   const base = day.toLowerCase();
@@ -61,7 +63,7 @@ function extractTimes(value: unknown): { open: string; close: string } | null {
   if (!value) return null;
 
   if (typeof value === 'string') {
-    const matches = value.match(/\d{1,2}:[0-5]\d/g);
+    const matches = value.match(/\d{1,2}:[0-5]\d(?::[0-5]\d)?/g);
     if (matches && matches.length > 0) {
       const open = normalizeTimeString(matches[0]);
       const close = normalizeTimeString(matches[1] ?? matches[0]);
