@@ -14,7 +14,6 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { coerceOperatingHoursArray } from '../utils/operating-hours.util';
 
 enum BookingType {
   ONSITE = 'ONSITE',
@@ -103,10 +102,6 @@ export class UpdateSalonDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OperatingHoursDto)
-  @Transform(({ value }) => {
-    const entries = coerceOperatingHoursArray(value);
-    return entries.length > 0 ? entries : undefined;
-  })
   operatingHours?: OperatingHoursDto[];
 
   @IsEnum(BookingType)
