@@ -15,7 +15,6 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
-import { coerceOperatingHoursArray } from '../utils/operating-hours.util';
 
 class OperatingHoursDto {
   @IsString()
@@ -92,10 +91,6 @@ export class CreateSalonDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OperatingHoursDto)
-  @Transform(({ value }) => {
-    const entries = coerceOperatingHoursArray(value);
-    return entries.length > 0 ? entries : undefined;
-  })
   operatingHours?: OperatingHoursDto[];
 
   @IsOptional()
