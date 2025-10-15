@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 import { useStartConversation } from '@/hooks/useStartConversation';
+import { getPlaceholder } from '@/lib/placeholders';
 
 interface ProductCardProps {
   product: Product;
@@ -34,7 +35,7 @@ export default function ProductCard({
     const unique = Array.isArray(product.images)
       ? product.images.filter((img, idx, arr) => img && arr.indexOf(img) === idx)
       : [];
-    return unique.length > 0 ? unique : ['https://via.placeholder.com/640x360'];
+    return unique.length > 0 ? unique : [getPlaceholder('wide')];
   }, [product.images]);
   const [activeImage, setActiveImage] = useState(0);
 
@@ -119,10 +120,6 @@ export default function ProductCard({
               </div>
             </>
           )}
-          <div className={styles.imageOverlay}>
-            <span className={styles.overlayIcon}>👁️</span>
-            <span className={styles.overlayText}>View Images</span>
-          </div>
         </div>
         <div className={styles.content}>
           <div className={styles.header}>

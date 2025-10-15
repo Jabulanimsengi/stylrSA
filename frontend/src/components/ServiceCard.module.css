@@ -87,6 +87,29 @@
 .carouselDot.activeDot {
   background: var(--color-primary);
 }
+
+/* Smaller dots on mobile */
+@media (max-width: 640px) {
+  .carouselDots {
+    gap: 4px !important;
+    bottom: 4px !important;
+  }
+  .carouselDot {
+    width: 5px !important;
+    height: 5px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .carouselDots {
+    gap: 3px !important;
+    bottom: 3px !important;
+  }
+  .carouselDot {
+    width: 4px !important;
+    height: 4px !important;
+  }
+}
 .overlayIcon {
   font-size: 2rem;
 }

@@ -9,6 +9,7 @@ import { FaMinus, FaTimes, FaCheck, FaCheckDouble } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { showError } from "@/lib/errors";
 import { apiJson } from "@/lib/api";
+import { sanitizeText } from "@/lib/sanitize";
 
 type MessageView = ChatMessage & { tempId?: string; pending?: boolean };
 
@@ -421,7 +422,7 @@ export default function ChatWidget() {
           ) : (
             recentConversations.map((convo) => {
               const other = convo.user1?.id === userId ? convo.user2 : convo.user1;
-              const preview = convo.lastMessage?.content ?? "No messages yet";
+              const preview = convo.lastMessage?.content ? sanitizeText(convo.lastMessage.content) : "No messages yet";
               const unread = convo.unreadCount ?? 0;
               return (
                 <button
@@ -448,7 +449,7 @@ export default function ChatWidget() {
               const status = deriveStatus(m, userId);
               return (
                 <div key={m.id} className={`${styles.bubble} ${mine ? styles.sent : styles.received}`}>
-                  <div>{m.content}</div>
+                  <div>{sanitizeText(m.content)}</div>
                   {mine && (
                     <div className={styles.status}>
                       {(status === "sent" || status === "sending") && (

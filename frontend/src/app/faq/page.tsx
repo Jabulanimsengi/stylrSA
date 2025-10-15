@@ -1,3 +1,5 @@
+'use client';
+
 import styles from '../info-page.module.css';
 import PageNav from '@/components/PageNav';
 

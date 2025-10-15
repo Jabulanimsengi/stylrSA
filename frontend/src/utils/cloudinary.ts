@@ -2,23 +2,110 @@ type TransformOpts = {
   width?: number;
   height?: number;
   crop?: 'fill' | 'fit' | 'limit' | 'scale';
-  quality?: 'auto' | number;
+  quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number;
   format?: 'auto' | 'jpg' | 'png' | 'webp' | 'avif';
+  dpr?: 'auto' | number; // Device pixel ratio for retina displays
+  gravity?: 'auto' | 'face' | 'center' | 'north' | 'south' | 'east' | 'west';
+  aspectRatio?: string; // e.g., '16:9', '1:1'
+  blur?: number;
+  sharpen?: boolean;
 };
 
+/**
+ * Transform Cloudinary image URLs with optimizations
+ * @param url - Original Cloudinary URL
+ * @param opts - Transformation options
+ * @returns Optimized Cloudinary URL
+ */
 export function transformCloudinary(url: string, opts: TransformOpts = {}): string {
   if (!url || !url.includes('/image/upload/')) return url;
-  const { width, height, crop = 'fill', quality = 'auto', format = 'auto' } = opts;
+  
+  const {
+    width,
+    height,
+    crop = 'fill',
+    quality = 'auto:good', // Better default quality
+    format = 'auto',       // Auto-selects WebP/AVIF
+    dpr = 'auto',         // Auto device pixel ratio
+    gravity,
+    aspectRatio,
+    blur,
+    sharpen = false,
+  } = opts;
+  
   const parts = url.split('/image/upload/');
   const transforms: string[] = [];
+  
+  // Dimensions
   if (width) transforms.push(`w_${width}`);
   if (height) transforms.push(`h_${height}`);
+  if (aspectRatio) transforms.push(`ar_${aspectRatio}`);
+  
+  // Cropping and positioning
   if (crop) transforms.push(`c_${crop}`);
-  if (quality) transforms.push(`q_${quality}`);
-  if (format) transforms.push(`f_${format}`);
+  if (gravity) transforms.push(`g_${gravity}`);
+  
+  // Quality and format (always optimize)
+  transforms.push(`q_${quality}`);
+  transforms.push(`f_${format}`);
+  
+  // DPR for retina displays
+  if (dpr) transforms.push(`dpr_${dpr}`);
+  
+  // Effects
+  if (blur) transforms.push(`e_blur:${blur}`);
+  if (sharpen) transforms.push('e_sharpen');
+  
+  // Additional optimizations
+  transforms.push('fl_progressive'); // Progressive JPEG
+  transforms.push('fl_preserve_transparency'); // Preserve PNG transparency
+  
   const t = transforms.join(',');
   return `${parts[0]}/image/upload/${t}/${parts[1]}`;
 }
+
+/**
+ * Preset transformations for common use cases
+ */
+export const cloudinaryPresets = {
+  thumbnail: (url: string) => transformCloudinary(url, {
+    width: 150,
+    height: 150,
+    crop: 'fill',
+    gravity: 'auto',
+    quality: 'auto:eco',
+  }),
+  
+  card: (url: string) => transformCloudinary(url, {
+    width: 400,
+    height: 300,
+    crop: 'fill',
+    gravity: 'auto',
+    quality: 'auto:good',
+  }),
+  
+  hero: (url: string) => transformCloudinary(url, {
+    width: 1200,
+    height: 600,
+    crop: 'fill',
+    gravity: 'auto',
+    quality: 'auto:best',
+  }),
+  
+  profile: (url: string) => transformCloudinary(url, {
+    width: 300,
+    height: 300,
+    crop: 'fill',
+    gravity: 'face',
+    quality: 'auto:good',
+  }),
+  
+  gallery: (url: string) => transformCloudinary(url, {
+    width: 800,
+    crop: 'limit',
+    quality: 'auto:good',
+  }),
+};
 
 export async function uploadToCloudinary(file: File | Blob, options?: { folder?: string }): Promise<any> {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;

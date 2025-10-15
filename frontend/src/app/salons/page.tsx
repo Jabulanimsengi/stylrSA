@@ -17,6 +17,7 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { getImageWithFallback } from '@/lib/placeholders';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -171,7 +172,7 @@ function SalonsPageContent() {
               <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
                 <div className={styles.imageWrapper}>
                   <Image
-                    src={transformCloudinary(salon.backgroundImage || 'https://via.placeholder.com/400x200', { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
+                    src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
                     alt={`A photo of ${salon.name}`}
                     className={styles.cardImage}
                     fill

@@ -77,11 +77,6 @@
   .navItem:active {
     transform: scale(0.95);
   }
-  
-  /* Add bottom padding to main content to prevent overlap with bottom nav */
-  :global(.main-content) {
-    padding-bottom: calc(var(--space-lg) + 70px);
-  }
 }
 
 @media (max-width: 400px) {

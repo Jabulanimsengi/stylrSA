@@ -256,23 +256,26 @@
     line-height: 1.3;
   }
   .favoriteButton {
-    top: 0.4rem;
-    right: 0.4rem;
-    font-size: 1.1rem;
-    width: 28px;
-    height: 28px;
+    top: 0.4rem !important;
+    right: 0.4rem !important;
+    font-size: 1.1rem !important;
+    width: 28px !important;
+    height: 28px !important;
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
 
 @media (max-width: 540px) {
   .salonGrid,
   .servicesGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
   }
   
   .imageWrapper {
-    height: 200px;
+    height: 100px;
   }
 }
 
@@ -297,10 +300,11 @@
   }
   .salonGrid,
   .servicesGrid {
-    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
   }
   .imageWrapper {
-    height: 180px;
+    height: 85px;
   }
   .cardContent {
     padding: 0.625rem;
@@ -319,10 +323,13 @@
     line-height: 1.35;
   }
   .favoriteButton {
-    top: 0.5rem;
-    right: 0.5rem;
-    font-size: 1.15rem;
-    width: 32px;
-    height: 32px;
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+    font-size: 1.15rem !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }

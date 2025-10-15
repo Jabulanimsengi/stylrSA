@@ -664,7 +664,8 @@
   }
   
   .galleryItem {
-    flex: 0 0 75%;
+    flex: 0 0 auto;
+    width: 140px;
     height: 140px;
     scroll-snap-align: start;
   }
@@ -835,7 +836,8 @@
     gap: 0.5rem;
   }
   .galleryItem {
-    flex: 0 0 85%;
+    flex: 0 0 auto;
+    width: 100px;
     height: 100px;
   }
   .section {

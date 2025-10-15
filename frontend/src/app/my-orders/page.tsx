@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { Skeleton, SkeletonGroup } from '@/components/Skeleton/Skeleton';
+import { getImageWithFallback } from '@/lib/placeholders';
 
 export default function MyOrdersPage() {
   const { authStatus } = useAuth();
@@ -90,7 +91,7 @@ export default function MyOrdersPage() {
               <div className={styles.orderHeader}>
                 <div className={styles.orderImage}>
                   <Image
-                    src={order.product.images[0] || 'https://via.placeholder.com/120x120'}
+                    src={getImageWithFallback(order.product.images[0], 'square')}
                     alt={order.product.name}
                     fill
                     sizes="120px"

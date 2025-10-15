@@ -20,6 +20,7 @@ import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { useSocket } from '@/context/SocketContext';
+import { getImageWithFallback } from '@/lib/placeholders';
 
 type TabKey = 'products' | 'orders';
 const tabs: { key: TabKey; label: string }[] = [
@@ -452,7 +453,7 @@ export default function ProductDashboardClient() {
               <div key={product.id} className={styles.productCard}>
                 <div className={styles.productImageWrapper}>
                   <Image
-                    src={product.images[0] || 'https://via.placeholder.com/150'}
+                    src={getImageWithFallback(product.images[0], 'square')}
                     alt={product.name}
                     className={styles.productImage}
                     fill
@@ -519,7 +520,7 @@ export default function ProductDashboardClient() {
                   <div className={styles.orderSummary}>
                     <div className={styles.orderImageWrapper}>
                       <Image
-                        src={order.product.images[0] || 'https://via.placeholder.com/120'}
+                        src={getImageWithFallback(order.product.images[0], 'square')}
                         alt={order.product.name}
                         fill
                         sizes="120px"

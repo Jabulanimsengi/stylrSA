@@ -9,6 +9,7 @@ import {
   Get,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 import { Response } from 'express';
@@ -19,11 +20,13 @@ import { GetUser } from './decorator/get-user.decorator';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Throttle({ auth: { limit: 5, ttl: 900000 } }) // 5 attempts per 15 minutes
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
+  @Throttle({ auth: { limit: 5, ttl: 900000 } }) // 5 attempts per 15 minutes
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(

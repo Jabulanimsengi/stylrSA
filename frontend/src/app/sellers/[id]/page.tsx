@@ -10,6 +10,7 @@ import ProductCard from '@/components/ProductCard';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
 import { useStartConversation } from '@/hooks/useStartConversation';
+import { getPlaceholder } from '@/lib/placeholders';
 
 interface SellerProfile {
   id: string;
@@ -51,7 +52,7 @@ export default function SellerProfilePage() {
   }, [fetchSeller]);
 
   const heroImages = useMemo(() => {
-    if (!seller) return ['https://via.placeholder.com/1280x400'];
+    if (!seller) return [getPlaceholder('ultra-wide')];
     const collected: string[] = [];
     seller.products.forEach((product) => {
       (product.images ?? []).forEach((img) => {
@@ -60,7 +61,7 @@ export default function SellerProfilePage() {
         }
       });
     });
-    return collected.length > 0 ? collected : ['https://via.placeholder.com/1280x400'];
+    return collected.length > 0 ? collected : [getPlaceholder('ultra-wide')];
   }, [seller]);
 
   useEffect(() => {

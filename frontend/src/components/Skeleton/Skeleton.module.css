@@ -97,3 +97,117 @@
     padding: 0.625rem;
   }
 }
+
+/* Additional skeleton layouts */
+.pageSkeletonContainer {
+  padding: 2rem 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.headerSkeleton {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filterSkeleton {
+  margin-bottom: 2rem;
+}
+
+.gridSkeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.productCardSkeleton {
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--color-surface, #fff);
+}
+
+.cardContent {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chatSkeletonContainer {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.chatHeader {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border, #ddd);
+  display: flex;
+  align-items: center;
+}
+
+.messagesContainer {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.chatInputSkeleton {
+  padding: 1rem;
+  border-top: 1px solid var(--color-border, #ddd);
+}
+
+.listSkeletonContainer {
+  padding: 2rem 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.tabsSkeleton {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--color-border, #ddd);
+  padding-bottom: 1rem;
+}
+
+.listItems {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.listItemSkeleton {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 0.75rem;
+  background: var(--color-surface, #fff);
+}
+
+@media (max-width: 768px) {
+  .pageSkeletonContainer {
+    padding: 1rem 0.5rem;
+  }
+
+  .gridSkeleton {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .tabsSkeleton {
+    overflow-x: auto;
+  }
+
+  .listItemSkeleton {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

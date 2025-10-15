@@ -14,14 +14,28 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import ClientChatWidget from '@/components/ClientChatWidget';
 import AuthSessionProvider from '@/components/AuthSessionProvider';
 import CookieBanner from '@/components/CookieBanner';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import Analytics from '@/components/Analytics';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const viewport = {
+  themeColor: '#8B4513',
+};
 
 export const metadata: Metadata = {
   title: 'Stylr SA - Find and Book Salon Appointments Online',
   description: 'Your one-stop platform for discovering, booking, and managing salon services. Find the best salons and stylists near you.',
   keywords: 'salon, booking, appointment, beauty, haircut, nails, stylist, hairdresser',
   authors: [{ name: 'Stylr SA Team' }],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Stylr SA',
+  },
   openGraph: {
     title: 'Stylr SA - Find and Book Salon Appointments Online',
     description: 'Your one-stop platform for discovering, booking, and managing salon services.',
@@ -53,27 +67,33 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthSessionProvider>
-          <ThemeProvider>
-            <AuthProvider> {/* Wrap with AuthProvider */}
-              <SocketProvider>
-                <AuthModalProvider>
-                  <div className="app-shell">
-                    <Navbar />
-                    <div className="app-content">
-                      <main className="main-content">{children}</main>
-                      <Footer />
+        <ErrorBoundary>
+          <AuthSessionProvider>
+            <ThemeProvider>
+              <AuthProvider> {/* Wrap with AuthProvider */}
+                <SocketProvider>
+                  <AuthModalProvider>
+                    <div className="app-shell">
+                      <Navbar />
+                      <div className="app-content">
+                        <main className="main-content">{children}</main>
+                        <Footer />
+                      </div>
+                      <MobileBottomNav />
                     </div>
-                    <MobileBottomNav />
-                  </div>
-                  <ClientChatWidget />
-                  <ToastContainer position="bottom-right" theme="colored" />
-                  <CookieBanner />
-                </AuthModalProvider>
-              </SocketProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </AuthSessionProvider>
+                    <ClientChatWidget />
+                    <ToastContainer position="bottom-right" theme="colored" />
+                    <CookieBanner />
+                    <Suspense fallback={null}>
+                      <Analytics />
+                    </Suspense>
+                    <PWAInstallPrompt />
+                  </AuthModalProvider>
+                </SocketProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </AuthSessionProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

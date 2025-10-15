@@ -32,6 +32,7 @@ import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import SalonProfileSkeleton from '@/components/Skeleton/SalonProfileSkeleton';
+import { sanitizeText } from '@/lib/sanitize';
 
 type Props = {
   initialSalon: Salon | null;
@@ -574,7 +575,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                             <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
                             <span style={{color: 'var(--accent-gold)'}}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
                           </div>
-                          <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>&quot;{review.comment}&quot;</p>
+                          <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>&quot;{sanitizeText(review.comment)}&quot;</p>
                         </div>
                       ))}
                       {visibleReviewsCount < reviews.length && (

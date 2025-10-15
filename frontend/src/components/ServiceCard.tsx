@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { apiFetch } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
+import { getPlaceholder } from '@/lib/placeholders';
 
 interface ServiceCardProps {
   service: Service;
@@ -28,7 +29,7 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
     const unique = Array.isArray(service.images)
       ? service.images.filter((img, idx, arr) => img && arr.indexOf(img) === idx)
       : [];
-    return unique.length > 0 ? unique : ['https://via.placeholder.com/640x360'];
+    return unique.length > 0 ? unique : [getPlaceholder('wide')];
   }, [service.images]);
   const [activeImage, setActiveImage] = useState(0);
 
@@ -105,10 +106,6 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
             </div>
           </>
         )}
-        <div className={styles.imageOverlay}>
-          <span className={styles.overlayIcon}>👁️</span>
-          <span className={styles.overlayText}>View Images</span>
-        </div>
       </div>
       <div className={styles.content}>
         <div className={styles.header}>

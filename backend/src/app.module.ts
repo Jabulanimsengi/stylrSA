@@ -7,6 +7,8 @@ import { SalonsModule } from './salons/salons.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { ServicesModule } from './services/services.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { ReviewsModule } from './reviews/reviews.module';
@@ -31,6 +33,23 @@ import { MongoModule } from './mongo/mongo.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000, // 60 seconds
+        limit: 2000, // 2000 requests per minute (33 per second) - generous for production
+      },
+      {
+        name: 'auth',
+        ttl: 900000, // 15 minutes
+        limit: 20, // 20 login attempts per 15 minutes
+      },
+      {
+        name: 'uploads',
+        ttl: 600000, // 10 minutes
+        limit: 100, // 100 uploads per 10 minutes
+      },
+    ]),
     PrismaModule,
     SalonsModule,
     AuthModule,
@@ -55,6 +74,12 @@ import { MongoModule } from './mongo/mongo.module';
     MongoModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

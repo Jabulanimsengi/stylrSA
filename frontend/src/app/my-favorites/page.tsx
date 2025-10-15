@@ -12,6 +12,7 @@ import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import { toast } from 'react-toastify';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { getImageWithFallback } from '@/lib/placeholders';
 
 export default function MyFavoritesPage() {
   const [favorites, setFavorites] = useState<Salon[]>([]);
@@ -92,7 +93,7 @@ export default function MyFavoritesPage() {
             <Link href={`/salons/${salon.id}`} key={salon.id} className={styles.salonCard}>
               <div className={styles.imageWrapper}>
                 <Image
-                  src={salon.backgroundImage || 'https://via.placeholder.com/400x200'}
+                  src={getImageWithFallback(salon.backgroundImage, 'wide')}
                   alt={salon.name}
                   className={styles.cardImage}
                   fill
