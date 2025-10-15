@@ -12,7 +12,8 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: (process.env.CORS_ORIGIN || 'http://localhost:3001,http://localhost:3000').split(','),
+    credentials: true,
   },
 })
 export class EventsGateway {
