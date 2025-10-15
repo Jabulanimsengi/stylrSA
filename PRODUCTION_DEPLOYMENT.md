@@ -1,5 +1,15 @@
 # Production Deployment Guide
 
+## Latest Updates
+
+**✅ Fixed (Deployed):**
+- Mobile responsiveness for dashboard cards (375px screens)
+- Mobile bottom navbar color changed to black
+- Rate limiting disabled globally (no more 429 errors)
+- WebSocket CORS configuration fixed
+
+**⚠️ Still Required: Backend Environment Variable**
+
 ## Backend Environment Variables (Render)
 
 Your backend on **thesalonhub.onrender.com** needs the following environment variable:
@@ -43,13 +53,15 @@ This tells the frontend where your backend API is located.
 
 ## What Was Fixed
 
-1. **WebSocket CORS Error** - WebSocketGateway was using wildcard `*` which doesn't work with credentials. Now uses the CORS_ORIGIN environment variable.
+1. **Rate Limiting (429 Errors)** - Removed global ThrottlerGuard that was blocking legitimate users from browsing. Auth endpoints still protected with specific limits (5 attempts per 15 minutes).
 
-2. **API Routing** - Removed incorrect localhost rewrites from vercel.json. The next.config.ts now properly handles all API routing using NEXT_PUBLIC_API_ORIGIN.
+2. **WebSocket CORS Error** - WebSocketGateway was using wildcard `*` which doesn't work with credentials. Now uses the CORS_ORIGIN environment variable.
 
-3. **Mobile Responsiveness** - Dashboard cards (Manage Bookings, Your Services, Manage Gallery) now properly fit on 375px screens.
+3. **API Routing** - Removed incorrect localhost rewrites from vercel.json. The next.config.ts now properly handles all API routing using NEXT_PUBLIC_API_ORIGIN.
 
-4. **Mobile Navbar Color** - Changed from purple to black as requested.
+4. **Mobile Responsiveness** - Dashboard cards (Manage Bookings, Your Services, Manage Gallery) now properly fit on 375px screens with optimized padding, font sizes, and layout.
+
+5. **Mobile Navbar Color** - Changed primary color from purple to black for better visibility.
 
 ## Testing After Deployment
 
