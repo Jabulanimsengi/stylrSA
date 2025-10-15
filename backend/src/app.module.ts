@@ -37,7 +37,7 @@ import { MongoModule } from './mongo/mongo.module';
       {
         name: 'default',
         ttl: 60000, // 60 seconds
-        limit: 2000, // 2000 requests per minute (33 per second) - generous for production
+        limit: 10000, // 10000 requests per minute - very generous for production browsing
       },
       {
         name: 'auth',
@@ -76,10 +76,9 @@ import { MongoModule } from './mongo/mongo.module';
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // Global throttler disabled - apply @UseGuards(ThrottlerGuard) only on sensitive endpoints
+    // This prevents legitimate users from being blocked while browsing
+    // Auth endpoints have their own specific throttle limits
   ],
 })
 export class AppModule {}
