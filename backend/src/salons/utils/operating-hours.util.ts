@@ -126,13 +126,15 @@ function collectOperatingHours(raw: unknown): OperatingHourEntry[] {
   }
 
   if (raw && typeof raw === 'object') {
-    Object.entries(raw as Record<string, unknown>).forEach(([dayKey, value]) => {
-      const day = canonicalizeDay(dayKey);
-      if (!day) return;
-      const times = extractTimes(value);
-      if (!times) return;
-      collected.push({ day, ...times });
-    });
+    Object.entries(raw as Record<string, unknown>).forEach(
+      ([dayKey, value]) => {
+        const day = canonicalizeDay(dayKey);
+        if (!day) return;
+        const times = extractTimes(value);
+        if (!times) return;
+        collected.push({ day, ...times });
+      },
+    );
   }
 
   return collected;
@@ -174,12 +176,23 @@ function hhmmToMinutes(hhmm: string): number | null {
   return h * 60 + mm;
 }
 
-export function isOpenNowFromHours(raw: unknown, at: Date = new Date()): boolean {
+export function isOpenNowFromHours(
+  raw: unknown,
+  at: Date = new Date(),
+): boolean {
   const entries = coerceOperatingHoursArray(raw);
   if (!entries || entries.length === 0) return false;
   const dayIndex = at.getDay(); // 0=Sunday..6=Saturday
-  const label = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dayIndex];
-  const today = entries.find(e => e.day === label);
+  const label = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ][dayIndex];
+  const today = entries.find((e) => e.day === label);
   if (!today) return false;
   const openMins = hhmmToMinutes(today.open);
   const closeMins = hhmmToMinutes(today.close);

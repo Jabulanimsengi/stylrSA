@@ -175,7 +175,9 @@ describe('Comprehensive multi-role flows (e2e)', () => {
       leave: jest.fn(),
       emittedEvents: events,
     };
-    return mock as Socket & { emittedEvents: Array<{ event: string; payload: any }> };
+    return mock as Socket & {
+      emittedEvents: Array<{ event: string; payload: any }>;
+    };
   };
 
   it('executes full platform flows across all roles', async () => {
@@ -473,7 +475,9 @@ describe('Comprehensive multi-role flows (e2e)', () => {
       .send({ reason: 'Routine test cleanup' })
       .expect(200);
 
-    const deletedSalon = await prisma.salon.findUnique({ where: { id: salon.id } });
+    const deletedSalon = await prisma.salon.findUnique({
+      where: { id: salon.id },
+    });
     expect(deletedSalon).toBeNull();
   });
 });

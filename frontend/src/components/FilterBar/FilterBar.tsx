@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './FilterBar.module.css';
-import { apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
+import { getCategoriesCached, getLocationsCached } from '@/lib/resourceCache';
 
 export interface FilterValues {
   province: string;
@@ -82,30 +82,49 @@ export default function FilterBar({
   const initialPriceMin = initialFilters.priceMin ?? '';
   const initialPriceMax = initialFilters.priceMax ?? '';
 
+  const fetchedStaticDataRef = useRef(false);
+
   useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const data = await apiJson<LocationsByProvince>('/api/locations');
-        if (data && typeof data === 'object') {
-          setLocations(data);
-        }
-      } catch (e) {
-        // Non-blocking: silently ignore, fields remain empty
-        console.debug('Locations load failed:', toFriendlyMessage(e));
+    if (fetchedStaticDataRef.current) {
+      return;
+    }
+    fetchedStaticDataRef.current = true;
+
+    let cancelled = false;
+
+    (async () => {
+      const [locationsResult, categoriesResult] = await Promise.allSettled([
+        getLocationsCached(),
+        getCategoriesCached(),
+      ]);
+
+      if (cancelled) {
+        return;
       }
-    };
-    const fetchCategories = async () => {
-      try {
-        const data = await apiJson<Array<{ id: string; name: string }>>('/api/categories');
-        if (Array.isArray(data)) {
-          setCategories(data);
-        }
-      } catch (e) {
-        console.debug('Categories load failed:', toFriendlyMessage(e));
+
+      if (locationsResult.status === 'fulfilled' && locationsResult.value && typeof locationsResult.value === 'object') {
+        setLocations(locationsResult.value);
+      } else if (locationsResult.status === 'rejected') {
+        console.debug('Locations load failed:', toFriendlyMessage(locationsResult.reason));
       }
+
+      if (categoriesResult.status === 'fulfilled' && Array.isArray(categoriesResult.value)) {
+        setCategories(
+          categoriesResult.value
+            .filter(
+              (item): item is { id: string; name: string } =>
+                Boolean(item && typeof item.id === 'string' && typeof item.name === 'string'),
+            )
+            .map((item) => ({ id: item.id, name: item.name })),
+        );
+      } else if (categoriesResult.status === 'rejected') {
+        console.debug('Categories load failed:', toFriendlyMessage(categoriesResult.reason));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
     };
-    fetchLocations();
-    fetchCategories();
   }, []);
 
   const buildFilters = useCallback((): FilterValues => ({

@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateSellerPlanDto } from './dto/update-seller-plan.dto';
@@ -115,9 +119,10 @@ export class UsersService {
       if (dto.hasSentProof) {
         nextStatus = 'PROOF_SUBMITTED';
       } else {
-        nextStatus = planChanged || currentStatus !== 'PENDING_SELECTION'
-          ? 'AWAITING_PROOF'
-          : 'PENDING_SELECTION';
+        nextStatus =
+          planChanged || currentStatus !== 'PENDING_SELECTION'
+            ? 'AWAITING_PROOF'
+            : 'PENDING_SELECTION';
       }
     } else if (currentStatus === 'PENDING_SELECTION' && !planChanged) {
       nextStatus = 'AWAITING_PROOF';
@@ -128,9 +133,11 @@ export class UsersService {
     }
 
     const paymentReferenceRaw = dto.paymentReference;
-    const defaultRef = `${seller.firstName} ${seller.lastName}`.trim() || 'Product Seller';
+    const defaultRef =
+      `${seller.firstName} ${seller.lastName}`.trim() || 'Product Seller';
     const paymentReference =
-      typeof paymentReferenceRaw === 'string' && paymentReferenceRaw.trim().length > 0
+      typeof paymentReferenceRaw === 'string' &&
+      paymentReferenceRaw.trim().length > 0
         ? paymentReferenceRaw.trim()
         : defaultRef;
 
@@ -147,7 +154,10 @@ export class UsersService {
       data.sellerPlanProofSubmittedAt =
         seller.sellerPlanProofSubmittedAt ?? new Date();
       data.sellerPlanVerifiedAt = null;
-    } else if (nextStatus === 'AWAITING_PROOF' || nextStatus === 'PENDING_SELECTION') {
+    } else if (
+      nextStatus === 'AWAITING_PROOF' ||
+      nextStatus === 'PENDING_SELECTION'
+    ) {
       data.sellerPlanProofSubmittedAt = null;
       data.sellerPlanVerifiedAt = null;
     }

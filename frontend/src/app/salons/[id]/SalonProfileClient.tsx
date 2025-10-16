@@ -351,6 +351,26 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
       toast.error('Could not copy address');
     }
   };
+  const shareProfile = async () => {
+    if (!salon) return;
+    const url = `${window.location.origin}/salons/${salon.id}`;
+    const text = `Check out ${salon.name} on Stylr SA`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: salon.name, text, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied');
+    } catch {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied');
+      } catch {
+        toast.error('Unable to share link');
+      }
+    }
+  };
   const mapSrc = (() => {
     if (!salon.latitude || !salon.longitude) return '';
     const lat = salon.latitude;
@@ -403,6 +423,9 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
             </div>
             <h1 className={styles.title}>{salon.name}</h1>
             <div className={styles.headerSpacer}>
+              <button type="button" onClick={shareProfile} className={styles.navButton}>
+                <FaExternalLinkAlt /> Share
+              </button>
               {authStatus === 'authenticated' && (
                 <button onClick={handleToggleFavorite} className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}>
                   <FaHeart />
@@ -475,6 +498,14 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
           <div className={styles.profileLayout}>
             <div className={styles.mainContent}>
+              {salon.description && (
+                <section id="about-section">
+                  <h2 className={styles.sectionTitle}>About</h2>
+                  <p style={{ lineHeight: '1.6', color: 'var(--color-text)', marginBottom: '2rem' }}>
+                    {sanitizeText(salon.description)}
+                  </p>
+                </section>
+              )}
               {galleryImages.length > 0 && (
                 <section id="gallery-section">
                   <h2 className={styles.sectionTitle}>Gallery</h2>

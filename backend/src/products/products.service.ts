@@ -50,8 +50,8 @@ export class ProductsService {
       select: { id: true },
     });
 
-    const sellerName = user.firstName 
-      ? `${user.firstName} ${user.lastName || ''}`.trim() 
+    const sellerName = user.firstName
+      ? `${user.firstName} ${user.lastName || ''}`.trim()
       : 'A seller';
 
     for (const admin of admins) {

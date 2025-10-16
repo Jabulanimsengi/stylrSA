@@ -44,7 +44,8 @@ function friendlyFromCode(code: string): string {
     SERVICE_UNAVAILABLE:
       'Service is temporarily unavailable. Please try again.',
     GATEWAY_TIMEOUT: 'The request timed out. Please try again.',
-    ALREADY_EXISTS: 'That information is already in use. Please try something else.',
+    ALREADY_EXISTS:
+      'That information is already in use. Please try something else.',
     DATA_IN_USE:
       'This item is still linked to other information and cannot be removed yet.',
     INTERNAL_ERROR: 'Something went wrong. Please try again.',

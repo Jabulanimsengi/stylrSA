@@ -37,8 +37,9 @@ export class AuthController {
     const { accessToken, user } = await this.authService.login(dto);
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? ('none' as any) : ('lax' as any),
+      domain: process.env.COOKIE_DOMAIN || undefined,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day
     });
     return { message: 'Login successful', user };
@@ -52,7 +53,12 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token');
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? ('none' as any) : ('lax' as any),
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    });
     return { message: 'Logout successful' };
   }
 

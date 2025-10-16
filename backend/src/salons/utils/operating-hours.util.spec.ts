@@ -1,4 +1,7 @@
-import { normalizeOperatingHours, DEFAULT_OPERATING_HOURS } from './operating-hours.util';
+import {
+  normalizeOperatingHours,
+  DEFAULT_OPERATING_HOURS,
+} from './operating-hours.util';
 
 describe('normalizeOperatingHours', () => {
   it('normalizes HH:MM:SS values down to HH:MM and preserves custom hours', () => {

@@ -8,6 +8,7 @@ import { toFriendlyMessage } from '@/lib/errors';
 import Image from 'next/image';
 import { uploadToCloudinary } from '@/utils/cloudinary';
 import { Service } from '@/types';
+import { getCategoriesCached } from '@/lib/resourceCache';
 
 interface ServiceFormInputs {
   name: string;
@@ -74,15 +75,21 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
   const existingImages = watch('images');
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await apiJson<Category[]>('/api/categories');
-        setCategories(data);
-      } catch (error) {
-        toast.error(toFriendlyMessage(error, 'Failed to load service categories.'));
-      }
+    let cancelled = false;
+    getCategoriesCached()
+      .then((data) => {
+        if (!cancelled) {
+          setCategories(data);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          toast.error(toFriendlyMessage(error, 'Failed to load service categories.'));
+        }
+      });
+    return () => {
+      cancelled = true;
     };
-    fetchCategories();
   }, []);
 
   // Support either 'serviceToEdit' (new) or 'service' (older prop name)

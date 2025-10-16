@@ -119,15 +119,11 @@ export class AdminController {
     const featuredUntil = dto.featuredUntil
       ? new Date(dto.featuredUntil)
       : undefined;
-    return this.adminService.setSalonPlan(
-      salonId,
-      dto.planCode ?? '',
-      {
-        visibilityWeight: dto.visibilityWeight,
-        maxListings: dto.maxListings,
-        featuredUntil,
-      },
-    );
+    return this.adminService.setSalonPlan(salonId, dto.planCode ?? '', {
+      visibilityWeight: dto.visibilityWeight,
+      maxListings: dto.maxListings,
+      featuredUntil,
+    });
   }
 
   @Patch('sellers/:sellerId/plan')
@@ -138,15 +134,11 @@ export class AdminController {
     const featuredUntil = dto.featuredUntil
       ? new Date(dto.featuredUntil)
       : undefined;
-    return this.adminService.setSellerPlan(
-      sellerId,
-      dto.planCode ?? '',
-      {
-        visibilityWeight: dto.visibilityWeight,
-        maxListings: dto.maxListings,
-        featuredUntil,
-      },
-    );
+    return this.adminService.setSellerPlan(sellerId, dto.planCode ?? '', {
+      visibilityWeight: dto.visibilityWeight,
+      maxListings: dto.maxListings,
+      featuredUntil,
+    });
   }
 
   @Delete('salons/:salonId')

@@ -150,6 +150,32 @@
   }
 }
 
+/* Mid‑mobile tweaks for 641–768px down to 375px */
+@media (max-width: 640px) {
+  .tabs {
+    gap: 0.5rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .tabButton {
+    white-space: nowrap;
+  }
+  .actions {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .approveButton,
+  .rejectButton {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.82rem;
+    flex: 1 1 auto;
+  }
+  .statusBadge {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.72rem;
+  }
+}
+
 @media (max-width: 400px) {
   .container {
     --page-inline-padding: 0.5rem;

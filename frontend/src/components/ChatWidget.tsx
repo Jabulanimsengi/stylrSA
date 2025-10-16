@@ -3,15 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./ChatWidget.module.css";
 import { useAuth } from "@/hooks/useAuth";
-import { useSocket } from "@/context/SocketContext";
+import { useSocket, useSocketStatus } from "@/context/SocketContext";
 import { ChatMessage, Conversation, User } from "@/types";
-import { FaMinus, FaTimes, FaCheck, FaCheckDouble } from "react-icons/fa";
+import { FaMinus, FaTimes, FaCheck, FaCheckDouble, FaExclamationCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { showError } from "@/lib/errors";
 import { apiJson } from "@/lib/api";
 import { sanitizeText } from "@/lib/sanitize";
 
-type MessageView = ChatMessage & { tempId?: string; pending?: boolean };
+type MessageView = ChatMessage & { tempId?: string; pending?: boolean; error?: string };
+
+type MessageStatus = "pending" | "sent" | "read" | "error";
 
 declare global {
   interface Window {
@@ -22,19 +24,20 @@ declare global {
 
 const LAST_CONVERSATION_KEY = "chat:lastConversationId";
 
-const deriveStatus = (message: MessageView, currentUserId?: string) => {
+const deriveStatus = (message: MessageView, currentUserId?: string): MessageStatus => {
   if (!currentUserId || message.senderId !== currentUserId) {
-    return message.readAt ? "read" : message.deliveredAt ? "delivered" : "sent";
+    return message.readAt ? "read" : "sent";
   }
-  if (message.pending) return "sending";
+  if (message.error) return "error";
+  if (message.pending) return "pending";
   if (message.readAt) return "read";
-  if (message.deliveredAt) return "delivered";
   return "sent";
 };
 
 export default function ChatWidget() {
   const { user, authStatus } = useAuth();
   const socket = useSocket();
+  const socketStatus = useSocketStatus();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -45,6 +48,7 @@ export default function ChatWidget() {
   const [isRecentLoading, setIsRecentLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const loadedConversationRef = useRef<string | null>(null);
+  const readEmitKeyRef = useRef<string | null>(null);
 
   const userId = user?.id;
 
@@ -114,7 +118,7 @@ export default function ChatWidget() {
           setMessages([]);
         } else {
           const msgs = (await msgsRes.json()) as ChatMessage[];
-          setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false })) : []);
+          setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false, error: undefined })) : []);
         }
       } catch (msgError) {
         console.error("Error fetching messages:", msgError);
@@ -151,7 +155,7 @@ export default function ChatWidget() {
               }
             : null,
         );
-        setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false })) : []);
+        setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false, error: undefined })) : []);
         setIsOpen(true);
         setIsMinimized(false);
         rememberConversation(convo.id);
@@ -175,7 +179,7 @@ export default function ChatWidget() {
         const other = convo.user1?.id === userId ? convo.user2 : convo.user1;
         setConversation(convo);
         setRecipient(other ? { id: other.id, name: `${other.firstName ?? ""} ${other.lastName ?? ""}`.trim() || other.email } : null);
-        setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false })) : []);
+        setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false, error: undefined })) : []);
         setIsOpen(true);
         setIsMinimized(false);
         setTimeout(() => scrollToBottom("auto"), 50);
@@ -239,6 +243,10 @@ export default function ChatWidget() {
     };
   }, [socket, conversation?.id]);
 
+  useEffect(() => {
+    readEmitKeyRef.current = null;
+  }, [conversation?.id]);
+
   // socket handlers
   useEffect(() => {
     if (!socket) return;
@@ -249,12 +257,12 @@ export default function ChatWidget() {
         if (tempId) {
           const idx = next.findIndex((m) => m.tempId === tempId);
           if (idx !== -1) {
-            next[idx] = { ...message, pending: false };
+            next[idx] = { ...message, pending: false, error: undefined };
             return next;
           }
         }
         const exists = next.some((m) => m.id === message.id);
-        if (!exists) next.push({ ...message, pending: false });
+        if (!exists) next.push({ ...message, pending: false, error: undefined });
         return next;
       });
       refreshConversations();
@@ -262,18 +270,27 @@ export default function ChatWidget() {
 
     const handleDelivered = (message: ChatMessage) => {
       setMessages((prev) =>
-        prev.map((m) => (m.id === message.id ? { ...m, deliveredAt: message.deliveredAt, readAt: message.readAt, pending: false } : m)),
+        prev.map((m) =>
+          m.id === message.id
+            ? { ...m, deliveredAt: message.deliveredAt, readAt: message.readAt, pending: false, error: undefined }
+            : m,
+        ),
       );
     };
 
     const handleNew = (message: ChatMessage) => {
       if (message.conversationId !== conversation?.id) return;
-      setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, { ...message, pending: false }]));
+      setMessages((prev) =>
+        prev.some((m) => m.id === message.id)
+          ? prev
+          : [...prev, { ...message, pending: false, error: undefined }],
+      );
       scrollToBottom();
       refreshConversations();
     };
 
-    const handleRead = ({ updates }: { conversationId: string; updates: { id: string; readAt: string }[] }) => {
+    const handleRead = ({ conversationId, updates }: { conversationId: string; updates: { id: string; readAt: string }[] }) => {
+      if (conversationId !== conversation?.id) return;
       setMessages((prev) =>
         prev.map((m) => {
           const u = updates.find((x) => x.id === m.id);
@@ -282,7 +299,17 @@ export default function ChatWidget() {
       );
     };
 
-    const handleError = ({ error }: { error: string }) => toast.error(error);
+    const handleError = ({ tempId, error }: { tempId?: string; error: string }) => {
+      if (tempId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.tempId === tempId ? { ...m, pending: false, error } : m)),
+        );
+      }
+      if (userId && socket && /unauthorized/i.test(error)) {
+        socket.emit("register", userId);
+      }
+      toast.error(error);
+    };
 
     socket.on("message:sent", handleSent);
     socket.on("message:delivered", handleDelivered);
@@ -297,7 +324,7 @@ export default function ChatWidget() {
       socket.off("conversation:read", handleRead);
       socket.off("message:error", handleError);
     };
-  }, [socket, conversation?.id, refreshConversations, scrollToBottom]);
+  }, [socket, conversation?.id, refreshConversations, scrollToBottom, userId]);
 
   const otherParticipant: User | null = useMemo(() => {
     if (!user || !conversation) return null;
@@ -324,7 +351,7 @@ export default function ChatWidget() {
           credentials: "include",
         });
         if (Array.isArray(msgs)) {
-          setMessages(msgs.map((m) => ({ ...m, pending: false })));
+          setMessages(msgs.map((m) => ({ ...m, pending: false, error: undefined })));
           loadedConversationRef.current = conversation.id;
         }
       } catch (error) {
@@ -338,6 +365,27 @@ export default function ChatWidget() {
     }
   }, [conversation?.id, isOpen, isMinimized, messages.length]);
 
+  useEffect(() => {
+    if (!socket || !conversation?.id || !userId || !isOpen || isMinimized) {
+      if (!conversation?.id) {
+        readEmitKeyRef.current = null;
+      }
+      return;
+    }
+    const unreadIds = messages
+      .filter((m) => m.senderId !== userId && !m.readAt)
+      .map((m) => m.id);
+    if (unreadIds.length === 0) {
+      readEmitKeyRef.current = null;
+      return;
+    }
+    const key = unreadIds.join("|");
+    if (readEmitKeyRef.current === key) return;
+    socket.emit("conversation:read", { conversationId: conversation.id });
+    refreshConversations();
+    readEmitKeyRef.current = key;
+  }, [socket, conversation?.id, messages, userId, isOpen, isMinimized, refreshConversations]);
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!socket || !userId || !conversation?.id) return;
@@ -345,6 +393,12 @@ export default function ChatWidget() {
     if (!body) return;
     const recipientId = otherParticipant?.id || recipient?.id;
     if (!recipientId) return;
+    if (!socket.connected) {
+      try { socket.connect(); } catch {}
+    }
+    if (!socketStatus.isRegistered && userId) {
+      try { socket.emit("register", userId); } catch {}
+    }
     const tempId = `tmp-${Date.now()}`;
     const optimistic: MessageView = {
       id: tempId,
@@ -356,6 +410,7 @@ export default function ChatWidget() {
       readAt: null,
       createdAt: new Date().toISOString(),
       pending: true,
+      error: undefined,
     };
     setMessages((prev) => [...prev, optimistic]);
     setNewMessage("");
@@ -452,19 +507,23 @@ export default function ChatWidget() {
                   <div>{sanitizeText(m.content)}</div>
                   {mine && (
                     <div className={styles.status}>
-                      {(status === "sent" || status === "sending") && (
-                        <span className={styles.statusIcon} aria-label="Sent">
-                          <FaCheck />
-                        </span>
-                      )}
-                      {status === "delivered" && (
-                        <span className={styles.statusIcon} aria-label="Delivered">
-                          <FaCheckDouble />
-                        </span>
-                      )}
-                      {status === "read" && (
+                      {status === "read" ? (
                         <span className={`${styles.statusIcon} ${styles.read}`} aria-label="Read">
                           <FaCheckDouble />
+                        </span>
+                      ) : status === "error" ? (
+                        <>
+                          <span className={`${styles.statusIcon} ${styles.error}`} aria-label="Failed to send">
+                            <FaExclamationCircle />
+                          </span>
+                          <span className={`${styles.statusText} ${styles.error}`}>Failed</span>
+                        </>
+                      ) : (
+                        <span
+                          className={`${styles.statusIcon} ${status === "pending" ? styles.pending : ""}`.trim()}
+                          aria-label={status === "pending" ? "Sending" : "Sent"}
+                        >
+                          <FaCheck />
                         </span>
                       )}
                     </div>
@@ -481,7 +540,11 @@ export default function ChatWidget() {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
             />
-            <button className={styles.sendBtn} type="submit" disabled={!newMessage.trim()}>
+            <button
+              className={styles.sendBtn}
+              type="submit"
+              disabled={!newMessage.trim()}
+            >
               Send
             </button>
           </form>

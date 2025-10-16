@@ -99,7 +99,10 @@ describe('Onboarding flows (e2e)', () => {
 
     await agent
       .post('/api/auth/login')
-      .send({ email: ownerCredentials.email, password: ownerCredentials.password })
+      .send({
+        email: ownerCredentials.email,
+        password: ownerCredentials.password,
+      })
       .expect(200);
 
     const operatingHours = [
@@ -171,8 +174,12 @@ describe('Onboarding flows (e2e)', () => {
     expect(planUpdateResponse.body.planPaymentStatus).toBe('AWAITING_PROOF');
 
     if (createServiceResponse.body?.id) {
-      await agent.delete(`/api/services/${createServiceResponse.body.id}`).expect(200);
-      const serviceIndex = createdServiceIds.indexOf(createServiceResponse.body.id);
+      await agent
+        .delete(`/api/services/${createServiceResponse.body.id}`)
+        .expect(200);
+      const serviceIndex = createdServiceIds.indexOf(
+        createServiceResponse.body.id,
+      );
       if (serviceIndex >= 0) {
         createdServiceIds.splice(serviceIndex, 1);
       }
@@ -205,7 +212,10 @@ describe('Onboarding flows (e2e)', () => {
 
     await agent
       .post('/api/auth/login')
-      .send({ email: sellerCredentials.email, password: sellerCredentials.password })
+      .send({
+        email: sellerCredentials.email,
+        password: sellerCredentials.password,
+      })
       .expect(200);
 
     const sellerPlanResponse = await agent
@@ -217,7 +227,9 @@ describe('Onboarding flows (e2e)', () => {
       })
       .expect(200);
 
-    expect(sellerPlanResponse.body.sellerPlanPaymentStatus).toBe('PROOF_SUBMITTED');
+    expect(sellerPlanResponse.body.sellerPlanPaymentStatus).toBe(
+      'PROOF_SUBMITTED',
+    );
     expect(sellerPlanResponse.body.sellerPlanCode).toBe('STARTER');
 
     const productPayload = {

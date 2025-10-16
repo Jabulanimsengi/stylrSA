@@ -1,6 +1,10 @@
 // backend/src/admin/admin.service.ts
 
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
@@ -440,7 +444,8 @@ export class AdminService {
       (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.maxListings ??
       2;
     const planPriceCents =
-      (plan?.priceCents ?? undefined) ??
+      plan?.priceCents ??
+      undefined ??
       (isValidPlan ? FALLBACKS[normalizedPlan]?.priceCents : undefined);
     const data: any = {
       visibilityWeight,
@@ -524,7 +529,8 @@ export class AdminService {
       (isValidPlan ? FALLBACKS[normalizedPlan] : undefined)?.maxListings ??
       2;
     const sellerPlanPriceCents =
-      (plan?.priceCents ?? undefined) ??
+      plan?.priceCents ??
+      undefined ??
       (isValidPlan ? FALLBACKS[normalizedPlan]?.priceCents : undefined);
     const data: any = {
       sellerVisibilityWeight,
@@ -601,7 +607,10 @@ export class AdminService {
         action: 'SALON_PLAN_PAYMENT_UPDATE',
         targetType: 'SALON',
         targetId: salonId,
-        metadata: { status, paymentReference: data.planPaymentReference ?? null },
+        metadata: {
+          status,
+          paymentReference: data.planPaymentReference ?? null,
+        },
       });
     }
 
@@ -658,7 +667,10 @@ export class AdminService {
         action: 'SELLER_PLAN_PAYMENT_UPDATE',
         targetType: 'SELLER',
         targetId: sellerId,
-        metadata: { status, paymentReference: data.sellerPlanPaymentReference ?? null },
+        metadata: {
+          status,
+          paymentReference: data.sellerPlanPaymentReference ?? null,
+        },
       });
     }
 

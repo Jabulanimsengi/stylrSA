@@ -6,17 +6,24 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { OnGatewayInit } from '@nestjs/websockets';
+import { createAdapter } from '@socket.io/redis-adapter';
+import Redis from 'ioredis';
 import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @WebSocketGateway({
   cors: {
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:3001,http://localhost:3000').split(','),
+    origin: (
+      process.env.CORS_ORIGIN || 'http://localhost:3001,http://localhost:3000'
+    ).split(','),
     credentials: true,
   },
 })
-export class EventsGateway {
+export class EventsGateway implements OnGatewayInit {
   @WebSocketServer()
   server: Server;
 
@@ -26,7 +33,22 @@ export class EventsGateway {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService,
   ) {}
+
+  afterInit(server: Server) {
+    try {
+      const url = process.env.REDIS_URL || process.env.REDIS_CONNECTION_STRING;
+      if (!url) return;
+      const pub = new Redis(url);
+      const sub = new Redis(url);
+      server.adapter(createAdapter(pub as any, sub as any));
+      this.logger.log('Socket.IO Redis adapter enabled');
+    } catch (err) {
+      this.logger.error('Failed to enable Redis adapter for Socket.IO', err instanceof Error ? err.stack : String(err));
+    }
+  }
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -34,6 +56,9 @@ export class EventsGateway {
     if (userId) {
       this.registerUserSocket(userId, client.id);
       void client.join(`user:${userId}`);
+    } else {
+      // Optionally disconnect unauthorized sockets if needed
+      // client.disconnect();
     }
   }
 
@@ -278,9 +303,45 @@ export class EventsGateway {
   }
 
   private extractUserId(client: Socket): string | null {
+    // 1) Prefer validated JWT from cookie
+    try {
+      const rawCookie = client.handshake.headers?.cookie;
+      const token = this.getCookie(rawCookie, 'access_token');
+      if (token) {
+        const secret = this.config.get<string>('JWT_SECRET');
+        if (secret) {
+          const payload = this.jwt.verify(token, { secret });
+          if (payload?.sub && typeof payload.sub === 'string') {
+            return payload.sub;
+          }
+        }
+      }
+    } catch (err) {
+      // ignore JWT errors; we'll fallback to query param registration
+    }
+    // 2) Backward compatibility: allow query.userId provided by client (less secure)
     const { userId } = client.handshake.query;
     if (typeof userId === 'string' && userId.trim().length > 0) {
       return userId;
+    }
+    return null;
+  }
+
+  private getCookie(
+    cookieHeader: string | undefined,
+    name: string,
+  ): string | null {
+    if (!cookieHeader) return null;
+    const parts = cookieHeader.split(';');
+    for (const part of parts) {
+      const [k, v] = part.split('=');
+      if (k && v && k.trim() === name) {
+        try {
+          return decodeURIComponent(v.trim());
+        } catch {
+          return v.trim();
+        }
+      }
     }
     return null;
   }

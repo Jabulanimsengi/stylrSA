@@ -7,7 +7,10 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSalonDto, UpdateSalonDto, UpdateSalonPlanDto } from './dto';
 import { compareByVisibilityThenRecency } from 'src/common/visibility';
-import { normalizeOperatingHours, isOpenNowFromHours } from './utils/operating-hours.util';
+import {
+  normalizeOperatingHours,
+  isOpenNowFromHours,
+} from './utils/operating-hours.util';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EventsGateway } from '../events/events.gateway';
 
@@ -71,7 +74,8 @@ export class SalonsService {
     const hasSentProof = Boolean((dto as any).hasSentProof);
     const paymentReferenceRaw = (dto as any).paymentReference;
     const paymentReference =
-      typeof paymentReferenceRaw === 'string' && paymentReferenceRaw.trim().length > 0
+      typeof paymentReferenceRaw === 'string' &&
+      paymentReferenceRaw.trim().length > 0
         ? paymentReferenceRaw.trim()
         : dto.name.trim();
     const planPaymentStatus: PlanPaymentStatus = hasSentProof
@@ -215,9 +219,10 @@ export class SalonsService {
       if (dto.hasSentProof) {
         nextStatus = 'PROOF_SUBMITTED';
       } else {
-        nextStatus = planChanged || currentStatus !== 'PENDING_SELECTION'
-          ? 'AWAITING_PROOF'
-          : 'PENDING_SELECTION';
+        nextStatus =
+          planChanged || currentStatus !== 'PENDING_SELECTION'
+            ? 'AWAITING_PROOF'
+            : 'PENDING_SELECTION';
       }
     }
     if (!planChanged && currentStatus === 'VERIFIED') {
@@ -227,10 +232,12 @@ export class SalonsService {
     if (nextStatus) {
       data.planPaymentStatus = nextStatus;
       if (nextStatus === 'PROOF_SUBMITTED') {
-        data.planProofSubmittedAt =
-          salon.planProofSubmittedAt ?? new Date();
+        data.planProofSubmittedAt = salon.planProofSubmittedAt ?? new Date();
         data.planVerifiedAt = null;
-      } else if (nextStatus === 'AWAITING_PROOF' || nextStatus === 'PENDING_SELECTION') {
+      } else if (
+        nextStatus === 'AWAITING_PROOF' ||
+        nextStatus === 'PENDING_SELECTION'
+      ) {
         data.planProofSubmittedAt = null;
         data.planVerifiedAt = null;
       } else if (nextStatus === 'VERIFIED') {
@@ -358,7 +365,9 @@ export class SalonsService {
     // operatingHours already whitelisted above; no extra transformation required
 
     if (updateData.operatingHours) {
-      const normalizedHours = normalizeOperatingHours(updateData.operatingHours);
+      const normalizedHours = normalizeOperatingHours(
+        updateData.operatingHours,
+      );
       updateData.operatingHours = normalizedHours;
       updateData.operatingDays = normalizedHours.map((entry) => entry.day);
     }

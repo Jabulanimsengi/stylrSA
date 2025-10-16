@@ -131,14 +131,10 @@ export default function Navbar() {
       return;
     }
 
-    let handled = false;
     if (typeof window !== 'undefined' && typeof window.showChatWidget === 'function') {
       window.showChatWidget();
-      handled = true;
-    }
-
-    if (!handled) {
-      router.push('/chat');
+    } else {
+      toast.error('Chat widget is not available. Please refresh the page.');
     }
 
     setIsMobileOpen(false);
@@ -261,7 +257,16 @@ export default function Navbar() {
         updateNotificationsCache(updatedItems, nextUnread, nextCursor);
       }
       setIsNotificationsOpen(false);
-      if (notification.link) {
+      
+      // Handle chat notifications by opening the ChatWidget directly
+      if (notification.link?.startsWith('/chat/')) {
+        const conversationId = notification.link.replace('/chat/', '');
+        if (typeof window !== 'undefined' && typeof window.showChatWidget === 'function') {
+          window.showChatWidget(conversationId);
+        } else {
+          toast.error('Chat widget is not available. Please refresh the page.');
+        }
+      } else if (notification.link) {
         router.push(notification.link);
       }
     } catch (error) {
@@ -359,7 +364,7 @@ export default function Navbar() {
       return;
     }
 
-    const routes = new Set<string>(['/chat', '/my-profile', '/my-bookings', '/my-favorites']);
+    const routes = new Set<string>(['/my-profile', '/my-bookings', '/my-favorites']);
     if (user?.role === 'SALON_OWNER') {
       routes.add('/dashboard');
     } else if (user?.role === 'PRODUCT_SELLER') {

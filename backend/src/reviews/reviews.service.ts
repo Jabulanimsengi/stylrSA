@@ -54,8 +54,8 @@ export class ReviewsService {
       select: { id: true },
     });
 
-    const authorName = review.author 
-      ? `${review.author.firstName || ''} ${review.author.lastName || ''}`.trim() 
+    const authorName = review.author
+      ? `${review.author.firstName || ''} ${review.author.lastName || ''}`.trim()
       : 'A user';
 
     for (const admin of admins) {

@@ -133,7 +133,25 @@ function DashboardPageContent() {
       if (salonRes.status === 401) { router.push('/'); return; }
       if (salonRes.status === 404) { setSalon(null); setIsLoading(false); return; }
       if (!salonRes.ok) throw new Error('Could not fetch salon data.');
-      const salonData = await salonRes.json();
+      
+      // Parse JSON with proper error handling
+      let salonData;
+      try {
+        const text = await salonRes.text();
+        if (!text || text.trim() === '') {
+          // Empty response means no salon exists
+          setSalon(null);
+          setIsLoading(false);
+          return;
+        }
+        salonData = JSON.parse(text);
+      } catch (jsonError) {
+        logger.error('Failed to parse salon data:', jsonError);
+        toast.error('You must create a salon profile to view the salon dashboard.');
+        setSalon(null);
+        setIsLoading(false);
+        return;
+      }
       
       // If no salon exists (backend returns null), stop here and show welcome screen
       if (!salonData) {

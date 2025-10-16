@@ -48,7 +48,10 @@ export class ServicesService {
     // Handle empty string categoryId by converting to undefined
     const createData = {
       ...dto,
-      categoryId: dto.categoryId && dto.categoryId.trim() !== '' ? dto.categoryId : undefined,
+      categoryId:
+        dto.categoryId && dto.categoryId.trim() !== ''
+          ? dto.categoryId
+          : undefined,
     };
 
     const service = await this.prisma.service.create({ data: createData });
@@ -102,7 +105,10 @@ export class ServicesService {
     // Handle empty string categoryId by converting to undefined
     const updateData = {
       ...dto,
-      categoryId: dto.categoryId !== undefined && dto.categoryId.trim() === '' ? undefined : dto.categoryId,
+      categoryId:
+        dto.categoryId !== undefined && dto.categoryId.trim() === ''
+          ? undefined
+          : dto.categoryId,
     };
 
     return this.prisma.service.update({
