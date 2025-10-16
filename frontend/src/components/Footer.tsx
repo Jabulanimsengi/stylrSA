@@ -48,6 +48,15 @@ export default function Footer() {
         </div>
 
         <div className={styles.footerSection}>
+          <h3 className={styles.sectionTitle}>Contact</h3>
+          <ul className={styles.links}>
+            <li>
+              <a href="mailto:stylrsa2@gmail.com">stylrsa2@gmail.com</a>
+            </li>
+          </ul>
+        </div>
+
+        <div className={styles.footerSection}>
           <h3 className={styles.sectionTitle}>Stay Updated</h3>
           <p>Subscribe to our newsletter for the latest deals and updates.</p>
           <form className={styles.newsletterForm}>

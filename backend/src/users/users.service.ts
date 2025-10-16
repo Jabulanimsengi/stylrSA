@@ -18,10 +18,10 @@ const PLAN_FALLBACKS: Record<
   PlanCode,
   { visibilityWeight: number; maxListings: number; priceCents: number }
 > = {
-  STARTER: { visibilityWeight: 1, maxListings: 2, priceCents: 4900 },
-  ESSENTIAL: { visibilityWeight: 2, maxListings: 6, priceCents: 9900 },
-  GROWTH: { visibilityWeight: 3, maxListings: 11, priceCents: 19900 },
-  PRO: { visibilityWeight: 4, maxListings: 26, priceCents: 29900 },
+  STARTER: { visibilityWeight: 1, maxListings: 3, priceCents: 4900 },
+  ESSENTIAL: { visibilityWeight: 2, maxListings: 7, priceCents: 9900 },
+  GROWTH: { visibilityWeight: 3, maxListings: 15, priceCents: 19900 },
+  PRO: { visibilityWeight: 4, maxListings: 27, priceCents: 29900 },
   ELITE: { visibilityWeight: 5, maxListings: 9999, priceCents: 49900 },
 };
 
