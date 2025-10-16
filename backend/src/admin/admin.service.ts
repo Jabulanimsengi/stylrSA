@@ -445,7 +445,6 @@ export class AdminService {
       2;
     const planPriceCents =
       plan?.priceCents ??
-      undefined ??
       (isValidPlan ? FALLBACKS[normalizedPlan]?.priceCents : undefined);
     const data: any = {
       visibilityWeight,
@@ -530,7 +529,6 @@ export class AdminService {
       2;
     const sellerPlanPriceCents =
       plan?.priceCents ??
-      undefined ??
       (isValidPlan ? FALLBACKS[normalizedPlan]?.priceCents : undefined);
     const data: any = {
       sellerVisibilityWeight,
