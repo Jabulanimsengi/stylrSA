@@ -384,6 +384,19 @@ model DeletedSalonArchive {
   @@index([deletedAt])
 }
 
+// Archive for deleted product seller profiles to enable restoration
+model DeletedSellerArchive {
+  id         String   @id @default(uuid())
+  sellerId   String
+  seller     Json
+  products   Json
+  reason     String?
+  deletedBy  String?
+  deletedAt  DateTime @default(now())
+  restoredAt DateTime?
+  @@index([deletedAt])
+}
+
 // Admin activity/audit log
 model AdminActionLog {
   id         String   @id @default(uuid())

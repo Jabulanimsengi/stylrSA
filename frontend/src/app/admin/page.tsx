@@ -13,6 +13,7 @@ import {
   Product,
   PlanPaymentStatus,
   PlanCode,
+  SellerSummary,
 } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
@@ -56,6 +57,15 @@ type PendingProduct = Product & {
   };
 };
 
+type SellerRow = SellerSummary & {
+  sellerPlanPaymentStatus?: PlanPaymentStatus | null;
+};
+
+type SellerDeletionTarget = {
+  sellerId: string;
+  name: string;
+};
+
 const PLAN_PAYMENT_LABELS: Record<PlanPaymentStatus, string> = {
   PENDING_SELECTION: 'Package not selected',
   AWAITING_PROOF: 'Awaiting proof of payment',
@@ -74,9 +84,11 @@ export default function AdminPage() {
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
   const [deletedSalons, setDeletedSalons] = useState<any[]>([]);
+  const [deletedSellers, setDeletedSellers] = useState<any[]>([]);
+  const [allSellers, setAllSellers] = useState<SellerRow[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'deleted-salons' | 'audit'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -89,6 +101,8 @@ export default function AdminPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
   const [deletingSalon, setDeletingSalon] = useState<PendingSalon | null>(null);
+  const [deletingSeller, setDeletingSeller] = useState<SellerDeletionTarget | null>(null);
+  const [deleteMode, setDeleteMode] = useState<'salon' | 'seller'>('salon');
   const [isDeleting, setIsDeleting] = useState(false);
   // Simple filters/saved views for All Salons
   const [search, setSearch] = useState('');
@@ -283,17 +297,19 @@ export default function AdminPage() {
       try {
         const ts = Date.now();
         const noStore: RequestInit = { ...requestOptions, cache: 'no-store' } as any;
-        const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, deletedSalonsRes, metricsRes] = await Promise.all([
+        const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, allSellersRes, deletedSalonsRes, deletedSellersRes, metricsRes] = await Promise.all([
           fetch(`/api/admin/salons/pending?ts=${ts}`, noStore),
           fetch(`/api/admin/salons/all?ts=${ts}`, noStore),
           fetch(`/api/admin/services/pending?ts=${ts}`, noStore),
           fetch(`/api/admin/reviews/pending?ts=${ts}`, noStore),
           fetch(`/api/admin/products/pending?ts=${ts}`, noStore),
+          fetch(`/api/admin/sellers/all?ts=${ts}`, noStore),
           fetch(`/api/admin/salons/deleted?ts=${ts}`, noStore),
+          fetch(`/api/admin/sellers/deleted?ts=${ts}`, noStore),
           fetch(`/api/admin/metrics?ts=${ts}`, noStore),
         ]);
 
-        if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, deletedSalonsRes, metricsRes].some(res => res.status === 401)) {
+        if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, allSellersRes, deletedSalonsRes, deletedSellersRes, metricsRes].some(res => res.status === 401)) {
             router.push('/login');
             return;
         }
@@ -304,7 +320,9 @@ export default function AdminPage() {
         setPendingServices(ensureArray<PendingService>(await servicesRes.json()));
         setPendingReviews(ensureArray<PendingReview>(await reviewsRes.json()));
         setPendingProducts(ensureArray<PendingProduct>(await productsRes.json()));
-        setDeletedSalons(ensureArray<PendingSalon>(await deletedSalonsRes.json()));
+        setAllSellers(ensureArray<SellerRow>(await allSellersRes.json()));
+        setDeletedSalons(ensureArray<any>(await deletedSalonsRes.json()));
+        setDeletedSellers(ensureArray<any>(await deletedSellersRes.json()));
         setMetrics(await metricsRes.json());
 
       } catch (error) {
@@ -325,18 +343,46 @@ export default function AdminPage() {
       socket = io('/', { transports: ['websocket'], withCredentials: true });
       socket.on('salon:deleted', async () => {
         try {
-          const [allRes, delRes] = await Promise.all([
+          const [allRes, sellersRes, delRes, deletedSellerRes] = await Promise.all([
             fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
             fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
           ]);
           if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
+          if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
           if (delRes.ok) setDeletedSalons(ensureArray<PendingSalon>(await delRes.json()));
+          if (deletedSellerRes.ok) setDeletedSellers(ensureArray<any>(await deletedSellerRes.json()));
+        } catch {}
+      });
+      socket.on('seller:deleted', async () => {
+        try {
+          const [pendingProductsRes, sellersRes, archivedRes] = await Promise.all([
+            fetch(`/api/admin/products/pending?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+          ]);
+          if (pendingProductsRes.ok) {
+            setPendingProducts(ensureArray<PendingProduct>(await pendingProductsRes.json()));
+          }
+          if (sellersRes.ok) {
+            setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
+          }
+          if (archivedRes.ok) {
+            setDeletedSellers(ensureArray<any>(await archivedRes.json()));
+          }
         } catch {}
       });
       socket.on('visibility:updated', async () => {
         try {
-          const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
+          const [allRes, sellersRes, sellerRes] = await Promise.all([
+            fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+          ]);
           if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
+          if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
+          if (sellerRes.ok) setDeletedSellers(ensureArray<any>(await sellerRes.json()));
         } catch {}
       });
     } catch {}
@@ -378,43 +424,130 @@ export default function AdminPage() {
     if (type === 'product') setPendingProducts(pendingProducts.filter(p => p.id !== id));
   };
 
-  const openDeleteModal = (salon: PendingSalon) => {
+  const openDeleteSalonModal = (salon: PendingSalon) => {
     setDeletingSalon(salon);
+    setDeletingSeller(null);
+    setDeleteMode('salon');
+    setDeleteReason('');
+    setShowDeleteModal(true);
+    setIsDeleting(false);
+  };
+
+  const openDeleteSellerModal = (sellerId: string, sellerName: string) => {
+    setDeletingSeller({ sellerId, name: sellerName });
+    setDeletingSalon(null);
+    setDeleteMode('seller');
     setDeleteReason('');
     setShowDeleteModal(true);
     setIsDeleting(false);
   };
 
   const confirmDeleteSalon = async () => {
-    if (!deletingSalon) return;
+    if (!deletingSalon || isDeleting) return;
     if (!deleteReason.trim()) {
       toast.error('Please provide a reason for deletion.');
       return;
     }
-    if (isDeleting) return;
+
     setIsDeleting(true);
     const id = deletingSalon.id;
-    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
-    const res = await fetch(`/api/admin/salons/${id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', ...authHeaders },
-      credentials: 'include',
-      body: JSON.stringify({ reason: deleteReason.trim() }),
-    });
-    if (res.ok || res.status === 404) {
-      setAllSalons(prev => prev.filter(s => s.id !== id));
-      setShowDeleteModal(false);
-      setDeletingSalon(null);
-      toast.success(res.status === 404 ? 'Profile was already removed' : 'Profile deleted');
-      try {
-        const r = await fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
-        if (r.ok) setDeletedSalons(await r.json());
-      } catch {}
-    } else {
-      const msg = await res.text().catch(()=> '');
-      toast.error(`Failed to delete (${res.status}). ${msg}`);
+    const authHeaders: Record<string, string> = session?.backendJwt
+      ? { Authorization: `Bearer ${session.backendJwt}` }
+      : {};
+    try {
+      const res = await fetch(`/api/admin/salons/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'include',
+        body: JSON.stringify({ reason: deleteReason.trim() }),
+      });
+
+      if (res.ok || res.status === 404) {
+        setAllSalons((prev) => prev.filter((s) => s.id !== id));
+        setShowDeleteModal(false);
+        setDeletingSalon(null);
+        setDeleteReason('');
+        toast.success(
+          res.status === 404 ? 'Profile was already removed' : 'Profile deleted',
+        );
+        try {
+          const r = await fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, {
+            credentials: 'include',
+            cache: 'no-store' as any,
+            headers: authHeaders,
+          });
+          if (r.ok) {
+            const deleted = await r.json();
+            setDeletedSalons(ensureArray<any>(deleted));
+          }
+        } catch {
+          // no-op
+        }
+      } else {
+        const msg = await res.text().catch(() => '');
+        toast.error(`Failed to delete (${res.status}). ${msg}`);
+      }
+    } catch (err) {
+      toast.error('Failed to delete salon.');
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleting(false);
+  };
+
+  const confirmDeleteSeller = async () => {
+    if (!deletingSeller || isDeleting) return;
+    if (!deleteReason.trim()) {
+      toast.error('Please provide a reason for deletion.');
+      return;
+    }
+
+    setIsDeleting(true);
+    const sellerId = deletingSeller.sellerId;
+    const authHeaders: Record<string, string> = session?.backendJwt
+      ? { Authorization: `Bearer ${session.backendJwt}` }
+      : {};
+
+    try {
+      const res = await fetch(`/api/admin/sellers/${sellerId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'include',
+        body: JSON.stringify({ reason: deleteReason.trim() }),
+      });
+
+      if (res.ok || res.status === 404) {
+        setPendingProducts((prev) => prev.filter((p) => p.seller?.id !== sellerId));
+        setAllSellers((prev) => prev.filter((s) => s.id !== sellerId));
+        setShowDeleteModal(false);
+        setDeletingSeller(null);
+        setDeleteReason('');
+        toast.success(
+          res.status === 404
+            ? 'Seller profile already removed'
+            : 'Seller profile deleted',
+        );
+
+        try {
+          const sellersRes = await fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, {
+            credentials: 'include',
+            cache: 'no-store' as any,
+            headers: authHeaders,
+          });
+          if (sellersRes.ok) {
+            setDeletedSellers(ensureArray<any>(await sellersRes.json()));
+          }
+        } catch {
+          // no-op
+        }
+      } else {
+        const msg = await res.text().catch(() => '');
+        toast.error(`Failed to delete seller (${res.status}). ${msg}`);
+      }
+    } catch (err) {
+      toast.error('Failed to delete seller.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const restoreDeletedSalon = async (archiveId: string) => {
@@ -437,6 +570,31 @@ export default function AdminPage() {
     } else {
       const msg = await res.text().catch(()=> '');
       toast.error(`Failed to restore (${res.status}). ${msg}`);
+    }
+  };
+
+  const restoreDeletedSeller = async (archiveId: string) => {
+    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+    const res = await fetch(`/api/admin/sellers/deleted/${archiveId}/restore`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: authHeaders,
+    });
+    if (res.ok) {
+      toast.success('Seller restored');
+      try {
+        const sellersRes = await fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, {
+          credentials: 'include',
+          cache: 'no-store' as any,
+          headers: authHeaders,
+        });
+        if (sellersRes.ok) {
+          setDeletedSellers(ensureArray<any>(await sellersRes.json()));
+        }
+      } catch {}
+    } else {
+      const msg = await res.text().catch(() => '');
+      toast.error(`Failed to restore seller (${res.status}). ${msg}`);
     }
   };
 
@@ -465,6 +623,12 @@ export default function AdminPage() {
           All Salons ({allSalons.length})
         </button>
         <button
+          onClick={() => setView('all-sellers')}
+          className={`${styles.tabButton} ${view === 'all-sellers' ? styles.activeTab : ''}`}
+        >
+          All Sellers ({allSellers.length})
+        </button>
+        <button
           onClick={() => setView('services')}
           className={`${styles.tabButton} ${view === 'services' ? styles.activeTab : ''}`}
         >
@@ -487,6 +651,12 @@ export default function AdminPage() {
           className={`${styles.tabButton} ${view === 'deleted-salons' ? styles.activeTab : ''}`}
         >
           Deleted Profiles ({deletedSalons.length})
+        </button>
+        <button
+          onClick={() => setView('deleted-sellers')}
+          className={`${styles.tabButton} ${view === 'deleted-sellers' ? styles.activeTab : ''}`}
+        >
+          Deleted Sellers ({deletedSellers.length})
         </button>
         <button
           onClick={async ()=>{
@@ -715,11 +885,11 @@ export default function AdminPage() {
               </div>
               <div className={styles.actions}>
                 <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
-                <button
-                  className={styles.rejectButton}
-                  onClick={() => openDeleteModal(salon)}
-                  title="Delete provider profile"
-                >Delete Profile</button>
+                  <button
+                    className={styles.rejectButton}
+                    onClick={() => openDeleteSalonModal(salon)}
+                    title="Delete provider profile"
+                  >Delete Profile</button>
               </div>
             </div>
           )) : <p>No salons found.</p>}
@@ -738,6 +908,96 @@ export default function AdminPage() {
               </div>
             </div>
           )) : <p>No deleted profiles.</p>
+        )}
+        {view === 'all-sellers' && (
+          allSellers.length > 0 ? allSellers.map((seller) => {
+            const planCode = (seller.sellerPlanCode ?? 'STARTER') as PlanCode;
+            const plan = PLAN_BY_CODE[planCode] ?? APP_PLANS[0];
+            const amountDue =
+              typeof seller.sellerPlanPriceCents === 'number'
+                ? formatRand(seller.sellerPlanPriceCents)
+                : plan.price;
+            const paymentStatus = (seller.sellerPlanPaymentStatus ?? 'PENDING_SELECTION') as PlanPaymentStatus;
+            const proofSubmittedAt = seller.sellerPlanProofSubmittedAt
+              ? new Date(seller.sellerPlanProofSubmittedAt).toLocaleString('en-ZA')
+              : null;
+            const verifiedAt = seller.sellerPlanVerifiedAt
+              ? new Date(seller.sellerPlanVerifiedAt).toLocaleString('en-ZA')
+              : null;
+            const reference = seller.sellerPlanPaymentReference ?? seller.email;
+            const isUpdating = updatingSellerPlanId === seller.id;
+            return (
+              <div key={seller.id} className={styles.listItem}>
+                <div className={styles.info}>
+                  <h4>{seller.firstName} {seller.lastName}</h4>
+                  <p>Email: {seller.email}</p>
+                  <p>Products: {seller.productsCount ?? 0} (Pending: {seller.pendingProductsCount ?? 0})</p>
+                  <div className={styles.planInfo}>
+                    <div className={styles.planInfoRow}>
+                      <span><strong>Package:</strong> {plan.name}</span>
+                      <span><strong>Amount due:</strong> {amountDue}</span>
+                      <span>
+                        <strong>Status:</strong>{' '}
+                        <span className={`${styles.planBadge} ${styles[`planStatus_${paymentStatus.toLowerCase()}`]}`}>
+                          {PLAN_PAYMENT_LABELS[paymentStatus]}
+                        </span>
+                      </span>
+                    </div>
+                    <div className={styles.planInfoRow}>
+                      <span>
+                        <strong>Reference:</strong>{' '}
+                        <code className={styles.planReference}>{reference}</code>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(reference, 'Reference copied')}
+                        >
+                          Copy
+                        </button>
+                      </span>
+                      {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
+                      {verifiedAt && <span>Verified on: {verifiedAt}</span>}
+                    </div>
+                    <div className={styles.planAdminActions}>
+                      <button
+                        type="button"
+                        className={styles.approveButton}
+                        onClick={() => updateSellerPaymentStatus(seller.id, 'VERIFIED')}
+                        disabled={isUpdating || paymentStatus === 'VERIFIED'}
+                      >
+                        {isUpdating && paymentStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.approveButton}
+                        onClick={() => updateSellerPaymentStatus(seller.id, 'PROOF_SUBMITTED')}
+                        disabled={isUpdating || paymentStatus === 'PROOF_SUBMITTED'}
+                      >
+                        {isUpdating && paymentStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.rejectButton}
+                        onClick={() => updateSellerPaymentStatus(seller.id, 'AWAITING_PROOF')}
+                        disabled={isUpdating || paymentStatus === 'AWAITING_PROOF'}
+                      >
+                        {isUpdating && paymentStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.actions}>
+                  <button
+                      onClick={() => openDeleteSellerModal(seller.id, `${seller.firstName} ${seller.lastName}`.trim() || seller.email)}
+                    className={styles.rejectButton}
+                    title="Delete seller"
+                  >
+                    Delete Seller
+                  </button>
+                </div>
+              </div>
+            );
+          }) : <p>No sellers found.</p>
         )}
 
         {view === 'services' && (
@@ -893,11 +1153,26 @@ export default function AdminPage() {
                 <div className={styles.actions}>
                   <button onClick={() => handleUpdateStatus('product', product.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
                   <button onClick={() => handleUpdateStatus('product', product.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
+                  <button onClick={() => openDeleteSellerModal(product.seller.id, `${product.seller.firstName} ${product.seller.lastName}`.trim() || product.seller.id)} className={styles.rejectButton} title="Delete seller">Delete Seller</button>
                 </div>
               </div>
             );
           }) : <p>No pending products.</p>}
           </>
+        )}
+
+        {view === 'deleted-sellers' && (
+          deletedSellers.length > 0 ? deletedSellers.map((row:any) => (
+            <div key={row.id} className={styles.listItem}>
+              <div className={styles.info}>
+                <h4>{row.seller?.firstName ? `${row.seller.firstName} ${row.seller.lastName ?? ''}`.trim() : 'Unknown seller'}</h4>
+                <p>Deleted at: {row.deletedAt ? new Date(row.deletedAt).toLocaleString() : ''} {row.reason ? `| Reason: ${row.reason}` : ''}</p>
+              </div>
+              <div className={styles.actions}>
+                <button className={styles.approveButton} onClick={() => restoreDeletedSeller(row.id)}>Restore</button>
+              </div>
+            </div>
+          )) : <p>No deleted sellers.</p>
         )}
 
         {view === 'audit' && (
@@ -915,7 +1190,7 @@ export default function AdminPage() {
           )) : <p>No recent admin activity.</p>
         )}
       </div>
-      {showDeleteModal && deletingSalon && (
+      {showDeleteModal && deleteMode === 'salon' && deletingSalon && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'grid', placeItems:'center', zIndex:1000}}>
           <div style={{background:'#fff', color:'#000', padding:'1rem', borderRadius:8, maxWidth:560, width:'96%', boxShadow:'0 10px 30px rgba(0,0,0,0.25)'}}>
             <h3 style={{marginTop:0}}>Delete Provider Profile</h3>
@@ -926,6 +1201,40 @@ export default function AdminPage() {
             <div style={{display:'flex', gap:'0.5rem', justifyContent:'flex-end', marginTop:'0.75rem'}}>
               <button className={styles.approveButton} onClick={confirmDeleteSalon} disabled={isDeleting}>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</button>
               <button className={styles.rejectButton} onClick={()=>{setShowDeleteModal(false); setDeletingSalon(null);}}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && deleteMode === 'seller' && deletingSeller && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', color: '#000', padding: '1rem', borderRadius: 8, maxWidth: 560, width: '96%', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ marginTop: 0 }}>Delete Seller Profile</h3>
+            <p style={{ color: '#a00', fontWeight: 600 }}>Caution: This will remove the seller account and all their products from the platform. You can restore it from Deleted Sellers.</p>
+            <p style={{ color: '#a00', fontWeight: 600 }}>Are you sure you want to proceed with deleting this product seller?</p>
+            <p><strong>Seller:</strong> {deletingSeller.name}</p>
+            <label style={{ display: 'block', margin: '0.5rem 0' }}>Reason (required)</label>
+            <textarea
+              value={deleteReason}
+              onChange={(event) => setDeleteReason(event.target.value)}
+              rows={4}
+              style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 6 }}
+              placeholder="Enter reason for deletion"
+            />
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+              <button type="button" className={styles.approveButton} onClick={confirmDeleteSeller} disabled={isDeleting}>
+                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+              <button
+                type="button"
+                className={styles.rejectButton}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletingSeller(null);
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -208,4 +208,38 @@ export class AdminController {
   getMetrics() {
     return this.adminService.getMetrics();
   }
+
+  @Get('sellers/all')
+  getAllSellers() {
+    return this.adminService.getAllSellers();
+  }
+
+  @Get('sellers/deleted')
+  getDeletedSellers() {
+    return this.adminService.getDeletedSellersArchive();
+  }
+
+  @Delete('sellers/:sellerId')
+  deleteSeller(
+    @Param('sellerId') sellerId: string,
+    @Body() dto: DeleteEntityDto,
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.deleteSellerWithCascade(
+      sellerId,
+      adminId ?? 'unknown',
+      dto?.reason,
+    );
+  }
+
+  @Post('sellers/deleted/:archiveId/restore')
+  restoreSeller(@Param('archiveId') archiveId: string) {
+    return this.adminService.restoreDeletedSeller(archiveId);
+  }
+
+  @Get('diagnostic/deleted-sellers-table')
+  async checkDeletedSellersTable() {
+    return this.adminService.diagnosticDeletedSellersTable();
+  }
 }

@@ -1057,4 +1057,478 @@ export class AdminService {
       },
     };
   }
+
+  async getAllSellers() {
+    const sellers = await this.prisma.user.findMany({
+      where: { role: 'PRODUCT_SELLER' },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        sellerPlanCode: true,
+        sellerPlanPriceCents: true,
+        sellerPlanPaymentStatus: true,
+        sellerPlanPaymentReference: true,
+        sellerPlanProofSubmittedAt: true,
+        sellerPlanVerifiedAt: true,
+        sellerVisibilityWeight: true,
+        sellerMaxListings: true,
+        sellerFeaturedUntil: true,
+        _count: {
+          select: {
+            products: true,
+          },
+        },
+      },
+    });
+
+    return sellers.map((seller) => ({
+      id: seller.id,
+      email: seller.email,
+      firstName: seller.firstName,
+      lastName: seller.lastName,
+      sellerPlanCode: seller.sellerPlanCode,
+      sellerPlanPriceCents: seller.sellerPlanPriceCents,
+      sellerPlanPaymentStatus: seller.sellerPlanPaymentStatus,
+      sellerPlanPaymentReference: seller.sellerPlanPaymentReference,
+      sellerPlanProofSubmittedAt: seller.sellerPlanProofSubmittedAt,
+      sellerPlanVerifiedAt: seller.sellerPlanVerifiedAt,
+      sellerVisibilityWeight: seller.sellerVisibilityWeight,
+      sellerMaxListings: seller.sellerMaxListings,
+      sellerFeaturedUntil: seller.sellerFeaturedUntil,
+      productsCount: seller._count.products,
+      pendingProductsCount: 0, // Would need separate query for pending count
+    }));
+  }
+
+  async deleteSellerWithCascade(
+    sellerId: string,
+    adminId: string,
+    reason?: string,
+  ) {
+    const seller = await this.prisma.user.findUnique({
+      where: { id: sellerId, role: 'PRODUCT_SELLER' },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+    if (!seller) throw new NotFoundException('Seller not found');
+
+    // Snapshot seller and products for archival
+    try {
+      const snapshot = await this.prisma.user.findUnique({
+        where: { id: sellerId },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          sellerPlanCode: true,
+          sellerPlanPriceCents: true,
+          sellerPlanPaymentStatus: true,
+          sellerPlanPaymentReference: true,
+          sellerPlanProofSubmittedAt: true,
+          sellerPlanVerifiedAt: true,
+          sellerVisibilityWeight: true,
+          sellerMaxListings: true,
+          sellerFeaturedUntil: true,
+          products: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              images: true,
+              isOnSale: true,
+              salePrice: true,
+              stock: true,
+              approvalStatus: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      });
+
+      if (snapshot) {
+        let archived = false;
+        // Try via Prisma Client model
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          await (this.prisma as any).deletedSellerArchive?.create?.({
+            data: {
+              sellerId: snapshot.id,
+              seller: snapshot as unknown as object,
+              products: (snapshot.products ?? []) as unknown as object,
+              reason: reason ?? null,
+              deletedBy: adminId,
+            },
+          });
+          archived = true;
+        } catch (err) {
+          // fall through to raw SQL
+        }
+
+        if (!archived) {
+          try {
+            const exists = (
+              await (this.prisma as any).$queryRaw<{ exists: boolean }[]>`
+                SELECT to_regclass('"DeletedSellerArchive"') IS NOT NULL as exists
+              `
+            )[0]?.exists;
+            if (exists) {
+              const productsJson = JSON.stringify(snapshot.products ?? []);
+              const sellerJson = JSON.stringify({
+                ...snapshot,
+                products: undefined,
+              });
+              await (this.prisma as any).$executeRawUnsafe(
+                `INSERT INTO "DeletedSellerArchive" ("sellerId","seller","products","reason","deletedBy")
+                 VALUES ($1,$2::jsonb,$3::jsonb,$4,$5)`,
+                snapshot.id,
+                sellerJson,
+                productsJson,
+                reason ?? null,
+                adminId,
+              );
+              archived = true;
+            }
+          } catch (err) {
+            // noop: archival fallback failed
+          }
+        }
+      }
+    } catch (err) {
+      // Archival is best-effort; proceed with deletion
+    }
+
+    // Delete seller's products and related data
+    await (this.prisma as any).$transaction(async (tx: any) => {
+      const products = await tx.product.findMany({
+        where: { sellerId },
+        select: { id: true },
+      });
+      const productIds = products.map((p) => p.id);
+
+      if (productIds.length > 0) {
+        // Delete product promotions
+        await tx.promotion.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        // Delete product orders
+        await tx.productOrder.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+      }
+
+      // Delete products
+      await tx.product.deleteMany({ where: { sellerId } });
+
+      // Find all conversations involving the seller
+      const conversations = await tx.conversation.findMany({
+        where: {
+          OR: [{ user1Id: sellerId }, { user2Id: sellerId }],
+        },
+        select: { id: true },
+      });
+      const conversationIds = conversations.map((c) => c.id);
+
+      // Delete ALL messages in those conversations (including messages from other users)
+      if (conversationIds.length > 0) {
+        await tx.message.deleteMany({
+          where: { conversationId: { in: conversationIds } },
+        });
+      }
+
+      // Now safe to delete the conversations
+      await tx.conversation.deleteMany({
+        where: {
+          OR: [{ user1Id: sellerId }, { user2Id: sellerId }],
+        },
+      });
+
+      // Delete seller's notifications
+      await tx.notification.deleteMany({ where: { userId: sellerId } });
+
+      // Finally delete the user account
+      await tx.user.delete({ where: { id: sellerId } });
+    });
+
+    try {
+      this.eventsGateway.server.emit('seller:deleted', {
+        id: sellerId,
+        by: adminId,
+      });
+    } catch {
+      // noop
+    }
+
+    void this.logAction({
+      adminId,
+      action: 'SELLER_DELETE',
+      targetType: 'SELLER',
+      targetId: sellerId,
+      reason: reason ?? null,
+    });
+
+    return { ok: true };
+  }
+
+  async getDeletedSellersArchive() {
+    // Try typed client first
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const rows = await (this.prisma as any).deletedSellerArchive?.findMany?.({
+        orderBy: { deletedAt: 'desc' },
+        where: { restoredAt: null },
+      });
+      if (Array.isArray(rows)) {
+        return rows;
+      }
+    } catch (err) {
+      // fall through
+    }
+    // Fallback to raw SQL
+    try {
+      const rows: any = await (this.prisma as any).$queryRawUnsafe(
+        'SELECT id, "sellerId", seller, products, reason, "deletedBy", "deletedAt", "restoredAt" FROM "DeletedSellerArchive" WHERE "restoredAt" IS NULL ORDER BY "deletedAt" DESC',
+      );
+      return Array.isArray(rows) ? rows : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  async restoreDeletedSeller(archiveId: string) {
+    // Load archive
+    let archive: Record<string, any> | null = null;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      archive = await (this.prisma as any).deletedSellerArchive?.findUnique?.({
+        where: { id: archiveId },
+      });
+    } catch {
+      archive = null;
+    }
+    if (!archive) {
+      try {
+        const rows = await (this.prisma as any).$queryRaw`
+          SELECT id, "sellerId", seller, products, reason, "deletedBy", "deletedAt", "restoredAt"
+          FROM "DeletedSellerArchive" WHERE id = ${archiveId} LIMIT 1
+        `;
+        archive = rows?.[0] ?? null;
+      } catch {
+        archive = null;
+      }
+    }
+    if (!archive) throw new NotFoundException('Archived seller not found');
+
+    const sellerId: string = archive.sellerId as string;
+    const sellerData: any = archive.seller ?? {};
+    const productsData: any[] = Array.isArray(archive.products)
+      ? archive.products
+      : [];
+
+    // Check if seller already exists
+    const existing = await this.prisma.user.findUnique({
+      where: { id: sellerId },
+    });
+
+    let createdSeller;
+    if (existing) {
+      // Seller exists - update their data and role
+      createdSeller = await this.prisma.user.update({
+        where: { id: sellerId },
+        data: {
+          role: 'PRODUCT_SELLER',
+          sellerPlanCode: sellerData.sellerPlanCode ?? 'STARTER',
+          sellerPlanPriceCents: sellerData.sellerPlanPriceCents ?? null,
+          sellerPlanPaymentStatus:
+            sellerData.sellerPlanPaymentStatus ?? 'PENDING_SELECTION',
+          sellerPlanPaymentReference:
+            sellerData.sellerPlanPaymentReference ?? null,
+          sellerPlanProofSubmittedAt: sellerData.sellerPlanProofSubmittedAt
+            ? new Date(sellerData.sellerPlanProofSubmittedAt)
+            : null,
+          sellerPlanVerifiedAt: sellerData.sellerPlanVerifiedAt
+            ? new Date(sellerData.sellerPlanVerifiedAt)
+            : null,
+          sellerVisibilityWeight: sellerData.sellerVisibilityWeight ?? 1,
+          sellerMaxListings: sellerData.sellerMaxListings ?? 3,
+          sellerFeaturedUntil: sellerData.sellerFeaturedUntil
+            ? new Date(sellerData.sellerFeaturedUntil)
+            : null,
+        },
+      });
+    } else {
+      // Seller doesn't exist - create new account
+      createdSeller = await this.prisma.user.create({
+        data: {
+          id: sellerId,
+          email: String(sellerData.email),
+          firstName: String(sellerData.firstName ?? ''),
+          lastName: String(sellerData.lastName ?? ''),
+          role: 'PRODUCT_SELLER',
+          password: '', // Will need to reset password
+          sellerPlanCode: sellerData.sellerPlanCode ?? 'STARTER',
+          sellerPlanPriceCents: sellerData.sellerPlanPriceCents ?? null,
+          sellerPlanPaymentStatus:
+            sellerData.sellerPlanPaymentStatus ?? 'PENDING_SELECTION',
+          sellerPlanPaymentReference:
+            sellerData.sellerPlanPaymentReference ?? null,
+          sellerPlanProofSubmittedAt: sellerData.sellerPlanProofSubmittedAt
+            ? new Date(sellerData.sellerPlanProofSubmittedAt)
+            : null,
+          sellerPlanVerifiedAt: sellerData.sellerPlanVerifiedAt
+            ? new Date(sellerData.sellerPlanVerifiedAt)
+            : null,
+          sellerVisibilityWeight: sellerData.sellerVisibilityWeight ?? 1,
+          sellerMaxListings: sellerData.sellerMaxListings ?? 3,
+          sellerFeaturedUntil: sellerData.sellerFeaturedUntil
+            ? new Date(sellerData.sellerFeaturedUntil)
+            : null,
+        },
+      });
+    }
+
+    // Re-create products
+    for (const prod of productsData) {
+      try {
+        // Check if product already exists
+        const existingProduct = await this.prisma.product.findUnique({
+          where: { id: String(prod.id) },
+        });
+
+        if (existingProduct) {
+          // Update existing product
+          await this.prisma.product.update({
+            where: { id: String(prod.id) },
+            data: {
+              name: String(prod.name),
+              description: String(prod.description ?? ''),
+              price: Number(prod.price ?? 0),
+              images: Array.isArray(prod.images)
+                ? (prod.images as string[])
+                : [],
+              isOnSale: prod.isOnSale ?? false,
+              salePrice: prod.salePrice ?? null,
+              stock: Number(prod.stock ?? 0),
+              approvalStatus: prod.approvalStatus ?? 'PENDING',
+              sellerId: createdSeller.id,
+            },
+          });
+        } else {
+          // Create new product
+          await this.prisma.product.create({
+            data: {
+              id: String(prod.id),
+              name: String(prod.name),
+              description: String(prod.description ?? ''),
+              price: Number(prod.price ?? 0),
+              images: Array.isArray(prod.images)
+                ? (prod.images as string[])
+                : [],
+              isOnSale: prod.isOnSale ?? false,
+              salePrice: prod.salePrice ?? null,
+              stock: Number(prod.stock ?? 0),
+              approvalStatus: prod.approvalStatus ?? 'PENDING',
+              sellerId: createdSeller.id,
+            },
+          });
+        }
+      } catch (err) {
+        // Skip individual product failures
+      }
+    }
+
+    // Mark archive as restored
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      await (this.prisma as any).deletedSellerArchive?.update?.({
+        where: { id: archiveId },
+        data: { restoredAt: new Date() },
+      });
+    } catch {
+      try {
+        await (this.prisma as any).$executeRaw`
+          UPDATE "DeletedSellerArchive" SET "restoredAt" = NOW() WHERE id = ${archiveId}
+        `;
+      } catch {
+        // noop
+      }
+    }
+
+    void this.logAction({
+      adminId: sellerId,
+      action: 'SELLER_RESTORE',
+      targetType: 'SELLER',
+      targetId: createdSeller.id,
+    });
+
+    return createdSeller;
+  }
+
+  async diagnosticDeletedSellersTable() {
+    const result = {
+      tableExists: false,
+      recordCount: 0,
+      canUsePrismaClient: false,
+      canUseRawSQL: false,
+      error: null as string | null,
+      sampleRecords: [] as any[],
+    };
+
+    try {
+      // Check if table exists
+      const tableCheck = await (this.prisma as any).$queryRaw<
+        { exists: boolean }[]
+      >`
+        SELECT to_regclass('"DeletedSellerArchive"') IS NOT NULL as exists
+      `;
+      result.tableExists = tableCheck[0]?.exists ?? false;
+
+      if (result.tableExists) {
+        // Try counting via raw SQL
+        try {
+          const countResult: any = await (this.prisma as any).$queryRawUnsafe(
+            'SELECT COUNT(*) as count FROM "DeletedSellerArchive"'
+          );
+          result.recordCount = parseInt(countResult[0]?.count ?? '0', 10);
+          result.canUseRawSQL = true;
+        } catch (err) {
+          result.error = `Count failed: ${err?.message || err}`;
+        }
+
+        // Try fetching sample records
+        try {
+          const rows: any = await (this.prisma as any).$queryRawUnsafe(
+            'SELECT id, "sellerId", "deletedAt", reason, "deletedBy" FROM "DeletedSellerArchive" ORDER BY "deletedAt" DESC LIMIT 5',
+          );
+          result.sampleRecords = Array.isArray(rows) ? rows : [];
+        } catch (err) {
+          result.error = `${result.error || ''} Fetch failed: ${err?.message || err}`;
+        }
+
+        // Try Prisma client
+        try {
+          const prismaRows: any = await (this.prisma as any).deletedSellerArchive?.findMany?.({
+            take: 1,
+          });
+          result.canUsePrismaClient = Array.isArray(prismaRows);
+        } catch (err) {
+          result.error = `${result.error || ''} Prisma client failed: ${err?.message || err}`;
+        }
+      }
+    } catch (err) {
+      result.error = `Table check failed: ${err?.message || err}`;
+    }
+
+    return result;
+  }
 }
