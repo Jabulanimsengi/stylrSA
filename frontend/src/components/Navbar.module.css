@@ -113,9 +113,13 @@
   text-align: left;
   cursor: pointer;
   font: inherit;
+  font-weight: 700;
   color: inherit;
   padding: 0;
 }
+
+/* Ensure label text on nav buttons remains bold like links */
+.navButton .navLabel { font-weight: 700; }
 
 .navItem:hover,
 .navItem:focus-visible {
