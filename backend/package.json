@@ -32,7 +32,7 @@
     "@nestjs/platform-socket.io": "^10.3.10",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.3.10",
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^6.17.1",
     "@socket.io/redis-adapter": "^8.3.0",
     "argon2": "^0.40.3",
     "bcrypt": "^6.0.0",
