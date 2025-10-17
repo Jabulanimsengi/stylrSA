@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+type PlanCode = 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 type PlanPaymentStatus =
   | 'PENDING_SELECTION'
   | 'AWAITING_PROOF'
@@ -133,12 +133,16 @@ export class AdminService {
   ) {
     const current = await this.prisma.salon.findUnique({
       where: { id: salonId },
-      select: { planPaymentStatus: true },
+      select: { planPaymentStatus: true, planCode: true },
     });
     if (!current) {
       throw new NotFoundException('Salon not found');
     }
-    if (status === 'APPROVED' && current.planPaymentStatus !== 'VERIFIED') {
+    if (
+      status === 'APPROVED' &&
+      (current.planCode as PlanCode | null) !== 'FREE' &&
+      current.planPaymentStatus !== 'VERIFIED'
+    ) {
       throw new ForbiddenException(
         'Cannot approve salon until payment has been verified.',
       );
@@ -401,6 +405,7 @@ export class AdminService {
       string,
       { visibilityWeight: number; maxListings: number; priceCents: number }
     > = {
+      FREE: { visibilityWeight: 0, maxListings: 1, priceCents: 0 },
       STARTER: { visibilityWeight: 1, maxListings: 3, priceCents: 4900 },
       ESSENTIAL: { visibilityWeight: 2, maxListings: 7, priceCents: 9900 },
       GROWTH: { visibilityWeight: 3, maxListings: 15, priceCents: 19900 },
@@ -419,7 +424,7 @@ export class AdminService {
         : planCode;
     const isValidPlan =
       !!normalizedPlan &&
-      ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(
+      ['FREE', 'STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(
         normalizedPlan,
       );
     let plan: PlanPartial | null = null;
@@ -451,6 +456,11 @@ export class AdminService {
       maxListings,
     };
     if (isValidPlan) data.planCode = normalizedPlan as PlanCode;
+    if (normalizedPlan === 'FREE') {
+      data.planPaymentStatus = 'VERIFIED';
+      data.planProofSubmittedAt = null;
+      data.planVerifiedAt = new Date();
+    }
     if (planPriceCents !== undefined) data.planPriceCents = planPriceCents;
     if (
       overrides &&
@@ -486,6 +496,7 @@ export class AdminService {
       string,
       { visibilityWeight: number; maxListings: number; priceCents: number }
     > = {
+      FREE: { visibilityWeight: 0, maxListings: 1, priceCents: 0 },
       STARTER: { visibilityWeight: 1, maxListings: 3, priceCents: 4900 },
       ESSENTIAL: { visibilityWeight: 2, maxListings: 7, priceCents: 9900 },
       GROWTH: { visibilityWeight: 3, maxListings: 15, priceCents: 19900 },
@@ -503,7 +514,7 @@ export class AdminService {
         : planCode;
     const isValidPlan =
       !!normalizedPlan &&
-      ['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(
+      ['FREE', 'STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'].includes(
         normalizedPlan,
       );
     let plan: SellerPlanPartial | null = null;

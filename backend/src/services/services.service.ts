@@ -178,7 +178,7 @@ export class ServicesService {
       .slice(0, 5);
   }
 
-  async findAllApproved(page: number = 1, pageSize: number = 10) {
+  async findAllApproved(page: number = 1, pageSize: number = 10, user?: any) {
     // Rank globally by visibility score then recency, and only then paginate.
     const items = await this.prisma.service.findMany({
       where: { approvalStatus: 'APPROVED' },
@@ -206,7 +206,20 @@ export class ServicesService {
       return w + boost;
     };
 
-    const ordered = items.sort((a: any, b: any) => {
+    // Attach isLikedByCurrentUser if user present
+    const userId: string | null = user?.id ?? null;
+    let withLikeFlag = items as any[];
+    if (userId) {
+      const serviceIds = items.map((s) => s.id);
+      const liked = await this.prisma.serviceLike.findMany({
+        where: { userId, serviceId: { in: serviceIds } },
+        select: { serviceId: true },
+      });
+      const likedSet = new Set(liked.map((l) => l.serviceId));
+      withLikeFlag = items.map((s: any) => ({ ...s, isLikedByCurrentUser: likedSet.has(s.id) }));
+    }
+
+    const ordered = withLikeFlag.sort((a: any, b: any) => {
       const sv = score(b) - score(a);
       if (sv !== 0) return sv;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -223,7 +236,7 @@ export class ServicesService {
     };
   }
 
-  async search(filters: any) {
+  async search(filters: any, user?: any) {
     const {
       q,
       category,
@@ -293,8 +306,21 @@ export class ServicesService {
       },
     });
 
+    // Attach isLikedByCurrentUser if user present
+    const userId: string | null = user?.id ?? null;
+    let withLikeFlag = items as any[];
+    if (userId) {
+      const serviceIds = items.map((s) => s.id);
+      const liked = await this.prisma.serviceLike.findMany({
+        where: { userId, serviceId: { in: serviceIds } },
+        select: { serviceId: true },
+      });
+      const likedSet = new Set(liked.map((l) => l.serviceId));
+      withLikeFlag = items.map((s: any) => ({ ...s, isLikedByCurrentUser: likedSet.has(s.id) }));
+    }
+
     if (orderBy) {
-      return items;
+      return withLikeFlag;
     }
     const now = Date.now();
     const score = (s: any) => {
@@ -305,7 +331,7 @@ export class ServicesService {
       const boost = fu > now ? 10 : 0;
       return w + boost;
     };
-    return items.sort((a: any, b: any) => {
+    return withLikeFlag.sort((a: any, b: any) => {
       const sv = score(b) - score(a);
       if (sv !== 0) return sv;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();

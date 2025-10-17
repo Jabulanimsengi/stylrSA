@@ -17,6 +17,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { JwtGuard } from '../auth/guard/jwt.guard';
+import { OptionalJwtAuthGuard } from 'src/auth/guard/optional-jwt.guard';
 
 @Controller('api/services')
 export class ServicesController {
@@ -33,14 +34,17 @@ export class ServicesController {
     return this.servicesService.findAll();
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('approved')
   findAllApproved(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+    @GetUser() user: any,
   ) {
-    return this.servicesService.findAllApproved(page, pageSize);
+    return this.servicesService.findAllApproved(page, pageSize, user);
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('search')
   search(
     @Query('q') q?: string,
@@ -51,6 +55,7 @@ export class ServicesController {
     @Query('province') province?: string,
     @Query('city') city?: string,
     @Query('sortBy') sortBy?: string,
+    @GetUser() user?: any,
   ) {
     return this.servicesService.search({
       q,
@@ -61,7 +66,7 @@ export class ServicesController {
       province,
       city,
       sortBy,
-    });
+    }, user);
   }
 
   @Get('autocomplete')

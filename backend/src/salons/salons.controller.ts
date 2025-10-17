@@ -78,8 +78,9 @@ export class SalonsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.salonsService.findOne(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  findOne(@Param('id') id: string, @GetUser() user?: any) {
+    return this.salonsService.findOne(id, user);
   }
 
   @UseGuards(JwtGuard)

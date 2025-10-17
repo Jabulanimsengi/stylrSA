@@ -1,10 +1,10 @@
 import { IsOptional, IsString, IsNumber, IsIn } from 'class-validator';
 
-export type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+export type PlanCode = 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 
 export class UpdatePlanDto {
   @IsOptional()
-  @IsIn(['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'])
+  @IsIn(['FREE', 'STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'])
   planCode?: PlanCode;
 
   @IsOptional()

@@ -42,7 +42,7 @@ export default function Footer() {
           <ul className={styles.links}>
             <li><Link href="/how-it-works">How It Works</Link></li>
             <li><Link href="/advice">Advice</Link></li>
-            <li><Link href="/prices">Prices</Link></li>
+            <li><Link href="/prices">Prices</Link> <span style={{marginLeft:8, padding:'2px 6px', border:'1px solid #fff3', borderRadius:6, fontSize:12, opacity:0.9}}>Free plan available</span></li>
             <li><Link href="/faq">FAQ</Link></li>
           </ul>
         </div>

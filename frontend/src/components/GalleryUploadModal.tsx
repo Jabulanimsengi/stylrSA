@@ -72,25 +72,44 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
     setError('');
 
     try {
-      // Upload all files simultaneously
-      const uploadPromises = files.map(({ file }) => uploadToCloudinary(file));
-      const uploaded = await Promise.all(uploadPromises);
-      const imageUrls = uploaded.map(u => u.secure_url);
+      // Check salon plan to enforce FREE limit client-side and avoid partial batch failures
+      let allowed = files.length;
+      try {
+        const salon: any = await apiJson(`/api/salons/${salonId}`);
+        if (salon?.planCode === 'FREE') {
+          const existing: any[] = await apiJson(`/api/gallery/salon/${salonId}`);
+          const remaining = Math.max(0, 5 - (existing?.length ?? 0));
+          if (remaining <= 0) {
+            toast.error('Free plan limit reached: you already have 5 gallery images.');
+            setIsLoading(false);
+            return;
+          }
+          allowed = Math.min(allowed, remaining);
+        }
+      } catch {
+        // If plan check fails, proceed with best effort (server will enforce)
+      }
 
-      // Create a gallery image entry for each uploaded file
-      const results = await Promise.all(
-        imageUrls.map((url) =>
-          apiJson(`/api/gallery/salon/${salonId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: url, caption: caption || null }),
-          }),
-        ),
-      );
+      const toUpload = files.slice(0, allowed);
+      let successCount = 0;
+      for (const { file } of toUpload) {
+        const uploaded = await uploadToCloudinary(file);
+        const url = uploaded.secure_url;
+        const newImage = await apiJson(`/api/gallery/salon/${salonId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: url, caption: caption || null }),
+        });
+        onImageAdded(newImage);
+        successCount += 1;
+      }
 
-      results.forEach((newImage) => onImageAdded(newImage));
-
-      toast.success(`${files.length} image(s) uploaded successfully!`);
+      if (successCount > 0) {
+        toast.success(`${successCount} image(s) uploaded successfully${successCount < files.length ? ' (limit reached)' : ''}.`);
+      }
+      if (successCount < files.length) {
+        toast.info('Some images were not uploaded due to the free plan gallery limit (5).');
+      }
       cleanupPreviews();
       onClose();
 

@@ -689,6 +689,7 @@ export default function AdminPage() {
                 : plan.price;
             const paymentStatus = (salon.planPaymentStatus ??
               'PENDING_SELECTION') as PlanPaymentStatus;
+            const isFree = planCode === 'FREE';
             const proofSubmittedAt = salon.planProofSubmittedAt
               ? new Date(salon.planProofSubmittedAt).toLocaleString('en-ZA')
               : null;
@@ -715,55 +716,63 @@ export default function AdminPage() {
                   <div className={styles.planInfo}>
                     <div className={styles.planInfoRow}>
                       <span><strong>Package:</strong> {plan.name}</span>
-                      <span><strong>Amount due:</strong> {amountDue}</span>
+                      <span><strong>Amount due:</strong> {isFree ? 'R0' : amountDue}</span>
                       <span>
                         <strong>Status:</strong>{' '}
-                        <span className={`${styles.planBadge} ${styles[`planStatus_${paymentStatus.toLowerCase()}`]}`}>
-                          {PLAN_PAYMENT_LABELS[paymentStatus]}
-                        </span>
+                        {isFree ? (
+                          <span className={`${styles.planBadge} ${styles[`planStatus_verified`]}`}>No payment required</span>
+                        ) : (
+                          <span className={`${styles.planBadge} ${styles[`planStatus_${paymentStatus.toLowerCase()}`]}`}>
+                            {PLAN_PAYMENT_LABELS[paymentStatus]}
+                          </span>
+                        )}
                       </span>
                     </div>
-                    <div className={styles.planInfoRow}>
-                      <span>
-                        <strong>Reference:</strong>{' '}
-                        <code className={styles.planReference}>{reference}</code>
-                        <button
-                          type="button"
-                          className={styles.copyButton}
-                          onClick={() => copyToClipboard(reference, 'Reference copied')}
-                        >
-                          Copy
-                        </button>
-                      </span>
-                      {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
-                      {verifiedAt && <span>Verified on: {verifiedAt}</span>}
-                    </div>
-                    <div className={styles.planAdminActions}>
-                      <button
-                        type="button"
-                        className={styles.approveButton}
-                        onClick={() => updateSalonPaymentStatus(salon.id, 'VERIFIED')}
-                        disabled={isUpdating || paymentStatus === 'VERIFIED'}
-                      >
-                        {isUpdating && paymentStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.approveButton}
-                        onClick={() => updateSalonPaymentStatus(salon.id, 'PROOF_SUBMITTED')}
-                        disabled={isUpdating || paymentStatus === 'PROOF_SUBMITTED'}
-                      >
-                        {isUpdating && paymentStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.rejectButton}
-                        onClick={() => updateSalonPaymentStatus(salon.id, 'AWAITING_PROOF')}
-                        disabled={isUpdating || paymentStatus === 'AWAITING_PROOF'}
-                      >
-                        {isUpdating && paymentStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
-                      </button>
-                    </div>
+                    {!isFree && (
+                      <>
+                        <div className={styles.planInfoRow}>
+                          <span>
+                            <strong>Reference:</strong>{' '}
+                            <code className={styles.planReference}>{reference}</code>
+                            <button
+                              type="button"
+                              className={styles.copyButton}
+                              onClick={() => copyToClipboard(reference, 'Reference copied')}
+                            >
+                              Copy
+                            </button>
+                          </span>
+                          {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
+                          {verifiedAt && <span>Verified on: {verifiedAt}</span>}
+                        </div>
+                        <div className={styles.planAdminActions}>
+                          <button
+                            type="button"
+                            className={styles.approveButton}
+                            onClick={() => updateSalonPaymentStatus(salon.id, 'VERIFIED')}
+                            disabled={isUpdating || paymentStatus === 'VERIFIED'}
+                          >
+                            {isUpdating && paymentStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.approveButton}
+                            onClick={() => updateSalonPaymentStatus(salon.id, 'PROOF_SUBMITTED')}
+                            disabled={isUpdating || paymentStatus === 'PROOF_SUBMITTED'}
+                          >
+                            {isUpdating && paymentStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.rejectButton}
+                            onClick={() => updateSalonPaymentStatus(salon.id, 'AWAITING_PROOF')}
+                            disabled={isUpdating || paymentStatus === 'AWAITING_PROOF'}
+                          >
+                            {isUpdating && paymentStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className={styles.actions}>
@@ -822,6 +831,7 @@ export default function AdminPage() {
                     <div style={{display:'flex', gap:'0.5rem', alignItems:'center', flexWrap:'wrap'}}>
                       <label>Package</label>
                       <select value={draftPlan} onChange={e=>setDraftPlan(e.target.value)} style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}}>
+                        <option value="FREE">Free</option>
                         <option value="STARTER">Starter</option>
                         <option value="ESSENTIAL">Essential</option>
                         <option value="GROWTH">Growth</option>
@@ -837,7 +847,7 @@ export default function AdminPage() {
                       <button
                         className={styles.approveButton}
                         onClick={async ()=>{
-                          const allowedPlans = ['STARTER','ESSENTIAL','GROWTH','PRO','ELITE'] as const;
+                          const allowedPlans = ['FREE','STARTER','ESSENTIAL','GROWTH','PRO','ELITE'] as const;
                           const normalizedPlan = (draftPlan ?? '').toUpperCase();
                           const visibilityWeight = Number(draftWeight);
                           const maxListings = Number(draftMax);

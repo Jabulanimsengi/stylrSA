@@ -14,7 +14,7 @@ import {
 import { NotificationsService } from '../notifications/notifications.service';
 import { EventsGateway } from '../events/events.gateway';
 
-type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+type PlanCode = 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 type PlanPaymentStatus =
   | 'PENDING_SELECTION'
   | 'AWAITING_PROOF'
@@ -25,6 +25,7 @@ const PLAN_FALLBACKS: Record<
   PlanCode,
   { visibilityWeight: number; maxListings: number; priceCents: number }
 > = {
+  FREE: { visibilityWeight: 0, maxListings: 1, priceCents: 0 },
   STARTER: { visibilityWeight: 1, maxListings: 3, priceCents: 4900 },
   ESSENTIAL: { visibilityWeight: 2, maxListings: 7, priceCents: 9900 },
   GROWTH: { visibilityWeight: 3, maxListings: 15, priceCents: 19900 },
@@ -78,9 +79,11 @@ export class SalonsService {
       paymentReferenceRaw.trim().length > 0
         ? paymentReferenceRaw.trim()
         : dto.name.trim();
-    const planPaymentStatus: PlanPaymentStatus = hasSentProof
-      ? 'PROOF_SUBMITTED'
-      : 'AWAITING_PROOF';
+    const planPaymentStatus: PlanPaymentStatus = requestedPlan === 'FREE'
+      ? 'VERIFIED'
+      : hasSentProof
+        ? 'PROOF_SUBMITTED'
+        : 'AWAITING_PROOF';
 
     const normalizedOperatingHours = normalizeOperatingHours(
       (dto as any).operatingHours,
@@ -118,8 +121,8 @@ export class SalonsService {
       planPriceCents: planMeta.priceCents,
       planPaymentStatus,
       planPaymentReference: paymentReference,
-      planProofSubmittedAt: hasSentProof ? new Date() : null,
-      planVerifiedAt: null,
+      planProofSubmittedAt: requestedPlan === 'FREE' ? null : hasSentProof ? new Date() : null,
+      planVerifiedAt: requestedPlan === 'FREE' ? new Date() : null,
     };
 
     let salon;
@@ -213,7 +216,7 @@ export class SalonsService {
     let nextStatus: PlanPaymentStatus | undefined;
 
     if (planChanged) {
-      nextStatus = dto.hasSentProof ? 'PROOF_SUBMITTED' : 'AWAITING_PROOF';
+      nextStatus = normalizedPlan === 'FREE' ? 'VERIFIED' : dto.hasSentProof ? 'PROOF_SUBMITTED' : 'AWAITING_PROOF';
     }
     if (typeof dto.hasSentProof === 'boolean') {
       if (dto.hasSentProof) {
@@ -229,7 +232,11 @@ export class SalonsService {
       nextStatus = 'VERIFIED';
     }
 
-    if (nextStatus) {
+    if (normalizedPlan === 'FREE') {
+      data.planPaymentStatus = 'VERIFIED';
+      data.planProofSubmittedAt = null;
+      data.planVerifiedAt = salon.planVerifiedAt ?? new Date();
+    } else if (nextStatus) {
       data.planPaymentStatus = nextStatus;
       if (nextStatus === 'PROOF_SUBMITTED') {
         data.planProofSubmittedAt = salon.planProofSubmittedAt ?? new Date();
@@ -265,7 +272,7 @@ export class SalonsService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user?: any) {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
       include: {
@@ -308,6 +315,21 @@ export class SalonsService {
       throw new NotFoundException(`Salon with ID ${id} not found`);
     }
 
+    // Attach isLikedByCurrentUser for returned services if user is present
+    const userId: string | null = user?.id ?? null;
+    if (!userId || !Array.isArray((salon as any).services) || (salon as any).services.length === 0) {
+      return salon;
+    }
+    const svcIds = (salon as any).services.map((s: any) => s.id);
+    const liked = await this.prisma.serviceLike.findMany({
+      where: { userId, serviceId: { in: svcIds } },
+      select: { serviceId: true },
+    });
+    const likedSet = new Set(liked.map((l) => l.serviceId));
+    (salon as any).services = (salon as any).services.map((s: any) => ({
+      ...s,
+      isLikedByCurrentUser: likedSet.has(s.id),
+    }));
     return salon;
   }
 

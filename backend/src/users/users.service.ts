@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateSellerPlanDto } from './dto/update-seller-plan.dto';
 
-type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+type PlanCode = 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 type PlanPaymentStatus =
   | 'PENDING_SELECTION'
   | 'AWAITING_PROOF'
@@ -18,6 +18,7 @@ const PLAN_FALLBACKS: Record<
   PlanCode,
   { visibilityWeight: number; maxListings: number; priceCents: number }
 > = {
+  FREE: { visibilityWeight: 0, maxListings: 1, priceCents: 0 },
   STARTER: { visibilityWeight: 1, maxListings: 3, priceCents: 4900 },
   ESSENTIAL: { visibilityWeight: 2, maxListings: 7, priceCents: 9900 },
   GROWTH: { visibilityWeight: 3, maxListings: 15, priceCents: 19900 },
@@ -112,8 +113,11 @@ export class UsersService {
     const planChanged = planCode !== (seller.sellerPlanCode as PlanCode | null);
 
     let nextStatus: PlanPaymentStatus = currentStatus;
+    if (planCode === 'FREE') {
+      nextStatus = 'VERIFIED';
+    }
     if (planChanged) {
-      nextStatus = dto.hasSentProof ? 'PROOF_SUBMITTED' : 'AWAITING_PROOF';
+      nextStatus = planCode === 'FREE' ? 'VERIFIED' : dto.hasSentProof ? 'PROOF_SUBMITTED' : 'AWAITING_PROOF';
     }
     if (typeof dto.hasSentProof === 'boolean') {
       if (dto.hasSentProof) {
@@ -150,7 +154,10 @@ export class UsersService {
       sellerPlanPaymentReference: paymentReference,
     };
 
-    if (nextStatus === 'PROOF_SUBMITTED') {
+    if (nextStatus === 'VERIFIED') {
+      data.sellerPlanProofSubmittedAt = null;
+      data.sellerPlanVerifiedAt = new Date();
+    } else if (nextStatus === 'PROOF_SUBMITTED') {
       data.sellerPlanProofSubmittedAt =
         seller.sellerPlanProofSubmittedAt ?? new Date();
       data.sellerPlanVerifiedAt = null;

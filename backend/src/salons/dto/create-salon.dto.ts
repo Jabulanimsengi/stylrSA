@@ -121,8 +121,8 @@ export class CreateSalonDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn(['STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'])
-  planCode!: 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+  @IsIn(['FREE', 'STARTER', 'ESSENTIAL', 'GROWTH', 'PRO', 'ELITE'])
+  planCode!: 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 
   @IsOptional()
   @IsBoolean()

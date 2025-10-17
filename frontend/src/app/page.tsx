@@ -173,9 +173,10 @@ export default function HomePage() {
         </div>
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <span className={styles.heroBadge}>Your personal salon concierge</span>
-            <h1 className={styles.heroTitle}>Discover &amp; Book South Africa’s Most Trusted Salons Near You</h1>
-            <p className={styles.heroSubtitle}>Connect with verified hairdressers, barbers, and beauty specialists devoted to delivering exceptional care, timeless style, and the confidence you deserve.</p>
+            <h1 className={styles.heroTitle}>StylrSA — The Home of South Africa’s Top Salons, Hairdressers, Barbers, Stylists &amp; Beauty Technicians</h1>
+            <p className={styles.heroSubtitle}>Join StylrSA and become part of an industry on the move! We connect clients with trusted salons, hairstylists, barbers, and beauty professionals through innovative digital solutions that make doing business easier and more efficient.</p>
+            <p className={styles.heroSubtitle}>At StylrSA, we’re transforming how the beauty industry operates — empowering professionals to grow their client base and giving clients effortless access to quality services nationwide.</p>
+            <p className={styles.heroSubtitle}>The future is digital — and our industry is evolving at a remarkable pace. Be part of the movement.</p>
           </div>
           <div className={styles.filterContainer}>
             <FilterBar onSearch={handleSearch} isHomePage={true} />

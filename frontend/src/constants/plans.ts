@@ -1,4 +1,4 @@
-export type PlanCode = 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
+export type PlanCode = 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 
 export interface AppPlan {
   code: PlanCode;
@@ -11,6 +11,15 @@ export interface AppPlan {
 }
 
 export const APP_PLANS: AppPlan[] = [
+  {
+    code: 'FREE',
+    name: 'Free',
+    price: 'R0',
+    priceCents: 0,
+    maxListings: 1,
+    visibilityWeight: 0,
+    features: ['1 service listing', 'Gallery up to 5 images', 'Community support'],
+  },
   {
     code: 'STARTER',
     name: 'Starter',
