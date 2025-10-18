@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from './FilterBar.module.css';
 import { toFriendlyMessage } from '@/lib/errors';
 import { getCategoriesCached, getLocationsCached } from '@/lib/resourceCache';
+import { apiJson } from '@/lib/api';
 
 export interface FilterValues {
   province: string;
