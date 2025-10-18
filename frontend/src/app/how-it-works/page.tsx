@@ -33,6 +33,12 @@ export default function HowItWorksPage() {
           services, and your team&apos;s talent.
         </p>
         <p className={styles.paragraph}>
+          <strong>Choose Your Package:</strong> Select a subscription plan that fits your business needs. Start with our Free plan (1 listing)
+          or choose from Starter (R49/mo, 3 listings), Essential (R99/mo, 7 listings), Growth (R199/mo, 15 listings), Pro (R299/mo, 27 listings),
+          or Elite (R499/mo, unlimited listings). Higher-tier plans provide better visibility and placement in search results, helping you reach
+          more potential clients. View all <a href="/prices" className={styles.link}>pricing options</a>.
+        </p>
+        <p className={styles.paragraph}>
           <strong>Manage Your Business:</strong> Use our intuitive dashboard to manage your schedule, accept new bookings, communicate
           with clients via our built-in chat, and track your performance.
         </p>
