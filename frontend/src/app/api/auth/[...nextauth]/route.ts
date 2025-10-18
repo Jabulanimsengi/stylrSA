@@ -37,13 +37,13 @@ const handler = NextAuth({
             (token as any).role = data.user?.role;
             // Attach backend JWT as httpOnly cookie for API rewrites
             try {
-              const secure = process.env.NODE_ENV === 'production';
+              const isProduction = process.env.NODE_ENV === 'production';
               cookies().set('access_token', String(data.jwt), {
                 httpOnly: true,
                 sameSite: 'lax',
-                secure,
+                secure: isProduction,
                 path: '/',
-                maxAge: 60 * 60 * 24, // 1 day
+                maxAge: 60 * 60 * 24, // 1 day in seconds
               });
             } catch {}
           }

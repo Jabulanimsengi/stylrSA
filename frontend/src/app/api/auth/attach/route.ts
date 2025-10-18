@@ -8,13 +8,13 @@ export async function POST(req: Request) {
     if (!token) {
       return NextResponse.json({ error: 'Missing token' }, { status: 400 });
     }
-    const secure = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === 'production';
     cookies().set('access_token', token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure,
+      secure: isProduction,
       path: '/',
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24, // 1 day in seconds
     });
     return NextResponse.json({ ok: true });
   } catch {

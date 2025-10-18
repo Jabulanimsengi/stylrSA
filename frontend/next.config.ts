@@ -129,7 +129,12 @@ export default withPWA({
       },
     },
     {
-      // API calls - NetworkFirst with shorter timeout
+      // Auth API calls - NEVER cache authentication endpoints
+      urlPattern: /^\/api\/auth\/.*/i,
+      handler: 'NetworkOnly',
+    },
+    {
+      // Other API calls - NetworkFirst with shorter timeout
       urlPattern: /^\/api\/.*/i,
       handler: 'NetworkFirst',
       options: {
