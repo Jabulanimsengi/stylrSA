@@ -47,6 +47,27 @@ export default function HowItWorksPage() {
           ever before.
         </p>
       </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Payment Options for Users Without Bank Accounts</h2>
+        <p className={styles.paragraph}>
+          We believe everyone should have access to our platform, regardless of their banking status. That&apos;s why we offer flexible
+          payment options for users who don&apos;t have traditional bank accounts.
+        </p>
+        <p className={styles.paragraph}>
+          <strong>Direct Cash Deposits:</strong> You can make payments by depositing cash directly into our bank account. Simply select
+          your desired package, and we&apos;ll provide you with our banking details for a secure cash deposit at any branch or ATM.
+        </p>
+        <p className={styles.paragraph}>
+          <strong>Voucher Payments:</strong> We accept popular voucher payment methods including <strong>OTT Voucher</strong> and{' '}
+          <strong>1 Voucher</strong>. Purchase a voucher at participating retailers nationwide, then use it to pay for your subscription
+          or services on our platform.
+        </p>
+        <p className={styles.paragraph}>
+          After making a cash deposit or voucher payment, simply upload your proof of payment through your dashboard. Our team will verify
+          your payment within 24-48 hours and activate your selected plan. It&apos;s that simple!
+        </p>
+      </section>
     </div>
   );
 }
