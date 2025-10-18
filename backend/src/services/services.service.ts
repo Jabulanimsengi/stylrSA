@@ -134,7 +134,21 @@ export class ServicesService {
       );
     }
 
-    return this.prisma.service.delete({ where: { id } });
+    const bookingCount = await this.prisma.booking.count({
+      where: { serviceId: id },
+    });
+
+    if (bookingCount > 0) {
+      throw new ForbiddenException(
+        'Cannot delete service with existing bookings. Please contact support if you need to remove this service.',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.serviceLike.deleteMany({ where: { serviceId: id } });
+      await tx.promotion.deleteMany({ where: { serviceId: id } });
+      return tx.service.delete({ where: { id } });
+    });
   }
 
   findAllForSalon(salonId: string) {
