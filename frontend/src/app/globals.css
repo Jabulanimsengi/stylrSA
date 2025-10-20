@@ -1,9 +1,8 @@
 @import 'react-toastify/dist/ReactToastify.css';
 @import 'react-datepicker/dist/react-datepicker.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 @layer base {
   :root {
@@ -259,12 +258,20 @@
 
 /* --- GLOBAL BUTTON STYLES --- */
 .btn {
-  @apply inline-flex items-center justify-center font-semibold border-2 border-transparent transition-transform transition-colors duration-200 ease-out shadow-sm;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
   padding: var(--space-sm) var(--space-lg);
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-decoration: none;
   text-align: center;
+  transition: transform var(--transition-base), color var(--transition-base), background-color var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 @media (max-width: 768px) {
@@ -289,25 +296,26 @@
 }
 
 .btn-primary {
-  @apply text-white;
+  color: var(--color-text-inverse);
   background-color: var(--color-primary);
 }
 .btn-primary:hover {
-  @apply -translate-y-px shadow-md;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
   background-color: var(--color-primary-hover);
 }
 .btn-primary:active {
-  @apply translate-y-0;
+  transform: translateY(0);
   background-color: var(--color-primary-strong);
 }
 .btn-primary:disabled {
-  @apply cursor-not-allowed;
+  cursor: not-allowed;
   background-color: var(--color-primary-soft);
   color: var(--color-text-muted);
 }
 
 .btn-secondary {
-  @apply text-white;
+  color: var(--color-text-inverse);
   background-color: var(--color-secondary);
 }
 .btn-secondary:hover {
@@ -315,7 +323,7 @@
 }
 
 .btn-ghost {
-  @apply bg-transparent;
+  background-color: transparent;
   color: var(--btn-ghost-text);
   border: 2px solid var(--btn-ghost-border);
 }

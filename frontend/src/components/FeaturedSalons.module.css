@@ -1,124 +1,90 @@
 .container {
   width: 100%;
+  overflow: hidden;
   position: relative;
-  padding: 0 20px;
-  margin: 0;
-  max-width: 100%;
-  overflow: hidden;
-  /* Featured card image min-height per breakpoint */
-  --featured-image-min-height: 340px;
 }
 
-.carouselWrapper {
-  position: relative;
-  overflow: hidden;
-  padding: 0 40px; /* Space for nav buttons */
-}
-
-.carouselTrack {
-  overflow: hidden;
-  padding: 4px 0;
-}
-
-.carouselInner {
+.carouselRow {
   display: flex;
-  transition: transform 0.5s ease-in-out;
-  will-change: transform;
-  gap: var(--card-gap, 12px);
+  gap: clamp(0.85rem, 3vw, 1.25rem);
+  overflow-x: auto;
+  padding-inline: clamp(0.5rem, 4vw, 1.25rem);
+  padding-block: clamp(0.4rem, 1vw, 0.65rem) clamp(0.6rem, 1.5vw, 0.85rem);
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
 }
 
-.carouselItem {
-  flex: 0 0 auto;
-  min-width: 0;
-  box-sizing: border-box;
-  /* width handled inline via --cards-per-view + gap */
+.carouselRow::-webkit-scrollbar {
+  height: 6px;
 }
 
-.carouselItem > * {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
+.carouselRow::-webkit-scrollbar-thumb {
+  background: rgba(67, 65, 74, 0.18);
+  border-radius: 999px;
 }
 
-.navButton {
+.carouselRow::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chevron {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid var(--border-color, #e0e0e0);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  font-size: 1.5rem;
-  color: var(--primary, #f51957);
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.navButton:hover {
-  background: var(--primary, #f51957);
-  color: white;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.navButtonPrev {
-  left: 0;
-}
-
-.navButtonNext {
-  right: 0;
-}
-
-.dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 24px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
   border: none;
-  background: var(--border-color, #e0e0e0);
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-primary, #f51957);
+  box-shadow: 0 6px 16px rgba(67, 65, 74, 0.12);
   cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  z-index: 2;
 }
 
-.dot:hover {
-  background: var(--primary-hover, #d4144c);
-  transform: scale(1.2);
+.chevron:hover,
+.chevron:focus-visible {
+  background: var(--color-primary, #f51957);
+  color: #fff;
+  transform: translateY(-50%) scale(1.08);
 }
 
-.dotActive {
-  background: var(--primary, #f51957);
-  transform: scale(1.2);
+.chevronLeft {
+  left: clamp(0.25rem, 2vw, 0.75rem);
+}
+
+.chevronRight {
+  right: clamp(0.25rem, 2vw, 0.75rem);
+}
+
+@media (max-width: 768px) {
+  .chevron {
+    display: none;
+  }
 }
 
 .skeletonContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  display: flex;
+  gap: 1rem;
+  padding-inline: clamp(0.5rem, 4vw, 1.25rem);
 }
 
 .skeletonCard {
-  height: var(--featured-image-min-height, 300px);
+  flex: none;
+  width: clamp(170px, 24vw, 210px);
+  height: 140px;
+  border-radius: 0.75rem;
   background: linear-gradient(
     90deg,
-    var(--skeleton-bg, #f0f0f0) 25%,
-    var(--skeleton-shimmer, #e0e0e0) 50%,
-    var(--skeleton-bg, #f0f0f0) 75%
+    rgba(240, 240, 240, 0.8) 0%,
+    rgba(225, 225, 225, 0.9) 50%,
+    rgba(240, 240, 240, 0.8) 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 12px;
+  animation: shimmer 1.4s ease infinite;
 }
 
 @keyframes shimmer {
@@ -127,147 +93,5 @@
   }
   100% {
     background-position: -200% 0;
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .container {
-    padding: 0 16px;
-  }
-  
-  .carouselWrapper {
-    padding: 0 32px;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    width: 100%;
-    padding: 0 12px;
-    overflow: hidden;
-  }
-
-  .carouselWrapper {
-    padding: 0 28px;
-  }
-
-  .navButton {
-    width: 32px;
-    height: 32px;
-    font-size: 1.25rem;
-  }
-
-  .navButtonPrev {
-    left: 0;
-  }
-
-  .navButtonNext {
-    right: 0;
-  }
-
-  .dots {
-    margin-top: 16px;
-  }
-
-  .dot {
-    width: 8px;
-    height: 8px;
-  }
-
-  .carouselInner {
-    gap: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    width: 100%;
-    padding: 0 8px;
-  }
-
-  .carouselWrapper {
-    padding: 0 24px;
-  }
-
-  .navButton {
-    width: 28px;
-    height: 28px;
-    font-size: 1.1rem;
-  }
-
-  .navButtonPrev {
-    left: 0;
-  }
-
-  .navButtonNext {
-    right: 0;
-  }
-
-  .carouselInner {
-    gap: 6px;
-  }
-
-  .carouselTrack {
-    padding: 2px 0;
-  }
-
-  .dots { 
-    display: flex;
-    margin-top: 12px;
-  }
-  
-  .dot {
-    width: 6px;
-    height: 6px;
-  }
-}
-
-/* Featured card image height targets per design */
-@media (min-width: 1440px) {
-  .container { --featured-image-min-height: 360px; }
-}
-
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .container { --featured-image-min-height: 340px; }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .container { --featured-image-min-height: 320px; }
-}
-
-@media (min-width: 480px) and (max-width: 767px) {
-  .container { --featured-image-min-height: 300px; }
-}
-
-@media (max-width: 479px) {
-  .container { --featured-image-min-height: 280px; }
-}
-
-/* Desktop: 4 cards */
-@media (min-width: 1200px) {
-  .skeletonContainer {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-/* Tablet large: 3 cards */
-@media (min-width: 1024px) and (max-width: 1199px) {
-  .skeletonContainer {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Tablet: 2 cards */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .skeletonContainer {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Mobile: 1 card */
-@media (max-width: 767px) {
-  .skeletonContainer {
-    grid-template-columns: 1fr;
   }
 }
