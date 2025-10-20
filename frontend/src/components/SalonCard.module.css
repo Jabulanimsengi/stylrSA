@@ -6,8 +6,13 @@
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.compact {
+  /* No fixed min-height for compact mode */
 }
 
 .salonCard:hover {
@@ -31,6 +36,14 @@
   z-index: 10;
   transition: all 0.2s ease;
   color: #999;
+  font-size: 18px; /* ensure icon has visible size */
+}
+
+.favoriteButton svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+  fill: currentColor; /* make sure the heart uses the button color */
 }
 
 .favoriteButton:hover {
@@ -54,9 +67,15 @@
 .imageWrapper {
   position: relative;
   width: 100%;
-  height: 200px;
+  aspect-ratio: 3 / 4; /* portrait: height > width */
+  flex-shrink: 0;
   background: var(--skeleton-bg, #f0f0f0);
   overflow: hidden;
+}
+
+.compact .imageWrapper {
+  aspect-ratio: auto;
+  height: var(--card-height, var(--featured-image-min-height, 300px));
 }
 
 .cardImage {
@@ -69,23 +88,26 @@
 }
 
 .cardContent {
-  padding: 16px;
+  padding: 10px 8px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
 }
 
 .cardTitle {
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   font-weight: 600;
   margin: 0;
   color: var(--text-primary, #1c1c1e);
-  line-height: 1.4;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cardLocation {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--text-secondary, #666);
   margin: 0;
   display: flex;
@@ -94,25 +116,37 @@
 }
 
 .cardMeta {
-  font-size: 0.8125rem;
+  font-size: 0.7rem;
   color: var(--text-tertiary, #999);
   margin: 0;
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid var(--border-color, #f0f0f0);
 }
 
+@media (max-width: 1024px) {
+  /* aspect-ratio keeps portrait on tablet */
+}
+
 @media (max-width: 768px) {
-  .imageWrapper {
-    height: 160px;
-  }
+  .imageWrapper { /* keep portrait ratio */ }
+  .compact .imageWrapper { /* keep portrait ratio */ }
 
   .cardContent {
-    padding: 12px;
+    padding: 8px 6px;
   }
 
   .cardTitle {
-    font-size: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .cardLocation {
+    font-size: 0.75rem;
+  }
+
+  .cardMeta {
+    font-size: 0.65rem;
+    padding-top: 4px;
   }
 
   .favoriteButton {
@@ -120,5 +154,40 @@
     height: 36px;
     top: 8px;
     right: 8px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .salonCard {
+    border-radius: 8px;
+  }
+
+  .imageWrapper { /* keep portrait ratio */ }
+  .compact .imageWrapper { /* keep portrait ratio */ }
+
+  .cardContent {
+    padding: 6px;
+    gap: 2px;
+  }
+
+  .cardTitle {
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+
+  .cardLocation {
+    font-size: 0.7rem;
+  }
+
+  .cardMeta {
+    font-size: 0.6rem;
+    padding-top: 3px;
+  }
+
+  .favoriteButton {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
 }

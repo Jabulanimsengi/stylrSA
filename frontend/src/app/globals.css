@@ -112,6 +112,11 @@
     --nav-icon-hover-bg: rgba(255, 255, 255, 0.98);
     --nav-badge-text: var(--color-text-inverse);
     --app-shell-top-gap: 64px;
+
+    /* Global card layout tokens */
+    --cards-per-view: 4;
+    --card-gap: 12px;
+    --card-height: 340px;
   }
 
   [data-theme='dark'] {
@@ -208,6 +213,47 @@
 
   a:visited {
     color: var(--link-visited);
+  }
+}
+
+/* Global card layout breakpoints */
+@media (max-width: 479px) {
+  :root {
+    --cards-per-view: 2.2; /* 2 full + peek */
+    --card-gap: 6px;
+    --card-height: 280px;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  :root {
+    --cards-per-view: 2.5;
+    --card-gap: 8px;
+    --card-height: 300px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --cards-per-view: 3;
+    --card-gap: 12px;
+    --card-height: 320px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  :root {
+    --cards-per-view: 4;
+    --card-gap: 12px;
+    --card-height: 340px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --cards-per-view: 5;
+    --card-gap: 12px;
+    --card-height: 360px;
   }
 }
 

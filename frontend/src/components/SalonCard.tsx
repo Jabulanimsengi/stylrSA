@@ -12,11 +12,13 @@ interface SalonCardProps {
   salon: SalonWithFavorite;
   showFavorite?: boolean;
   onToggleFavorite?: (e: React.MouseEvent, salonId: string) => void;
+  showHours?: boolean;
+  compact?: boolean;
 }
 
-export default function SalonCard({ salon, showFavorite = true, onToggleFavorite }: SalonCardProps) {
+export default function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = true, compact = false }: SalonCardProps) {
   return (
-    <div className={styles.salonCard}>
+    <div className={`${styles.salonCard} ${compact ? styles.compact : ''}`}>
       {showFavorite && onToggleFavorite && (
         <button
           onClick={(e) => onToggleFavorite(e, salon.id)}
@@ -38,13 +40,13 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
             alt={`A photo of ${salon.name}`}
             className={styles.cardImage}
             fill
-            sizes="(max-width: 768px) 100vw, 33vw"
+            sizes="(max-width: 479px) 45vw, (max-width: 767px) 40vw, (max-width: 1023px) 33vw, (max-width: 1439px) 25vw, 20vw"
           />
         </div>
         <div className={styles.cardContent}>
           <h2 className={styles.cardTitle}>{salon.name}</h2>
           <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
-          {(() => {
+          {showHours && (() => {
             const oh = salon.operatingHours as unknown;
             let hoursRecord: Record<string, string> | null = null;
             if (Array.isArray(oh)) {
