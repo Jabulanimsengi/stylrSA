@@ -11,6 +11,7 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import { Service } from '@/types';
 import FeaturedServiceCard, { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
 import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
+import FeaturedSalons from '@/components/FeaturedSalons';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -214,6 +215,11 @@ export default function HomePage() {
             />
           ))}
         </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Recommended Salons</h2>
+        <FeaturedSalons />
       </section>
 
       <section className={styles.section}>

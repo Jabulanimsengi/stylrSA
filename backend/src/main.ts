@@ -18,10 +18,28 @@ async function bootstrap() {
   app.useWebSocketAdapter(new IoAdapter(app));
 
   // Security & performance middlewares
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://www.googletagmanager.com', 'https://www.google-analytics.com'],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          connectSrc: ["'self'", 'https:', 'wss:'],
+          frameSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          upgradeInsecureRequests: [],
+        },
+      },
+      crossOriginEmbedderPolicy: false, // Required for some third-party services
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    })
+  );
   app.use(compression());
   app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
   const allowedOrigins = (
     process.env.CORS_ORIGIN || 'http://localhost:3001,http://localhost:3000'

@@ -1,11 +1,13 @@
 .stickyHeader {
-  position: sticky;
-  top: calc(var(--app-shell-top-gap) + 12px);
-  z-index: 40;
-  margin-bottom: 2rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-surface);
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+  max-width: 100vw;
 }
 
 .stickyHeaderContent {
@@ -69,6 +71,7 @@
   background-size: cover;
   background-position: center;
   position: relative;
+  margin-top: 5rem;
 }
 
 .heroOverlay {
@@ -461,6 +464,7 @@
   max-width: 1280px; 
   margin: 2rem auto;
   padding-inline: var(--page-inline-padding);
+  padding-top: 6rem;
 }
 .profileLayout {
   display: block; 
@@ -514,6 +518,10 @@
   }
   .hero {
     height: 16rem;
+    margin-top: 4rem;
+  }
+  .container {
+    padding-top: 4.5rem;
   }
   .infoBoard {
     margin-bottom: 1.25rem;
@@ -744,6 +752,10 @@
 @media (max-width: 400px) {
   .hero {
     height: 12rem;
+    margin-top: 3.5rem;
+  }
+  .container {
+    padding-top: 4rem;
   }
   .heroOverlay {
     padding: 1.25rem;
@@ -846,6 +858,225 @@
   .sectionTitle {
     font-size: 1.1rem;
     margin-bottom: 0.875rem;
+  }
+}
+
+/* ===== 375px breakpoint for iPhone SE, iPhone 12 mini ===== */
+@media (max-width: 375px) {
+  .hero {
+    height: 11rem;
+    margin-top: 3rem;
+  }
+  .container {
+    padding-top: 3.5rem;
+  }
+  .heroOverlay {
+    padding: 1.125rem;
+  }
+  .heroMeta {
+    gap: 0.4375rem;
+  }
+  .metaRow {
+    gap: 0.4375rem;
+  }
+  .metaCard {
+    padding: 0.5rem 0.625rem;
+    min-width: 90%;
+  }
+  .metaIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+  }
+  .metaLabel {
+    font-size: 0.5625rem;
+  }
+  .metaValue {
+    font-size: 0.6875rem;
+  }
+  .metaDetail {
+    font-size: 0.6875rem;
+  }
+  .availabilityPill {
+    font-size: 0.6875rem;
+    padding: 0.3125rem 0.5rem;
+  }
+  .stickyHeader {
+    margin-bottom: 1rem;
+  }
+  .stickyHeaderContent {
+    --page-inline-padding: 0.5rem;
+    gap: 0.4375rem;
+    padding: 0.4375rem var(--page-inline-padding);
+  }
+  .container {
+    --page-inline-padding: 0.5rem;
+  }
+  .title {
+    font-size: 0.875rem;
+  }
+  .navButtonsContainer {
+    gap: 0.375rem;
+  }
+  .navButton {
+    padding: 0.3125rem 0.5rem;
+    font-size: 0.6875rem;
+    gap: 0.25rem;
+  }
+  .navButton svg {
+    font-size: 0.875rem;
+  }
+  .servicesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .galleryGrid {
+    gap: 0.5rem;
+  }
+  .galleryItem {
+    width: 90px;
+    height: 90px;
+  }
+  .section {
+    padding: 1.125rem 0;
+  }
+  .sectionTitle {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .infoBoard {
+    margin-bottom: 1rem;
+  }
+  .infoGrid {
+    gap: 0.4375rem;
+  }
+  .infoCard {
+    padding: 0.5rem 0.625rem;
+    min-width: 87%;
+  }
+  .infoIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+  }
+  .infoLabel {
+    font-size: 0.5625rem;
+  }
+  .infoValue {
+    font-size: 0.75rem;
+  }
+  .infoDetail {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ===== 320px breakpoint for very small devices ===== */
+@media (max-width: 320px) {
+  .hero {
+    height: 10rem;
+    margin-top: 2.5rem;
+  }
+  .container {
+    padding-top: 3rem;
+  }
+  .heroOverlay {
+    padding: 1rem;
+  }
+  .heroMeta {
+    gap: 0.375rem;
+  }
+  .metaRow {
+    gap: 0.375rem;
+  }
+  .metaCard {
+    padding: 0.4375rem 0.5rem;
+    min-width: 92%;
+  }
+  .metaIcon {
+    width: 1.375rem;
+    height: 1.375rem;
+    font-size: 0.6875rem;
+  }
+  .metaLabel {
+    font-size: 0.5rem;
+  }
+  .metaValue {
+    font-size: 0.625rem;
+  }
+  .metaDetail {
+    font-size: 0.625rem;
+  }
+  .availabilityPill {
+    font-size: 0.625rem;
+    padding: 0.25rem 0.4375rem;
+  }
+  .stickyHeader {
+    margin-bottom: 0.875rem;
+  }
+  .stickyHeaderContent {
+    --page-inline-padding: 0.375rem;
+    gap: 0.375rem;
+    padding: 0.375rem var(--page-inline-padding);
+  }
+  .container {
+    --page-inline-padding: 0.375rem;
+  }
+  .title {
+    font-size: 0.8125rem;
+    line-height: 1.2;
+  }
+  .navButtonsContainer {
+    gap: 0.3125rem;
+  }
+  .navButton {
+    padding: 0.25rem 0.4375rem;
+    font-size: 0.625rem;
+    gap: 0.1875rem;
+  }
+  .navButton svg {
+    font-size: 0.75rem;
+  }
+  .servicesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4375rem;
+  }
+  .galleryGrid {
+    gap: 0.4375rem;
+  }
+  .galleryItem {
+    width: 80px;
+    height: 80px;
+  }
+  .section {
+    padding: 1rem 0;
+  }
+  .sectionTitle {
+    font-size: 0.9375rem;
+    margin-bottom: 0.625rem;
+  }
+  .infoBoard {
+    margin-bottom: 0.875rem;
+  }
+  .infoGrid {
+    gap: 0.375rem;
+  }
+  .infoCard {
+    padding: 0.4375rem 0.5rem;
+    min-width: 90%;
+  }
+  .infoIcon {
+    width: 1.375rem;
+    height: 1.375rem;
+    font-size: 0.6875rem;
+  }
+  .infoLabel {
+    font-size: 0.5rem;
+  }
+  .infoValue {
+    font-size: 0.6875rem;
+  }
+  .infoDetail {
+    font-size: 0.625rem;
   }
 }
 

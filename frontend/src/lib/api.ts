@@ -1,7 +1,11 @@
 import { parseErrorResponse } from './errors';
+import { addCsrfHeader } from './csrf';
 
 export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const res = await fetch(input, { credentials: 'include', ...init });
+  // Add CSRF token for state-changing methods
+  const optionsWithCsrf = await addCsrfHeader(init);
+  
+  const res = await fetch(input, { credentials: 'include', ...optionsWithCsrf });
   if (!res.ok) {
     throw await parseErrorResponse(res);
   }

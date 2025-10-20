@@ -107,6 +107,59 @@
   background-color: var(--color-primary-hover);
 }
 
+.mobileAppAnnouncement {
+  max-width: 1280px;
+  margin: 2rem auto 0;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, rgba(194, 34, 134, 0.15) 0%, rgba(108, 99, 255, 0.15) 100%);
+  border: 1px solid rgba(194, 34, 134, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.announcementContent {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.announcementIcon {
+  font-size: 3rem;
+  line-height: 1;
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.announcementText {
+  flex: 1;
+}
+
+.announcementTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.announcementDescription {
+  font-size: 0.95rem;
+  color: var(--light-silver);
+  line-height: 1.5;
+  margin: 0;
+}
+
 .footerBottom {
   max-width: 1280px;
   margin: 2rem auto 0;
@@ -171,6 +224,25 @@
     padding: 0.625rem;
     font-size: 0.875rem;
   }
+  .mobileAppAnnouncement {
+    padding: 1.25rem 1rem;
+    margin: 1.5rem auto 0;
+  }
+  .announcementContent {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  .announcementIcon {
+    font-size: 2.5rem;
+  }
+  .announcementTitle {
+    font-size: 1.125rem;
+    justify-content: center;
+  }
+  .announcementDescription {
+    font-size: 0.875rem;
+  }
   .footerBottom {
     flex-direction: column;
     text-align: center;
@@ -215,6 +287,24 @@
     padding: 0.55rem;
     font-size: 0.8rem;
   }
+  .mobileAppAnnouncement {
+    padding: 1rem 0.75rem;
+    margin: 1.25rem auto 0;
+    border-radius: 8px;
+  }
+  .announcementContent {
+    gap: 0.75rem;
+  }
+  .announcementIcon {
+    font-size: 2rem;
+  }
+  .announcementTitle {
+    font-size: 1rem;
+  }
+  .announcementDescription {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
   .footerBottom {
     font-size: 0.75rem;
     margin-top: 1.25rem;
@@ -223,5 +313,131 @@
   .legalLinks {
     gap: 0.75rem;
     font-size: 0.75rem;
+  }
+}
+
+/* ===== 375px breakpoint for iPhone SE, iPhone 12 mini ===== */
+@media (max-width: 375px) {
+  .footer {
+    padding: 1.75rem 0.625rem 1.125rem;
+  }
+  .footerContent {
+    gap: 1.125rem;
+    padding-bottom: 1.125rem;
+  }
+  .logo {
+    font-size: 1.25rem;
+  }
+  .description {
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  .sectionTitle {
+    font-size: 0.875rem;
+  }
+  .links {
+    gap: 0.4375rem;
+    font-size: 0.8125rem;
+  }
+  .socials {
+    gap: 0.625rem;
+  }
+  .socialLink {
+    font-size: 1.125rem;
+  }
+  .newsletterInput,
+  .newsletterButton {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  .mobileAppAnnouncement {
+    padding: 0.875rem 0.625rem;
+    margin: 1.125rem auto 0;
+    border-radius: 8px;
+  }
+  .announcementContent {
+    gap: 0.625rem;
+  }
+  .announcementIcon {
+    font-size: 1.875rem;
+  }
+  .announcementTitle {
+    font-size: 0.9375rem;
+  }
+  .announcementDescription {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  .footerBottom {
+    font-size: 0.6875rem;
+    margin-top: 1.125rem;
+    gap: 0.5rem;
+  }
+  .legalLinks {
+    gap: 0.625rem;
+    font-size: 0.6875rem;
+  }
+}
+
+/* ===== 320px breakpoint for very small devices ===== */
+@media (max-width: 320px) {
+  .footer {
+    padding: 1.5rem 0.5rem 1rem;
+  }
+  .footerContent {
+    gap: 1rem;
+    padding-bottom: 1rem;
+  }
+  .logo {
+    font-size: 1.125rem;
+  }
+  .description {
+    font-size: 0.6875rem;
+    line-height: 1.45;
+  }
+  .sectionTitle {
+    font-size: 0.8125rem;
+  }
+  .links {
+    gap: 0.375rem;
+    font-size: 0.75rem;
+  }
+  .socials {
+    gap: 0.5rem;
+  }
+  .socialLink {
+    font-size: 1rem;
+  }
+  .newsletterInput,
+  .newsletterButton {
+    padding: 0.4375rem;
+    font-size: 0.6875rem;
+  }
+  .mobileAppAnnouncement {
+    padding: 0.75rem 0.5rem;
+    margin: 1rem auto 0;
+    border-radius: 6px;
+  }
+  .announcementContent {
+    gap: 0.5rem;
+  }
+  .announcementIcon {
+    font-size: 1.75rem;
+  }
+  .announcementTitle {
+    font-size: 0.875rem;
+  }
+  .announcementDescription {
+    font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+  .footerBottom {
+    font-size: 0.625rem;
+    margin-top: 1rem;
+    gap: 0.4375rem;
+  }
+  .legalLinks {
+    gap: 0.5rem;
+    font-size: 0.625rem;
   }
 }

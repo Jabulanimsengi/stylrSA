@@ -582,6 +582,40 @@ export class SalonsService {
     return this.prisma.salon.findMany();
   }
 
+  async findFeatured(user?: any) {
+    const now = new Date();
+    const where: any = {
+      approvalStatus: 'APPROVED',
+      featuredUntil: {
+        gte: now,
+      },
+    };
+
+    let salons = await this.prisma.salon.findMany({
+      where,
+      orderBy: [
+        { visibilityWeight: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      take: 12, // Limit to 12 featured salons
+    });
+
+    // Attach favorite flag if logged-in
+    if (user) {
+      const favoriteSalons = await this.prisma.favorite.findMany({
+        where: { userId: user.id },
+        select: { salonId: true },
+      });
+      const favoriteSalonIds = new Set(favoriteSalons.map((f) => f.salonId));
+      salons = salons.map((salon) => ({
+        ...salon,
+        isFavorited: favoriteSalonIds.has(salon.id),
+      }));
+    }
+
+    return salons;
+  }
+
   async updateMySalon(user: any, dto: UpdateSalonDto, ownerId: string) {
     // FIX: Allow ADMIN to update any salon
     if (user.id !== ownerId && user.role !== 'ADMIN') {

@@ -21,7 +21,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { switchToRegister } = useAuthModal();
+  const { switchToRegister, switchToResendVerification } = useAuthModal();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -112,6 +112,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           Don't have an account?{' '}
           <a href="#" onClick={(e) => { e.preventDefault(); switchToRegister(); }} className={styles.footerLink}>
             Sign up
+          </a>
+        </p>
+        <p className={styles.footerText} style={{ marginTop: '0.5rem' }}>
+          Didn't receive verification email?{' '}
+          <a href="#" onClick={(e) => { e.preventDefault(); switchToResendVerification(); }} className={styles.footerLink}>
+            Resend Email
           </a>
         </p>
       </div>

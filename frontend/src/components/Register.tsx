@@ -30,23 +30,56 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
     setError('');
 
     try {
-      await apiFetch('/api/auth/register', {
+      const res = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, password, role }),
       });
 
-      toast.success('Registration successful! Please sign in.');
+      const response = await res.json();
+
+      // Handle successful response
+      if (response.message) {
+        toast.success(response.message);
+      } else {
+        toast.success('Registration successful! Please check your email to verify your account.');
+      }
+
       // On success, call the function passed down from the parent
       onRegisterSuccess();
 
     } catch (err: any) {
-      const msg = toFriendlyMessage(err, 'Registration failed.');
+      console.error('Registration error:', err);
+      
+      // Extract the error message - backend sends structured error responses
+      let msg = 'Registration failed. Please try again.';
+      
+      // Check for message in error object (from parseErrorResponse)
+      if (err?.message) {
+        msg = err.message;
+      } else if (err?.userMessage) {
+        msg = err.userMessage;
+      } else if (typeof err === 'string') {
+        msg = err;
+      }
+      
       setError(msg);
       toast.error(msg);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    // Store selected role in cookie before OAuth redirect
+    // This will be read by NextAuth callback after Google authentication
+    if (typeof document !== 'undefined') {
+      // Set cookie that expires in 10 minutes (enough time for OAuth flow)
+      document.cookie = `oauth_signup_role=${role}; path=/; max-age=600; SameSite=Lax`;
+    }
+    
+    // Redirect to Google OAuth
+    void signIn('google', { callbackUrl: '/salons' });
   };
 
   return (
@@ -113,10 +146,13 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
       </p>
       <div className={styles.oauthSection}>
         <div className={styles.oauthDivider}>or continue with</div>
+        <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem', textAlign: 'center' }}>
+          Selected role: <strong>{role === 'CLIENT' ? 'Client' : role === 'SALON_OWNER' ? 'Service Provider' : 'Product Seller'}</strong>
+        </p>
         <button
           type="button"
           className={styles.oauthButton}
-          onClick={() => signIn('google', { callbackUrl: '/salons' })}
+          onClick={handleGoogleSignIn}
         >
           <FaGoogle aria-hidden />
           Continue with Google

@@ -72,12 +72,19 @@ export class SalonsController {
     );
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get('featured')
+  findFeatured(@GetUser() user?: any) {
+    return this.salonsService.findFeatured(user);
+  }
+
   @Get('nearby')
   findNearby(@Query('lat') lat: number, @Query('lon') lon: number) {
     return this.salonsService.findNearby(lat, lon);
   }
 
-  @Get(':id')
+  // Constrain :id to UUID to prevent conflicts with static routes like 'featured'
+  @Get(":id([0-9a-fA-F-]{36})")
   @UseGuards(OptionalJwtAuthGuard)
   findOne(@Param('id') id: string, @GetUser() user?: any) {
     return this.salonsService.findOne(id, user);

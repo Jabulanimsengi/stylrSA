@@ -87,8 +87,11 @@ export default function AdminPage() {
   const [deletedSellers, setDeletedSellers] = useState<any[]>([]);
   const [allSellers, setAllSellers] = useState<SellerRow[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [featuredSalons, setFeaturedSalons] = useState<PendingSalon[]>([]);
+  const [availableSalons, setAvailableSalons] = useState<PendingSalon[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit'>('salons');
+  const [featureDuration, setFeatureDuration] = useState<number>(30);
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -277,6 +280,90 @@ export default function AdminPage() {
     if (type === 'product') setPendingProducts(prev => prev.filter(x=> !ids.includes(x.id)));
     clearSelections();
     toast.success(`Updated ${ids.length} ${type}${ids.length>1?'s':''}`);
+  };
+
+  const fetchFeaturedSalons = async () => {
+    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+    
+    logger.info('Fetching featured salons management data...', { hasAuth: !!session?.backendJwt });
+    
+    try {
+      const res = await fetch(`/api/admin/salons/featured/manage?ts=${Date.now()}`, {
+        credentials: 'include',
+        cache: 'no-store' as any,
+        headers: authHeaders,
+      });
+      
+      logger.info('Fetch featured salons response:', { status: res.status, ok: res.ok });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setFeaturedSalons(ensureArray<PendingSalon>(data.featured));
+        setAvailableSalons(ensureArray<PendingSalon>(data.available));
+        logger.info('Featured salons loaded:', { 
+          featured: data.featured?.length || 0, 
+          available: data.available?.length || 0 
+        });
+      } else {
+        const msg = await res.text().catch(() => '');
+        logger.error('Failed to fetch featured salons:', { status: res.status, message: msg });
+        toast.error(`Failed to load featured salons (${res.status}): ${msg || 'Unknown error'}`);
+      }
+    } catch (error) {
+      logger.error('Exception fetching featured salons:', error);
+      toast.error(`Failed to load featured salons: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const featureSalon = async (salonId: string, durationDays: number) => {
+    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+    
+    logger.info('Featuring salon:', { salonId, durationDays, hasAuth: !!session?.backendJwt });
+    
+    try {
+      const res = await fetch(`/api/admin/salons/${salonId}/feature`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'include',
+        body: JSON.stringify({ durationDays }),
+      });
+      
+      logger.info('Feature salon response:', { status: res.status, ok: res.ok });
+      
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(`Salon featured for ${durationDays} days`);
+        logger.info('Salon featured successfully:', data);
+        await fetchFeaturedSalons();
+      } else {
+        const msg = await res.text().catch(() => '');
+        logger.error('Failed to feature salon:', { status: res.status, message: msg });
+        toast.error(`Failed to feature salon (${res.status}): ${msg || 'Unknown error'}`);
+      }
+    } catch (error) {
+      logger.error('Exception featuring salon:', error);
+      toast.error(`Failed to feature salon: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const unfeatureSalon = async (salonId: string) => {
+    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+    try {
+      const res = await fetch(`/api/admin/salons/${salonId}/unfeature`, {
+        method: 'DELETE',
+        headers: authHeaders,
+        credentials: 'include',
+      });
+      if (res.ok) {
+        toast.success('Salon unfeatured');
+        await fetchFeaturedSalons();
+      } else {
+        const msg = await res.text().catch(() => '');
+        toast.error(`Failed to unfeature salon: ${msg}`);
+      }
+    } catch (error) {
+      toast.error('Failed to unfeature salon');
+    }
   };
 
   useEffect(() => {
@@ -623,6 +710,15 @@ export default function AdminPage() {
           All Salons ({allSalons.length})
         </button>
         <button
+          onClick={async () => {
+            setView('featured-salons');
+            await fetchFeaturedSalons();
+          }}
+          className={`${styles.tabButton} ${view === 'featured-salons' ? styles.activeTab : ''}`}
+        >
+          Featured Salons ({featuredSalons.length})
+        </button>
+        <button
           onClick={() => setView('all-sellers')}
           className={`${styles.tabButton} ${view === 'all-sellers' ? styles.activeTab : ''}`}
         >
@@ -903,6 +999,86 @@ export default function AdminPage() {
               </div>
             </div>
           )) : <p>No salons found.</p>}
+          </>
+        )}
+
+        {view === 'featured-salons' && (
+          <>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>Currently Featured Salons</h3>
+              {featuredSalons.length > 0 ? (
+                featuredSalons.map((salon) => (
+                  <div key={salon.id} className={styles.listItem}>
+                    <div className={styles.info}>
+                      <h4>{salon.name}</h4>
+                      <p>{salon.city}, {salon.province}</p>
+                      <p style={{ fontSize: '0.875rem', color: '#666' }}>
+                        Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email})
+                      </p>
+                      <p style={{ fontSize: '0.875rem', color: '#666' }}>
+                        Featured until: {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                    <div className={styles.actions}>
+                      <button
+                        onClick={() => unfeatureSalon(salon.id)}
+                        className={styles.rejectButton}
+                      >
+                        Unfeature
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No salons are currently featured.</p>
+              )}
+            </div>
+
+            <div>
+              <h3 style={{ marginBottom: '1rem' }}>Feature a Salon</h3>
+              <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <label>
+                  Duration (days):
+                  <select
+                    value={featureDuration}
+                    onChange={(e) => setFeatureDuration(Number(e.target.value))}
+                    style={{ marginLeft: '0.5rem', padding: '0.35rem', border: '1px solid var(--color-border)', borderRadius: 8 }}
+                  >
+                    <option value={7}>7 days</option>
+                    <option value={14}>14 days</option>
+                    <option value={30}>30 days</option>
+                    <option value={60}>60 days</option>
+                    <option value={90}>90 days</option>
+                  </select>
+                </label>
+              </div>
+              {availableSalons.length > 0 ? (
+                availableSalons.map((salon) => (
+                  <div key={salon.id} className={styles.listItem}>
+                    <div className={styles.info}>
+                      <h4>{salon.name}</h4>
+                      <p>{salon.city}, {salon.province}</p>
+                      <p style={{ fontSize: '0.875rem', color: '#666' }}>
+                        Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email})
+                      </p>
+                      <p style={{ fontSize: '0.875rem', color: '#666' }}>
+                        Plan: {salon.planCode || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={styles.actions}>
+                      <button
+                        onClick={() => featureSalon(salon.id, featureDuration)}
+                        className={styles.approveButton}
+                      >
+                        Feature for {featureDuration} days
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No approved salons available to feature.</p>
+              )}
+            </div>
           </>
         )}
 

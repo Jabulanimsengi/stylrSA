@@ -242,4 +242,28 @@ export class AdminController {
   async checkDeletedSellersTable() {
     return this.adminService.diagnosticDeletedSellersTable();
   }
+
+  @Get('salons/featured/manage')
+  getManageFeaturedSalons() {
+    return this.adminService.getManageFeaturedSalons();
+  }
+
+  @Post('salons/:salonId/feature')
+  featureSalon(
+    @Param('salonId') salonId: string,
+    @Body() body: { durationDays: number },
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.featureSalon(salonId, body.durationDays, adminId);
+  }
+
+  @Delete('salons/:salonId/unfeature')
+  unfeatureSalon(
+    @Param('salonId') salonId: string,
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.unfeatureSalon(salonId, adminId);
+  }
 }

@@ -1,0 +1,199 @@
+.container {
+  width: 100%;
+  position: relative;
+  padding: 0 60px; /* Add padding for nav buttons */
+}
+
+.carouselWrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.carouselTrack {
+  overflow: hidden;
+  padding: 4px;
+}
+
+.carouselInner {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  will-change: transform;
+}
+
+.carouselItem {
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 2rem;
+  color: var(--primary, #f51957);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navButton:hover {
+  background: var(--primary, #f51957);
+  color: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.navButtonPrev {
+  left: 0;
+}
+
+.navButtonNext {
+  right: 0;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border-color, #e0e0e0);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.dot:hover {
+  background: var(--primary-hover, #d4144c);
+  transform: scale(1.2);
+}
+
+.dotActive {
+  background: var(--primary, #f51957);
+  transform: scale(1.2);
+}
+
+.skeletonContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.skeletonCard {
+  height: 300px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-bg, #f0f0f0) 25%,
+    var(--skeleton-shimmer, #e0e0e0) 50%,
+    var(--skeleton-bg, #f0f0f0) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 50px;
+  }
+
+  .navButton {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .navButtonPrev {
+    left: 0;
+  }
+
+  .navButtonNext {
+    right: 0;
+  }
+
+  .dots {
+    margin-top: 16px;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .carouselItem {
+    padding: 0 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 44px;
+  }
+
+  .navButton {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+
+  .navButtonPrev {
+    left: 0;
+  }
+
+  .navButtonNext {
+    right: 0;
+  }
+}
+
+/* Desktop: 4 cards */
+@media (min-width: 1200px) {
+  .skeletonContainer {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Tablet large: 3 cards */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .skeletonContainer {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Tablet: 2 cards */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .skeletonContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: 1 card */
+@media (max-width: 767px) {
+  .skeletonContainer {
+    grid-template-columns: 1fr;
+  }
+}

@@ -11,6 +11,7 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import { getPlaceholder } from '@/lib/placeholders';
+import { sanitizeText } from '@/lib/sanitize';
 
 interface ProductCardProps {
   product: Product;
@@ -128,7 +129,7 @@ export default function ProductCard({
           </div>
           {product.description && (
             <p className={`${styles.description} ${isExpanded ? styles.expanded : ''}`}>
-              {product.description}
+              {sanitizeText(product.description)}
             </p>
           )}
           {product.description && (

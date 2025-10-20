@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from './AuthModal.module.css';
 import Login from './Login';
 import Register from './Register';
+import ResendVerification from './ResendVerification';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { useAuth } from '@/hooks/useAuth';
 import { FaTimes } from 'react-icons/fa';
@@ -12,13 +13,13 @@ import { User } from '@/types';
 
 // This component is rendered by AuthModalProvider and receives props
 interface AuthModalProps {
-  view: 'login' | 'register';
+  view: 'login' | 'register' | 'resend-verification';
   onClose: () => void;
 }
 
 export default function AuthModal({ view: initialView, onClose }: AuthModalProps) {
   const { login } = useAuth(); // Get the login function from our global context
-  const { switchToLogin, switchToRegister } = useAuthModal();
+  const { switchToLogin, switchToRegister, switchToResendVerification } = useAuthModal();
   const [view, setView] = useState(initialView);
   const router = useRouter();
 
@@ -54,25 +55,25 @@ export default function AuthModal({ view: initialView, onClose }: AuthModalProps
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${view === 'login' ? styles.active : ''}`}
-            onClick={switchToLogin}
-          >
-            Login
-          </button>
-          <button
-            className={`${styles.tab} ${view === 'register' ? styles.active : ''}`}
-            onClick={switchToRegister}
-          >
-            Register
-          </button>
-        </div>
-        {view === 'login' ? (
-          <Login onLoginSuccess={handleLoginSuccess} />
-        ) : (
-          <Register onRegisterSuccess={handleRegisterSuccess} />
+        {view !== 'resend-verification' && (
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${view === 'login' ? styles.active : ''}`}
+              onClick={switchToLogin}
+            >
+              Login
+            </button>
+            <button
+              className={`${styles.tab} ${view === 'register' ? styles.active : ''}`}
+              onClick={switchToRegister}
+            >
+              Register
+            </button>
+          </div>
         )}
+        {view === 'login' && <Login onLoginSuccess={handleLoginSuccess} />}
+        {view === 'register' && <Register onRegisterSuccess={handleRegisterSuccess} />}
+        {view === 'resend-verification' && <ResendVerification onClose={onClose} />}
       </div>
     </div>
   );

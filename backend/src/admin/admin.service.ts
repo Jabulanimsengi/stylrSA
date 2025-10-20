@@ -1542,4 +1542,156 @@ export class AdminService {
 
     return result;
   }
+
+  async getManageFeaturedSalons() {
+    const now = new Date();
+    
+    // Get currently featured salons
+    const featured = await this.prisma.salon.findMany({
+      where: {
+        approvalStatus: 'APPROVED',
+        featuredUntil: { gte: now },
+      },
+      orderBy: [
+        { visibilityWeight: 'desc' },
+        { featuredUntil: 'desc' },
+      ],
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        province: true,
+        backgroundImage: true,
+        featuredUntil: true,
+        visibilityWeight: true,
+        planCode: true,
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    // Get available (non-featured) approved salons
+    const available = await this.prisma.salon.findMany({
+      where: {
+        approvalStatus: 'APPROVED',
+        OR: [
+          { featuredUntil: null },
+          { featuredUntil: { lt: now } },
+        ],
+      },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        province: true,
+        backgroundImage: true,
+        planCode: true,
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    return { featured, available };
+  }
+
+  async featureSalon(
+    salonId: string,
+    durationDays: number,
+    adminId?: string,
+  ) {
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+      select: { approvalStatus: true, name: true, ownerId: true },
+    });
+
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
+
+    if (salon.approvalStatus !== 'APPROVED') {
+      throw new ForbiddenException(
+        'Only approved salons can be featured',
+      );
+    }
+
+    const now = new Date();
+    const featuredUntil = new Date(now);
+    featuredUntil.setDate(featuredUntil.getDate() + durationDays);
+
+    const updated = await this.prisma.salon.update({
+      where: { id: salonId },
+      data: { featuredUntil },
+    });
+
+    // Log admin action
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'SALON_FEATURED',
+        targetType: 'SALON',
+        targetId: salonId,
+        metadata: { durationDays, featuredUntil: featuredUntil.toISOString() },
+      });
+    }
+
+    // Notify salon owner
+    try {
+      const message = `Your salon "${salon.name}" has been featured on the homepage for ${durationDays} days!`;
+      const notification = await this.notificationsService.create(
+        salon.ownerId,
+        message,
+        { link: '/dashboard' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        salon.ownerId,
+        'newNotification',
+        notification,
+      );
+    } catch {
+      // Notification is best-effort
+    }
+
+    return updated;
+  }
+
+  async unfeatureSalon(salonId: string, adminId?: string) {
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+      select: { name: true, ownerId: true },
+    });
+
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
+
+    const updated = await this.prisma.salon.update({
+      where: { id: salonId },
+      data: { featuredUntil: null },
+    });
+
+    // Log admin action
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'SALON_UNFEATURED',
+        targetType: 'SALON',
+        targetId: salonId,
+      });
+    }
+
+    return updated;
+  }
 }

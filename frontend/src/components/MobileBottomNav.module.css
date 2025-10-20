@@ -36,6 +36,11 @@
     overflow: hidden;
   }
   
+  /* Override visited link color - keep black instead of purple */
+  .navItem:visited {
+    color: #1c1c1e;
+  }
+  
   /* Ripple effect on tap */
   .navItem::before {
     content: '';
@@ -66,11 +71,21 @@
     background: rgba(245, 25, 87, 0.08);
   }
   
+  /* Ensure active state remains pink even for visited links */
+  .navItem.active:visited {
+    color: var(--color-primary);
+  }
+  
   .navItem.active svg {
     transform: scale(1.1);
   }
   
   .navItem:hover {
+    color: var(--color-primary-hover);
+  }
+  
+  /* Ensure hover state remains pink even for visited links */
+  .navItem:visited:hover {
     color: var(--color-primary-hover);
   }
   

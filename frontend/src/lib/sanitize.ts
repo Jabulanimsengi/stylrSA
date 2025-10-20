@@ -2,189 +2,72 @@ import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Sanitize HTML content to prevent XSS attacks
- * @param dirty - The potentially unsafe HTML string
- * @param options - DOMPurify configuration options
- * @returns Sanitized HTML string safe for rendering
+ * Use this for any user-generated content that needs to be rendered as HTML
  */
-export function sanitizeHtml(
-  dirty: string,
-  options?: DOMPurify.Config
-): string {
-  if (!dirty || typeof dirty !== 'string') {
-    return '';
-  }
-
-  const defaultOptions: DOMPurify.Config = {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'blockquote', 'code', 'pre',
-    ],
-    ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
+export function sanitizeHtml(dirty: string): string {
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
+    ALLOWED_ATTR: ['href', 'title', 'target'],
     ALLOW_DATA_ATTR: false,
-    ...options,
-  };
-
-  return DOMPurify.sanitize(dirty, defaultOptions);
+  });
 }
 
 /**
- * Sanitize plain text input (removes all HTML)
- * @param input - The potentially unsafe text string
- * @returns Plain text with HTML stripped
+ * Sanitize plain text - removes all HTML tags
+ * Use this for user inputs that should be plain text only
  */
-export function sanitizeText(input: string): string {
-  if (!input || typeof input !== 'string') {
-    return '';
-  }
-
-  return DOMPurify.sanitize(input, {
+export function sanitizeText(dirty: string): string {
+  return DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
   });
 }
 
 /**
- * Sanitize user input for search queries
- * @param query - The search query string
- * @returns Sanitized search query
+ * Sanitize and truncate text for display
  */
-export function sanitizeSearchQuery(query: string): string {
-  if (!query || typeof query !== 'string') {
-    return '';
-  }
-
-  // Remove HTML tags and dangerous characters
-  return query
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/[<>'"]/g, '') // Remove dangerous characters
-    .trim();
+export function sanitizeAndTruncate(dirty: string, maxLength: number = 200): string {
+  const clean = sanitizeText(dirty);
+  if (clean.length <= maxLength) return clean;
+  return clean.substring(0, maxLength) + '...';
 }
 
 /**
- * Sanitize URL to prevent javascript: and data: protocols
- * @param url - The potentially unsafe URL
- * @returns Sanitized URL or empty string if invalid
+ * Sanitize URL to prevent javascript: and data: URIs
  */
 export function sanitizeUrl(url: string): string {
-  if (!url || typeof url !== 'string') {
-    return '';
-  }
-
-  const trimmed = url.trim().toLowerCase();
-
+  const clean = url.trim().toLowerCase();
+  
   // Block dangerous protocols
   if (
-    trimmed.startsWith('javascript:') ||
-    trimmed.startsWith('data:') ||
-    trimmed.startsWith('vbscript:') ||
-    trimmed.startsWith('file:')
+    clean.startsWith('javascript:') ||
+    clean.startsWith('data:') ||
+    clean.startsWith('vbscript:') ||
+    clean.startsWith('file:')
   ) {
     return '';
   }
-
+  
   // Only allow http, https, and relative URLs
-  if (
-    !trimmed.startsWith('http://') &&
-    !trimmed.startsWith('https://') &&
-    !trimmed.startsWith('/') &&
-    !trimmed.startsWith('#')
-  ) {
-    return `https://${trimmed}`;
+  if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('/')) {
+    return url;
   }
-
-  return url.trim();
+  
+  return '';
 }
 
 /**
- * Sanitize file name to prevent directory traversal
- * @param filename - The potentially unsafe filename
- * @returns Sanitized filename
- */
-export function sanitizeFilename(filename: string): string {
-  if (!filename || typeof filename !== 'string') {
-    return '';
-  }
-
-  return filename
-    .replace(/[^a-zA-Z0-9._-]/g, '_') // Replace unsafe characters
-    .replace(/^\.+/, '') // Remove leading dots
-    .replace(/\.+$/, '') // Remove trailing dots
-    .slice(0, 255); // Limit length
-}
-
-/**
- * Escape HTML entities in a string
- * @param text - The text to escape
- * @returns Text with HTML entities escaped
+ * Escape HTML special characters
+ * Use this when you need to display user input as plain text
  */
 export function escapeHtml(text: string): string {
-  if (!text || typeof text !== 'string') {
-    return '';
-  }
-
-  const htmlEntities: Record<string, string> = {
+  const map: Record<string, string> = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#39;',
+    "'": '&#x27;',
     '/': '&#x2F;',
   };
-
-  return text.replace(/[&<>"'/]/g, (char) => htmlEntities[char] || char);
-}
-
-/**
- * Sanitize rich text content (for descriptions, reviews, etc.)
- * Allows more HTML tags but still protects against XSS
- * @param content - The rich text content
- * @returns Sanitized rich text
- */
-export function sanitizeRichText(content: string): string {
-  if (!content || typeof content !== 'string') {
-    return '';
-  }
-
-  return DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'blockquote', 'code', 'pre', 'span', 'div',
-    ],
-    ALLOWED_ATTR: ['href', 'title', 'target', 'rel', 'class'],
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
-    ALLOW_DATA_ATTR: false,
-  });
-}
-
-/**
- * Validate and sanitize phone number
- * @param phone - The phone number string
- * @returns Sanitized phone number or empty string
- */
-export function sanitizePhone(phone: string): string {
-  if (!phone || typeof phone !== 'string') {
-    return '';
-  }
-
-  // Remove all non-digit characters except + at the start
-  return phone.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
-}
-
-/**
- * Sanitize email address
- * @param email - The email string
- * @returns Sanitized email or empty string
- */
-export function sanitizeEmail(email: string): string {
-  if (!email || typeof email !== 'string') {
-    return '';
-  }
-
-  // Basic sanitization - remove dangerous characters
-  return email
-    .toLowerCase()
-    .trim()
-    .replace(/[<>'"]/g, '');
+  return text.replace(/[&<>"'/]/g, (char) => map[char]);
 }

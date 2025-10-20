@@ -18,6 +18,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import Analytics from '@/components/Analytics';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { Suspense } from 'react';
+import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -87,6 +88,7 @@ export default function RootLayout({
                     <Suspense fallback={null}>
                       <Analytics />
                     </Suspense>
+                    <VercelAnalytics />
                     <PWAInstallPrompt />
                   </AuthModalProvider>
                 </SocketProvider>

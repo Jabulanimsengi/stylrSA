@@ -108,6 +108,26 @@ export const cloudinaryPresets = {
 };
 
 export async function uploadToCloudinary(file: File | Blob, options?: { folder?: string }): Promise<any> {
+  // Validate file before upload (security check)
+  if (file instanceof File) {
+    const { validateImageFile, isValidImageByContent } = await import('@/lib/file-validation');
+    
+    try {
+      validateImageFile(file);
+      
+      // Additional check: validate by content (magic numbers)
+      const isValidImage = await isValidImageByContent(file);
+      if (!isValidImage) {
+        throw new Error('File content does not match image format. This file may be corrupted or not a real image.');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`File validation failed: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
   if (!cloudName || !apiKey) {

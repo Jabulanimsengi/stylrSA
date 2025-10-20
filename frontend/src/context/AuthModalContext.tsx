@@ -3,13 +3,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import AuthModal from '@/components/AuthModal';
 
-type AuthModalView = 'login' | 'register';
+type AuthModalView = 'login' | 'register' | 'resend-verification';
 
 interface AuthModalContextType {
   openModal: (view: AuthModalView) => void;
   closeModal: () => void;
   switchToLogin: () => void;
   switchToRegister: () => void;
+  switchToResendVerification: () => void;
 }
 
 const AuthModalContext = createContext<AuthModalContextType | undefined>(undefined);
@@ -34,9 +35,10 @@ export const AuthModalProvider = ({ children }: { children: ReactNode }) => {
   const closeModal = () => setIsOpen(false);
   const switchToLogin = () => setView('login');
   const switchToRegister = () => setView('register');
+  const switchToResendVerification = () => setView('resend-verification');
 
   return (
-    <AuthModalContext.Provider value={{ openModal, closeModal, switchToLogin, switchToRegister }}>
+    <AuthModalContext.Provider value={{ openModal, closeModal, switchToLogin, switchToRegister, switchToResendVerification }}>
       {children}
       {isOpen && <AuthModal view={view} onClose={closeModal} />}
     </AuthModalContext.Provider>

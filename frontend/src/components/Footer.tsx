@@ -65,6 +65,19 @@ export default function Footer() {
           </form>
         </div>
       </div>
+      
+      <div className={styles.mobileAppAnnouncement}>
+        <div className={styles.announcementContent}>
+          <div className={styles.announcementIcon}>📱</div>
+          <div className={styles.announcementText}>
+            <h4 className={styles.announcementTitle}>Mobile Apps Coming Soon!</h4>
+            <p className={styles.announcementDescription}>
+              Android and iOS apps are coming in our next massive update. Stay tuned for an even better experience!
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className={styles.footerBottom}>
         <p>© {new Date().getFullYear()} Stylr SA. All rights reserved.</p>
         <div className={styles.legalLinks}>

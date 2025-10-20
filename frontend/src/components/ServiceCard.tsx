@@ -10,6 +10,7 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import { apiFetch } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { getPlaceholder } from '@/lib/placeholders';
+import { sanitizeText } from '@/lib/sanitize';
 
 interface ServiceCardProps {
   service: Service;
@@ -113,7 +114,7 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
           <p className={styles.price}>R{service.price.toFixed(2)}</p>
         </div>
         <p className={`${styles.description} ${isExpanded ? styles.expanded : ''}`}>
-          {service.description}
+          {sanitizeText(service.description || '')}
         </p>
         <button onClick={() => setIsExpanded(!isExpanded)} className={styles.expandButton}>
           {isExpanded ? 'View Less' : 'View More'}

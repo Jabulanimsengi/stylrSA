@@ -27,6 +27,8 @@ import { CategoriesModule } from './categories/categories.module'; // Import the
 import { ProductOrdersModule } from './product-orders/product-orders.module';
 import { SellersModule } from './sellers/sellers.module';
 import { MongoModule } from './mongo/mongo.module';
+import { MailModule } from './mail/mail.module';
+import { CsrfModule } from './common/csrf/csrf.module';
 
 @Module({
   imports: [
@@ -72,6 +74,8 @@ import { MongoModule } from './mongo/mongo.module';
     ProductOrdersModule,
     SellersModule,
     MongoModule,
+    MailModule,
+    CsrfModule,
   ],
   controllers: [AppController],
   providers: [
