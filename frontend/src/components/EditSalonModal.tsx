@@ -191,13 +191,15 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         longitude: (formData as any).longitude !== '' ? Number((formData as any).longitude) : undefined,
       } as any;
       // Compose operatingHours as array entries compatible with backend DTO
-      const hoursArray = days.map((d) => ({
-        day: d,
-        open: hours[d].isOpen ? hours[d].open : null,
-        close: hours[d].isOpen ? hours[d].close : null,
-      }));
+      const hoursArray = days
+        .filter(d => hours[d].isOpen)
+        .map((d) => ({
+          day: d,
+          open: hours[d].open,
+          close: hours[d].close,
+        }));
       payload.operatingHours = hoursArray;
-      payload.operatingDays = hoursArray.filter(h => h.open && h.close).map((entry) => entry.day);
+      payload.operatingDays = hoursArray.map((entry) => entry.day);
 
       // Normalize mobileFee number
       if (payload.bookingType !== 'ONSITE') {

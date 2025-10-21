@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { apiFetch } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { FaGoogle } from 'react-icons/fa';
+import VerifyEmailCode from './VerifyEmailCode';
 
 // Define the props that this component will accept
 interface RegisterProps {
@@ -22,6 +23,7 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
   const [role, setRole] = useState('CLIENT');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const { switchToLogin } = useAuthModal();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -42,11 +44,11 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
       if (response.message) {
         toast.success(response.message);
       } else {
-        toast.success('Registration successful! Please check your email to verify your account.');
+        toast.success('Registration successful! Please check your email for verification code.');
       }
 
-      // On success, call the function passed down from the parent
-      onRegisterSuccess();
+      // Show verification code input
+      setShowVerification(true);
 
     } catch (err: any) {
       console.error('Registration error:', err);
@@ -82,6 +84,23 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
     // Redirect to Google OAuth
     void signIn('google', { callbackUrl });
   };
+
+  const handleVerified = () => {
+    setShowVerification(false);
+    onRegisterSuccess();
+  };
+
+  const handleCancelVerification = () => {
+    setShowVerification(false);
+    setEmail('');
+    setPassword('');
+    setFirstName('');
+    setLastName('');
+  };
+
+  if (showVerification) {
+    return <VerifyEmailCode email={email} onVerified={handleVerified} onCancel={handleCancelVerification} />;
+  }
 
   return (
     <div>

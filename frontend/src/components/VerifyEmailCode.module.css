@@ -1,0 +1,297 @@
+.container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.iconWrapper {
+  margin-bottom: 1.5rem;
+}
+
+.icon {
+  font-size: 3.5rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #43414A;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  font-size: 0.938rem;
+  color: #4D4952;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.description strong {
+  color: #F51957;
+  font-weight: 600;
+}
+
+.form {
+  margin-bottom: 1.5rem;
+}
+
+.codeInputs {
+  display: flex;
+  gap: 0.625rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+/* Success indicator when all inputs filled */
+.codeInputs.complete::after {
+  content: '✓';
+  position: absolute;
+  right: -2.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  color: #3ab7a5;
+  animation: checkmarkAppear 0.3s ease-out;
+}
+
+@keyframes checkmarkAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0);
+  }
+  50% {
+    transform: translateY(-50%) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+.codeInput {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  border: 2.5px solid #E5E5E5;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Courier New', monospace;
+  color: #43414A;
+  background: white;
+  position: relative;
+  caret-color: #F51957;
+}
+
+/* Hover state - subtle lift */
+.codeInput:hover:not(:disabled) {
+  border-color: #D0D0D0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Active/Focus state - prominent glow */
+.codeInput:focus {
+  border-color: #F51957;
+  background: #fff5f8;
+  box-shadow: 
+    0 0 0 4px rgba(245, 25, 87, 0.12),
+    0 4px 12px rgba(245, 25, 87, 0.15);
+  transform: translateY(-2px) scale(1.05);
+  animation: focusPulse 0.4s ease-out;
+}
+
+/* Filled state - has value */
+.codeInput:not(:placeholder-shown) {
+  border-color: #F51957;
+  background: linear-gradient(135deg, rgba(245, 25, 87, 0.03) 0%, rgba(212, 20, 76, 0.03) 100%);
+  animation: digitFilled 0.2s ease-out;
+}
+
+/* Digit filled animation */
+@keyframes digitFilled {
+  0% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Disabled state */
+.codeInput:disabled {
+  background: #F5F5F5;
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: #E5E5E5;
+}
+
+/* Placeholder styling */
+.codeInput::placeholder {
+  color: #D0D0D0;
+  opacity: 0.5;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+/* Focus pulse animation */
+@keyframes focusPulse {
+  0% {
+    box-shadow: 
+      0 0 0 0 rgba(245, 25, 87, 0.3),
+      0 4px 12px rgba(245, 25, 87, 0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 6px rgba(245, 25, 87, 0.08),
+      0 4px 12px rgba(245, 25, 87, 0.15);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 4px rgba(245, 25, 87, 0.12),
+      0 4px 12px rgba(245, 25, 87, 0.15);
+  }
+}
+
+/* Shake animation on error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+/* Apply shake animation to inputs container when error */
+.errorShake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.error {
+  color: #F51957;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #fff0f5;
+  border-radius: 8px;
+  border-left: 4px solid #F51957;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #F51957 0%, #d4144c 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(245, 25, 87, 0.2);
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 25, 87, 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.resendSection {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f9f6f1;
+  border-radius: 12px;
+}
+
+.resendText {
+  color: #4D4952;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.resendButton {
+  background: transparent;
+  color: #F51957;
+  border: none;
+  font-weight: 600;
+  font-size: 0.938rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.resendButton:hover:not(:disabled) {
+  background: rgba(245, 25, 87, 0.1);
+}
+
+.resendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background: transparent;
+  color: #4D4952;
+  border: 2px solid #E5E5E5;
+  font-weight: 600;
+  font-size: 0.938rem;
+  cursor: pointer;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.cancelButton:hover {
+  background: #F5F5F5;
+  border-color: #D0D0D0;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  .codeInput {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+  }
+
+  .codeInputs {
+    gap: 0.5rem;
+  }
+
+  /* Adjust complete checkmark for mobile */
+  .codeInputs.complete::after {
+    right: -2rem;
+    font-size: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}

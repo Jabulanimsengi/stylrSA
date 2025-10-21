@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import styles from '../app/auth.module.css';
 import { toast } from 'react-toastify';
 import { apiFetch } from '@/lib/api';
+import VerifyEmailCode from './VerifyEmailCode';
 
 interface ResendVerificationProps {
   onClose?: () => void;
@@ -13,13 +14,12 @@ export default function ResendVerification({ onClose }: ResendVerificationProps)
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    setSuccess(false);
 
     try {
       const res = await apiFetch('/api/auth/resend-verification', {
@@ -29,21 +29,12 @@ export default function ResendVerification({ onClose }: ResendVerificationProps)
       });
 
       const response = await res.json();
-
-      toast.success(response.message || 'Verification email sent! Please check your inbox.');
-      setSuccess(true);
-      setEmail('');
-
-      // Auto-close after success if onClose is provided
-      if (onClose) {
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      }
+      toast.success(response.message || 'Verification code sent! Please check your inbox.');
+      setShowVerification(true);
     } catch (err: any) {
       console.error('Resend verification error:', err);
       
-      let msg = 'Failed to resend verification email.';
+      let msg = 'Failed to resend verification code.';
       
       if (err?.message) {
         msg = err.message;
@@ -58,52 +49,51 @@ export default function ResendVerification({ onClose }: ResendVerificationProps)
     }
   };
 
+  const handleVerified = () => {
+    toast.success('Email verified successfully! You can now log in.');
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  const handleCancelVerification = () => {
+    setShowVerification(false);
+    setEmail('');
+  };
+
+  if (showVerification) {
+    return <VerifyEmailCode email={email} onVerified={handleVerified} onCancel={handleCancelVerification} />;
+  }
+
   return (
     <div className={styles.card}>
-      <h1 className={styles.title}>Resend Verification Email</h1>
+      <h1 className={styles.title}>Resend Verification Code</h1>
       <p style={{ marginBottom: '1.5rem', color: '#4D4952', textAlign: 'center' }}>
-        Enter your email address and we&apos;ll send you a new verification link.
+        Enter your email address and we&apos;ll send you a new 6-digit verification code.
       </p>
       
-      {!success ? (
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="email" className={styles.label}>Email address</label>
-            <input 
-              id="email" 
-              type="email" 
-              required 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
-              placeholder="your.email@example.com"
-            />
-          </div>
-
-          {error && <p className={styles.errorMessage}>{error}</p>}
-
-          <div>
-            <button type="submit" disabled={isLoading} className="btn btn-primary">
-              {isLoading ? 'Sending...' : 'Resend Verification Email'}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <div style={{ 
-          textAlign: 'center', 
-          padding: '2rem', 
-          background: '#cdecea', 
-          borderRadius: '8px',
-          marginBottom: '1rem'
-        }}>
-          <p style={{ color: '#25776c', fontWeight: 600, margin: 0 }}>
-            ✅ Verification email sent successfully!
-          </p>
-          <p style={{ color: '#25776c', fontSize: '0.875rem', marginTop: '0.5rem' }}>
-            Please check your inbox and spam folder.
-          </p>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <div className={styles.inputGroup}>
+          <label htmlFor="email" className={styles.label}>Email address</label>
+          <input 
+            id="email" 
+            type="email" 
+            required 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={styles.input}
+            placeholder="your.email@example.com"
+          />
         </div>
-      )}
+
+        {error && <p className={styles.errorMessage}>{error}</p>}
+
+        <div>
+          <button type="submit" disabled={isLoading} className="btn btn-primary">
+            {isLoading ? 'Sending...' : 'Send Verification Code'}
+          </button>
+        </div>
+      </form>
 
       {onClose && (
         <button

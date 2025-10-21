@@ -18,13 +18,11 @@ export class MailService {
     this.fromEmail = this.config.get<string>('FROM_EMAIL') || 'onboarding@resend.dev';
   }
 
-  async sendVerificationEmail(email: string, token: string, firstName: string) {
+  async sendVerificationEmail(email: string, code: string, firstName: string) {
     if (!this.resend) {
-      console.log(`[DEV] Verification email for ${email}: ${token}`);
+      console.log(`[DEV] Verification email for ${email}: ${code}`);
       return;
     }
-
-    const verificationUrl = `${this.config.get('FRONTEND_URL') || 'http://localhost:3001'}/verify-email?token=${token}`;
 
     try {
       console.log(`[EMAIL] Attempting to send verification email to ${email} from ${this.fromEmail}`);
@@ -32,7 +30,7 @@ export class MailService {
         from: this.fromEmail,
         to: email,
         subject: 'Verify your email - Stylr SA',
-        html: this.getVerificationEmailTemplate(firstName, verificationUrl),
+        html: this.getVerificationEmailTemplate(firstName, code),
       });
       console.log(`[EMAIL] Verification email sent successfully to ${email}. ID: ${result.data?.id}`);
     } catch (error) {
@@ -117,7 +115,7 @@ export class MailService {
     }
   }
 
-  private getVerificationEmailTemplate(firstName: string, verificationUrl: string): string {
+  private getVerificationEmailTemplate(firstName: string, verificationCode: string): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -130,11 +128,9 @@ export class MailService {
             .content { background: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
             .content h2 { color: #43414A; margin-top: 0; font-size: 22px; }
             .content p { color: #4D4952; font-size: 16px; line-height: 1.7; }
-            .button { display: inline-block; padding: 14px 32px; background: #F51957; color: white !important; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; transition: background 0.3s ease; }
-            .button:hover { background: #ff2d6f; }
-            .link-text { word-break: break-all; color: #F51957; font-size: 14px; background: #ffd1dd; padding: 12px; border-radius: 6px; display: block; margin: 16px 0; }
+            .code-box { background: linear-gradient(135deg, #F51957 0%, #d4144c 100%); color: white; font-size: 42px; font-weight: 700; letter-spacing: 12px; text-align: center; padding: 30px 20px; border-radius: 12px; margin: 32px 0; font-family: 'Courier New', monospace; box-shadow: 0 4px 12px rgba(245, 25, 87, 0.3); }
+            .info-box { background: #fff4d6; border-left: 4px solid #f9a825; padding: 16px; border-radius: 6px; margin: 24px 0; }
             .footer { text-align: center; margin-top: 30px; color: #4D4952; font-size: 13px; }
-            .footer a { color: #F51957; text-decoration: none; }
           </style>
         </head>
         <body>
@@ -144,14 +140,15 @@ export class MailService {
             </div>
             <div class="content">
               <h2>Hi ${firstName},</h2>
-              <p>Thank you for joining Stylr SA! We're excited to have you on board. To get started, please verify your email address by clicking the button below:</p>
-              <div style="text-align: center;">
-                <a href="${verificationUrl}" class="button">Verify Email Address</a>
+              <p>Thank you for joining Stylr SA! We're excited to have you on board.</p>
+              <p>To complete your registration, please enter this verification code in the app:</p>
+              <div class="code-box">${verificationCode}</div>
+              <p style="text-align: center; color: #4D4952; font-size: 14px; margin-top: 8px;">Enter this code to verify your email address</p>
+              <div class="info-box">
+                <p style="margin: 0; font-weight: 600; color: #b7791f;">⏱️ Important</p>
+                <p style="margin: 8px 0 0 0; font-size: 14px; color: #4D4952;">This verification code will expire in <strong>15 minutes</strong>. If you didn't create an account, please ignore this email.</p>
               </div>
-              <p>Or copy and paste this link into your browser:</p>
-              <span class="link-text">${verificationUrl}</span>
-              <p style="font-size: 14px; color: #4D4952; margin-top: 24px;">⏱️ This verification link will expire in 24 hours.</p>
-              <p style="font-size: 14px; color: #4D4952;">If you didn't create an account, please ignore this email.</p>
+              <p style="font-size: 14px; color: #4D4952; margin-top: 24px;">Need a new code? Simply click "Resend Code" in the app.</p>
             </div>
             <div class="footer">
               <p>&copy; ${new Date().getFullYear()} Stylr SA. All rights reserved.</p>

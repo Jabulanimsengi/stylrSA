@@ -6,9 +6,10 @@ import styles from '../app/auth.module.css';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
 import { User } from '@/types';
-import { apiJson } from '@/lib/api';
+import { apiJson, apiFetch } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { FaGoogle } from 'react-icons/fa';
+import VerifyEmailCode from './VerifyEmailCode';
 
 // Define the props that this component will accept
 interface LoginProps {
@@ -21,6 +22,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [isResendingCode, setIsResendingCode] = useState(false);
   const { switchToRegister, switchToResendVerification } = useAuthModal();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -41,12 +44,66 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
     } catch (err: unknown) {
       const msg = toFriendlyMessage(err, 'Login failed. Please check your credentials.');
-      setError(msg);
-      toast.error(msg);
+      
+      // Check if error is about email verification
+      if (msg.toLowerCase().includes('verify your email')) {
+        setNeedsVerification(true);
+        toast.info('Please verify your email address first.');
+        // Automatically send verification code
+        handleResendCode();
+      } else {
+        setError(msg);
+        toast.error(msg);
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleResendCode = async () => {
+    setIsResendingCode(true);
+    try {
+      await apiFetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      toast.success('Verification code sent! Please check your email.');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to send verification code.');
+    } finally {
+      setIsResendingCode(false);
+    }
+  };
+
+  const handleVerified = async () => {
+    // After verification, attempt login again
+    toast.success('Email verified! Logging you in...');
+    setNeedsVerification(false);
+    
+    try {
+      const data = await apiJson<{ user: User }>('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      toast.success('Login successful! Welcome.');
+      onLoginSuccess(data.user);
+    } catch (err: unknown) {
+      const msg = toFriendlyMessage(err, 'Login failed after verification. Please try again.');
+      setError(msg);
+      toast.error(msg);
+    }
+  };
+
+  const handleCancelVerification = () => {
+    setNeedsVerification(false);
+  };
+
+  if (needsVerification) {
+    return <VerifyEmailCode email={email} onVerified={handleVerified} onCancel={handleCancelVerification} />;
+  }
 
   return (
       <div>

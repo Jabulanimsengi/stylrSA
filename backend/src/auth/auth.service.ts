@@ -17,12 +17,22 @@ import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
+  // Cutoff date for email verification enforcement
+  // Users created after this date must verify their email before logging in
+  // Set to deployment date of this feature (2025-10-21)
+  private readonly VERIFICATION_ENFORCEMENT_DATE = new Date('2025-10-21T00:00:00Z');
+
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
     private mailService: MailService,
   ) {}
+
+  // Helper method to generate 6-digit verification code
+  private generateVerificationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
 
   async register(dto: RegisterDto) {
     // Check if user already exists
@@ -37,32 +47,32 @@ export class AuthService {
         const isExpired = existingUser.verificationExpires && existingUser.verificationExpires < new Date();
         
         if (isExpired) {
-          // Generate new verification token
-          const verificationToken = randomBytes(32).toString('hex');
-          const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+          // Generate new 6-digit verification code
+          const verificationCode = this.generateVerificationCode();
+          const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
           await this.prisma.user.update({
             where: { id: existingUser.id },
             data: {
-              verificationToken,
+              verificationToken: verificationCode,
               verificationExpires,
             },
           });
 
-          // Resend verification email
+          // Resend verification email with code
           await this.mailService.sendVerificationEmail(
             existingUser.email,
-            verificationToken,
+            verificationCode,
             existingUser.firstName,
           );
 
           return {
-            message: 'Account already exists but not verified. A new verification email has been sent.',
+            message: 'Account already exists but not verified. A new verification code has been sent to your email.',
             requiresVerification: true,
             isExisting: true,
           };
         } else {
-          // Token is still valid, just resend with existing token
+          // Code is still valid, just resend with existing code
           await this.mailService.sendVerificationEmail(
             existingUser.email,
             existingUser.verificationToken!,
@@ -70,7 +80,7 @@ export class AuthService {
           );
 
           return {
-            message: 'Account already exists but not verified. Verification email has been resent.',
+            message: 'Account already exists but not verified. Verification code has been resent to your email.',
             requiresVerification: true,
             isExisting: true,
           };
@@ -84,9 +94,9 @@ export class AuthService {
     // generate the password hash
     const hash = await argon2.hash(dto.password);
     
-    // Generate email verification token
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Generate 6-digit verification code
+    const verificationCode = this.generateVerificationCode();
+    const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     // save the new user in the db
     try {
@@ -97,21 +107,21 @@ export class AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           role: dto.role,
-          verificationToken,
+          verificationToken: verificationCode,
           verificationExpires,
           emailVerified: false,
         },
       });
 
-      // Send verification email
+      // Send verification email with code
       await this.mailService.sendVerificationEmail(
         user.email,
-        verificationToken,
+        verificationCode,
         user.firstName,
       );
 
       return { 
-        message: 'Registration successful! Please check your email to verify your account.',
+        message: 'Registration successful! Please check your email for a 6-digit verification code.',
         requiresVerification: true,
         isExisting: false,
       };
@@ -132,7 +142,10 @@ export class AuthService {
       where: {
         email: dto.email,
       },
-      include: { salons: true },
+      include: { 
+        salons: true,
+        oauthAccounts: true,
+      },
     });
     
     // if user does not exist throw exception
@@ -187,7 +200,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-
+    // Check email verification for new users (created after enforcement date)
+    // Old users (created before enforcement date) can log in without verification
+    // OAuth users are always verified, so they're not affected
+    const isNewUser = user.createdAt >= this.VERIFICATION_ENFORCEMENT_DATE;
+    const isManualSignup = !user.oauthAccounts || user.oauthAccounts.length === 0;
+    
+    if (isNewUser && !user.emailVerified && isManualSignup) {
+      throw new UnauthorizedException(
+        'Please verify your email address before logging in. Check your inbox for the verification code.'
+      );
+    }
 
     // Reset failed login attempts on successful login
     await this.prisma.user.update({
@@ -317,25 +340,25 @@ export class AuthService {
       throw new ForbiddenException('Email already verified');
     }
 
-    // Generate new verification token
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // Generate new 6-digit verification code
+    const verificationCode = this.generateVerificationCode();
+    const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        verificationToken,
+        verificationToken: verificationCode,
         verificationExpires,
       },
     });
 
     await this.mailService.sendVerificationEmail(
       user.email,
-      verificationToken,
+      verificationCode,
       user.firstName,
     );
 
-    return { message: 'Verification email sent. Please check your inbox.' };
+    return { message: 'A new 6-digit verification code has been sent to your email.' };
   }
 
   async verifyPassword(userId: string, password: string): Promise<boolean> {

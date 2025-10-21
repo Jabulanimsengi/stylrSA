@@ -52,6 +52,7 @@
 
 .cardContent {
   @apply flex-1 p-4;
+  text-align: center;
 }
 
 .cardTitle {

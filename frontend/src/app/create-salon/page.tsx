@@ -95,13 +95,15 @@ export default function CreateSalonPage() {
         if (!Number.isNaN(feeNum) && feeNum >= 0) payload.mobileFee = feeNum;
       }
       // Send operatingHours as a record Day -> "HH:MM - HH:MM" to match details view
-      const hoursArray = days.map((d) => ({
-        day: d,
-        open: hours[d].isOpen ? hours[d].open : null,
-        close: hours[d].isOpen ? hours[d].close : null,
-      }));
+      const hoursArray = days
+        .filter(d => hours[d].isOpen)
+        .map((d) => ({
+          day: d,
+          open: hours[d].open,
+          close: hours[d].close,
+        }));
       payload.operatingHours = hoursArray;
-      payload.operatingDays = hoursArray.filter(h => h.open && h.close).map((entry) => entry.day);
+      payload.operatingDays = hoursArray.map((entry) => entry.day);
       payload.planCode = selectedPlan;
       payload.hasSentProof = hasSentProof;
       const effectiveReference = paymentReference.trim().length > 0 ? paymentReference.trim() : name.trim();
