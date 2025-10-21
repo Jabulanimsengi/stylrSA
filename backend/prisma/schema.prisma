@@ -150,18 +150,20 @@ model Service {
 }
 
 model Review {
-  id             String         @id @default(uuid())
-  rating         Int
-  comment        String
-  approvalStatus ApprovalStatus @default(PENDING)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  userId         String
-  author         User           @relation(fields: [userId], references: [id])
-  salonId        String
-  salon          Salon          @relation(fields: [salonId], references: [id])
-  bookingId      String         @unique
-  booking        Booking        @relation(fields: [bookingId], references: [id])
+  id                     String         @id @default(uuid())
+  rating                 Int
+  comment                String
+  salonOwnerResponse     String?
+  salonOwnerRespondedAt  DateTime?
+  approvalStatus         ApprovalStatus @default(PENDING)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  userId                 String
+  author                 User           @relation(fields: [userId], references: [id])
+  salonId                String
+  salon                  Salon          @relation(fields: [salonId], references: [id])
+  bookingId              String         @unique
+  booking                Booking        @relation(fields: [bookingId], references: [id])
   @@index([salonId])
 }
 

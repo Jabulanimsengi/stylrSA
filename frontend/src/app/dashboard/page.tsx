@@ -34,6 +34,7 @@ import { apiFetch, apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
+import ReviewsTab from '@/components/ReviewsTab/ReviewsTab';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
@@ -78,6 +79,7 @@ function DashboardPageContent() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'service' | 'product' | 'promotion' | 'gallery' } | null>(null);
   
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
+  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery'>('bookings');
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -203,6 +205,14 @@ function DashboardPageContent() {
       fetchDashboardData();
     }
   }, [authStatus, ownerId, fetchDashboardData, router]);
+
+  // Handle tab query parameter
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'reviews' || tab === 'services' || tab === 'bookings' || tab === 'gallery') {
+      setActiveMainTab(tab);
+    }
+  }, [searchParams]);
 
   // Refresh dashboard when admin updates visibility for this salon
   useEffect(() => {
@@ -552,8 +562,38 @@ function DashboardPageContent() {
             </div>
         </header>
 
-        <div className={styles.contentGrid}>
-          <div className={styles.contentCard}>
+        <div className={styles.mainTabs}>
+          <button
+            onClick={() => setActiveMainTab('bookings')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'bookings' ? styles.activeMainTab : ''}`}
+          >
+            Bookings
+          </button>
+          <button
+            onClick={() => setActiveMainTab('services')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'services' ? styles.activeMainTab : ''}`}
+          >
+            Services
+          </button>
+          <button
+            onClick={() => setActiveMainTab('reviews')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'reviews' ? styles.activeMainTab : ''}`}
+          >
+            My Reviews
+          </button>
+          <button
+            onClick={() => setActiveMainTab('gallery')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'gallery' ? styles.activeMainTab : ''}`}
+          >
+            Gallery
+          </button>
+        </div>
+
+        {activeMainTab === 'reviews' && <ReviewsTab />}
+
+        {activeMainTab === 'bookings' && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard}>
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>Manage Bookings</h3>
             </div>
@@ -567,9 +607,13 @@ function DashboardPageContent() {
               {activeBookingTab === 'confirmed' && renderBookingsList(confirmedBookings)}
               {activeBookingTab === 'past' && renderBookingsList(pastBookings)}
             </div>
+            </div>
           </div>
+        )}
 
-          <div className={styles.contentCard}>
+        {activeMainTab === 'services' && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard}>
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>Your Services</h3>
               <button onClick={openServiceModalToAdd} className="btn btn-primary">+ Add Service</button>
@@ -586,9 +630,13 @@ function DashboardPageContent() {
                 </div>
               )) : <p>You haven't added any services yet.</p>}
             </div>
+            </div>
           </div>
+        )}
 
-          <div className={styles.contentCard}>
+        {activeMainTab === 'gallery' && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard}>
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>Manage Gallery</h3>
               <button onClick={() => setIsGalleryModalOpen(true)} className="btn btn-primary"><FaCamera /> Add Image</button>
@@ -607,8 +655,9 @@ function DashboardPageContent() {
                 </div>
               )) : <p>Your gallery is empty.</p>}
             </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );

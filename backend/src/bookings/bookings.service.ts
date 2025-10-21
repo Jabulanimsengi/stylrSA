@@ -139,13 +139,22 @@ export class BookingsService {
       data: { status },
     });
 
-    const notificationMessage = `Your booking for ${booking.service.title} has been ${status.toLowerCase()}.`;
+    // Customize notification message based on status
+    let notificationMessage = `Your booking for ${booking.service.title} has been ${status.toLowerCase()}.`;
+    let notificationLink = '/my-bookings';
+
+    // Special message for COMPLETED bookings to encourage reviews
+    if (status === 'COMPLETED') {
+      notificationMessage = `Your booking for ${booking.service.title} at ${booking.service.salon.name} is complete! We'd love to hear about your experience. Please leave a review.`;
+      notificationLink = '/my-bookings?action=review';
+    }
+
     const notification = await this.notificationsService.create(
       booking.userId,
       notificationMessage,
       {
         bookingId: booking.id,
-        link: '/my-bookings',
+        link: notificationLink,
       },
     );
 

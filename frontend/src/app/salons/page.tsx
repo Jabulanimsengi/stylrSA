@@ -21,6 +21,7 @@ import { getImageWithFallback } from '@/lib/placeholders';
 import PageNav from '@/components/PageNav';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
+import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -175,6 +176,10 @@ function SalonsPageContent() {
               </button>
               <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
                 <div className={styles.imageWrapper}>
+                  <ReviewBadge 
+                    reviewCount={salon.reviews?.length || 0}
+                    avgRating={salon.avgRating || 0}
+                  />
                   <Image
                     src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
                     alt={`A photo of ${salon.name}`}

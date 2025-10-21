@@ -1,0 +1,73 @@
+.badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border-radius: 0.375rem;
+  color: white;
+  font-weight: 700;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.rating {
+  font-size: 0.9rem;
+  color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.rating::before {
+  content: '★';
+  font-size: 0.85rem;
+}
+
+.count {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .badge {
+    padding: 0.25rem 0.4rem;
+    top: 0.4rem;
+    left: 0.4rem;
+  }
+
+  .rating {
+    font-size: 0.8rem;
+  }
+
+  .rating::before {
+    font-size: 0.75rem;
+  }
+
+  .count {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .badge {
+    padding: 0.2rem 0.35rem;
+  }
+
+  .rating {
+    font-size: 0.75rem;
+  }
+
+  .rating::before {
+    font-size: 0.7rem;
+  }
+
+  .count {
+    font-size: 0.6rem;
+  }
+}

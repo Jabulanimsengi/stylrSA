@@ -110,11 +110,21 @@ export interface Review {
   id: string;
   rating: number;
   comment: string;
+  salonOwnerResponse?: string | null;
+  salonOwnerRespondedAt?: string | null;
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
   userId: string;
   salonId: string;
+  bookingId?: string;
   createdAt: string;
   updatedAt: string;
   author: { id: string; firstName: string; lastName: string };
+  booking?: {
+    id: string;
+    service: {
+      title: string;
+    };
+  };
 }
 
 export interface Booking {

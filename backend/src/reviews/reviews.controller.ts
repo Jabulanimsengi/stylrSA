@@ -1,5 +1,5 @@
 // backend/src/reviews/reviews.controller.ts
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Patch, Param } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
@@ -13,5 +13,23 @@ export class ReviewsController {
   @Post()
   create(@Body() createReviewDto: CreateReviewDto, @GetUser() user: any) {
     return this.reviewsService.create(user.id, createReviewDto);
+  }
+
+  // NEW: Get salon owner's reviews
+  @UseGuards(AuthGuard('jwt'))
+  @Get('my-salon-reviews')
+  getMySalonReviews(@GetUser() user: any) {
+    return this.reviewsService.getSalonOwnerReviews(user.id);
+  }
+
+  // NEW: Respond to a review
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':reviewId/respond')
+  respondToReview(
+    @Param('reviewId') reviewId: string,
+    @Body() body: { response: string },
+    @GetUser() user: any,
+  ) {
+    return this.reviewsService.respondToReview(reviewId, user.id, body.response);
   }
 }

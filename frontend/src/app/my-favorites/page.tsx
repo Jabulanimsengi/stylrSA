@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Salon } from '@/types';
 import styles from './MyFavoritesPage.module.css';
 import Image from 'next/image';
@@ -11,7 +12,9 @@ import { toast } from 'react-toastify';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getImageWithFallback } from '@/lib/placeholders';
+import { transformCloudinary } from '@/utils/cloudinary';
 import PageNav from '@/components/PageNav';
+import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
 
 export default function MyFavoritesPage() {
   const [favorites, setFavorites] = useState<Salon[]>([]);
@@ -79,9 +82,13 @@ export default function MyFavoritesPage() {
           {favorites.map((salon) => (
             <Link href={`/salons/${salon.id}`} key={salon.id} className={styles.salonCard}>
               <div className={styles.imageWrapper}>
+                <ReviewBadge 
+                  reviewCount={salon.reviews?.length || 0}
+                  avgRating={salon.avgRating || 0}
+                />
                 <Image
-                  src={getImageWithFallback(salon.backgroundImage, 'wide')}
-                  alt={salon.name}
+                  src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
+                  alt={`A photo of ${salon.name}`}
                   className={styles.cardImage}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"

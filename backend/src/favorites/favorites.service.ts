@@ -9,7 +9,15 @@ export class FavoritesService {
     return this.prisma.favorite.findMany({
       where: { userId },
       include: {
-        salon: true, // Include the full salon details for the favorites page
+        salon: {
+          include: {
+            reviews: {
+              where: {
+                approvalStatus: 'APPROVED',
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',

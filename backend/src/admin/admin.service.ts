@@ -261,16 +261,32 @@ export class AdminService {
   ) {
     const existing = await this.prisma.review.findUnique({
       where: { id: reviewId },
-      select: { salonId: true },
+      select: { 
+        salonId: true,
+        rating: true,
+      },
     });
     const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: { approvalStatus: status },
       include: {
-        author: { select: { id: true } },
-        salon: { select: { name: true } },
+        author: { 
+          select: { 
+            id: true,
+            firstName: true,
+            lastName: true,
+          } 
+        },
+        salon: { 
+          select: { 
+            name: true,
+            ownerId: true,
+          } 
+        },
       },
     });
+
+    // Recalculate salon average rating
     if (existing?.salonId) {
       const agg = await this.prisma.review.aggregate({
         where: { salonId: existing.salonId, approvalStatus: 'APPROVED' },
@@ -282,17 +298,37 @@ export class AdminService {
       });
     }
 
+    // Notify review author
     if (updated.author) {
-      const message = `Your review for ${updated.salon?.name ?? 'the salon'} has been ${status.toLowerCase()}.`;
-      const notification = await this.notificationsService.create(
+      const authorMessage = `Your review for ${updated.salon?.name ?? 'the salon'} has been ${status.toLowerCase()}.`;
+      const authorNotification = await this.notificationsService.create(
         updated.author.id,
-        message,
+        authorMessage,
         { link: '/my-profile?tab=reviews' },
       );
       this.eventsGateway.sendNotificationToUser(
         updated.author.id,
         'newNotification',
-        notification,
+        authorNotification,
+      );
+    }
+
+    // NEW: Notify salon owner when review is approved
+    if (status === 'APPROVED' && updated.salon?.ownerId && updated.author) {
+      const authorName = `${updated.author.firstName} ${updated.author.lastName.charAt(0)}.`;
+      const rating = existing?.rating ?? 0;
+      const ownerMessage = `${authorName} left a ${rating}-star review for your salon. Tap to view and respond.`;
+      
+      const ownerNotification = await this.notificationsService.create(
+        updated.salon.ownerId,
+        ownerMessage,
+        { link: '/dashboard?tab=reviews' },
+      );
+      
+      this.eventsGateway.sendNotificationToUser(
+        updated.salon.ownerId,
+        'newNotification',
+        ownerNotification,
       );
     }
 

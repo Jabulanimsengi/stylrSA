@@ -25,7 +25,23 @@ export class PrismaService extends BasePrismaClient implements OnModuleInit {
   // Index signature to avoid TS errors if Prisma Client types are out of date
   // and to permit access to dynamic model properties and raw helpers.
   [key: string]: any;
+  
+  constructor() {
+    super({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+      log: ['warn', 'error'],
+    });
+  }
+  
   async onModuleInit() {
     await this.$connect();
+  }
+  
+  async onModuleDestroy() {
+    await this.$disconnect();
   }
 }

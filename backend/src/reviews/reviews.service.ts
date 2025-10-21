@@ -73,4 +73,117 @@ export class ReviewsService {
 
     return review;
   }
+
+  // NEW: Get all reviews for salon owner's salon
+  async getSalonOwnerReviews(userId: string) {
+    // Find the salon owned by this user
+    const salon = await this.prisma.salon.findFirst({
+      where: { ownerId: userId },
+      select: { id: true },
+    });
+
+    if (!salon) {
+      // Return empty arrays instead of throwing error
+      // This allows salon owners without a salon yet to see the empty state
+      return {
+        pending: [],
+        approved: [],
+        needsResponse: [],
+      };
+    }
+
+    // Get all reviews for this salon
+    const reviews = await this.prisma.review.findMany({
+      where: { salonId: salon.id },
+      include: {
+        author: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        booking: {
+          include: {
+            service: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Group by status
+    return {
+      pending: reviews.filter((r) => r.approvalStatus === 'PENDING'),
+      approved: reviews.filter((r) => r.approvalStatus === 'APPROVED'),
+      needsResponse: reviews.filter(
+        (r) => r.approvalStatus === 'APPROVED' && !r.salonOwnerResponse,
+      ),
+    };
+  }
+
+  // NEW: Respond to a review
+  async respondToReview(reviewId: string, userId: string, response: string) {
+    // Get the review and verify ownership
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      include: {
+        salon: {
+          select: {
+            ownerId: true,
+            name: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+          },
+        },
+      },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found.');
+    }
+
+    if (review.salon.ownerId !== userId) {
+      throw new ForbiddenException(
+        'You can only respond to reviews for your own salon.',
+      );
+    }
+
+    if (review.approvalStatus !== 'APPROVED') {
+      throw new ForbiddenException(
+        'You can only respond to approved reviews.',
+      );
+    }
+
+    // Update the review with the response
+    const updated = await this.prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        salonOwnerResponse: response.trim(),
+        salonOwnerRespondedAt: new Date(),
+      },
+    });
+
+    // Notify the review author
+    const notification = await this.notificationsService.create(
+      review.author.id,
+      `${review.salon.name} responded to your review.`,
+      { link: `/salons/${review.salonId}?highlight=review-${reviewId}` },
+    );
+
+    this.eventsGateway.sendNotificationToUser(
+      review.author.id,
+      'newNotification',
+      notification,
+    );
+
+    return updated;
+  }
 }
