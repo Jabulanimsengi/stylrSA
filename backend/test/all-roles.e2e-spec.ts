@@ -480,4 +480,32 @@ describe('Comprehensive multi-role flows (e2e)', () => {
     });
     expect(deletedSalon).toBeNull();
   });
+
+  it('allows a user to sign up as a salon owner via Google OAuth', async () => {
+    const httpServer = app.getHttpServer();
+    const timestamp = Date.now();
+    const googleUser = {
+      provider: 'google',
+      providerAccountId: `google-test-id-${timestamp}`,
+      email: `salon-owner-${timestamp}@test.com`,
+      name: 'Salon Owner',
+      role: 'SALON_OWNER',
+    };
+
+    createdUserEmails.push(googleUser.email);
+
+    const response = await request(httpServer)
+      .post('/api/auth/sso')
+      .send(googleUser)
+      .expect(200);
+
+    expect(response.body.user.role).toBe('SALON_OWNER');
+
+    const dbUser = await prisma.user.findUnique({
+      where: { email: googleUser.email },
+    });
+
+    expect(dbUser).toBeDefined();
+    expect(dbUser?.role).toBe('SALON_OWNER');
+  });
 });

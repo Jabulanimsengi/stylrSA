@@ -187,12 +187,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
-      throw new UnauthorizedException(
-        'Please verify your email before logging in. Check your inbox for the verification link.'
-      );
-    }
+
 
     // Reset failed login attempts on successful login
     await this.prisma.user.update({

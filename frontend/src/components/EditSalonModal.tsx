@@ -49,8 +49,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
 
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  const [hours, setHours] = useState<Record<string, { open: string; close: string }>>(
-    Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00' }])) as Record<string, { open: string; close: string }>
+  const [hours, setHours] = useState<Record<string, { open: string; close: string; isOpen: boolean }>>(
+    Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string, { open: string; close: string; isOpen: boolean }>
   );
 
   useEffect(() => {
@@ -91,16 +91,16 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         hoursRecord = rawHours as Record<string, string>;
       }
 
-      const nextHours: Record<string, { open: string; close: string }> = {} as any;
+      const nextHours: Record<string, { open: string; close: string; isOpen: boolean }> = {} as any;
       days.forEach((d) => {
         const val = hoursRecord?.[d];
         if (val && typeof val === 'string') {
           const match = val.match(/(\d{1,2}:\d{2}).*(\d{1,2}:\d{2})/);
           const open = match?.[1] || '09:00';
           const close = match?.[2] || '17:00';
-          nextHours[d] = { open, close };
+          nextHours[d] = { open, close, isOpen: true };
         } else {
-          nextHours[d] = { open: '09:00', close: '17:00' };
+          nextHours[d] = { open: '09:00', close: '17:00', isOpen: false };
         }
       });
       setHours(nextHours);
@@ -193,11 +193,11 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       // Compose operatingHours as array entries compatible with backend DTO
       const hoursArray = days.map((d) => ({
         day: d,
-        open: hours[d].open,
-        close: hours[d].close,
+        open: hours[d].isOpen ? hours[d].open : null,
+        close: hours[d].isOpen ? hours[d].close : null,
       }));
       payload.operatingHours = hoursArray;
-      payload.operatingDays = hoursArray.map((entry) => entry.day);
+      payload.operatingDays = hoursArray.filter(h => h.open && h.close).map((entry) => entry.day);
 
       // Normalize mobileFee number
       if (payload.bookingType !== 'ONSITE') {
@@ -429,14 +429,23 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <input type="time" value={hours['Monday'].close} onChange={(e)=>{
                   const v=e.target.value; setHours(prev=>{ const next={...prev}; days.forEach(d=>next[d]={...next[d],close:v}); return next;});
                 }} className={styles.input} style={{maxWidth:160}} />
+                <input type="checkbox" checked={Object.values(hours).every(h => h.isOpen)} onChange={(e) => {
+                  const isOpen = e.target.checked;
+                  setHours(prev => {
+                    const next = {...prev};
+                    days.forEach(d => next[d] = {...next[d], isOpen});
+                    return next;
+                  });
+                }} />
               </div>
               <div style={{display:'grid',gap:8}}>
                 {days.map((d)=> (
                   <div key={d} style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+                    <input type="checkbox" checked={hours[d].isOpen} onChange={(e) => setHours(prev => ({...prev, [d]: {...prev[d], isOpen: e.target.checked}}))} />
                     <span style={{minWidth:120}}>{d}</span>
-                    <input type="time" value={hours[d].open} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],open:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
+                    <input type="time" value={hours[d].open} disabled={!hours[d].isOpen} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],open:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
                     <span>to</span>
-                    <input type="time" value={hours[d].close} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],close:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
+                    <input type="time" value={hours[d].close} disabled={!hours[d].isOpen} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],close:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
                   </div>
                 ))}
               </div>

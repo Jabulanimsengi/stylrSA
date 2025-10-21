@@ -15,7 +15,7 @@ export class MailService {
     } else {
       this.resend = new Resend(apiKey);
     }
-    this.fromEmail = this.config.get<string>('FROM_EMAIL') || 'noreply@yourdomain.com';
+    this.fromEmail = this.config.get<string>('FROM_EMAIL') || 'onboarding@resend.dev';
   }
 
   async sendVerificationEmail(email: string, token: string, firstName: string) {

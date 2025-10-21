@@ -17,8 +17,16 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, account, profile }) {
-      if (account) {
+      if (account && account.provider === 'google') {
         try {
+          // Read role from cookie for Google OAuth
+          const cookieStore = cookies();
+          const roleCookie = cookieStore.get('oauth_signup_role');
+          const selectedRole = roleCookie?.value || 'CLIENT';
+
+          // Clear cookie after reading
+          cookieStore.delete('oauth_signup_role');
+
           const backendOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:5000";
           const r = await fetch(`${backendOrigin}/api/auth/sso`, {
             method: 'POST',
@@ -28,6 +36,7 @@ const handler = NextAuth({
               providerAccountId: account.providerAccountId,
               email: (profile as any)?.email,
               name: (profile as any)?.name,
+              role: selectedRole,
             })
           });
           if (r.ok) {

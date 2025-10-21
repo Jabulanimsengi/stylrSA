@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './AuthModal.module.css';
+import styles from './AuthModal.redesign.module.css';
 import Login from './Login';
 import Register from './Register';
 import ResendVerification from './ResendVerification';
@@ -10,6 +10,7 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import { useAuth } from '@/hooks/useAuth';
 import { FaTimes } from 'react-icons/fa';
 import { User } from '@/types';
+import Image from 'next/image';
 
 // This component is rendered by AuthModalProvider and receives props
 interface AuthModalProps {
@@ -52,28 +53,37 @@ export default function AuthModal({ view: initialView, onClose }: AuthModalProps
   };
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
-        {view !== 'resend-verification' && (
-          <div className={styles.tabs}>
-            <button
-              className={`${styles.tab} ${view === 'login' ? styles.active : ''}`}
-              onClick={switchToLogin}
-            >
-              Login
-            </button>
-            <button
-              className={`${styles.tab} ${view === 'register' ? styles.active : ''}`}
-              onClick={switchToRegister}
-            >
-              Register
-            </button>
-          </div>
-        )}
-        {view === 'login' && <Login onLoginSuccess={handleLoginSuccess} />}
-        {view === 'register' && <Register onRegisterSuccess={handleRegisterSuccess} />}
-        {view === 'resend-verification' && <ResendVerification onClose={onClose} />}
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.leftPanel}>
+
+          <h2 className={styles.leftPanelTitle}>Welcome to Stylr SA</h2>
+          <p className={styles.leftPanelSubtitle}>
+            The future of beauty and wellness bookings in South Africa.
+          </p>
+        </div>
+        <div className={styles.rightPanel}>
+          <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
+          {view !== 'resend-verification' && (
+            <div className={styles.tabs}>
+              <button
+                className={`${styles.tab} ${view === 'login' ? styles.active : ''}`}
+                onClick={switchToLogin}
+              >
+                Login
+              </button>
+              <button
+                className={`${styles.tab} ${view === 'register' ? styles.active : ''}`}
+                onClick={switchToRegister}
+              >
+                Register
+              </button>
+            </div>
+          )}
+          {view === 'login' && <Login onLoginSuccess={handleLoginSuccess} />}
+          {view === 'register' && <Register onRegisterSuccess={handleRegisterSuccess} />}
+          {view === 'resend-verification' && <ResendVerification onClose={onClose} />}
+        </div>
       </div>
     </div>
   );

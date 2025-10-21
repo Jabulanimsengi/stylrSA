@@ -29,6 +29,25 @@
   animation: slideIn 0.4s ease;
 }
 
+@media (max-width: 768px) {
+  .modalContent {
+    flex-direction: column;
+    max-width: 400px;
+  }
+  .leftPanel {
+    display: none;
+  }
+  .rightPanel {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .rightPanel {
+    padding: 1.5rem;
+  }
+}
+
 @keyframes slideIn {
   from { transform: translateY(20px); opacity: 0.8; }
   to { transform: translateY(0); opacity: 1; }
@@ -66,7 +85,7 @@
 
 .rightPanel {
   flex: 1.5;
-  padding: 2.5rem;
+  padding: 4rem;
   position: relative;
 }
 
@@ -113,84 +132,3 @@
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
 }
-
-.title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 2.5rem;
-  color: var(--primary-plum);
-}
-
-.input {
-  padding: 0.85rem 1.1rem;
-  font-size: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--input-border-focus);
-}
-
-.inputGroup {
-  margin-bottom: 1.25rem;
-}
-
-.roleSelector {
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  margin-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.roleOption {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  max-width: 300px;
-}
-
-.oauthButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-surface);
-  color: var(--color-text-strong);
-  font-weight: 600;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  font-size: 1rem;
-}
-
-.oauthButton:hover {
-  background-color: var(--color-surface-subtle);
-}
-
-.oauthButton:active {
-  transform: translateY(1px);
-}
-
-.oauthButton svg {
-  width: 24px;
-  height: 24px;
-}
-
-
-.label {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
