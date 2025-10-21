@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import MobileNavIcons from '@/components/MobileNavIcons';
 import ClientChatWidget from '@/components/ClientChatWidget';
 import AuthSessionProvider from '@/components/AuthSessionProvider';
 import CookieBanner from '@/components/CookieBanner';
@@ -76,6 +77,7 @@ export default function RootLayout({
                   <AuthModalProvider>
                     <div className="app-shell">
                       <Navbar />
+                      <MobileNavIcons />
                       <div className="app-content">
                         <main className="main-content">{children}</main>
                         <Footer />

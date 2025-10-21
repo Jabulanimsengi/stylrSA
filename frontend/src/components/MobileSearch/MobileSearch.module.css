@@ -1,0 +1,32 @@
+.searchContainer {
+  width: 100%;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem; /* Reduced from 1rem */
+  cursor: pointer;
+  background-color: white;
+}
+
+.searchInput::placeholder {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Extra small screens */
+@media (max-width: 375px) {
+  .searchInput {
+    font-size: 0.8125rem;
+    padding: 0.75rem 0.875rem;
+  }
+  
+  .searchInput::placeholder {
+    font-size: 0.8125rem;
+  }
+}

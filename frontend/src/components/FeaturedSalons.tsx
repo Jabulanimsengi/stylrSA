@@ -104,16 +104,25 @@ export default function FeaturedSalons() {
     <div className={styles.container}>
       <Swiper
         modules={[Navigation]}
+        navigation={{
+          prevEl: `.${styles.prevButton}`,
+          nextEl: `.${styles.nextButton}`,
+        }}
         spaceBetween={16}
         slidesPerView={'auto'}
-        navigation
         style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
         breakpoints={{
           320: {
             slidesPerView: 2.1,
+            navigation: {
+              enabled: false,
+            },
           },
           768: {
             slidesPerView: 5.1,
+            navigation: {
+              enabled: true,
+            },
           },
         }}
       >
@@ -129,6 +138,18 @@ export default function FeaturedSalons() {
           </SwiperSlide>
         ))}
       </Swiper>
+      
+      {/* Navigation buttons */}
+      <button className={styles.prevButton} aria-label="Previous">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <button className={styles.nextButton} aria-label="Next">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
     </div>
   );
 }

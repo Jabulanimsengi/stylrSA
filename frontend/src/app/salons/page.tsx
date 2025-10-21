@@ -19,6 +19,8 @@ import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getImageWithFallback } from '@/lib/placeholders';
 import PageNav from '@/components/PageNav';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import MobileSearch from '@/components/MobileSearch/MobileSearch';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -26,6 +28,7 @@ type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | nul
 function SalonsPageContent() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   const searchParams = useSearchParams();
   const { authStatus } = useAuth();
@@ -141,7 +144,11 @@ function SalonsPageContent() {
       <PageNav />
       <h1 className={styles.title}>Explore Salons</h1>
 
-      <FilterBar onSearch={fetchSalons} initialFilters={initialFilters} />
+      {isMobile ? (
+        <MobileSearch onSearch={fetchSalons} />
+      ) : (
+        <FilterBar onSearch={fetchSalons} initialFilters={initialFilters} />
+      )}
 
       {isLoading ? (
         salons.length === 0 ? (

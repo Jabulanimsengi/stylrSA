@@ -36,29 +36,11 @@
 
 @media (max-width: 768px) {
   .pageNav {
-    margin-bottom: 1.5rem;
-    padding: 0.75rem 0;
-    gap: 0.625rem;
-    justify-content: center;
+    display: none; /* Hide on mobile - replaced by MobileNavIcons */
   }
   .navButton {
-    padding: 0.45rem 0.75rem;
-    font-size: 0.85rem;
-    flex: 1 1 45%;
-    justify-content: center;
+    display: none;
   }
 }
 
-@media (max-width: 400px) {
-  .pageNav {
-    margin-bottom: 1.25rem;
-    padding: 0.5rem 0;
-    gap: 0.5rem;
-  }
-  .navButton {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.8rem;
-    gap: 0.3rem;
-    flex: 1 1 100%;
-  }
-}
+/* No additional styles needed for small screens - hidden on mobile */

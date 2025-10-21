@@ -13,6 +13,8 @@ import ImageLightbox from "@/components/ImageLightbox";
 import { useStartConversation } from "@/hooks/useStartConversation";
 import { useSocket } from "@/context/SocketContext";
 import PageNav from "@/components/PageNav";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import MobileSearch from "@/components/MobileSearch/MobileSearch";
 
 const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
 
@@ -23,6 +25,7 @@ function ServicesPageContent() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const { startConversation } = useStartConversation();
   const socket = useSocket();
   const requestControllerRef = useRef<AbortController | null>(null);
@@ -128,12 +131,16 @@ function ServicesPageContent() {
       <PageNav />
       <h1 className={styles.title}>Services</h1>
 
-      <FilterBar
-        onSearch={handleSearch}
-        initialFilters={activeFilters}
-        showSearchButton
-        isSearching={isLoading}
-      />
+      {isMobile ? (
+        <MobileSearch onSearch={handleSearch} />
+      ) : (
+        <FilterBar
+          onSearch={handleSearch}
+          initialFilters={activeFilters}
+          showSearchButton
+          isSearching={isLoading}
+        />
+      )}
 
       <div className={styles.resultsShell}>
         {isLoading ? (

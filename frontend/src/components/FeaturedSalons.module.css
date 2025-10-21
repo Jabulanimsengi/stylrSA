@@ -1,39 +1,76 @@
 .container {
   width: 100%;
   position: relative;
+  padding: 0 1rem;
 }
 
-.swiper-button-prev,
-.swiper-button-next {
+/* Navigation buttons - visible on desktop only */
+.prevButton,
+.nextButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
-  border-radius: 999px;
+  border-radius: 50%;
   border: none;
-  display: grid;
-  place-items: center;
+  display: none; /* Hidden by default (mobile) */
+  align-items: center;
+  justify-content: center;
   background: var(--color-primary, #f51957);
   color: #fff;
-  box-shadow: 0 6px 16px rgba(67, 65, 74, 0.12);
+  box-shadow: 0 4px 12px rgba(67, 65, 74, 0.15);
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-  z-index: 2;
+  transition: all 0.2s ease;
+  z-index: 10;
+  opacity: 1;
 }
 
-.swiper-button-prev:hover,
-.swiper-button-next:hover {
+.prevButton:hover,
+.nextButton:hover {
   background: var(--color-primary-dark, #d41245);
   transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 16px rgba(67, 65, 74, 0.2);
 }
 
-.swiper-button-prev {
-  left: 0.5rem;
+.prevButton:active,
+.nextButton:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
-.swiper-button-next {
-  right: 0.5rem;
+.prevButton {
+  left: -1rem;
+}
+
+.nextButton {
+  right: -1rem;
+}
+
+.prevButton svg,
+.nextButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Show navigation on desktop */
+@media (min-width: 768px) {
+  .prevButton,
+  .nextButton {
+    display: flex;
+  }
+}
+
+/* Swiper disabled state */
+.prevButton:disabled,
+.nextButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.prevButton:disabled:hover,
+.nextButton:disabled:hover {
+  background: var(--color-primary, #f51957);
+  transform: translateY(-50%);
 }
 
 .skeletonContainer {

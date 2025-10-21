@@ -12,6 +12,8 @@ import { Service } from '@/types';
 import FeaturedServiceCard, { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
 import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
 import FeaturedSalons from '@/components/FeaturedSalons';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import MobileSearch from '@/components/MobileSearch/MobileSearch';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -40,6 +42,7 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = HERO_SLIDES.length;
   const socket = useSocket();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
@@ -86,14 +89,6 @@ export default function HomePage() {
       socket.off('visibility:updated', handler);
     };
   }, [socket, fetchServices]);
-
-  const handlePrevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-  }, [totalSlides]);
-
-  const handleNextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-  }, [totalSlides]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -154,8 +149,7 @@ export default function HomePage() {
     <div className={styles.container}>
       {isLoading && services.length === 0 && (
         <SkeletonGroup count={8} className={styles.grid}>
-          {() => <FeaturedServiceCardSkeleton />}
-        </SkeletonGroup>
+          {() => <FeaturedServiceCardSkeleton />}</SkeletonGroup>
       )}
       <section className={styles.hero}>
         <div className={styles.heroMedia} aria-hidden="true">
@@ -178,7 +172,11 @@ export default function HomePage() {
             <p className={styles.heroSubtitle}>Connect with trusted hairstylists, barbers, and beauty professionals — all in one digital hub built to grow your business and simplify client bookings.</p>
           </div>
           <div className={styles.filterContainer}>
-            <FilterBar onSearch={handleSearch} isHomePage={true} />
+            {isMobile ? (
+              <MobileSearch onSearch={handleSearch} />
+            ) : (
+              <FilterBar onSearch={handleSearch} isHomePage={true} />
+            )}
           </div>
           <div className={styles.heroActions}>
             <Link href="/salons" className="btn btn-primary">
@@ -196,14 +194,7 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-        <div className={styles.heroControls}>
-          <button type="button" className={styles.heroNavButton} onClick={handlePrevSlide} aria-label="Previous slide">
-            ‹
-          </button>
-          <button type="button" className={styles.heroNavButton} onClick={handleNextSlide} aria-label="Next slide">
-            ›
-          </button>
-        </div>
+
         <div className={styles.heroDots}>
           {HERO_SLIDES.map((_, index) => (
             <button
@@ -226,8 +217,7 @@ export default function HomePage() {
         <h2 className={styles.sectionTitle}>Featured Services</h2>
         {isLoading && services.length === 0 ? (
           <SkeletonGroup count={8} className={styles.grid}>
-            {() => <FeaturedServiceCardSkeleton />}
-          </SkeletonGroup>
+            {() => <FeaturedServiceCardSkeleton />}</SkeletonGroup>
         ) : (
           services.length > 0 && (
             <div className={styles.grid}>
