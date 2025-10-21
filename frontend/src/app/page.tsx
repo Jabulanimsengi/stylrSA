@@ -147,6 +147,9 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
+      <div className={styles.fixedSearchBar}>
+        <MobileSearch onSearch={handleSearch} />
+      </div>
       {isLoading && services.length === 0 && (
         <SkeletonGroup count={8} className={styles.grid}>
           {() => <FeaturedServiceCardSkeleton />}</SkeletonGroup>
@@ -172,11 +175,7 @@ export default function HomePage() {
             <p className={styles.heroSubtitle}>Connect with trusted hairstylists, barbers, and beauty professionals — all in one digital hub built to grow your business and simplify client bookings.</p>
           </div>
           <div className={styles.filterContainer}>
-            {isMobile ? (
-              <MobileSearch onSearch={handleSearch} />
-            ) : (
-              <FilterBar onSearch={handleSearch} isHomePage={true} />
-            )}
+            <FilterBar onSearch={handleSearch} isHomePage={true} />
           </div>
           <div className={styles.heroActions}>
             <Link href="/salons" className="btn btn-primary">
@@ -195,16 +194,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className={styles.heroDots}>
-          {HERO_SLIDES.map((_, index) => (
-            <button
-              key={`hero-dot-${index}`}
-              type="button"
-              className={`${styles.heroDot} ${index === currentSlide ? styles.heroDotActive : ''}`}
-              onClick={() => setCurrentSlide(index)}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+        {/* Progress bar */}
+        <div className={styles.progressBar}>
+          <div 
+            className={styles.progressFill}
+            key={currentSlide}
+          />
         </div>
       </section>
 

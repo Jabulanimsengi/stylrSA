@@ -25,9 +25,13 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
   ].filter(Boolean);
   const salonLocation = salonLocationParts.length ? salonLocationParts.join(', ') : 'Location unavailable';
 
-  const primaryImage = Array.isArray(service.images)
-    ? service.images.find((img): img is string => Boolean(img))
-    : undefined;
+  // Get all valid images
+  const validImages = Array.isArray(service.images)
+    ? service.images.filter((img): img is string => Boolean(img))
+    : [];
+
+  const hasMultipleImages = validImages.length > 1;
+  const primaryImage = validImages[0] || undefined;
 
   const optimizedSrc = primaryImage
     ? transformCloudinary(primaryImage, {
@@ -51,6 +55,11 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
           sizes="(max-width: 768px) 100vw, 50vw"
           unoptimized={!isCloudinarySource}
         />
+        {hasMultipleImages && (
+          <div className={styles.imageCounter}>
+            1/{validImages.length}
+          </div>
+        )}
       </div>
       <div className={styles.cardContent}>
         <h3 className={styles.cardTitle}>{service.title}</h3>

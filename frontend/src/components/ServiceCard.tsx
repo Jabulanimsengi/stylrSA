@@ -92,18 +92,8 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
             <button className={`${styles.carouselButton} ${styles.next}`} onClick={handleNextImage} aria-label="Next image">
               ›
             </button>
-            <div className={styles.carouselDots}>
-              {images.map((img, idx) => (
-                <button
-                  key={`${img}-${idx}`}
-                  className={`${styles.carouselDot} ${idx === activeImage ? styles.activeDot : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveImage(idx);
-                  }}
-                  aria-label={`Show image ${idx + 1}`}
-                />
-              ))}
+            <div className={styles.imageCounter}>
+              {activeImage + 1}/{images.length}
             </div>
           </>
         )}

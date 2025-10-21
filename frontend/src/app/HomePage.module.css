@@ -2,6 +2,19 @@
   color: var(--text-primary);
 }
 
+.fixedSearchBar {
+  display: none;
+  position: fixed;
+  top: 52px;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: var(--color-surface, #ffffff);
+  padding: 0.65rem 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
 .hero {
   position: relative;
   width: 100%;
@@ -170,29 +183,33 @@
   background: rgba(255, 255, 255, 0.32);
 }
 
-.heroDots {
+/* Progress bar */
+.progressBar {
   position: absolute;
-  bottom: clamp(1.25rem, 3vw, 2rem);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.6rem;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
   z-index: 3;
+  overflow: hidden;
 }
 
-.heroDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(255, 255, 255, 0.4);
-  transition: transform 0.2s ease, background 0.2s ease;
-  cursor: pointer;
+.progressFill {
+  height: 100%;
+  background: var(--color-primary, #f51957);
+  width: 0;
+  animation: fillProgress 6s linear forwards;
+  transform-origin: left;
 }
 
-.heroDotActive {
-  background: var(--color-primary);
-  transform: scale(1.25);
+@keyframes fillProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 
@@ -260,6 +277,18 @@
 }
 
 @media (max-width: 768px) {
+  .fixedSearchBar {
+    display: block;
+  }
+
+  .filterContainer {
+    display: none !important;
+  }
+
+  .container {
+    padding-top: 115px;
+  }
+
   .heroContent {
     align-items: center;
     text-align: center;
@@ -302,6 +331,15 @@
 }
 
 @media (max-width: 540px) {
+  .container {
+    padding-top: 105px;
+  }
+
+  .fixedSearchBar {
+    top: 48px;
+    padding: 0.5rem 0.65rem;
+  }
+
   .hero {
     min-height: clamp(380px, 70vh, 550px);
   }
@@ -337,16 +375,6 @@
     font-size: 0.75rem;
   }
 
-  .heroDots {
-    gap: 0.4rem;
-    bottom: 0.875rem;
-  }
-
-  .heroDot {
-    width: 8px;
-    height: 8px;
-  }
-
   .section {
     padding-inline: 0.75rem;
     padding-block: 1.5rem;
@@ -371,6 +399,10 @@
 }
 
 @media (max-width: 400px) {
+  .container {
+    padding-top: 100px;
+  }
+
   .hero {
     min-height: clamp(340px, 65vh, 500px);
   }
@@ -406,11 +438,6 @@
   .heroActions :global(.btn) {
     padding: 0.3rem 0.55rem;
     font-size: 0.7rem;
-  }
-
-  .heroDot {
-    width: 7px;
-    height: 7px;
   }
 
   .heroNavButton {

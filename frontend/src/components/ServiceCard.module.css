@@ -66,48 +66,40 @@
 .carouselButton.next {
   right: 8px;
 }
-.carouselDots {
+.imageCounter {
   position: absolute;
   bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
   z-index: 2;
-}
-.carouselDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  padding: 0;
-}
-.carouselDot.activeDot {
-  background: var(--color-primary);
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Smaller dots on mobile */
 @media (max-width: 640px) {
-  .carouselDots {
-    gap: 4px !important;
-    bottom: 4px !important;
-  }
-  .carouselDot {
-    width: 5px !important;
-    height: 5px !important;
+  .imageCounter {
+    bottom: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    border-radius: 10px;
   }
 }
 
 @media (max-width: 400px) {
-  .carouselDots {
-    gap: 3px !important;
-    bottom: 3px !important;
-  }
-  .carouselDot {
-    width: 4px !important;
-    height: 4px !important;
+  .imageCounter {
+    bottom: 5px;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.65rem;
+    border-radius: 8px;
   }
 }
 .overlayIcon {

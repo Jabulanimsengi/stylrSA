@@ -54,6 +54,16 @@
     padding: 2rem 1.5rem;
     max-height: 95vh;
   }
+
+  .closeButton {
+    position: static;
+    float: right;
+    margin-bottom: 1rem;
+  }
+
+  .tabs {
+    position: static;
+  }
 }
 
 @media (max-width: 480px) {
@@ -76,9 +86,14 @@
   }
   
   .closeButton {
-    top: 0.5rem;
-    right: 0.5rem;
+    position: static;
+    float: right;
     font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .tabs {
+    position: static;
   }
 }
 
@@ -128,8 +143,7 @@
 }
 
 .closeButton {
-  position: sticky;
-  top: 0;
+  position: static;
   float: right;
   margin-bottom: 1rem;
   background: none;
@@ -150,8 +164,7 @@
   gap: 1rem;
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 1.5rem;
-  position: sticky;
-  top: 0;
+  position: static;
   background-color: var(--color-surface-elevated);
   padding-top: 0.5rem;
   z-index: 5;

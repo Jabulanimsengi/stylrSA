@@ -1,6 +1,6 @@
 .searchContainer {
   width: 100%;
-  padding: 1rem;
+  padding: 0;
   cursor: pointer;
 }
 
@@ -9,9 +9,10 @@
   padding: 0.875rem 1rem;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 0.875rem; /* Reduced from 1rem */
+  font-size: 0.875rem;
   cursor: pointer;
   background-color: white;
+  color: #1a1a1a;
 }
 
 .searchInput::placeholder {

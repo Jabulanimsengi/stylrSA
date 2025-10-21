@@ -14,8 +14,8 @@
 
 .iconButton {
   pointer-events: auto;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: none;
   background-color: rgba(255, 255, 255, 0.95);
@@ -41,8 +41,8 @@
 }
 
 .iconButton svg {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   stroke-width: 2.5;
 }
 
@@ -61,12 +61,12 @@
   }
   
   .iconButton {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
   }
   
   .iconButton svg {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 }

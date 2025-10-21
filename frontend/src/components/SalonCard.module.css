@@ -111,11 +111,16 @@
 
 .salonCard.compact .imageWrapper {
   aspect-ratio: auto;
-  height: 140px;
+  height: 200px;
 }
 
 .cardImage {
   object-fit: cover;
+}
+
+.salonCard.compact .cardImage {
+  object-fit: contain;
+  background: var(--skeleton-bg, #f0f0f0);
 }
 
 .salonCard.compact .cardContent {
@@ -230,8 +235,12 @@
     font-size: 16px;
   }
 
+  .salonCard.compact {
+    height: 240px;
+  }
+
   .salonCard.compact .imageWrapper {
-    height: 100px;
+    height: 165px;
   }
 
   .salonCard.compact .cardContent {
@@ -293,8 +302,12 @@
     font-size: 14px;
   }
 
+  .salonCard.compact {
+    height: 220px;
+  }
+
   .salonCard.compact .imageWrapper {
-    height: 100px;
+    height: 150px;
   }
 
   .salonCard.compact .cardContent {
@@ -326,7 +339,11 @@
 }
 
 @media (max-width: 400px) {
+  .salonCard.compact {
+    height: 200px;
+  }
+
   .salonCard.compact .imageWrapper {
-    height: 85px;
+    height: 135px;
   }
 }

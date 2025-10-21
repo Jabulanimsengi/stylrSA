@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
 import SalonCard from './SalonCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
@@ -20,6 +21,7 @@ type SalonWithFavorite = Salon & { isFavorited?: boolean };
 export default function FeaturedSalons() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
 
@@ -111,9 +113,10 @@ export default function FeaturedSalons() {
         spaceBetween={16}
         slidesPerView={'auto'}
         style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
+        onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
         breakpoints={{
           320: {
-            slidesPerView: 2.1,
+            slidesPerView: 1.15,
             navigation: {
               enabled: false,
             },
@@ -150,6 +153,25 @@ export default function FeaturedSalons() {
           <path d="M9 18l6-6-6-6"/>
         </svg>
       </button>
+      
+      {/* Scroll indicators for mobile */}
+      <div className={styles.scrollIndicators}>
+        <div className={styles.scrollIndicatorLeft}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </div>
+        <div className={styles.scrollIndicatorRight}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </div>
+      </div>
+      
+      {/* Slide counter for mobile */}
+      <div className={styles.slideCounter}>
+        {activeIndex + 1}/{salons.length}
+      </div>
     </div>
   );
 }
