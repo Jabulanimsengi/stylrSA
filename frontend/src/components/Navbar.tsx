@@ -595,11 +595,12 @@ export default function Navbar() {
               </button>
               <button
                 type="button"
-                className={styles.iconOnlyButton}
+                className={`${styles.iconOnlyButton} ${styles.notificationButton}`}
                 onClick={() => setIsNotificationsOpen((prev) => !prev)}
                 aria-label="Notifications"
               >
                 <FaBell />
+                {unreadCount > 0 && <span className={styles.mobileBadge}>{unreadCount}</span>}
               </button>
             </>
           ) : (

@@ -156,10 +156,12 @@ function SalonsPageContent() {
             {() => <SkeletonCard hasImage lines={3} />}
           </SkeletonGroup>
         ) : (
-          <LoadingSpinner />
+          <div className={styles.loadingState}>
+            <LoadingSpinner />
+          </div>
         )
       ) : salons.length === 0 ? (
-        <p>No salons found matching your criteria.</p>
+        <p className={styles.emptyState}>No salons found matching your criteria.</p>
       ) : (
         <div className={styles.salonGrid}>
           {salons.map((salon) => (

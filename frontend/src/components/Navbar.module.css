@@ -387,11 +387,34 @@
   font-size: 1rem;
   cursor: pointer;
   transition: background-color var(--transition-base), transform var(--transition-base);
+  position: relative;
 }
 
 .iconOnlyButton:hover {
   background: var(--nav-icon-hover-bg);
   transform: translateY(-1px);
+}
+
+.notificationButton {
+  position: relative;
+}
+
+.mobileBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--nav-badge-text);
+  font-size: 0.65rem;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  padding: 0 4px;
+  border: 2px solid var(--nav-surface);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .spacer {
