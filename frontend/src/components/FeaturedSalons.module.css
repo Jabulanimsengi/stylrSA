@@ -1,69 +1,39 @@
 .container {
   width: 100%;
-  overflow: hidden;
   position: relative;
 }
 
-.carouselRow {
-  display: flex;
-  gap: clamp(0.85rem, 3vw, 1.25rem);
-  overflow-x: auto;
-  padding-inline: clamp(0.5rem, 4vw, 1.25rem);
-  padding-block: clamp(0.4rem, 1vw, 0.65rem) clamp(0.6rem, 1.5vw, 0.85rem);
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-}
-
-.carouselRow::-webkit-scrollbar {
-  height: 6px;
-}
-
-.carouselRow::-webkit-scrollbar-thumb {
-  background: rgba(67, 65, 74, 0.18);
-  border-radius: 999px;
-}
-
-.carouselRow::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.chevron {
+.swiper-button-prev,
+.swiper-button-next {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   border: none;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--color-primary, #f51957);
+  background: var(--color-primary, #f51957);
+  color: #fff;
   box-shadow: 0 6px 16px rgba(67, 65, 74, 0.12);
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
   z-index: 2;
 }
 
-.chevron:hover,
-.chevron:focus-visible {
-  background: var(--color-primary, #f51957);
-  color: #fff;
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  background: var(--color-primary-dark, #d41245);
   transform: translateY(-50%) scale(1.08);
 }
 
-.chevronLeft {
-  left: clamp(0.25rem, 2vw, 0.75rem);
+.swiper-button-prev {
+  left: 0.5rem;
 }
 
-.chevronRight {
-  right: clamp(0.25rem, 2vw, 0.75rem);
-}
-
-@media (max-width: 768px) {
-  .chevron {
-    display: none;
-  }
+.swiper-button-next {
+  right: 0.5rem;
 }
 
 .skeletonContainer {

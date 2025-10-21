@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import styles from './MyProfilePage.module.css';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
-import Link from 'next/link';
-import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import PageNav from '@/components/PageNav';
 
 interface UserProfile {
   firstName: string;
@@ -78,18 +77,8 @@ export default function MyProfilePage() {
   if (isLoading || authStatus === 'loading') {
     return (
       <div className={styles.container}>
-        <div className={styles.stickyHeader}>
-          <div className={styles.navButtonsContainer}>
-            <button onClick={() => router.back()} className={styles.navButton}>
-              <FaArrowLeft /> Back
-            </button>
-            <Link href="/" className={styles.navButton}>
-              <FaHome /> Home
-            </Link>
-          </div>
-          <h1 className={styles.title}>My Profile</h1>
-          <div className={styles.headerSpacer}></div>
-        </div>
+        <PageNav />
+        <h1 className={styles.title}>My Profile</h1>
 
         <div className={styles.card} aria-hidden>
           <div className={styles.form}>
@@ -116,19 +105,8 @@ export default function MyProfilePage() {
 
   return (
     <div className={styles.container}>
-      {/* ... rest of your JSX remains the same */}
-      <div className={styles.stickyHeader}>
-        <div className={styles.navButtonsContainer}>
-          <button onClick={() => router.back()} className={styles.navButton}>
-            <FaArrowLeft /> Back
-          </button>
-          <Link href="/" className={styles.navButton}>
-            <FaHome /> Home
-          </Link>
-        </div>
-        <h1 className={styles.title}>My Profile</h1>
-        <div className={styles.headerSpacer}></div>
-      </div>
+      <PageNav />
+      <h1 className={styles.title}>My Profile</h1>
 
       <div className={styles.card}>
         <form onSubmit={handleSubmit} className={styles.form}>

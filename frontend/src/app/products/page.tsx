@@ -1,15 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
 import styles from './ProductsPage.module.css';
 import ProductCard from '@/components/ProductCard';
 import ImageLightbox from '@/components/ImageLightbox';
 import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import ProductFilter, { type ProductFilterValues } from '@/components/ProductFilter/ProductFilter';
-import { FaArrowLeft, FaHome } from 'react-icons/fa';
+import PageNav from '@/components/PageNav';
 import { toast } from 'react-toastify';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
@@ -28,7 +26,6 @@ export default function ProductsPage() {
   const [lightboxImages, setLightboxImages] = useState<string[] | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [filters, setFilters] = useState<ProductFilterValues>(DEFAULT_FILTERS);
-  const router = useRouter();
   const abortRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
 
@@ -91,20 +88,8 @@ export default function ProductsPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.navButtons}>
-          <button type="button" onClick={() => router.back()} className={styles.navButton}>
-            <FaArrowLeft />
-            <span>Back</span>
-          </button>
-          <Link href="/" className={styles.navButton}>
-            <FaHome />
-            <span>Home</span>
-          </Link>
-        </div>
-        <h1 className={styles.title}>Products</h1>
-        <div className={styles.headerSpacer}></div>
-      </div>
+      <PageNav />
+      <h1 className={styles.title}>Products</h1>
 
       <div className={styles.filterShell}>
         <ProductFilter

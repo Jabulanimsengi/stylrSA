@@ -3,12 +3,9 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
-import Link from 'next/link';
 import Image from 'next/image';
 import { transformCloudinary } from '@/utils/cloudinary';
 import {
-  FaHome,
-  FaArrowLeft,
   FaHeart,
   FaWhatsapp,
   FaGlobe,
@@ -33,6 +30,7 @@ import { logger } from '@/lib/logger';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import SalonProfileSkeleton from '@/components/Skeleton/SalonProfileSkeleton';
 import { sanitizeText } from '@/lib/sanitize';
+import PageNav from '@/components/PageNav';
 
 type Props = {
   initialSalon: Salon | null;
@@ -415,23 +413,18 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
       )}
 
       <div>
-        <div className={styles.stickyHeader}>
-          <div className={styles.stickyHeaderContent}>
-            <div className={styles.navButtonsContainer}>
-              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-            </div>
-            <h1 className={styles.title}>{salon.name}</h1>
-            <div className={styles.headerSpacer}>
-              <button type="button" onClick={shareProfile} className={styles.navButton}>
-                <FaExternalLinkAlt /> Share
+        <PageNav />
+        <div className={styles.stickyHeaderContent}>
+          <h1 className={styles.title}>{salon.name}</h1>
+          <div className={styles.headerSpacer}>
+            <button type="button" onClick={shareProfile} className={styles.navButton}>
+              <FaExternalLinkAlt /> Share
+            </button>
+            {authStatus === 'authenticated' && (
+              <button onClick={handleToggleFavorite} className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}>
+                <FaHeart />
               </button>
-              {authStatus === 'authenticated' && (
-                <button onClick={handleToggleFavorite} className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}>
-                  <FaHeart />
-                </button>
-              )}
-            </div>
+            )}
           </div>
         </div>
 

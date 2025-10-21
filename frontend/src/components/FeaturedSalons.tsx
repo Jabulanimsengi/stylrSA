@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { useEffect, useState, useCallback } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
 import SalonCard from './SalonCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
@@ -11,14 +12,14 @@ import { logger } from '@/lib/logger';
 import { Salon } from '@/types';
 import styles from './FeaturedSalons.module.css';
 
+import 'swiper/css';
+import 'swiper/css/navigation';
+
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
 export default function FeaturedSalons() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasScrollableContent, setHasScrollableContent] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
 
@@ -35,7 +36,6 @@ export default function FeaturedSalons() {
       setSalons(data);
     } catch (error) {
       logger.error('Failed to fetch featured salons:', error);
-      // Only show error toast if it's not an empty result
       if (error instanceof Error && !error.message.includes('404')) {
         toast.error(toFriendlyMessage(error, 'Failed to load featured salons.'));
       }
@@ -85,34 +85,6 @@ export default function FeaturedSalons() {
       setSalons(originalSalons);
     }
   };
-  const scrollByAmount = useCallback((direction: 'left' | 'right') => {
-    const node = scrollRef.current;
-    if (!node) return;
-    const delta = direction === 'left' ? -node.clientWidth : node.clientWidth;
-    node.scrollBy({ left: delta, behavior: 'smooth' });
-  }, []);
-
-  const handleScroll = useCallback(() => {
-    const node = scrollRef.current;
-    if (!node) return;
-    const { scrollLeft, scrollWidth, clientWidth } = node;
-    setHasScrollableContent(scrollWidth > clientWidth + 8);
-    if (scrollWidth <= clientWidth) {
-      setScrollPosition(0);
-      return;
-    }
-    if (scrollLeft <= 8) {
-      setScrollPosition(0);
-    } else if (scrollLeft + clientWidth >= scrollWidth - 8) {
-      setScrollPosition(2);
-    } else {
-      setScrollPosition(1);
-    }
-  }, []);
-
-  useEffect(() => {
-    handleScroll();
-  }, [handleScroll, salons]);
 
   if (isLoading) {
     return (
@@ -125,49 +97,38 @@ export default function FeaturedSalons() {
   }
 
   if (salons.length === 0) {
-    return null; // Don't show section if no featured salons
+    return null;
   }
 
   return (
     <div className={styles.container}>
-      {hasScrollableContent && scrollPosition !== 0 && (
-        <button
-          type="button"
-          className={`${styles.chevron} ${styles.chevronLeft}`}
-          onClick={() => scrollByAmount('left')}
-          aria-label="Scroll salons left"
-        >
-          <FaChevronLeft />
-        </button>
-      )}
-
-      <div
-        className={styles.carouselRow}
-        ref={scrollRef}
-        onScroll={handleScroll}
+      <Swiper
+        modules={[Navigation]}
+        spaceBetween={16}
+        slidesPerView={'auto'}
+        navigation
+        style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
+        breakpoints={{
+          320: {
+            slidesPerView: 2.1,
+          },
+          768: {
+            slidesPerView: 5.1,
+          },
+        }}
       >
         {salons.map((salon) => (
-          <SalonCard
-            key={salon.id}
-            salon={salon}
-            showFavorite
-            onToggleFavorite={handleToggleFavorite}
-            showHours={false}
-            compact
-          />
+          <SwiperSlide key={salon.id}>
+            <SalonCard
+              salon={salon}
+              showFavorite
+              onToggleFavorite={handleToggleFavorite}
+              showHours={false}
+              compact
+            />
+          </SwiperSlide>
         ))}
-      </div>
-
-      {hasScrollableContent && scrollPosition !== 2 && salons.length > 0 && (
-        <button
-          type="button"
-          className={`${styles.chevron} ${styles.chevronRight}`}
-          onClick={() => scrollByAmount('right')}
-          aria-label="Scroll salons right"
-        >
-          <FaChevronRight />
-        </button>
-      )}
+      </Swiper>
     </div>
   );
 }

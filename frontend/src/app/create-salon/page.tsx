@@ -6,8 +6,7 @@ import { toast } from 'react-toastify';
 import styles from './CreateSalon.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
-import { FaArrowLeft, FaHome } from 'react-icons/fa';
-import Link from 'next/link';
+import PageNav from '@/components/PageNav';
 import { APP_PLANS, PLAN_BY_CODE, PlanCode } from '@/constants/plans';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
@@ -139,18 +138,8 @@ export default function CreateSalonPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.stickyHeader}>
-        <div className={styles.navButtonsContainer}>
-          <button onClick={() => router.back()} className={styles.navButton}>
-            <FaArrowLeft /> Back
-          </button>
-          <Link href="/" className={styles.navButton}>
-            <FaHome /> Home
-          </Link>
-        </div>
-        <h1 className={styles.title}>Create Your Salon</h1>
-        <div className={styles.headerSpacer}></div>
-      </div>
+      <PageNav />
+      <h1 className={styles.title}>Create Your Salon</h1>
 
       <div className={styles.card}>
         <form onSubmit={handleSubmit} className={styles.form}>

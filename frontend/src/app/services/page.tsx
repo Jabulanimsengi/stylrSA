@@ -1,8 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState, useCallback, useRef } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import FilterBar, { type FilterValues } from "@/components/FilterBar/FilterBar";
@@ -13,7 +12,7 @@ import { toast } from "react-toastify";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useStartConversation } from "@/hooks/useStartConversation";
 import { useSocket } from "@/context/SocketContext";
-import { FaArrowLeft, FaHome } from "react-icons/fa";
+import PageNav from "@/components/PageNav";
 
 const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
 
@@ -26,7 +25,6 @@ function ServicesPageContent() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const { startConversation } = useStartConversation();
   const socket = useSocket();
-  const router = useRouter();
   const requestControllerRef = useRef<AbortController | null>(null);
   const latestRequestIdRef = useRef(0);
 
@@ -127,20 +125,8 @@ function ServicesPageContent() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.pageHeading}>
-        <div className={styles.navButtonsContainer}>
-          <button type="button" onClick={() => router.back()} className={styles.navButton}>
-            <FaArrowLeft />
-            <span>Back</span>
-          </button>
-          <Link href="/" className={styles.navButton}>
-            <FaHome />
-            <span>Home</span>
-          </Link>
-        </div>
-        <h1 className={styles.title}>Services</h1>
-        <div className={styles.headerSpacer}></div>
-      </div>
+      <PageNav />
+      <h1 className={styles.title}>Services</h1>
 
       <FilterBar
         onSearch={handleSearch}
@@ -202,9 +188,7 @@ export default function ServicesPage() {
     <Suspense
       fallback={
         <div className={styles.container}>
-          <div className={styles.pageHeading}>
-            <h1 className={styles.title}>Services</h1>
-          </div>
+          <h1 className={styles.title}>Services</h1>
           <LoadingSpinner />
         </div>
       }

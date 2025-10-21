@@ -20,8 +20,12 @@ module.exports = {
           900: '#43414A',
         },
       },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
     },
   },
   plugins: [],
 };
+
 

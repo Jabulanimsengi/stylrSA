@@ -6,11 +6,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { Booking, Salon, Service, Review as ReviewType } from '@/types'; // Import all needed types
 import styles from './MyBookingsPage.module.css';
 import ReviewModal from '@/components/ReviewModal';
-import Link from 'next/link';
-import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
 import { Skeleton, SkeletonGroup } from '@/components/Skeleton/Skeleton';
+import PageNav from '@/components/PageNav';
 
 // FIX 1: Create a more detailed Booking type that matches the actual API response data
 // This includes the full salon and service objects, and optional review/totalCost fields.
@@ -105,14 +104,8 @@ export default function MyBookingsPage() {
   if (authStatus === 'loading' || isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.stickyHeader}>
-            <div className={styles.navButtonsContainer}>
-              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-            </div>
-            <h1 className={styles.title}>My Bookings</h1>
-            <div className={styles.headerSpacer}></div>
-        </div>
+        <PageNav />
+        <h1 className={styles.title}>My Bookings</h1>
 
         <div className={styles.tabs} aria-hidden>
           <Skeleton variant="button" style={{ width: '45%' }} />
@@ -147,14 +140,8 @@ export default function MyBookingsPage() {
         />
       )}
       <div className={styles.container}>
-        <div className={styles.stickyHeader}>
-            <div className={styles.navButtonsContainer}>
-              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-            </div>
-            <h1 className={styles.title}>My Bookings</h1>
-            <div className={styles.headerSpacer}></div>
-        </div>
+        <PageNav />
+        <h1 className={styles.title}>My Bookings</h1>
 
         <div className={styles.tabs}>
           <button onClick={() => setActiveTab('upcoming')} className={`${styles.tabButton} ${activeTab === 'upcoming' ? styles.activeTab : ''}`}>

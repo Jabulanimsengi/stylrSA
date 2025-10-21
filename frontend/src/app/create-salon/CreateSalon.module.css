@@ -5,50 +5,13 @@
   padding: 1rem var(--page-inline-padding) 3rem;
 }
 
-/* Sticky header */
-.stickyHeader {
-  position: sticky;
-  top: calc(var(--app-shell-top-gap) + 12px);
-  z-index: 40;
-  margin-bottom: 1.5rem;
-  padding: 0.75rem 0;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0.75rem;
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
-}
-
-.navButtonsContainer {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.navButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  color: var(--color-text-strong);
-  text-decoration: none;
-  background: var(--color-surface-elevated);
-}
-
-.navButton:hover { filter: brightness(1.03); }
-
 .title {
   font-size: 1.5rem;
   font-weight: 700;
   text-align: center;
   color: var(--color-text-strong);
 }
-
-.headerSpacer { height: 1px; }
+/* Removed per-page sticky header; using PageNav */
 
 /* Card wrapper for form */
 .card {

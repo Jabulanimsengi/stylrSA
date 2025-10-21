@@ -4,15 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './MyFavoritesPage.module.css';
-import Link from 'next/link';
 import Image from 'next/image';
-import { FaHome, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import { toast } from 'react-toastify';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getImageWithFallback } from '@/lib/placeholders';
+import PageNav from '@/components/PageNav';
 
 export default function MyFavoritesPage() {
   const [favorites, setFavorites] = useState<Salon[]>([]);
@@ -58,14 +57,8 @@ export default function MyFavoritesPage() {
   if (isLoading || authStatus === 'loading') {
     return (
       <div className={styles.container}>
-        <div className={styles.stickyHeader}>
-          <div className={styles.navButtonsContainer}>
-              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-          </div>
-          <h1 className={styles.title}>My Favorite Salons</h1>
-          <div className={styles.headerSpacer}></div>
-        </div>
+        <PageNav />
+        <h1 className={styles.title}>My Favorite Salons</h1>
 
         <SkeletonGroup count={8} className={styles.salonGrid}>
           {() => <SkeletonCard hasImage lines={3} />}
@@ -76,14 +69,8 @@ export default function MyFavoritesPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.stickyHeader}>
-        <div className={styles.navButtonsContainer}>
-            <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-            <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-        </div>
-        <h1 className={styles.title}>My Favorite Salons</h1>
-        <div className={styles.headerSpacer}></div>
-      </div>
+      <PageNav />
+      <h1 className={styles.title}>My Favorite Salons</h1>
 
       {favorites.length === 0 ? (
         <p>You haven't favorited any salons yet.</p>

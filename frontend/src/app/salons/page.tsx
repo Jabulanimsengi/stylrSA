@@ -2,14 +2,13 @@
 'use client';
 
 import { useEffect, useState, useCallback, Suspense } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { transformCloudinary } from '@/utils/cloudinary';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { FaHome, FaArrowLeft, FaHeart } from 'react-icons/fa';
+import { FaHeart } from 'react-icons/fa';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +17,7 @@ import { toast } from 'react-toastify';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getImageWithFallback } from '@/lib/placeholders';
+import PageNav from '@/components/PageNav';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -25,7 +25,7 @@ type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | nul
 function SalonsPageContent() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  
   const searchParams = useSearchParams();
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
@@ -137,14 +137,8 @@ function SalonsPageContent() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.stickyHeader}>
-        <div className={styles.navButtonsContainer}>
-          <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-          <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-        </div>
-        <h1 className={styles.title}>Explore Salons</h1>
-        <div className={styles.headerSpacer}></div>
-      </div>
+      <PageNav />
+      <h1 className={styles.title}>Explore Salons</h1>
 
       <FilterBar onSearch={fetchSalons} initialFilters={initialFilters} />
 
