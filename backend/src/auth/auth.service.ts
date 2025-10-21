@@ -59,29 +59,37 @@ export class AuthService {
             },
           });
 
-          // Resend verification email with code
-          await this.mailService.sendVerificationEmail(
-            existingUser.email,
-            verificationCode,
-            existingUser.firstName,
-          );
+          // Try to send verification email (will fail silently if domain not configured)
+          try {
+            await this.mailService.sendVerificationEmail(
+              existingUser.email,
+              verificationCode,
+              existingUser.firstName,
+            );
+          } catch (error) {
+            console.log('[AUTH] Email sending failed (domain not configured):', error.message);
+          }
 
           return {
-            message: 'Account already exists but not verified. A new verification code has been sent to your email.',
-            requiresVerification: true,
+            message: 'Account already exists. You can log in now.',
+            requiresVerification: false, // Changed to false
             isExisting: true,
           };
         } else {
-          // Code is still valid, just resend with existing code
-          await this.mailService.sendVerificationEmail(
-            existingUser.email,
-            existingUser.verificationToken!,
-            existingUser.firstName,
-          );
+          // Code is still valid, just resend with existing code (will fail silently if domain not configured)
+          try {
+            await this.mailService.sendVerificationEmail(
+              existingUser.email,
+              existingUser.verificationToken!,
+              existingUser.firstName,
+            );
+          } catch (error) {
+            console.log('[AUTH] Email sending failed (domain not configured):', error.message);
+          }
 
           return {
-            message: 'Account already exists but not verified. Verification code has been resent to your email.',
-            requiresVerification: true,
+            message: 'Account already exists. You can log in now.',
+            requiresVerification: false, // Changed to false
             isExisting: true,
           };
         }
@@ -113,16 +121,20 @@ export class AuthService {
         },
       });
 
-      // Send verification email with code
-      await this.mailService.sendVerificationEmail(
-        user.email,
-        verificationCode,
-        user.firstName,
-      );
+      // Send verification email with code (will fail silently if domain not configured)
+      try {
+        await this.mailService.sendVerificationEmail(
+          user.email,
+          verificationCode,
+          user.firstName,
+        );
+      } catch (error) {
+        console.log('[AUTH] Email sending failed (domain not configured), but registration continues:', error.message);
+      }
 
       return { 
-        message: 'Registration successful! Please check your email for a 6-digit verification code.',
-        requiresVerification: true,
+        message: 'Registration successful! You can now log in.',
+        requiresVerification: false, // Changed to false - no verification needed
         isExisting: false,
       };
     } catch (error) {
@@ -200,9 +212,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check email verification for new users (created after enforcement date)
-    // Old users (created before enforcement date) can log in without verification
-    // OAuth users are always verified, so they're not affected
+    // EMAIL VERIFICATION ENFORCEMENT - CURRENTLY DISABLED
+    // TODO: Enable this when custom domain is verified in Resend
+    // Uncomment the code below to require email verification for new users
+    
+    /*
     const isNewUser = user.createdAt >= this.VERIFICATION_ENFORCEMENT_DATE;
     const isManualSignup = !user.oauthAccounts || user.oauthAccounts.length === 0;
     
@@ -211,6 +225,7 @@ export class AuthService {
         'Please verify your email address before logging in. Check your inbox for the verification code.'
       );
     }
+    */
 
     // Reset failed login attempts on successful login
     await this.prisma.user.update({
@@ -352,13 +367,18 @@ export class AuthService {
       },
     });
 
-    await this.mailService.sendVerificationEmail(
-      user.email,
-      verificationCode,
-      user.firstName,
-    );
-
-    return { message: 'A new 6-digit verification code has been sent to your email.' };
+    // Try to send email (will fail silently if domain not configured)
+    try {
+      await this.mailService.sendVerificationEmail(
+        user.email,
+        verificationCode,
+        user.firstName,
+      );
+      return { message: 'A new 6-digit verification code has been sent to your email.' };
+    } catch (error) {
+      console.log('[AUTH] Email sending failed (domain not configured):', error.message);
+      return { message: 'Email verification is currently unavailable. You can log in without verification.' };
+    }
   }
 
   async verifyPassword(userId: string, password: string): Promise<boolean> {
