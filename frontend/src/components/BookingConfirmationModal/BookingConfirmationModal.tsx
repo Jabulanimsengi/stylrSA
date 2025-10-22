@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import styles from './BookingConfirmationModal.module.css';
 
@@ -42,7 +43,10 @@ export default function BookingConfirmationModal({
 
   if (!isOpen) return null;
 
-  return (
+  // Only render portal in browser environment
+  if (typeof document === 'undefined') return null;
+
+  const modalContent = (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
@@ -123,4 +127,7 @@ export default function BookingConfirmationModal({
       </div>
     </div>
   );
+
+  // Render modal using portal at document body level
+  return createPortal(modalContent, document.body);
 }

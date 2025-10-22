@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './PromotionDetailsModal.module.css';
@@ -62,6 +63,9 @@ export default function PromotionDetailsModal({
 
   if (!isOpen || !promotion) return null;
 
+  // Only render portal in browser environment
+  if (typeof document === 'undefined') return null;
+
   const service = promotion.service;
   const timeRemaining = calculateTimeRemaining(promotion.endDate);
   const savings = promotion.originalPrice - promotion.promotionalPrice;
@@ -81,7 +85,7 @@ export default function PromotionDetailsModal({
     }
   };
 
-  return (
+  const modalContent = (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
@@ -177,4 +181,7 @@ export default function PromotionDetailsModal({
       </div>
     </div>
   );
+
+  // Render modal using portal at document body level
+  return createPortal(modalContent, document.body);
 }
