@@ -12,6 +12,7 @@
     "lint": "npm run lint --prefix frontend"
   },
   "dependencies": {
+    "@vercel/speed-insights": "^1.2.0",
     "next": "15.5.4"
   }
 }

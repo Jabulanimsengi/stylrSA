@@ -20,6 +20,7 @@ import Analytics from '@/components/Analytics';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -91,6 +92,7 @@ export default function RootLayout({
                       <Analytics />
                     </Suspense>
                     <VercelAnalytics />
+                    <SpeedInsights />
                     <PWAInstallPrompt />
                   </AuthModalProvider>
                 </SocketProvider>

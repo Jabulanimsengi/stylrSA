@@ -32,7 +32,8 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
         <div className={styles.imageWrapper}>
           {salon.reviewCount !== undefined && salon.avgRating !== undefined && salon.reviewCount > 0 && (
             <div className={styles.ratingBadge}>
-              <span className={styles.ratingValue}>★ {salon.avgRating.toFixed(1)}</span>
+              <div className={styles.ratingValue}>★ {salon.avgRating.toFixed(1)}</div>
+              <div className={styles.reviewCount}>{salon.reviewCount} {salon.reviewCount === 1 ? 'review' : 'reviews'}</div>
             </div>
           )}
           <Image
