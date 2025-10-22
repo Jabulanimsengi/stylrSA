@@ -14,6 +14,7 @@ import {
   FaBolt,
   FaRegCopy,
   FaExternalLinkAlt,
+  FaEnvelope,
 } from 'react-icons/fa';
 import { Salon, Service, GalleryImage, Review } from '@/types';
 import BookingModal from '@/components/BookingModal';
@@ -514,6 +515,11 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         <div className={styles.stickyHeaderContent}>
           <h1 className={styles.title}>{salon.name}</h1>
           <div className={styles.headerSpacer}>
+            {authStatus === 'authenticated' && user?.id !== salon.ownerId && (
+              <button type="button" onClick={handleSendMessageClick} className={styles.navButton} title="Message salon owner">
+                <FaEnvelope /> Message
+              </button>
+            )}
             <button type="button" onClick={shareProfile} className={styles.navButton}>
               <FaExternalLinkAlt /> Share
             </button>
@@ -622,7 +628,6 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       key={service.id} 
                       service={service} 
                       onBook={handleBookClick}
-                      onSendMessage={handleSendMessageClick}
                       onImageClick={openLightbox}
                       promotion={promotionsMap.get(service.id)}
                       onPromotionClick={handlePromotionClick}

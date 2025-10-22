@@ -165,13 +165,6 @@ function ServicesPageContent() {
                 key={service.id}
                 service={service}
                 onBook={() => {}}
-                onSendMessage={() => {
-                  if (service?.salon?.ownerId) {
-                    void startConversation(service.salon.ownerId, {
-                      recipientName: service?.salon?.name,
-                    });
-                  }
-                }}
                 onImageClick={handleOpenLightbox}
               />
             ))}

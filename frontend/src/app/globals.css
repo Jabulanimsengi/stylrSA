@@ -290,19 +290,25 @@
 }a.btn-primary {  color: white;}.btn-primary {
   @apply text-white;
   background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 .btn-primary:hover {
   @apply -translate-y-px shadow-md;
-  background-color: var(--color-primary-hover);
+  background-color: white;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 .btn-primary:active {
   @apply translate-y-0;
   background-color: var(--color-primary-strong);
+  color: white;
+  border-color: var(--color-primary-strong);
 }
 .btn-primary:disabled {
   @apply cursor-not-allowed;
   background-color: var(--color-primary-soft);
   color: var(--color-text-muted);
+  border-color: var(--color-primary-soft);
 }
 
 .btn-secondary {

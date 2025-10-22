@@ -209,7 +209,7 @@
   cursor: pointer;
 }
 .footer {
-  @apply mt-4 flex flex-col gap-2 pt-3;
+  @apply mt-4 flex flex-row items-center gap-3 pt-3;
   border-top: 1px solid var(--color-border);
 }
 .likeButton {
@@ -218,8 +218,8 @@
   border: none;
   cursor: pointer;
   justify-content: center;
-  width: 100%;
-  padding: 0.35rem 0;
+  padding: 0.35rem 0.5rem;
+  flex-shrink: 0;
 }
 .likeButton svg {
   width: 22px;
@@ -236,15 +236,7 @@
   fill: var(--primary-pink);
   stroke: var(--primary-pink);
 }
-.actions {
-  @apply flex items-center gap-2;
-  width: 100%;
-}
-.actions :global(.btn) {
-  flex: 1 1 0;
-  padding: 0.55rem 0.75rem;
-  font-size: 0.9rem;
-}
+
 
 @media (max-width: 640px) {
   .card {
@@ -281,25 +273,22 @@
     margin-top: 0.25rem;
   }
   .footer {
-    gap: 0.4rem;
+    gap: 0.5rem;
     margin-top: 0.5rem;
     padding-top: 0.5rem;
   }
   .likeButton {
     gap: 0.3rem;
     font-size: 0.7rem;
-    padding: 0.2rem 0;
+    padding: 0.25rem 0.4rem;
   }
   .likeButton svg {
     width: 16px;
     height: 16px;
   }
-  .actions {
-    gap: 0.4rem;
-  }
-  .actions :global(.btn) {
-    padding: 0.35rem 0.4rem;
-    font-size: 0.7rem;
+  .footer :global(.btn) {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -334,46 +323,34 @@
     margin-top: 0.2rem;
   }
   .footer {
-    gap: 0.35rem;
+    gap: 0.4rem;
     margin-top: 0.4rem;
     padding-top: 0.4rem;
   }
   .likeButton {
     gap: 0.25rem;
     font-size: 0.65rem;
-    padding: 0.15rem 0;
+    padding: 0.2rem 0.35rem;
   }
   .likeButton svg {
     width: 14px;
     height: 14px;
   }
-  .actions {
-    gap: 0.35rem;
-  }
-  .actions :global(.btn) {
-    padding: 0.3rem 0.35rem;
-    font-size: 0.65rem;
+  .footer :global(.btn) {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.7rem;
   }
 }
 
 @media (min-width: 641px) {
   .footer {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.25rem;
-  }
-  .likeButton {
-    width: auto;
-    padding: 0.25rem 0;
-  }
-  .actions {
-    width: auto;
     gap: 1rem;
   }
-  .actions :global(.btn) {
-    flex: 0 0 auto;
-    padding: 0.55rem 1rem;
+  .likeButton {
+    padding: 0.35rem 0.75rem;
+  }
+  .footer :global(.btn) {
+    padding: 0.55rem 1.25rem;
     font-size: 0.95rem;
   }
 }

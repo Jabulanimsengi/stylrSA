@@ -15,13 +15,12 @@ import { sanitizeText } from '@/lib/sanitize';
 interface ServiceCardProps {
   service: Service;
   onBook: (service: Service) => void;
-  onSendMessage: () => void;
   onImageClick: (images: string[], index: number) => void;
   promotion?: any;
   onPromotionClick?: (promotion: any) => void;
 }
 
-export default function ServiceCard({ service, onBook, onSendMessage, onImageClick, promotion, onPromotionClick }: ServiceCardProps) {
+export default function ServiceCard({ service, onBook, onImageClick, promotion, onPromotionClick }: ServiceCardProps) {
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
   const [isLiked, setIsLiked] = useState(Boolean(service.isLikedByCurrentUser));
@@ -128,10 +127,7 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <span>{likeCount}</span>
           </button>
-          <div className={styles.actions}>
-            <button onClick={(e) => { e.stopPropagation(); onSendMessage(); }} className="btn btn-ghost">Message</button>
-            <button onClick={(e) => { e.stopPropagation(); onBook(service); }} className="btn btn-primary">Book</button>
-          </div>
+          <button onClick={(e) => { e.stopPropagation(); onBook(service); }} className="btn btn-primary" style={{ flex: 1 }}>Book Now</button>
         </div>
       </div>
     </div>
