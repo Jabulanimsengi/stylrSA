@@ -244,7 +244,15 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     if (authStatus !== 'authenticated') {
       openModal('login');
     } else {
-      setSelectedService(service);
+      // Check if salon has a booking message
+      if (salon?.bookingMessage) {
+        // Show confirmation modal first
+        setPendingBookingService(service);
+        setShowBookingConfirmation(true);
+      } else {
+        // Open booking modal directly
+        setSelectedService(service);
+      }
     }
   };
 
