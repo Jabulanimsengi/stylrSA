@@ -490,8 +490,41 @@ export class SalonsService {
     if (sortBy === 'rating' || sortBy === 'top_rated')
       orderBy = { avgRating: 'desc' };
 
-    // Fetch base list
-    let salons = await this.prisma.salon.findMany({ where, orderBy });
+    // Fetch base list with review aggregation
+    let salons = await this.prisma.salon.findMany({ 
+      where, 
+      orderBy,
+      include: {
+        _count: {
+          select: {
+            reviews: {
+              where: { approvalStatus: 'APPROVED' }
+            }
+          }
+        },
+        reviews: {
+          where: { approvalStatus: 'APPROVED' },
+          select: { rating: true }
+        }
+      }
+    });
+
+    // Calculate average rating and review count for each salon
+    salons = salons.map((s: any) => {
+      const approvedReviews = s.reviews || [];
+      const reviewCount = approvedReviews.length;
+      const avgRating = reviewCount > 0 
+        ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
+        : 0;
+      
+      // Remove the reviews array to keep response lean, keep only aggregated data
+      const { reviews, _count, ...salon } = s;
+      return {
+        ...salon,
+        avgRating: Number(avgRating.toFixed(1)),
+        reviewCount
+      };
+    });
 
     // Derive availability from operatingHours at query-time
     const now = new Date();
@@ -599,6 +632,29 @@ export class SalonsService {
         { createdAt: 'desc' },
       ],
       take: 12, // Limit to 12 featured salons
+      include: {
+        reviews: {
+          where: { approvalStatus: 'APPROVED' },
+          select: { rating: true }
+        }
+      }
+    });
+
+    // Calculate average rating and review count for each salon
+    salons = salons.map((s: any) => {
+      const approvedReviews = s.reviews || [];
+      const reviewCount = approvedReviews.length;
+      const avgRating = reviewCount > 0 
+        ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
+        : 0;
+      
+      // Remove the reviews array to keep response lean, keep only aggregated data
+      const { reviews, ...salon } = s;
+      return {
+        ...salon,
+        avgRating: Number(avgRating.toFixed(1)),
+        reviewCount
+      };
     });
 
     // Attach favorite flag if logged-in

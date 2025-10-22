@@ -117,7 +117,7 @@ export class AuthService {
           role: dto.role,
           verificationToken: verificationCode,
           verificationExpires,
-          emailVerified: false,
+          emailVerified: true, // Set to true since email verification is disabled
         },
       });
 

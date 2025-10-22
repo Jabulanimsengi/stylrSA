@@ -30,6 +30,11 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
       )}
       <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
         <div className={styles.imageWrapper}>
+          {salon.reviewCount !== undefined && salon.avgRating !== undefined && salon.reviewCount > 0 && (
+            <div className={styles.ratingBadge}>
+              <span className={styles.ratingValue}>★ {salon.avgRating.toFixed(1)}</span>
+            </div>
+          )}
           <Image
             src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { 
               width: 600, 

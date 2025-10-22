@@ -56,6 +56,7 @@ export interface Salon {
   operatingDays?: string[];
   approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
   avgRating?: number;
+  reviewCount?: number;
   services?: Service[];
   reviews?: Review[];
   ownerId: string;

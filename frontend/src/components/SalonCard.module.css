@@ -109,6 +109,29 @@
   overflow: hidden;
 }
 
+.ratingBadge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.5rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  border-radius: 0.375rem;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ratingValue {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-gold, #FFD700);
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
 .salonCard.compact .imageWrapper {
   aspect-ratio: auto;
   height: 200px;
@@ -267,6 +290,16 @@
     width: 28px;
     height: 28px;
   }
+
+  .ratingBadge {
+    top: 0.4rem;
+    left: 0.4rem;
+    padding: 0.25rem 0.4rem;
+  }
+
+  .ratingValue {
+    font-size: 0.8rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -335,6 +368,16 @@
     font-size: 1.15rem;
     width: 32px;
     height: 32px;
+  }
+
+  .ratingBadge {
+    top: 0.35rem;
+    left: 0.35rem;
+    padding: 0.2rem 0.35rem;
+  }
+
+  .ratingValue {
+    font-size: 0.75rem;
   }
 }
 
