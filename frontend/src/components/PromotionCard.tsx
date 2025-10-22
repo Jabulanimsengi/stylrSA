@@ -45,6 +45,7 @@ export interface Promotion {
 interface PromotionCardProps {
   promotion: Promotion;
   onImageClick?: (images: string[], startIndex: number) => void;
+  onBookNow?: (salonData: any, service: any) => void;
 }
 
 function calculateTimeRemaining(endDate: string): string {
@@ -66,7 +67,7 @@ function calculateTimeRemaining(endDate: string): string {
   }
 }
 
-export default function PromotionCard({ promotion, onImageClick }: PromotionCardProps) {
+export default function PromotionCard({ promotion, onImageClick, onBookNow }: PromotionCardProps) {
   const router = useRouter();
   const [isLoadingBooking, setIsLoadingBooking] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -148,12 +149,18 @@ export default function PromotionCard({ promotion, onImageClick }: PromotionCard
 
   const handleConfirmationAccept = useCallback(() => {
     setShowConfirmation(false);
-    setSalonData(null);
     setIsLoadingBooking(false);
-    if (linkHref && linkHref !== '#') {
+    
+    // If onBookNow callback is provided, use it instead of navigating
+    if (onBookNow && salonData && promotion.service) {
+      onBookNow(salonData, promotion.service);
+      setSalonData(null);
+    } else if (linkHref && linkHref !== '#') {
+      // Fallback to navigation if no callback provided
+      setSalonData(null);
       router.push(linkHref);
     }
-  }, [linkHref, router]);
+  }, [linkHref, router, onBookNow, salonData, promotion.service]);
 
   const handleConfirmationClose = useCallback(() => {
     setShowConfirmation(false);

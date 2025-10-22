@@ -6,6 +6,8 @@ import PageNav from '@/components/PageNav';
 import PromotionCard, { Promotion, PromotionCardSkeleton } from '@/components/PromotionCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ImageLightbox from '@/components/ImageLightbox/ImageLightbox';
+import BookingModal from '@/components/BookingModal';
+import { Service, Salon } from '@/types';
 import styles from './promotions.module.css';
 import { toFriendlyMessage } from '@/lib/errors';
 
@@ -17,6 +19,8 @@ export default function PromotionsPage() {
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [selectedSalon, setSelectedSalon] = useState<Salon | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   useEffect(() => {
     fetchPromotions();
@@ -69,6 +73,21 @@ export default function PromotionsPage() {
     } else if (direction === 'next' && lightboxIndex < lightboxImages.length - 1) {
       setLightboxIndex(lightboxIndex + 1);
     }
+  };
+
+  const handleBookNow = (salonData: any, service: any) => {
+    setSelectedSalon(salonData);
+    setSelectedService(service);
+  };
+
+  const handleBookingClose = () => {
+    setSelectedSalon(null);
+    setSelectedService(null);
+  };
+
+  const handleBookingSuccess = () => {
+    toast.success('Booking request sent! The salon will confirm shortly.');
+    handleBookingClose();
   };
 
   const filteredPromotions = promotions.filter((promo) => {
@@ -176,6 +195,7 @@ export default function PromotionsPage() {
                 key={promotion.id} 
                 promotion={promotion}
                 onImageClick={handleImageClick}
+                onBookNow={handleBookNow}
               />
             ))}
           </div>
@@ -189,6 +209,15 @@ export default function PromotionsPage() {
         onClose={() => setIsLightboxOpen(false)}
         onNavigate={handleLightboxNavigate}
       />
+
+      {selectedSalon && selectedService && (
+        <BookingModal
+          salon={selectedSalon}
+          service={selectedService}
+          onClose={handleBookingClose}
+          onBookingSuccess={handleBookingSuccess}
+        />
+      )}
     </div>
   );
 }

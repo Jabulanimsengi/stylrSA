@@ -204,7 +204,7 @@ export default function HomePage() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Recommended Salons</h2>
+        <h2 className={styles.sectionTitle}>Recommended</h2>
         <FeaturedSalons />
       </section>
 

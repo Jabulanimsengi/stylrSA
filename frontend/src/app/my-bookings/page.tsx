@@ -54,8 +54,8 @@ export default function MyBookingsPage() {
 
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
-      toast.error("You must be logged in to view your bookings.");
       router.push('/');
+      return;
     }
     if (authStatus === 'authenticated') {
       fetchBookings();
@@ -74,10 +74,17 @@ export default function MyBookingsPage() {
     }
   }, [socket]);
 
-  // FIX 2: Rename the function to match the prop in ReviewModal.tsx
   const handleReviewAdded = () => {
     setReviewingBookingId(null);
+    setEditingReview(null);
     fetchBookings();
+  };
+
+  const [editingReview, setEditingReview] = useState<ReviewType | null>(null);
+
+  const handleEditReview = (review: ReviewType, bookingId: string) => {
+    setEditingReview(review);
+    setReviewingBookingId(bookingId);
   };
 
   const formatDate = (dateString: string) => {
@@ -134,9 +141,12 @@ export default function MyBookingsPage() {
       {reviewingBookingId && (
         <ReviewModal
           bookingId={reviewingBookingId}
-          onClose={() => setReviewingBookingId(null)}
-          // FIX 4: Use the correct prop name: onReviewAdded
+          onClose={() => {
+            setReviewingBookingId(null);
+            setEditingReview(null);
+          }}
           onReviewAdded={handleReviewAdded}
+          existingReview={editingReview}
         />
       )}
       <div className={styles.container}>
@@ -164,14 +174,39 @@ export default function MyBookingsPage() {
                 <p>at <strong>{booking.salon.name}</strong></p>
                 <p>Date: {formatDate(booking.bookingTime)}</p>
                 <p>Cost: <strong>R{booking.totalCost.toFixed(2)}</strong></p>
-                <div style={{ marginTop: '1rem' }}>
-                  {booking.status === 'COMPLETED' && !booking.review && (
+                
+                {booking.review ? (
+                  <div className={styles.reviewSection}>
+                    <div className={styles.reviewHeader}>
+                      <span className={styles.reviewStars}>
+                        {'★'.repeat(booking.review.rating)}{'☆'.repeat(5 - booking.review.rating)}
+                      </span>
+                      {booking.review.approvalStatus === 'PENDING' && (
+                        <span className={styles.reviewPendingBadge}>Pending Approval</span>
+                      )}
+                      {booking.review.approvalStatus === 'APPROVED' && (
+                        <span className={styles.reviewApprovedBadge}>Approved</span>
+                      )}
+                    </div>
+                    <p className={styles.reviewComment}>"{booking.review.comment}"</p>
+                    {booking.review.approvalStatus === 'PENDING' && (
+                      <div className={styles.reviewActions}>
+                        <button 
+                          onClick={() => handleEditReview(booking.review!, booking.id)} 
+                          className="btn btn-secondary"
+                        >
+                          Edit Review
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : booking.status === 'COMPLETED' ? (
+                  <div style={{ marginTop: '1rem' }}>
                     <button onClick={() => setReviewingBookingId(booking.id)} className="btn btn-secondary">
                       Leave a Review
                     </button>
-                  )}
-                  {booking.review && <span className={styles.reviewedBadge}>Reviewed</span>}
-                </div>
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>

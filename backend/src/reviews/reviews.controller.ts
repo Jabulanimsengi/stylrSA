@@ -15,6 +15,16 @@ export class ReviewsController {
     return this.reviewsService.create(user.id, createReviewDto);
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':reviewId')
+  update(
+    @Param('reviewId') reviewId: string,
+    @Body() updateReviewDto: CreateReviewDto,
+    @GetUser() user: any,
+  ) {
+    return this.reviewsService.update(reviewId, user.id, updateReviewDto);
+  }
+
   // NEW: Get salon owner's reviews
   @UseGuards(AuthGuard('jwt'))
   @Get('my-salon-reviews')

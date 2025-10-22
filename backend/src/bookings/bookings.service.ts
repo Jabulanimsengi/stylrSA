@@ -71,6 +71,7 @@ export class BookingsService {
       include: {
         service: true,
         salon: true,
+        review: true,
       },
       orderBy: {
         bookingTime: 'desc',

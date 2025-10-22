@@ -29,6 +29,15 @@ export class ReviewsService {
     if (booking.userId !== userId) {
       throw new ForbiddenException('You can only review your own bookings.');
     }
+    
+    // Check if review already exists for this booking
+    const existingReview = await this.prisma.review.findFirst({
+      where: { bookingId: dto.bookingId },
+    });
+
+    if (existingReview) {
+      throw new ForbiddenException('You have already reviewed this booking.');
+    }
 
     const review = await this.prisma.review.create({
       data: {
@@ -46,6 +55,7 @@ export class ReviewsService {
       },
       include: {
         author: { select: { firstName: true, lastName: true } },
+        booking: { select: { id: true } },
       },
     });
 
@@ -72,6 +82,40 @@ export class ReviewsService {
     }
 
     return review;
+  }
+
+  async update(reviewId: string, userId: string, dto: CreateReviewDto) {
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      include: { author: true },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found.');
+    }
+
+    if (review.authorId !== userId) {
+      throw new ForbiddenException('You can only edit your own reviews.');
+    }
+
+    // Only allow editing pending reviews
+    if (review.approvalStatus !== 'PENDING') {
+      throw new ForbiddenException('You can only edit reviews that are pending approval.');
+    }
+
+    const updatedReview = await this.prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        rating: dto.rating,
+        comment: dto.comment,
+      },
+      include: {
+        author: { select: { firstName: true, lastName: true } },
+        booking: { select: { id: true } },
+      },
+    });
+
+    return updatedReview;
   }
 
   // NEW: Get all reviews for salon owner's salon

@@ -87,6 +87,7 @@ function DashboardPageContent() {
   const [bookingMessage, setBookingMessage] = useState('');
   const [isSavingMessage, setIsSavingMessage] = useState(false);
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [bookingToComplete, setBookingToComplete] = useState<string | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -209,7 +210,7 @@ function DashboardPageContent() {
 
   useEffect(() => {
     if (authStatus === 'loading') { setIsLoading(true); return; }
-    if (authStatus === 'unauthenticated') { toast.error('You must be logged in.'); router.push('/'); return; }
+    if (authStatus === 'unauthenticated') { router.push('/'); return; }
     if (authStatus === 'authenticated' && ownerId) {
       fetchDashboardData();
     }
@@ -475,18 +476,20 @@ function DashboardPageContent() {
     }
   };
 
-  const handleMarkAsCompleted = async (bookingId: string) => {
-    const confirmed = window.confirm(
-      'Is this service completed?\n\nMarking as completed will:\n• Move this booking to Past tab\n• Send a review request to the customer\n• Update booking records'
-    );
-    
-    if (!confirmed) return;
+  const handleMarkAsCompleted = (bookingId: string) => {
+    setBookingToComplete(bookingId);
+  };
+
+  const confirmMarkAsCompleted = async () => {
+    if (!bookingToComplete) return;
 
     try {
-      await handleBookingStatusUpdate(bookingId, 'COMPLETED');
+      await handleBookingStatusUpdate(bookingToComplete, 'COMPLETED');
       toast.success('Service marked as completed! Customer will be notified to leave a review.');
     } catch (e) {
       toast.error(toFriendlyMessage(e, 'Failed to mark service as completed'));
+    } finally {
+      setBookingToComplete(null);
     }
   };
 
@@ -637,6 +640,19 @@ function DashboardPageContent() {
         />
       )}
       {itemToDelete && <ConfirmationModal onConfirm={confirmDelete} onCancel={() => setItemToDelete(null)} message={`Are you sure you want to delete this ${itemToDelete.type}?`} />}
+      {bookingToComplete && (
+        <ConfirmationModal 
+          onConfirm={confirmMarkAsCompleted} 
+          onCancel={() => setBookingToComplete(null)} 
+          message="Is this service completed?"
+          confirmText="Mark as Completed"
+          details={[
+            'Move this booking to Past tab',
+            'Send a review request to the customer',
+            'Update booking records'
+          ]}
+        />
+      )}
       {isCreatePromoModalOpen && selectedServiceForPromo && (
         <CreatePromotionModal
           service={selectedServiceForPromo}

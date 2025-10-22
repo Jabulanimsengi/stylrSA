@@ -172,6 +172,56 @@
   color: var(--color-text-strong);
 }
 
+.reviewSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.reviewPendingBadge {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.reviewApprovedBadge {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.reviewStars {
+  color: var(--accent-gold);
+  font-size: 1rem;
+}
+
+.reviewComment {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0.5rem 0;
+  line-height: 1.4;
+}
+
+.reviewActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
 /* ===== 375px breakpoint for iPhone SE, iPhone 12 mini ===== */
 @media (max-width: 375px) {
   .container {

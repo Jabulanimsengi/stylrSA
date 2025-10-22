@@ -20,9 +20,5 @@ export class CreateReviewDto {
 
   @IsString()
   @IsNotEmpty()
-  salonId: string;
-
-  @IsString()
-  @IsNotEmpty()
   bookingId: string;
 }
