@@ -15,7 +15,13 @@ export default function PricingPage() {
       <p className={styles.subtitle}>Choose a plan that fits your growth stage. Upgrade anytime.</p>
       <div className={styles.grid}>
         {APP_PLANS.map((p) => (
-          <div key={p.code} className={styles.card}>
+          <div key={p.code} className={`${styles.card} ${p.popular ? styles.popularCard : ''}`}>
+            {p.popular && (
+              <div className={styles.popularBadge}>
+                <span className={styles.popularIcon}>⭐</span>
+                Most Popular
+              </div>
+            )}
             <h3 className={styles.planName}>{p.name}</h3>
             <div className={styles.price}>{p.price}<span className={styles.perMonth}>/mo</span></div>
             <ul className={styles.features}>
@@ -23,7 +29,7 @@ export default function PricingPage() {
               <li><strong>Visibility Weight:</strong> {p.visibilityWeight}</li>
               {p.features.map((f) => (<li key={f}>{f}</li>))}
             </ul>
-            <button className={styles.cta} onClick={() => setAuthOpen(true)}>Get Started</button>
+            <button className={`${styles.cta} ${p.popular ? styles.ctaPopular : ''}`} onClick={() => setAuthOpen(true)}>Get Started</button>
           </div>
         ))}
       </div>

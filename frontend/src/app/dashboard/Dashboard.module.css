@@ -1,1229 +1,2280 @@
-/* frontend/src/app/dashboard/Dashboard.module.css */
-
-.container {
-  --page-inline-padding: clamp(1.25rem, 4vw, 2rem);
-  max-width: 1024px;
-  margin: 0 auto;
-  padding-inline: var(--page-inline-padding);
-  width: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden;
-  padding-top: 6rem;
-}
-
-.stickyHeader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--secondary-blush);
-  background-color: var(--color-surface);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  max-width: 100vw;
-  padding-inline: var(--page-inline-padding);
-}
-
-.navButtonsContainer, .headerSpacer {
-  flex: 1 0 0;
-}
-
-.navButtonsContainer {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-plum);
-  margin: 0;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.navButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: var(--color-surface-elevated);
-  color: var(--dark-gray);
-  border: 1px solid var(--light-silver);
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background-color 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.navButton:hover {
-  background-color: var(--color-surface-subtle);
-}
-
-@media (max-width: 768px) {
-  .container {
-    --page-inline-padding: 0.5rem;
-    padding-top: 5.5rem;
-  }
-  .stickyHeader {
-    margin-bottom: 1rem;
-    padding: 0.625rem 0;
-    row-gap: 0.625rem;
-    display: grid;
-    grid-template-columns: 1fr;
-    justify-items: center;
-  }
-  .title {
-    font-size: 1.125rem;
-    width: 100%;
-    text-align: center;
-  }
-  .headerSpacer {
-    display: none;
-  }
-  .navButtonsContainer {
-    width: 100%;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  .navButton {
-    flex: 1 1 45%;
-    justify-content: center;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
-  }
-  .welcomeCard {
-    padding: 1.5rem;
-    max-width: 90%;
-  }
-  .welcomeCard h2 {
-    font-size: 1.375rem;
-  }
-  .welcomeCard p {
-    font-size: 0.9375rem;
-  }
-  .header {
-    margin-bottom: 1.25rem;
-    padding-bottom: 1rem;
-  }
-  .salonName {
-    font-size: 1rem;
-  }
-  .planSummary {
-    padding: 0.75rem;
-  }
-  .planSummaryRow,
-  .planStatusRow {
-    font-size: 0.8125rem;
-  }
-  .contentGrid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-  .contentCard {
-    padding: 1rem;
-  }
-  .cardHeader {
-    margin-bottom: 1rem;
-    gap: 0.625rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .cardHeader button {
-    width: 100%;
-    justify-content: center;
-    font-size: 0.875rem;
-    padding: 0.5rem 0.875rem;
-  }
-  .cardTitle {
-    font-size: 1rem;
-    width: 100%;
-  }
-  .tabs {
-    gap: 0.5rem;
-  }
-  .tabButton {
-    font-size: 0.8125rem;
-    padding: 0.5rem 0.375rem;
-  }
-}
-
-/* Mid-mobile tweaks for 641–768px down to 375px */
-@media (max-width: 640px) {
-  .tabs {
-    gap: 0.5rem;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-  }
-  .tabButton {
-    white-space: nowrap;
-  }
-  .actions {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .approveButton,
-  .rejectButton {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.82rem;
-    flex: 1 1 auto;
-  }
-  .statusBadge {
-    padding: 0.2rem 0.45rem;
-    font-size: 0.72rem;
-  }
-}
-
-@media (max-width: 400px) {
-  .container {
-    --page-inline-padding: 0.5rem;
-    padding-top: 5rem;
-  }
-  .stickyHeader {
-    margin-bottom: 0.75rem;
-    padding: 0.5rem 0;
-  }
-  .title {
-    font-size: 1rem;
-  }
-  .navButtonsContainer {
-    gap: 0.375rem;
-  }
-  .navButton {
-    padding: 0.375rem 0.625rem;
-    font-size: 0.75rem;
-    gap: 0.25rem;
-  }
-  .navButton svg {
-    font-size: 0.875rem;
-  }
-  .welcomeContainer {
-    padding-top: 1.5rem;
-  }
-  .welcomeCard {
-    padding: 1.25rem;
-    max-width: 95%;
-    border-radius: 0.5rem;
-  }
-  .welcomeCard h2 {
-    font-size: 1.125rem;
-    margin-bottom: 0.625rem;
-  }
-  .welcomeCard p {
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-  .header {
-    margin-bottom: 1rem;
-    padding-bottom: 0.875rem;
-  }
-  .salonName {
-    font-size: 0.9375rem;
-    margin-top: 0.125rem;
-  }
-  .headerTop {
-    gap: 0.625rem;
-  }
-  .headerActions {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .planSummary {
-    padding: 0.625rem;
-    gap: 0.5rem;
-  }
-  .planSummaryRow,
-  .planStatusRow {
-    font-size: 0.75rem;
-    gap: 0.375rem;
-  }
-  .planStatusBadge {
-    padding: 0.1875rem 0.5rem;
-    font-size: 0.6875rem;
-  }
-  .planNotice {
-    padding: 0.625rem;
-    font-size: 0.8125rem;
-    gap: 0.5rem;
-  }
-  .planActions {
-    gap: 0.375rem;
-    flex-wrap: wrap;
-  }
-  .copyButton {
-    padding: 0.3125rem 0.625rem;
-    font-size: 0.75rem;
-  }
-  .contentGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  .contentCard {
-    padding: 0.875rem;
-    border-radius: 0.375rem;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-  .cardHeader {
-    margin-bottom: 0.875rem;
-    gap: 0.5rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .cardHeader button {
-    width: 100%;
-    justify-content: center;
-    font-size: 0.8125rem;
-    padding: 0.5rem 0.75rem;
-  }
-  .cardTitle {
-    font-size: 0.9375rem;
-    width: 100%;
-  }
-  .tabs {
-    gap: 0.375rem;
-    margin-bottom: 1rem;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-  }
-  .tabButton {
-    font-size: 0.75rem;
-    padding: 0.4375rem 0.5rem;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .list {
-    gap: 0.75rem;
-  }
-  .listItem {
-    gap: 0.625rem;
-    padding-bottom: 0.75rem;
-    font-size: 0.8125rem;
-  }
-  .listItemInfo p {
-    font-size: 0.8125rem;
-  }
-  .date {
-    font-size: 0.75rem;
-  }
-  .actions {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  .statusBadge {
-    padding: 0.1875rem 0.5rem;
-    font-size: 0.6875rem;
-  }
-  .approveButton,
-  .rejectButton {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    flex: 1;
-  }
-  .editButton,
-  .deleteButton {
-    font-size: 0.75rem;
-  }
-  .galleryGrid {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 0.625rem;
-  }
-  .galleryItem {
-    height: 90px;
-  }
-  .galleryItem .deleteButton {
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
-  }
-}
-
-/* ===== 375px breakpoint for iPhone SE, iPhone 12 mini, small devices ===== */
-@media (max-width: 375px) {
-  .container {
-    --page-inline-padding: 0.375rem;
-    padding-top: 4.5rem;
-  }
-
-  .stickyHeader {
-    margin-bottom: 0.625rem;
-    padding: 0.4375rem 0;
-  }
-
-  .title {
-    font-size: 0.9375rem;
-  }
-
-  .navButtonsContainer {
-    gap: 0.3125rem;
-  }
-
-  .navButton {
-    padding: 0.3125rem 0.5rem;
-    font-size: 0.6875rem;
-    gap: 0.1875rem;
-  }
-
-  .navButton svg {
-    font-size: 0.8125rem;
-  }
-
-  .welcomeCard {
-    padding: 1.125rem;
-    max-width: 98%;
-  }
-
-  .welcomeCard h2 {
-    font-size: 1.0625rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .welcomeCard p {
-    font-size: 0.8125rem;
-    line-height: 1.45;
-  }
-
-  .header {
-    margin-bottom: 0.875rem;
-    padding-bottom: 0.75rem;
-  }
-
-  .salonName {
-    font-size: 0.875rem;
-  }
-
-  .headerTop {
-    gap: 0.5rem;
-  }
-
-  .headerActions {
-    gap: 0.375rem;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .headerActions button,
-  .headerActions a {
-    width: 100%;
-    justify-content: center;
-    font-size: 0.75rem;
-    padding: 0.4375rem 0.625rem;
-  }
-
-  .planSummary {
-    padding: 0.5rem;
-    gap: 0.4375rem;
-  }
-
-  .planSummaryRow {
-    font-size: 0.6875rem;
-    gap: 0.3125rem;
-    flex-direction: column;
-  }
-
-  .planSummaryRow span {
-    width: 100%;
-  }
-
-  .planStatusRow {
-    font-size: 0.6875rem;
-    gap: 0.3125rem;
-  }
-
-  .planStatusBadge {
-    padding: 0.1875rem 0.4375rem;
-    font-size: 0.625rem;
-  }
-
-  .planNotice {
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    gap: 0.4375rem;
-  }
-
-  .planNotice p {
-    line-height: 1.4;
-  }
-
-  .planActions {
-    gap: 0.3125rem;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .planActions button,
-  .planActions a {
-    width: 100%;
-    text-align: center;
-  }
-
-  .copyButton {
-    padding: 0.3125rem 0.5rem;
-    font-size: 0.6875rem;
-    width: 100%;
-  }
-
-  .contentGrid {
-    grid-template-columns: 1fr;
-    gap: 0.875rem;
-  }
-
-  .contentCard {
-    padding: 0.75rem;
-    border-radius: 0.3125rem;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  .cardHeader {
-    margin-bottom: 0.75rem;
-    gap: 0.4375rem;
-  }
-
-  .cardHeader button {
-    font-size: 0.75rem;
-    padding: 0.4375rem 0.625rem;
-  }
-
-  .cardTitle {
-    font-size: 0.875rem;
-  }
-
-  .tabs {
-    gap: 0.3125rem;
-    margin-bottom: 0.875rem;
-  }
-
-  .tabButton {
-    font-size: 0.6875rem;
-    padding: 0.375rem 0.4375rem;
-  }
-
-  .list {
-    gap: 0.625rem;
-  }
-
-  .listItem {
-    gap: 0.5rem;
-    padding-bottom: 0.625rem;
-    font-size: 0.75rem;
-  }
-
-  .listItemInfo p {
-    font-size: 0.75rem;
-  }
-
-  .date {
-    font-size: 0.6875rem;
-  }
-
-  .actions {
-    gap: 0.375rem;
-    width: 100%;
-  }
-
-  .statusBadge {
-    padding: 0.1875rem 0.4375rem;
-    font-size: 0.625rem;
-  }
-
-  .approveButton,
-  .rejectButton {
-    padding: 0.3125rem 0.625rem;
-    font-size: 0.6875rem;
-    flex: 1;
-  }
-
-  .editButton,
-  .deleteButton {
-    font-size: 0.6875rem;
-    padding: 0.1875rem 0.3125rem;
-  }
-
-  .galleryGrid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 0.5rem;
-  }
-
-  .galleryItem {
-    height: 80px;
-    border-radius: 0.375rem;
-  }
-
-  .galleryItem .deleteButton {
-    width: 22px;
-    height: 22px;
-    font-size: 0.6875rem;
-    top: 0.3125rem;
-    right: 0.3125rem;
-  }
-}
-
-/* ===== 320px breakpoint for very small devices (iPhone SE 1st gen, small Android) ===== */
-@media (max-width: 320px) {
-  .container {
-    --page-inline-padding: 0.25rem;
-    padding-top: 4rem;
-  }
-
-  .stickyHeader {
-    margin-bottom: 0.5rem;
-    padding: 0.375rem 0;
-  }
-
-  .title {
-    font-size: 0.875rem;
-    line-height: 1.2;
-  }
-
-  .navButtonsContainer {
-    gap: 0.25rem;
-  }
-
-  .navButton {
-    padding: 0.25rem 0.375rem;
-    font-size: 0.625rem;
-    gap: 0.125rem;
-  }
-
-  .navButton svg {
-    font-size: 0.75rem;
-  }
-
-  .welcomeContainer {
-    padding-top: 1rem;
-  }
-
-  .welcomeCard {
-    padding: 1rem;
-    max-width: 100%;
-    margin: 0 0.25rem;
-  }
-
-  .welcomeCard h2 {
-    font-size: 1rem;
-    margin-bottom: 0.375rem;
-  }
-
-  .welcomeCard p {
-    font-size: 0.75rem;
-    line-height: 1.4;
-  }
-
-  .header {
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.625rem;
-  }
-
-  .salonName {
-    font-size: 0.8125rem;
-  }
-
-  .headerTop {
-    gap: 0.375rem;
-    flex-direction: column;
-  }
-
-  .headerActions {
-    gap: 0.3125rem;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .headerActions button,
-  .headerActions a {
-    width: 100%;
-    justify-content: center;
-    font-size: 0.6875rem;
-    padding: 0.375rem 0.5rem;
-  }
-
-  .planSummary {
-    padding: 0.4375rem;
-    gap: 0.375rem;
-  }
-
-  .planSummaryRow {
-    font-size: 0.625rem;
-    gap: 0.25rem;
-    flex-direction: column;
-  }
-
-  .planSummaryRow span {
-    width: 100%;
-    line-height: 1.3;
-  }
-
-  .planStatusRow {
-    font-size: 0.625rem;
-    gap: 0.25rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .planStatusBadge {
-    padding: 0.1875rem 0.375rem;
-    font-size: 0.5625rem;
-  }
-
-  .planNotice {
-    padding: 0.4375rem;
-    font-size: 0.6875rem;
-    gap: 0.375rem;
-  }
-
-  .planNotice p {
-    line-height: 1.35;
-  }
-
-  .planActions {
-    gap: 0.25rem;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .planActions button,
-  .planActions a {
-    width: 100%;
-    text-align: center;
-    font-size: 0.625rem;
-    padding: 0.3125rem 0.4375rem;
-  }
-
-  .copyButton {
-    padding: 0.25rem 0.4375rem;
-    font-size: 0.625rem;
-    width: 100%;
-  }
-
-  .contentGrid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .contentCard {
-    padding: 0.625rem;
-    border-radius: 0.25rem;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  .cardHeader {
-    margin-bottom: 0.625rem;
-    gap: 0.375rem;
-  }
-
-  .cardHeader button {
-    font-size: 0.6875rem;
-    padding: 0.375rem 0.5rem;
-  }
-
-  .cardTitle {
-    font-size: 0.8125rem;
-  }
-
-  .tabs {
-    gap: 0.25rem;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.375rem;
-  }
-
-  .tabButton {
-    font-size: 0.625rem;
-    padding: 0.3125rem 0.375rem;
-  }
-
-  .list {
-    gap: 0.5rem;
-  }
-
-  .listItem {
-    gap: 0.4375rem;
-    padding-bottom: 0.5rem;
-    font-size: 0.6875rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .listItemInfo {
-    width: 100%;
-  }
-
-  .listItemInfo p {
-    font-size: 0.6875rem;
-  }
-
-  .date {
-    font-size: 0.625rem;
-  }
-
-  .actions {
-    gap: 0.3125rem;
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .actions > * {
-    width: 100%;
-  }
-
-  .statusBadge {
-    padding: 0.1875rem 0.375rem;
-    font-size: 0.5625rem;
-    text-align: center;
-  }
-
-  .approveButton,
-  .rejectButton {
-    padding: 0.3125rem 0.5rem;
-    font-size: 0.625rem;
-    flex: none;
-    width: 100%;
-  }
-
-  .editButton,
-  .deleteButton {
-    font-size: 0.625rem;
-    padding: 0.1875rem 0.25rem;
-  }
-
-  .galleryGrid {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 0.375rem;
-  }
-
-  .galleryItem {
-    height: 70px;
-    border-radius: 0.3125rem;
-  }
-
-  .galleryItem .deleteButton {
-    width: 20px;
-    height: 20px;
-    font-size: 0.625rem;
-    top: 0.25rem;
-    right: 0.25rem;
-  }
-}
-
-/* --- Styles for the "Create Profile" view --- */
-.welcomeContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: 4rem;
-}
-
-.welcomeCard {
-  background-color: var(--color-surface-elevated);
-  padding: 2.5rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--light-silver);
-  border-top: 4px solid var(--primary-pink);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  text-align: center;
-  max-width: 500px;
-}
-.welcomeCard h2 {
-    font-size: 1.75rem;
-    margin-bottom: 1rem;
-}
-.welcomeCard p {
-    font-size: 1.1rem;
-    color: var(--text-body);
-    line-height: 1.6;
-}
-/* --- End of new styles --- */
-
-.header {
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--secondary-blush);
-  padding-bottom: 1.5rem;
-}
-
-.planSummary {
-  margin-top: 1rem;
-  display: grid;
-  gap: 0.75rem;
-  background-color: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 1rem;
-}
-
-.planSummaryRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-  font-size: 0.95rem;
-  color: var(--color-text-strong);
-}
-
-.planStatusRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  font-size: 0.95rem;
-  color: var(--color-text-muted);
-}
-
-.planStatusBadge {
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.planStatus_pending_selection {
-  background-color: rgba(148, 163, 184, 0.18);
-  color: var(--color-text-muted);
-}
-
-.planStatus_awaiting_proof {
-  background-color: rgba(250, 204, 21, 0.18);
-  color: #b45309;
-}
-
-.planStatus_proof_submitted {
-  background-color: rgba(59, 130, 246, 0.16);
-  color: #1d4ed8;
-}
-
-.planStatus_verified {
-  background-color: rgba(34, 197, 94, 0.18);
-  color: #047857;
-}
-
-.planNotice {
-  background-color: rgba(194, 34, 134, 0.08);
-  border: 1px dashed rgba(194, 34, 134, 0.3);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  font-size: 0.95rem;
-  color: var(--color-text-strong);
-  display: grid;
-  gap: 0.75rem;
-}
-
-.planActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.copyButton {
-  border: 1px solid var(--color-border);
-  background-color: var(--color-surface);
-  padding: 0.45rem 0.9rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: var(--color-text-strong);
-  transition: background-color 0.2s ease;
-}
-
-.copyButton:hover {
-  background-color: var(--color-surface-elevated);
-}
-
-.planLink {
-  text-decoration: none;
-}
-
-.headerTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.headerInfo p {
-  margin: 0;
-}
-
-.salonName {
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--text-charcoal);
-  margin-top: 0.25rem;
-}
-
-.headerActions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.availabilityToggle {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background-color: var(--color-surface-elevated);
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  border: 1px solid var(--secondary-blush);
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 22px;
-}
-
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: var(--light-grey);
-  transition: .4s;
-  border-radius: 22px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 16px; width: 16px;
-  left: 3px; bottom: 3px;
-  background-color: var(--color-surface-elevated);
-  transition: .4s;
-  border-radius: 50%;
-}
-
-input:checked + .slider {
-  background-color: var(--muted-teal);
-}
-
-input:checked + .slider:before {
-  transform: translateX(18px);
-}
-
-.contentGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
-  gap: 2rem;
-  width: 100%;
-}
-
-.contentCard {
-  background-color: var(--color-surface-elevated);
-  color: var(--text-charcoal);
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-  border: 1px solid var(--light-silver);
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  box-sizing: border-box;
-  max-width: 100%;
-}
-
-.contentCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-}
-
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.cardTitle {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--primary-plum);
-  margin: 0;
-}
-
-/* --- BOOKING STYLES START --- */
-.tabs {
-  display: flex;
-  gap: 1rem;
-  border-bottom: 1px solid var(--secondary-blush);
-  margin-bottom: 1.5rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.tabButton {
-  padding: 0.75rem 0.25rem;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s ease-in-out;
-}
-
-.tabButton:hover {
-  color: var(--primary-plum);
-}
-
-.activeTab {
-  color: var(--primary-plum);
-  border-bottom-color: var(--primary-plum);
-}
-/* --- BOOKING STYLES END --- */
-
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.list p {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 2rem 0;
-}
-
-.listItem {
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.listItem:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-
-.listItemInfo p { margin: 0; }
-.listItemInfo strong { color: var(--color-text-strong); }
-
-.date { font-size: 0.9rem; color: var(--text-muted); }
-.actions { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
-.statusBadge { padding: 0.25rem 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 9999px; }
-.statusApproved { background-color: var(--color-success-bg); color: var(--color-success-text); }
-.statusPending { background-color: var(--color-warning-bg); color: var(--color-warning-text); }
-.statusRejected { background-color: var(--color-error-bg); color: var(--color-error-text); }
-.editButton, .deleteButton { background: none; border: none; cursor: pointer; font-weight: 500; text-decoration: underline; padding: 0; }
-.editButton { color: var(--primary-plum); }
-.deleteButton { color: var(--error-red); }
-
-/* --- BOOKING BUTTON STYLES --- */
-.approveButton, .rejectButton { 
-  padding: 0.5rem 1rem; 
-  border-radius: 0.375rem; 
-  border: none; 
-  color: var(--white); 
-  font-weight: 600; 
-  cursor: pointer; 
-  transition: opacity 0.2s;
-}
-.approveButton:hover, .rejectButton:hover { 
-  opacity: 0.85;
-}
-.approveButton { 
-  background-color: var(--muted-teal); 
-}
-.rejectButton { 
-  background-color: var(--error-red); 
-}
-/* --- BOOKING STYLES END --- */
-
-.modalOverlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 50;
-    padding: 1rem;
-  }
-  
-.modalContent {
-    background-color: var(--color-surface-elevated);
-    border-radius: 0.5rem;
-    padding: 2rem;
-    width: 100%;
-    max-width: 32rem;
-    color: var(--text-charcoal);
-  }
-  
-  .input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #CBD5E0;
-    border-radius: 0.375rem;
-    font-family: inherit;
-    font-size: 1rem;
-  }
-
-  .galleryGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .galleryItem {
-    position: relative;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    height: 120px;
-  }
-  
-  .galleryItemImage {
-    object-fit: cover;
-  }
-  
-  .galleryItem .deleteButton {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  
-  .galleryItem:hover .deleteButton {
-    opacity: 1;
-  }
+/* frontend/src/app/dashboard/Dashboard.module.css */
+
+
+
+.container {
+
+  --page-inline-padding: clamp(1.25rem, 4vw, 2rem);
+
+  max-width: 1024px;
+
+  margin: 0 auto;
+
+  padding-inline: var(--page-inline-padding);
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.title {
+
+  font-size: 2rem;
+
+  font-weight: 700;
+
+  color: var(--primary-plum);
+
+  margin: 2rem 0 2rem 0;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 768px) {
+
+  .container {
+
+    --page-inline-padding: 0.5rem;
+
+
+
+  }
+
+
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+
+
+
+
+
+
+  .welcomeCard {
+
+    padding: 1.5rem;
+
+    max-width: 90%;
+
+  }
+
+  .welcomeCard h2 {
+
+    font-size: 1.375rem;
+
+  }
+
+  .welcomeCard p {
+
+    font-size: 0.9375rem;
+
+  }
+
+  .header {
+
+    margin-bottom: 1.25rem;
+
+    padding-bottom: 1rem;
+
+  }
+
+  .salonName {
+
+    font-size: 1rem;
+
+  }
+
+  .planSummary {
+
+    padding: 0.75rem;
+
+  }
+
+  .planSummaryRow,
+
+  .planStatusRow {
+
+    font-size: 0.8125rem;
+
+  }
+
+  .contentGrid {
+
+    grid-template-columns: 1fr;
+
+    gap: 1.25rem;
+
+  }
+
+  .contentCard {
+
+    padding: 1rem;
+
+  }
+
+  .cardHeader {
+
+    margin-bottom: 1rem;
+
+    gap: 0.625rem;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+  .cardHeader button {
+
+    width: 100%;
+
+    justify-content: center;
+
+    font-size: 0.875rem;
+
+    padding: 0.5rem 0.875rem;
+
+  }
+
+  .cardTitle {
+
+    font-size: 1rem;
+
+    width: 100%;
+
+  }
+
+  .tabs {
+
+    gap: 0.5rem;
+
+  }
+
+  .tabButton {
+
+    font-size: 0.8125rem;
+
+    padding: 0.5rem 0.375rem;
+
+  }
+
+}
+
+
+
+/* Mid-mobile tweaks for 641ï¿½768px down to 375px */
+
+@media (max-width: 640px) {
+
+  .tabs {
+
+    gap: 0.5rem;
+
+    overflow-x: auto;
+
+    flex-wrap: nowrap;
+
+  }
+
+  .tabButton {
+
+    white-space: nowrap;
+
+  }
+
+  .actions {
+
+    gap: 0.5rem;
+
+    flex-wrap: wrap;
+
+  }
+
+  .approveButton,
+
+  .rejectButton {
+
+    padding: 0.4rem 0.6rem;
+
+    font-size: 0.82rem;
+
+    flex: 1 1 auto;
+
+  }
+
+  .statusBadge {
+
+    padding: 0.2rem 0.45rem;
+
+    font-size: 0.72rem;
+
+  }
+
+}
+
+
+
+@media (max-width: 400px) {
+
+  .container {
+
+    --page-inline-padding: 0.5rem;
+
+
+
+  }
+
+
+
+  .title {
+
+    font-size: 1rem;
+
+  }
+
+
+
+
+
+
+
+  .welcomeContainer {
+
+    padding-top: 1.5rem;
+
+  }
+
+  .welcomeCard {
+
+    padding: 1.25rem;
+
+    max-width: 95%;
+
+    border-radius: 0.5rem;
+
+  }
+
+  .welcomeCard h2 {
+
+    font-size: 1.125rem;
+
+    margin-bottom: 0.625rem;
+
+  }
+
+  .welcomeCard p {
+
+    font-size: 0.875rem;
+
+    line-height: 1.5;
+
+  }
+
+  .header {
+
+    margin-bottom: 1rem;
+
+    padding-bottom: 0.875rem;
+
+  }
+
+  .salonName {
+
+    font-size: 0.9375rem;
+
+    margin-top: 0.125rem;
+
+  }
+
+  .headerTop {
+
+    gap: 0.625rem;
+
+  }
+
+  .headerActions {
+
+    gap: 0.5rem;
+
+    flex-wrap: wrap;
+
+  }
+
+  .planSummary {
+
+    padding: 0.625rem;
+
+    gap: 0.5rem;
+
+  }
+
+  .planSummaryRow,
+
+  .planStatusRow {
+
+    font-size: 0.75rem;
+
+    gap: 0.375rem;
+
+  }
+
+  .planStatusBadge {
+
+    padding: 0.1875rem 0.5rem;
+
+    font-size: 0.6875rem;
+
+  }
+
+  .planNotice {
+
+    padding: 0.625rem;
+
+    font-size: 0.8125rem;
+
+    gap: 0.5rem;
+
+  }
+
+  .planActions {
+
+    gap: 0.375rem;
+
+    flex-wrap: wrap;
+
+  }
+
+  .copyButton {
+
+    padding: 0.3125rem 0.625rem;
+
+    font-size: 0.75rem;
+
+  }
+
+  .contentGrid {
+
+    grid-template-columns: 1fr;
+
+    gap: 1rem;
+
+  }
+
+  .contentCard {
+
+    padding: 0.875rem;
+
+    border-radius: 0.375rem;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+  }
+
+  .cardHeader {
+
+    margin-bottom: 0.875rem;
+
+    gap: 0.5rem;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+  .cardHeader button {
+
+    width: 100%;
+
+    justify-content: center;
+
+    font-size: 0.8125rem;
+
+    padding: 0.5rem 0.75rem;
+
+  }
+
+  .cardTitle {
+
+    font-size: 0.9375rem;
+
+    width: 100%;
+
+  }
+
+  .tabs {
+
+    gap: 0.375rem;
+
+    margin-bottom: 1rem;
+
+    overflow-x: auto;
+
+    flex-wrap: nowrap;
+
+  }
+
+  .tabButton {
+
+    font-size: 0.75rem;
+
+    padding: 0.4375rem 0.5rem;
+
+    white-space: nowrap;
+
+    flex-shrink: 0;
+
+  }
+
+  .list {
+
+    gap: 0.75rem;
+
+  }
+
+  .listItem {
+
+    gap: 0.625rem;
+
+    padding-bottom: 0.75rem;
+
+    font-size: 0.8125rem;
+
+  }
+
+  .listItemInfo p {
+
+    font-size: 0.8125rem;
+
+  }
+
+  .date {
+
+    font-size: 0.75rem;
+
+  }
+
+  .actions {
+
+    gap: 0.5rem;
+
+    flex-wrap: wrap;
+
+    width: 100%;
+
+  }
+
+  .statusBadge {
+
+    padding: 0.1875rem 0.5rem;
+
+    font-size: 0.6875rem;
+
+  }
+
+  .approveButton,
+
+  .rejectButton {
+
+    padding: 0.375rem 0.75rem;
+
+    font-size: 0.75rem;
+
+    flex: 1;
+
+  }
+
+  .editButton,
+
+  .deleteButton {
+
+    font-size: 0.75rem;
+
+  }
+
+  .galleryGrid {
+
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+
+    gap: 0.625rem;
+
+  }
+
+  .galleryItem {
+
+    height: 90px;
+
+  }
+
+  .galleryItem .deleteButton {
+
+    width: 24px;
+
+    height: 24px;
+
+    font-size: 0.75rem;
+
+  }
+
+}
+
+
+
+/* ===== 375px breakpoint for iPhone SE, iPhone 12 mini, small devices ===== */
+
+@media (max-width: 375px) {
+
+  .container {
+
+    --page-inline-padding: 0.375rem;
+
+
+
+  }
+
+
+
+
+
+
+
+  .title {
+
+    font-size: 0.9375rem;
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  .welcomeCard {
+
+    padding: 1.125rem;
+
+    max-width: 98%;
+
+  }
+
+
+
+  .welcomeCard h2 {
+
+    font-size: 1.0625rem;
+
+    margin-bottom: 0.5rem;
+
+  }
+
+
+
+  .welcomeCard p {
+
+    font-size: 0.8125rem;
+
+    line-height: 1.45;
+
+  }
+
+
+
+  .header {
+
+    margin-bottom: 0.875rem;
+
+    padding-bottom: 0.75rem;
+
+  }
+
+
+
+  .salonName {
+
+    font-size: 0.875rem;
+
+  }
+
+
+
+  .headerTop {
+
+    gap: 0.5rem;
+
+  }
+
+
+
+  .headerActions {
+
+    gap: 0.375rem;
+
+    flex-direction: column;
+
+    width: 100%;
+
+  }
+
+
+
+  .headerActions button,
+
+  .headerActions a {
+
+    width: 100%;
+
+    justify-content: center;
+
+    font-size: 0.75rem;
+
+    padding: 0.4375rem 0.625rem;
+
+  }
+
+
+
+  .planSummary {
+
+    padding: 0.5rem;
+
+    gap: 0.4375rem;
+
+  }
+
+
+
+  .planSummaryRow {
+
+    font-size: 0.6875rem;
+
+    gap: 0.3125rem;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .planSummaryRow span {
+
+    width: 100%;
+
+  }
+
+
+
+  .planStatusRow {
+
+    font-size: 0.6875rem;
+
+    gap: 0.3125rem;
+
+  }
+
+
+
+  .planStatusBadge {
+
+    padding: 0.1875rem 0.4375rem;
+
+    font-size: 0.625rem;
+
+  }
+
+
+
+  .planNotice {
+
+    padding: 0.5rem;
+
+    font-size: 0.75rem;
+
+    gap: 0.4375rem;
+
+  }
+
+
+
+  .planNotice p {
+
+    line-height: 1.4;
+
+  }
+
+
+
+  .planActions {
+
+    gap: 0.3125rem;
+
+    flex-direction: column;
+
+    width: 100%;
+
+  }
+
+
+
+  .planActions button,
+
+  .planActions a {
+
+    width: 100%;
+
+    text-align: center;
+
+  }
+
+
+
+  .copyButton {
+
+    padding: 0.3125rem 0.5rem;
+
+    font-size: 0.6875rem;
+
+    width: 100%;
+
+  }
+
+
+
+  .contentGrid {
+
+    grid-template-columns: 1fr;
+
+    gap: 0.875rem;
+
+  }
+
+
+
+  .contentCard {
+
+    padding: 0.75rem;
+
+    border-radius: 0.3125rem;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+  }
+
+
+
+  .cardHeader {
+
+    margin-bottom: 0.75rem;
+
+    gap: 0.4375rem;
+
+  }
+
+
+
+  .cardHeader button {
+
+    font-size: 0.75rem;
+
+    padding: 0.4375rem 0.625rem;
+
+  }
+
+
+
+  .cardTitle {
+
+    font-size: 0.875rem;
+
+  }
+
+
+
+  .tabs {
+
+    gap: 0.3125rem;
+
+    margin-bottom: 0.875rem;
+
+  }
+
+
+
+  .tabButton {
+
+    font-size: 0.6875rem;
+
+    padding: 0.375rem 0.4375rem;
+
+  }
+
+
+
+  .list {
+
+    gap: 0.625rem;
+
+  }
+
+
+
+  .listItem {
+
+    gap: 0.5rem;
+
+    padding-bottom: 0.625rem;
+
+    font-size: 0.75rem;
+
+  }
+
+
+
+  .listItemInfo p {
+
+    font-size: 0.75rem;
+
+  }
+
+
+
+  .date {
+
+    font-size: 0.6875rem;
+
+  }
+
+
+
+  .actions {
+
+    gap: 0.375rem;
+
+    width: 100%;
+
+  }
+
+
+
+  .statusBadge {
+
+    padding: 0.1875rem 0.4375rem;
+
+    font-size: 0.625rem;
+
+  }
+
+
+
+  .approveButton,
+
+  .rejectButton {
+
+    padding: 0.3125rem 0.625rem;
+
+    font-size: 0.6875rem;
+
+    flex: 1;
+
+  }
+
+
+
+  .editButton,
+
+  .deleteButton {
+
+    font-size: 0.6875rem;
+
+    padding: 0.1875rem 0.3125rem;
+
+  }
+
+
+
+  .galleryGrid {
+
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+
+    gap: 0.5rem;
+
+  }
+
+
+
+  .galleryItem {
+
+    height: 80px;
+
+    border-radius: 0.375rem;
+
+  }
+
+
+
+  .galleryItem .deleteButton {
+
+    width: 22px;
+
+    height: 22px;
+
+    font-size: 0.6875rem;
+
+    top: 0.3125rem;
+
+    right: 0.3125rem;
+
+  }
+
+}
+
+
+
+/* ===== 320px breakpoint for very small devices (iPhone SE 1st gen, small Android) ===== */
+
+@media (max-width: 320px) {
+
+  .container {
+
+    --page-inline-padding: 0.25rem;
+
+
+
+  }
+
+
+
+
+
+
+
+  .title {
+
+    font-size: 0.875rem;
+
+    line-height: 1.2;
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  .welcomeContainer {
+
+    padding-top: 1rem;
+
+  }
+
+
+
+  .welcomeCard {
+
+    padding: 1rem;
+
+    max-width: 100%;
+
+    margin: 0 0.25rem;
+
+  }
+
+
+
+  .welcomeCard h2 {
+
+    font-size: 1rem;
+
+    margin-bottom: 0.375rem;
+
+  }
+
+
+
+  .welcomeCard p {
+
+    font-size: 0.75rem;
+
+    line-height: 1.4;
+
+  }
+
+
+
+  .header {
+
+    margin-bottom: 0.75rem;
+
+    padding-bottom: 0.625rem;
+
+  }
+
+
+
+  .salonName {
+
+    font-size: 0.8125rem;
+
+  }
+
+
+
+  .headerTop {
+
+    gap: 0.375rem;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .headerActions {
+
+    gap: 0.3125rem;
+
+    flex-direction: column;
+
+    width: 100%;
+
+  }
+
+
+
+  .headerActions button,
+
+  .headerActions a {
+
+    width: 100%;
+
+    justify-content: center;
+
+    font-size: 0.6875rem;
+
+    padding: 0.375rem 0.5rem;
+
+  }
+
+
+
+  .planSummary {
+
+    padding: 0.4375rem;
+
+    gap: 0.375rem;
+
+  }
+
+
+
+  .planSummaryRow {
+
+    font-size: 0.625rem;
+
+    gap: 0.25rem;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .planSummaryRow span {
+
+    width: 100%;
+
+    line-height: 1.3;
+
+  }
+
+
+
+  .planStatusRow {
+
+    font-size: 0.625rem;
+
+    gap: 0.25rem;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+
+
+  .planStatusBadge {
+
+    padding: 0.1875rem 0.375rem;
+
+    font-size: 0.5625rem;
+
+  }
+
+
+
+  .planNotice {
+
+    padding: 0.4375rem;
+
+    font-size: 0.6875rem;
+
+    gap: 0.375rem;
+
+  }
+
+
+
+  .planNotice p {
+
+    line-height: 1.35;
+
+  }
+
+
+
+  .planActions {
+
+    gap: 0.25rem;
+
+    flex-direction: column;
+
+    width: 100%;
+
+  }
+
+
+
+  .planActions button,
+
+  .planActions a {
+
+    width: 100%;
+
+    text-align: center;
+
+    font-size: 0.625rem;
+
+    padding: 0.3125rem 0.4375rem;
+
+  }
+
+
+
+  .copyButton {
+
+    padding: 0.25rem 0.4375rem;
+
+    font-size: 0.625rem;
+
+    width: 100%;
+
+  }
+
+
+
+  .contentGrid {
+
+    grid-template-columns: 1fr;
+
+    gap: 0.75rem;
+
+  }
+
+
+
+  .contentCard {
+
+    padding: 0.625rem;
+
+    border-radius: 0.25rem;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+  }
+
+
+
+  .cardHeader {
+
+    margin-bottom: 0.625rem;
+
+    gap: 0.375rem;
+
+  }
+
+
+
+  .cardHeader button {
+
+    font-size: 0.6875rem;
+
+    padding: 0.375rem 0.5rem;
+
+  }
+
+
+
+  .cardTitle {
+
+    font-size: 0.8125rem;
+
+  }
+
+
+
+  .tabs {
+
+    gap: 0.25rem;
+
+    margin-bottom: 0.75rem;
+
+    padding-bottom: 0.375rem;
+
+  }
+
+
+
+  .tabButton {
+
+    font-size: 0.625rem;
+
+    padding: 0.3125rem 0.375rem;
+
+  }
+
+
+
+  .list {
+
+    gap: 0.5rem;
+
+  }
+
+
+
+  .listItem {
+
+    gap: 0.4375rem;
+
+    padding-bottom: 0.5rem;
+
+    font-size: 0.6875rem;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+
+
+  .listItemInfo {
+
+    width: 100%;
+
+  }
+
+
+
+  .listItemInfo p {
+
+    font-size: 0.6875rem;
+
+  }
+
+
+
+  .date {
+
+    font-size: 0.625rem;
+
+  }
+
+
+
+  .actions {
+
+    gap: 0.3125rem;
+
+    width: 100%;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .actions > * {
+
+    width: 100%;
+
+  }
+
+
+
+  .statusBadge {
+
+    padding: 0.1875rem 0.375rem;
+
+    font-size: 0.5625rem;
+
+    text-align: center;
+
+  }
+
+
+
+  .approveButton,
+
+  .rejectButton {
+
+    padding: 0.3125rem 0.5rem;
+
+    font-size: 0.625rem;
+
+    flex: none;
+
+    width: 100%;
+
+  }
+
+
+
+  .editButton,
+
+  .deleteButton {
+
+    font-size: 0.625rem;
+
+    padding: 0.1875rem 0.25rem;
+
+  }
+
+
+
+  .galleryGrid {
+
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+
+    gap: 0.375rem;
+
+  }
+
+
+
+  .galleryItem {
+
+    height: 70px;
+
+    border-radius: 0.3125rem;
+
+  }
+
+
+
+  .galleryItem .deleteButton {
+
+    width: 20px;
+
+    height: 20px;
+
+    font-size: 0.625rem;
+
+    top: 0.25rem;
+
+    right: 0.25rem;
+
+  }
+
+}
+
+
+
+/* --- Styles for the "Create Profile" view --- */
+
+.welcomeContainer {
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding-top: 4rem;
+
+}
+
+
+
+.welcomeCard {
+
+  background-color: var(--color-surface-elevated);
+
+  padding: 2.5rem;
+
+  border-radius: 0.75rem;
+
+  border: 1px solid var(--light-silver);
+
+  border-top: 4px solid var(--primary-pink);
+
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  text-align: center;
+
+  max-width: 500px;
+
+}
+
+.welcomeCard h2 {
+
+    font-size: 1.75rem;
+
+    margin-bottom: 1rem;
+
+}
+
+.welcomeCard p {
+
+    font-size: 1.1rem;
+
+    color: var(--text-body);
+
+    line-height: 1.6;
+
+}
+
+/* --- End of new styles --- */
+
+
+
+.header {
+
+  margin-bottom: 2rem;
+
+  border-bottom: 1px solid var(--secondary-blush);
+
+  padding-bottom: 1.5rem;
+
+}
+
+
+
+.planSummary {
+
+  margin-top: 1rem;
+
+  display: grid;
+
+  gap: 0.75rem;
+
+  background-color: var(--color-surface-elevated);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 12px;
+
+  padding: 1rem;
+
+}
+
+
+
+.planSummaryRow {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 0.75rem 1.5rem;
+
+  font-size: 0.95rem;
+
+  color: var(--color-text-strong);
+
+}
+
+
+
+.planStatusRow {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 0.75rem;
+
+  align-items: center;
+
+  font-size: 0.95rem;
+
+  color: var(--color-text-muted);
+
+}
+
+
+
+.planStatusBadge {
+
+  padding: 0.3rem 0.75rem;
+
+  border-radius: 999px;
+
+  font-weight: 600;
+
+  font-size: 0.85rem;
+
+}
+
+
+
+.planStatus_pending_selection {
+
+  background-color: rgba(148, 163, 184, 0.18);
+
+  color: var(--color-text-muted);
+
+}
+
+
+
+.planStatus_awaiting_proof {
+
+  background-color: rgba(250, 204, 21, 0.18);
+
+  color: #b45309;
+
+}
+
+
+
+.planStatus_proof_submitted {
+
+  background-color: rgba(59, 130, 246, 0.16);
+
+  color: #1d4ed8;
+
+}
+
+
+
+.planStatus_verified {
+
+  background-color: rgba(34, 197, 94, 0.18);
+
+  color: #047857;
+
+}
+
+
+
+.planNotice {
+
+  background-color: rgba(194, 34, 134, 0.08);
+
+  border: 1px dashed rgba(194, 34, 134, 0.3);
+
+  border-radius: 10px;
+
+  padding: 0.85rem 1rem;
+
+  font-size: 0.95rem;
+
+  color: var(--color-text-strong);
+
+  display: grid;
+
+  gap: 0.75rem;
+
+}
+
+
+
+.planActions {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 0.75rem;
+
+  align-items: center;
+
+}
+
+
+
+.copyButton {
+
+  border: 1px solid var(--color-border);
+
+  background-color: var(--color-surface);
+
+  padding: 0.45rem 0.9rem;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-size: 0.9rem;
+
+  color: var(--color-text-strong);
+
+  transition: background-color 0.2s ease;
+
+}
+
+
+
+.copyButton:hover {
+
+  background-color: var(--color-surface-elevated);
+
+}
+
+
+
+.planLink {
+
+  text-decoration: none;
+
+}
+
+
+
+.headerTop {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+
+  gap: 1rem;
+
+  flex-wrap: wrap;
+
+}
+
+
+
+.headerInfo p {
+
+  margin: 0;
+
+}
+
+
+
+.salonName {
+
+  font-size: 1.25rem;
+
+  font-weight: 500;
+
+  color: var(--text-charcoal);
+
+  margin-top: 0.25rem;
+
+}
+
+
+
+.headerActions {
+
+  display: flex;
+
+  gap: 1rem;
+
+  align-items: center;
+
+}
+
+
+
+.availabilityToggle {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.75rem;
+
+  background-color: var(--color-surface-elevated);
+
+  padding: 0.5rem 1rem;
+
+  border-radius: 9999px;
+
+  border: 1px solid var(--secondary-blush);
+
+}
+
+
+
+.switch {
+
+  position: relative;
+
+  display: inline-block;
+
+  width: 40px;
+
+  height: 22px;
+
+}
+
+
+
+.switch input { 
+
+  opacity: 0;
+
+  width: 0;
+
+  height: 0;
+
+}
+
+
+
+.slider {
+
+  position: absolute;
+
+  cursor: pointer;
+
+  top: 0; left: 0; right: 0; bottom: 0;
+
+  background-color: var(--light-grey);
+
+  transition: .4s;
+
+  border-radius: 22px;
+
+}
+
+
+
+.slider:before {
+
+  position: absolute;
+
+  content: "";
+
+  height: 16px; width: 16px;
+
+  left: 3px; bottom: 3px;
+
+  background-color: var(--color-surface-elevated);
+
+  transition: .4s;
+
+  border-radius: 50%;
+
+}
+
+
+
+input:checked + .slider {
+
+  background-color: var(--muted-teal);
+
+}
+
+
+
+input:checked + .slider:before {
+
+  transform: translateX(18px);
+
+}
+
+
+
+.contentGrid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
+
+  gap: 2rem;
+
+  width: 100%;
+
+}
+
+
+
+.contentCard {
+
+  background-color: var(--color-surface-elevated);
+
+  color: var(--text-charcoal);
+
+  padding: 1.5rem;
+
+  border-radius: 0.5rem;
+
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+
+  border: 1px solid var(--light-silver);
+
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+  box-sizing: border-box;
+
+  max-width: 100%;
+
+}
+
+
+
+.contentCard:hover {
+
+  transform: translateY(-5px);
+
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+}
+
+
+
+
+
+.cardHeader {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 1.5rem;
+
+  flex-wrap: wrap;
+
+  gap: 1rem;
+
+}
+
+
+
+.cardTitle {
+
+  font-size: 1.5rem;
+
+  font-weight: 600;
+
+  color: var(--primary-plum);
+
+  margin: 0;
+
+}
+
+
+
+/* --- BOOKING STYLES START --- */
+
+.tabs {
+
+  display: flex;
+
+  gap: 1rem;
+
+  border-bottom: 1px solid var(--secondary-blush);
+
+  margin-bottom: 1.5rem;
+
+  overflow-x: auto;
+
+  -webkit-overflow-scrolling: touch;
+
+}
+
+
+
+.tabButton {
+
+  padding: 0.75rem 0.25rem;
+
+  border: none;
+
+  background: none;
+
+  cursor: pointer;
+
+  font-size: 1rem;
+
+  font-weight: 600;
+
+  color: var(--text-muted);
+
+  border-bottom: 3px solid transparent;
+
+  transition: all 0.2s ease-in-out;
+
+}
+
+
+
+.tabButton:hover {
+
+  color: var(--primary-plum);
+
+}
+
+
+
+.activeTab {
+
+  color: var(--primary-plum);
+
+  border-bottom-color: var(--primary-plum);
+
+}
+
+/* --- BOOKING STYLES END --- */
+
+
+
+
+
+.list {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 1rem;
+
+}
+
+
+
+.list p {
+
+  text-align: center;
+
+  color: var(--text-muted);
+
+  padding: 2rem 0;
+
+}
+
+
+
+.listItem {
+
+  border-bottom: 1px solid var(--color-border);
+
+  padding-bottom: 1rem;
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 1rem;
+
+}
+
+
+
+.listItem:last-child {
+
+  border-bottom: none;
+
+  padding-bottom: 0;
+
+}
+
+
+
+
+
+.listItemInfo p { margin: 0; }
+
+.listItemInfo strong { color: var(--color-text-strong); }
+
+
+
+.date { font-size: 0.9rem; color: var(--text-muted); }
+
+.actions { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+
+.statusBadge { padding: 0.25rem 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 9999px; }
+
+.statusApproved { background-color: var(--color-success-bg); color: var(--color-success-text); }
+
+.statusPending { background-color: var(--color-warning-bg); color: var(--color-warning-text); }
+
+.statusRejected { background-color: var(--color-error-bg); color: var(--color-error-text); }
+
+.editButton, .deleteButton { background: none; border: none; cursor: pointer; font-weight: 500; text-decoration: underline; padding: 0; }
+
+.editButton { color: var(--primary-plum); }
+
+.deleteButton { color: var(--error-red); }
+.promoButton { 
+  color: #10b981; 
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.1);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.promoButton:hover {
+  background: rgba(16, 185, 129, 0.2);
+  transform: translateY(-1px);
+}
+
+
+
+/* --- BOOKING BUTTON STYLES --- */
+
+.approveButton, .rejectButton { 
+
+  padding: 0.5rem 1rem; 
+
+  border-radius: 0.375rem; 
+
+  border: none; 
+
+  color: var(--white); 
+
+  font-weight: 600; 
+
+  cursor: pointer; 
+
+  transition: opacity 0.2s;
+
+}
+
+.approveButton:hover, .rejectButton:hover { 
+
+  opacity: 0.85;
+
+}
+
+.approveButton { 
+
+  background-color: var(--muted-teal); 
+
+}
+
+.rejectButton { 
+
+  background-color: var(--error-red); 
+
+}
+
+/* --- BOOKING STYLES END --- */
+
+
+
+.modalOverlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background-color: rgba(0, 0, 0, 0.6);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 50;
+
+    padding: 1rem;
+
+  }
+
+  
+
+.modalContent {
+
+    background-color: var(--color-surface-elevated);
+
+    border-radius: 0.5rem;
+
+    padding: 2rem;
+
+    width: 100%;
+
+    max-width: 32rem;
+
+    color: var(--text-charcoal);
+
+  }
+
+  
+
+  .input {
+
+    width: 100%;
+
+    padding: 0.75rem;
+
+    border: 1px solid #CBD5E0;
+
+    border-radius: 0.375rem;
+
+    font-family: inherit;
+
+    font-size: 1rem;
+
+  }
+
+
+
+  .galleryGrid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+
+    gap: 1rem;
+
+    margin-top: 1rem;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+  }
+
+  
+
+  .galleryItem {
+
+    position: relative;
+
+    border-radius: 0.5rem;
+
+    overflow: hidden;
+
+    height: 120px;
+
+  }
+
+  
+
+  .galleryItemImage {
+
+    object-fit: cover;
+
+  }
+
+  
+
+  .galleryItem .deleteButton {
+
+    position: absolute;
+
+    top: 0.5rem;
+
+    right: 0.5rem;
+
+    background-color: rgba(0, 0, 0, 0.6);
+
+    color: white;
+
+    border: none;
+
+    border-radius: 50%;
+
+    width: 30px;
+
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    opacity: 0;
+
+    transition: opacity 0.2s;
+
+  }
+
+  
+
+  .galleryItem:hover .deleteButton {
+
+    opacity: 1;
+
+  }
+
 
 
 /* --- MAIN TABS (Primary Navigation) --- */
@@ -1264,3 +2315,272 @@ input:checked + .slider:before {
   background: var(--color-primary);
   color: white;
 }
+
+/* --- ENHANCED BOOKING CARD STYLES --- */
+.bookingCard {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.bookingCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.bookingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.bookingServiceTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 0 0 0.25rem 0;
+}
+
+.bookingCustomerName {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.bookingStatusBadge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.statusPending {
+  background-color: rgba(251, 191, 36, 0.15);
+  color: #d97706;
+}
+
+.statusConfirmed {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+
+.statusCompleted {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.statusDeclined {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.statusCancelled {
+  background-color: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+.bookingDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.bookingDetailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.bookingDetailItem svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.bookingActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.confirmButton,
+.declineButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: white;
+}
+
+.confirmButton {
+  background-color: #10b981;
+  flex: 1;
+  justify-content: center;
+}
+
+.confirmButton:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.declineButton {
+  background-color: #ef4444;
+  flex: 1;
+  justify-content: center;
+}
+
+.declineButton:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.completeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--primary-pink);
+  background-color: var(--primary-pink);
+  color: white;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.completeButton:hover {
+  background-color: white;
+  color: var(--primary-pink);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(194, 34, 134, 0.3);
+}
+
+.bookingStatusText {
+  margin: 0;
+  padding: 0.625rem 0;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+}
+
+/* Mobile Responsive Styles for Booking Cards */
+@media (max-width: 640px) {
+  .bookingCard {
+    padding: 1rem;
+  }
+
+  .bookingHeader {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .bookingServiceTitle {
+    font-size: 1rem;
+  }
+
+  .bookingCustomerName {
+    font-size: 0.85rem;
+  }
+
+  .bookingStatusBadge {
+    align-self: flex-start;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .bookingDetailItem {
+    font-size: 0.85rem;
+  }
+
+  .bookingDetailItem svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .bookingActions {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .confirmButton,
+  .declineButton {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .completeButton {
+    width: auto;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .bookingCard {
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .bookingServiceTitle {
+    font-size: 0.95rem;
+  }
+
+  .bookingCustomerName {
+    font-size: 0.8rem;
+  }
+
+  .bookingStatusBadge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.625rem;
+  }
+
+  .bookingDetailItem {
+    font-size: 0.8rem;
+    gap: 0.5rem;
+  }
+
+  .confirmButton,
+  .declineButton {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    gap: 0.375rem;
+  }
+
+  .completeButton {
+    padding: 0.4rem 0.625rem;
+    font-size: 0.7rem;
+  }
+}
+/* --- END ENHANCED BOOKING CARD STYLES --- */
+

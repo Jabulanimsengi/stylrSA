@@ -26,9 +26,11 @@ import { logger } from '@/lib/logger';
 import GalleryUploadModal from '@/components/GalleryUploadModal';
 import ProductFormModal from '@/components/ProductFormModal';
 import PromotionModal from '@/components/PromotionModal';
+import CreatePromotionModal from '@/components/CreatePromotionModal';
 import ConfirmationModal from '@/components/ConfirmationModal/ConfirmationModal';
-import { FaTrash, FaHome, FaArrowLeft, FaEdit, FaPlus, FaCamera } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaPlus, FaCamera } from 'react-icons/fa';
 import Link from 'next/link';
+import PageNav from '@/components/PageNav';
 import { useAuth } from '@/hooks/useAuth';
 import { apiFetch, apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
@@ -63,7 +65,7 @@ function DashboardPageContent() {
   const [bookings, setBookings] = useState<DashboardBooking[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [promotions, setPromotions] = useState<{ active: any[]; expired: any[] }>({ active: [], expired: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isPlanUpdating, setIsPlanUpdating] = useState(false);
@@ -79,7 +81,12 @@ function DashboardPageContent() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'service' | 'product' | 'promotion' | 'gallery' } | null>(null);
   
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
-  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery'>('bookings');
+  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'booking-settings'>('bookings');
+  const [selectedServiceForPromo, setSelectedServiceForPromo] = useState<Service | null>(null);
+  const [isCreatePromoModalOpen, setIsCreatePromoModalOpen] = useState(false);
+  const [bookingMessage, setBookingMessage] = useState('');
+  const [isSavingMessage, setIsSavingMessage] = useState(false);
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -126,7 +133,7 @@ function DashboardPageContent() {
       setBookings([] as any);
       setGalleryImages([]);
       setProducts([]);
-      setPromotions([]);
+      setPromotions({ active: [], expired: [] });
       return;
     }
     setIsLoading(true);
@@ -163,13 +170,15 @@ function DashboardPageContent() {
       }
       
       setSalon(salonData);
+      setBookingMessage(salonData.bookingMessage || '');
+      setIsEditingMessage(!salonData.bookingMessage); // If no message, start in edit mode
 
       const results = await Promise.allSettled([
         apiJson(`/api/salons/mine/services?ownerId=${ownerId}`),
         apiJson(`/api/salons/mine/bookings?ownerId=${ownerId}`),
         apiJson(`/api/gallery/salon/${salonData.id}`),
         apiJson(`/api/products/seller/${ownerId}`),
-        apiJson(`/api/promotions/salon/${salonData.id}`),
+        apiJson(`/api/promotions/my-salon`),
       ]);
 
       const [servicesRes, bookingsRes, galleryRes, productsRes, promotionsRes] = results;
@@ -186,8 +195,8 @@ function DashboardPageContent() {
       if (productsRes.status === 'fulfilled') setProducts(productsRes.value);
       else setProducts([]);
 
-      if (promotionsRes.status === 'fulfilled') setPromotions(promotionsRes.value);
-      else setPromotions([]);
+      if (promotionsRes.status === 'fulfilled') setPromotions(promotionsRes.value || { active: [], expired: [] });
+      else setPromotions({ active: [], expired: [] });
 
     } catch (err: any) {
       const msg = toFriendlyMessage(err, 'Failed to load your dashboard.');
@@ -209,8 +218,8 @@ function DashboardPageContent() {
   // Handle tab query parameter
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'reviews' || tab === 'services' || tab === 'bookings' || tab === 'gallery') {
-      setActiveMainTab(tab);
+    if (tab === 'reviews' || tab === 'services' || tab === 'bookings' || tab === 'gallery' || tab === 'promotions') {
+      setActiveMainTab(tab as any);
     }
   }, [searchParams]);
 
@@ -250,8 +259,19 @@ function DashboardPageContent() {
   };
   
   const handlePromotionAdded = (addedPromotion: Promotion) => {
-    setPromotions([...promotions, addedPromotion]);
+    setPromotions({ ...promotions, active: [...promotions.active, addedPromotion] });
     setIsPromotionModalOpen(false);
+  };
+
+  const openCreatePromoModal = (service: Service) => {
+    setSelectedServiceForPromo(service);
+    setIsCreatePromoModalOpen(true);
+  };
+
+  const handlePromoCreated = () => {
+    setIsCreatePromoModalOpen(false);
+    setSelectedServiceForPromo(null);
+    fetchDashboardData();
   };
 
   const handleDeleteClick = (id: string, type: 'service' | 'product' | 'promotion' | 'gallery') => {
@@ -267,7 +287,12 @@ function DashboardPageContent() {
 
         if (type === 'service') setServices(services.filter(s => s.id !== id));
         else if (type === 'product') setProducts(products.filter(p => p.id !== id));
-        else if (type === 'promotion') setPromotions(promotions.filter(p => p.id !== id));
+        else if (type === 'promotion') {
+          setPromotions({
+            active: promotions.active.filter(p => p.id !== id),
+            expired: promotions.expired.filter(p => p.id !== id),
+          });
+        }
         else if (type === 'gallery') setGalleryImages(galleryImages.filter(g => g.id !== id));
 
         toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`);
@@ -291,6 +316,25 @@ function DashboardPageContent() {
       toast.success(updated.isAvailableNow ? 'Marked as available now' : 'Marked as unavailable');
     } catch (e: any) {
       toast.error(toFriendlyMessage(e, 'Could not update availability'));
+    }
+  };
+
+  const saveBookingMessage = async () => {
+    if (!ownerId) return;
+    setIsSavingMessage(true);
+    try {
+      const updated = await apiJson(`/api/salons/mine/booking-message?ownerId=${ownerId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingMessage }),
+      });
+      setSalon(updated);
+      setIsEditingMessage(false); // Switch to view mode after save
+      toast.success('Booking message saved successfully!');
+    } catch (e: any) {
+      toast.error(toFriendlyMessage(e, 'Failed to save booking message'));
+    } finally {
+      setIsSavingMessage(false);
     }
   };
   
@@ -347,14 +391,8 @@ function DashboardPageContent() {
   if (isLoading || authStatus === 'loading') {
     return (
       <div className={styles.container}>
-        <div className={styles.stickyHeader}>
-          <div className={styles.navButtonsContainer}>
-              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-          </div>
-          <Skeleton variant="text" style={{ width: '30%', height: 32 }} />
-          <div className={styles.headerSpacer}></div>
-        </div>
+        <PageNav />
+        <h1 className={styles.title}>{user?.role === 'ADMIN' ? 'Salon Dashboard' : 'My Dashboard'}</h1>
 
         <header className={styles.header} aria-hidden>
           <div className={styles.headerTop}>
@@ -426,23 +464,137 @@ function DashboardPageContent() {
   const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED');
   const pastBookings = bookings.filter(b => ['COMPLETED', 'DECLINED', 'CANCELLED'].includes(b.status));
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'PENDING': return styles.statusPending;
+      case 'CONFIRMED': return styles.statusConfirmed;
+      case 'COMPLETED': return styles.statusCompleted;
+      case 'DECLINED': return styles.statusDeclined;
+      case 'CANCELLED': return styles.statusCancelled;
+      default: return '';
+    }
+  };
+
+  const handleMarkAsCompleted = async (bookingId: string) => {
+    const confirmed = window.confirm(
+      'Is this service completed?\n\nMarking as completed will:\n• Move this booking to Past tab\n• Send a review request to the customer\n• Update booking records'
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      await handleBookingStatusUpdate(bookingId, 'COMPLETED');
+      toast.success('Service marked as completed! Customer will be notified to leave a review.');
+    } catch (e) {
+      toast.error(toFriendlyMessage(e, 'Failed to mark service as completed'));
+    }
+  };
+
   const renderBookingsList = (list: DashboardBooking[]) => {
     if (list.length === 0) return <p>No bookings in this category.</p>;
-    return list.map(booking => (
-      <div key={booking.id} className={styles.listItem}>
-        <div className={styles.listItemInfo}>
-          <p><strong>{booking.service.title}</strong> for {booking.user.firstName}</p>
-          <p className={styles.date}>{new Date(booking.bookingTime).toLocaleString('en-ZA')}</p>
-          {booking.clientPhone && <p className={styles.date}>Contact: {booking.clientPhone}</p>}
-        </div>
-        {booking.status === 'PENDING' && (
-          <div className={styles.actions}>
-            <button onClick={() => handleBookingStatusUpdate(booking.id, 'CONFIRMED')} className={styles.approveButton}>Accept</button>
-            <button onClick={() => handleBookingStatusUpdate(booking.id, 'DECLINED')} className={styles.rejectButton}>Decline</button>
+    return list.map(booking => {
+      const bookingDate = new Date(booking.bookingTime);
+      const formattedDate = bookingDate.toLocaleDateString('en-ZA', { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      const formattedTime = bookingDate.toLocaleTimeString('en-ZA', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+
+      return (
+        <div key={booking.id} className={styles.bookingCard}>
+          <div className={styles.bookingHeader}>
+            <div>
+              <h4 className={styles.bookingServiceTitle}>{booking.service.title}</h4>
+              <p className={styles.bookingCustomerName}>
+                Customer: {booking.user.firstName} {booking.user.lastName}
+              </p>
+            </div>
+            <span className={`${styles.bookingStatusBadge} ${getStatusBadgeClass(booking.status)}`}>
+              {booking.status}
+            </span>
           </div>
-        )}
-      </div>
-    ));
+          
+          <div className={styles.bookingDetails}>
+            <div className={styles.bookingDetailItem}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span>{formattedDate}</span>
+            </div>
+            <div className={styles.bookingDetailItem}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>{formattedTime}</span>
+            </div>
+            {booking.clientPhone && (
+              <div className={styles.bookingDetailItem}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                <span>{booking.clientPhone}</span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.bookingActions}>
+            {booking.status === 'PENDING' && (
+              <>
+                <button 
+                  onClick={() => handleBookingStatusUpdate(booking.id, 'CONFIRMED')} 
+                  className={styles.confirmButton}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Accept
+                </button>
+                <button 
+                  onClick={() => handleBookingStatusUpdate(booking.id, 'DECLINED')} 
+                  className={styles.declineButton}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                  Decline
+                </button>
+              </>
+            )}
+            
+            {booking.status === 'CONFIRMED' && (
+              <button 
+                onClick={() => handleMarkAsCompleted(booking.id)} 
+                className={styles.completeButton}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                Mark as Completed
+              </button>
+            )}
+
+            {['COMPLETED', 'DECLINED', 'CANCELLED'].includes(booking.status) && (
+              <p className={styles.bookingStatusText}>
+                {booking.status === 'COMPLETED' && 'Service completed'}
+                {booking.status === 'DECLINED' && 'Booking declined'}
+                {booking.status === 'CANCELLED' && 'Booking cancelled'}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    });
   };
 
   return (
@@ -485,16 +637,21 @@ function DashboardPageContent() {
         />
       )}
       {itemToDelete && <ConfirmationModal onConfirm={confirmDelete} onCancel={() => setItemToDelete(null)} message={`Are you sure you want to delete this ${itemToDelete.type}?`} />}
+      {isCreatePromoModalOpen && selectedServiceForPromo && (
+        <CreatePromotionModal
+          service={selectedServiceForPromo}
+          isOpen={isCreatePromoModalOpen}
+          onClose={() => {
+            setIsCreatePromoModalOpen(false);
+            setSelectedServiceForPromo(null);
+          }}
+          onSuccess={handlePromoCreated}
+        />
+      )}
       
       <div className={styles.container}>
-        <div className={styles.stickyHeader}>
-          <div className={styles.navButtonsContainer}>
-              <button onClick={() => router.back()} className={styles.navButton}><FaArrowLeft /> Back</button>
-              <Link href="/" className={styles.navButton}><FaHome /> Home</Link>
-          </div>
-          <h1 className={styles.title}>{user?.role === 'ADMIN' ? `${salon.name}'s Dashboard` : 'My Dashboard'}</h1>
-          <div className={styles.headerSpacer}></div>
-        </div>
+        <PageNav />
+        <h1 className={styles.title}>{user?.role === 'ADMIN' ? `${salon.name}'s Dashboard` : 'My Dashboard'}</h1>
         
         <header className={styles.header}>
             <div className={styles.headerTop}>
@@ -576,6 +733,12 @@ function DashboardPageContent() {
             Services
           </button>
           <button
+            onClick={() => setActiveMainTab('promotions')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'promotions' ? styles.activeMainTab : ''}`}
+          >
+            Promotions
+          </button>
+          <button
             onClick={() => setActiveMainTab('reviews')}
             className={`${styles.mainTabButton} ${activeMainTab === 'reviews' ? styles.activeMainTab : ''}`}
           >
@@ -586,6 +749,12 @@ function DashboardPageContent() {
             className={`${styles.mainTabButton} ${activeMainTab === 'gallery' ? styles.activeMainTab : ''}`}
           >
             Gallery
+          </button>
+          <button
+            onClick={() => setActiveMainTab('booking-settings')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'booking-settings' ? styles.activeMainTab : ''}`}
+          >
+            Booking Settings
           </button>
         </div>
 
@@ -619,17 +788,100 @@ function DashboardPageContent() {
               <button onClick={openServiceModalToAdd} className="btn btn-primary">+ Add Service</button>
             </div>
             <div className={styles.list}>
-              {services.length > 0 ? services.map((service) => (
-                <div key={service.id} className={styles.listItem}>
-                  <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
-                  <div className={styles.actions}>
-                    <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>{service.approvalStatus}</span>
-                    <button onClick={() => openServiceModalToEdit(service)} className={styles.editButton}><FaEdit /></button>
-                    <button onClick={() => handleDeleteClick(service.id, 'service')} className={styles.deleteButton}><FaTrash /></button>
+              {services.length > 0 ? services.map((service) => {
+                const hasPromotion = promotions.active.some((p: any) => p.serviceId === service.id);
+                return (
+                  <div key={service.id} className={styles.listItem}>
+                    <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
+                    <div className={styles.actions}>
+                      <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>{service.approvalStatus}</span>
+                      {service.approvalStatus === 'APPROVED' && !hasPromotion && (
+                        <button
+                          onClick={() => openCreatePromoModal(service)}
+                          className={styles.promoButton}
+                          title="Create promotion"
+                        >
+                          % Promo
+                        </button>
+                      )}
+                      <button onClick={() => openServiceModalToEdit(service)} className={styles.editButton}><FaEdit /></button>
+                      <button onClick={() => handleDeleteClick(service.id, 'service')} className={styles.deleteButton}><FaTrash /></button>
+                    </div>
                   </div>
-                </div>
-              )) : <p>You haven't added any services yet.</p>}
+                );
+              }) : <p>You haven't added any services yet.</p>}
             </div>
+            </div>
+          </div>
+        )}
+
+        {activeMainTab === 'promotions' && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>Active Promotions</h3>
+              </div>
+              <div className={styles.list}>
+                {promotions.active.length > 0 ? promotions.active.map((promo: any) => {
+                  const item = promo.service || promo.product;
+                  const itemName = promo.service ? item?.title : item?.name;
+                  const statusClass = promo.approvalStatus === 'APPROVED' ? 'approved' : promo.approvalStatus === 'REJECTED' ? 'rejected' : 'pending';
+                  const endDate = new Date(promo.endDate);
+                  const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <div key={promo.id} className={styles.listItem}>
+                      <div>
+                        <p><strong>{itemName}</strong></p>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                          <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>R{promo.originalPrice.toFixed(2)}</span>
+                          {' → '}
+                          <span style={{ color: '#10b981', fontWeight: 600 }}>R{promo.promotionalPrice.toFixed(2)}</span>
+                          {' '}
+                          <span style={{ color: 'var(--color-primary)' }}>({promo.discountPercentage}% off)</span>
+                        </p>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                          {daysLeft > 0 ? `${daysLeft} day${daysLeft > 1 ? 's' : ''} left` : 'Expired'}
+                        </p>
+                      </div>
+                      <div className={styles.actions}>
+                        <span className={`${styles.statusBadge} ${getStatusClass(promo.approvalStatus as ApprovalStatus)}`}>
+                          {promo.approvalStatus}
+                        </span>
+                        <button onClick={() => handleDeleteClick(promo.id, 'promotion')} className={styles.deleteButton}>
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }) : <p>No active promotions. Create one from the Services tab!</p>}
+              </div>
+            </div>
+
+            <div className={styles.contentCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>Expired Promotions</h3>
+              </div>
+              <div className={styles.list}>
+                {promotions.expired.length > 0 ? promotions.expired.map((promo: any) => {
+                  const item = promo.service || promo.product;
+                  const itemName = promo.service ? item?.title : item?.name;
+                  
+                  return (
+                    <div key={promo.id} className={styles.listItem}>
+                      <div>
+                        <p><strong>{itemName}</strong></p>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                          Was {promo.discountPercentage}% off
+                        </p>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                          Ended: {new Date(promo.endDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }) : <p>No expired promotions.</p>}
+              </div>
             </div>
           </div>
         )}
@@ -655,6 +907,169 @@ function DashboardPageContent() {
                 </div>
               )) : <p>Your gallery is empty.</p>}
             </div>
+            </div>
+          </div>
+        )}
+
+        {activeMainTab === 'booking-settings' && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>Booking Settings</h3>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <div className={styles.infoBox} style={{ marginBottom: '1.5rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.6' }}>
+                    <strong>Custom Booking Message</strong>
+                    <br />
+                    Set a message that customers will see before booking. This is perfect for communicating important information such as:
+                  </p>
+                  <ul style={{ marginTop: '0.75rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                    <li>Booking fees and payment details</li>
+                    <li>Preparation requirements (e.g., "Please arrive 10 minutes early")</li>
+                    <li>What to bring (e.g., "Bring photo ID for first visit")</li>
+                    <li>Cancellation policies</li>
+                  </ul>
+                </div>
+
+                <div>
+                  {!isEditingMessage && bookingMessage ? (
+                    // VIEW MODE: Show saved message with Edit button
+                    <>
+                      <label style={{ 
+                        display: 'block',
+                        marginBottom: '0.5rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text-strong)'
+                      }}>
+                        Your Booking Message
+                      </label>
+                      <div style={{
+                        width: '100%',
+                        padding: '1rem',
+                        border: '2px solid #10b981',
+                        borderRadius: '8px',
+                        fontSize: '0.95rem',
+                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                        color: 'var(--color-text)',
+                        lineHeight: '1.6',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        minHeight: '100px',
+                      }}>
+                        {bookingMessage}
+                      </div>
+                      <p style={{ 
+                        marginTop: '0.5rem', 
+                        fontSize: '0.875rem', 
+                        color: '#10b981',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="16" 
+                          height="16" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Message saved successfully! Customers will see this before booking.
+                      </p>
+
+                      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+                        <button
+                          onClick={() => setIsEditingMessage(true)}
+                          className="btn btn-primary"
+                        >
+                          <FaEdit style={{ marginRight: '0.5rem' }} />
+                          Edit Message
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    // EDIT MODE: Show textarea with Save/Clear buttons
+                    <>
+                      <label htmlFor="bookingMessage" style={{ 
+                        display: 'block',
+                        marginBottom: '0.5rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text-strong)'
+                      }}>
+                        Your Message ({bookingMessage.length}/200 characters)
+                      </label>
+                      <textarea
+                        id="bookingMessage"
+                        value={bookingMessage}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 200) {
+                            setBookingMessage(e.target.value);
+                          }
+                        }}
+                        placeholder="e.g., Please arrive 10 minutes early. Booking fee: R50 (non-refundable). Bank details: FNB, Acc: 1234567890"
+                        rows={5}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          border: '2px solid var(--color-border)',
+                          borderRadius: '8px',
+                          fontSize: '0.95rem',
+                          fontFamily: 'inherit',
+                          resize: 'vertical',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text)',
+                        }}
+                      />
+                      <p style={{ 
+                        marginTop: '0.5rem', 
+                        fontSize: '0.875rem', 
+                        color: 'var(--color-text-muted)' 
+                      }}>
+                        {bookingMessage.length === 0 && 'No message set. Customers will be able to book directly without seeing a confirmation message.'}
+                        {bookingMessage.length > 0 && bookingMessage.length < 200 && `${200 - bookingMessage.length} characters remaining`}
+                        {bookingMessage.length === 200 && 'Maximum length reached'}
+                      </p>
+
+                      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+                        <button
+                          onClick={saveBookingMessage}
+                          disabled={isSavingMessage}
+                          className="btn btn-primary"
+                          style={{ minWidth: '150px' }}
+                        >
+                          {isSavingMessage ? 'Saving...' : 'Save Message'}
+                        </button>
+                        {bookingMessage && (
+                          <button
+                            onClick={() => setBookingMessage('')}
+                            className="btn btn-secondary"
+                          >
+                            Clear
+                          </button>
+                        )}
+                        {!isEditingMessage && (
+                          <button
+                            onClick={() => {
+                              setIsEditingMessage(false);
+                              setBookingMessage(salon?.bookingMessage || '');
+                            }}
+                            className="btn btn-secondary"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}

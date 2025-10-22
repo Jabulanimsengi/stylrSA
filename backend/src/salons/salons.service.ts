@@ -2,6 +2,7 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -648,6 +649,37 @@ export class SalonsService {
     return this.prisma.salon.update({
       where: { id: salon.id },
       data: { isAvailableNow: !salon.isAvailableNow },
+    });
+  }
+
+  async updateBookingMessage(user: any, bookingMessage: string, ownerId: string) {
+    // Allow ADMIN to update any salon
+    if (user.id !== ownerId && user.role !== 'ADMIN') {
+      throw new ForbiddenException(
+        'You are not authorized to update this salon',
+      );
+    }
+
+    // Validate message length (max 200 characters)
+    if (bookingMessage && bookingMessage.length > 200) {
+      throw new BadRequestException(
+        'Booking message cannot exceed 200 characters',
+      );
+    }
+
+    const salon = await this.prisma.salon.findFirst({
+      where: { ownerId: ownerId },
+    });
+
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
+
+    return this.prisma.salon.update({
+      where: { id: salon.id },
+      data: { 
+        bookingMessage: bookingMessage || null, // Set to null if empty string
+      },
     });
   }
 

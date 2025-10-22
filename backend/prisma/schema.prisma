@@ -88,6 +88,7 @@ model Salon {
   isAvailableNow       Boolean        @default(false)
   operatingHours       Json?
   operatingDays        String[]
+  bookingMessage       String?
   approvalStatus       ApprovalStatus @default(PENDING)
   avgRating            Float          @default(0)
   createdAt            DateTime       @default(now())
@@ -209,17 +210,35 @@ model Product {
 
 // New Model for Promotions
 model Promotion {
-  id                 String    @id @default(uuid())
-  description        String
+  id                 String         @id @default(uuid())
+  description        String?
   discountPercentage Float
+  originalPrice      Float
+  promotionalPrice   Float
   startDate          DateTime
   endDate            DateTime
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  approvalStatus     ApprovalStatus @default(PENDING)
+  approvedBy         String?
+  approvedAt         DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  
+  // Service relation
   serviceId          String?
-  service            Service?  @relation(fields: [serviceId], references: [id])
+  service            Service?       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  // Product relation  
   productId          String?
-  product            Product?  @relation(fields: [productId], references: [id])
+  product            Product?       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Salon relation (to track who created the promotion)
+  salonId            String?
+  
+  @@index([approvalStatus])
+  @@index([salonId])
+  @@index([serviceId])
+  @@index([productId])
+  @@index([endDate])
 }
 
 model Conversation {

@@ -31,6 +31,8 @@ import { useStartConversation } from '@/hooks/useStartConversation';
 import SalonProfileSkeleton from '@/components/Skeleton/SalonProfileSkeleton';
 import { sanitizeText } from '@/lib/sanitize';
 import PageNav from '@/components/PageNav';
+import PromotionDetailsModal from '@/components/PromotionDetailsModal/PromotionDetailsModal';
+import BookingConfirmationModal from '@/components/BookingConfirmationModal/BookingConfirmationModal';
 
 type Props = {
   initialSalon: Salon | null;
@@ -59,6 +61,11 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
   const [showWeek, setShowWeek] = useState(false);
+  const [promotionsMap, setPromotionsMap] = useState<Map<string, any>>(new Map());
+  const [selectedPromotion, setSelectedPromotion] = useState<any>(null);
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+  const [showBookingConfirmation, setShowBookingConfirmation] = useState(false);
+  const [pendingBookingService, setPendingBookingService] = useState<Service | null>(null);
   const [visibleServicesCount, setVisibleServicesCount] = useState(() => {
     const initialCount = initialSalon?.services?.length ?? 0;
     return initialCount > 0 ? Math.min(INITIAL_SERVICES_BATCH, initialCount) : 0;
@@ -147,6 +154,39 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     };
   }, [socket, salon?.id]);
 
+  // Fetch active promotions for this salon
+  useEffect(() => {
+    if (!salonId) return;
+
+    const fetchPromotions = async () => {
+      try {
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/promotions/public?salonId=${salonId}&t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          const promoMap = new Map();
+          data.forEach((promo: any) => {
+            if (promo.serviceId) {
+              promoMap.set(promo.serviceId, promo);
+            }
+          });
+          setPromotionsMap(promoMap);
+        }
+      } catch (error) {
+        logger.error('Failed to fetch promotions', error);
+        // Silently fail - promotions are not critical
+      }
+    };
+
+    void fetchPromotions();
+  }, [salonId]);
+
   // Refetch salon data when page becomes visible (fixes operating hours not updating)
   useEffect(() => {
     let isActive = true;
@@ -206,6 +246,38 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     } else {
       setSelectedService(service);
     }
+  };
+
+  const handlePromotionClick = (promotion: any) => {
+    setSelectedPromotion(promotion);
+    setIsPromotionModalOpen(true);
+  };
+
+  const handlePromotionBookNow = () => {
+    // Called when user clicks "Book Now" in promotion details modal
+    if (!selectedPromotion?.service) return;
+    
+    if (salon?.bookingMessage) {
+      // Show confirmation modal
+      setPendingBookingService(selectedPromotion.service);
+      setShowBookingConfirmation(true);
+    } else {
+      // Open booking modal directly
+      setSelectedService(selectedPromotion.service);
+    }
+  };
+
+  const handleBookingConfirmationAccept = () => {
+    setShowBookingConfirmation(false);
+    if (pendingBookingService) {
+      setSelectedService(pendingBookingService);
+      setPendingBookingService(null);
+    }
+  };
+
+  const handleBookingConfirmationClose = () => {
+    setShowBookingConfirmation(false);
+    setPendingBookingService(null);
   };
 
   const handleSendMessageClick = async () => {
@@ -412,6 +484,23 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         />
       )}
 
+      <PromotionDetailsModal
+        promotion={selectedPromotion}
+        isOpen={isPromotionModalOpen}
+        onClose={() => setIsPromotionModalOpen(false)}
+        salon={salon}
+        onBookNow={handlePromotionBookNow}
+      />
+
+      <BookingConfirmationModal
+        isOpen={showBookingConfirmation}
+        onClose={handleBookingConfirmationClose}
+        onAccept={handleBookingConfirmationAccept}
+        salonName={salon?.name || ''}
+        salonLogo={salon?.backgroundImage}
+        message={salon?.bookingMessage || ''}
+      />
+
       <div>
         <PageNav />
         <div className={styles.stickyHeaderContent}>
@@ -527,6 +616,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       onBook={handleBookClick}
                       onSendMessage={handleSendMessageClick}
                       onImageClick={openLightbox}
+                      promotion={promotionsMap.get(service.id)}
+                      onPromotionClick={handlePromotionClick}
                     />
                   ))}
                   {visibleServicesCount < services.length && (

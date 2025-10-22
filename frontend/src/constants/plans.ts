@@ -8,6 +8,7 @@ export interface AppPlan {
   maxListings: number | 'Unlimited';
   visibilityWeight: number;
   features: string[];
+  popular?: boolean;
 }
 
 export const APP_PLANS: AppPlan[] = [
@@ -55,6 +56,7 @@ export const APP_PLANS: AppPlan[] = [
     maxListings: 27,
     visibilityWeight: 4,
     features: ['Up to 27 listings', 'Top placement', 'Priority support', 'Featured eligibility'],
+    popular: true,
   },
   {
     code: 'ELITE',

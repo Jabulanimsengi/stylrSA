@@ -4,18 +4,18 @@ import {
   IsNumber,
   IsDateString,
   IsOptional,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class CreatePromotionDto {
   @IsString()
-  @IsNotEmpty()
-  salonId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  description: string;
+  @IsOptional()
+  description?: string;
 
   @IsNumber()
+  @Min(1)
+  @Max(90)
   discountPercentage: number;
 
   @IsDateString()
@@ -31,4 +31,10 @@ export class CreatePromotionDto {
   @IsString()
   @IsOptional()
   productId?: string;
+}
+
+export class ApprovePromotionDto {
+  @IsString()
+  @IsOptional()
+  reason?: string;
 }

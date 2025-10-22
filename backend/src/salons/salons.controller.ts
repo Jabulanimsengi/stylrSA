@@ -120,6 +120,17 @@ export class SalonsController {
   }
 
   @UseGuards(JwtGuard)
+  @Put('mine/booking-message')
+  updateBookingMessage(
+    @GetUser() user: any,
+    @Body('bookingMessage') bookingMessage: string,
+    @Query('ownerId') ownerId?: string,
+  ) {
+    const id = user.role === 'ADMIN' && ownerId ? ownerId : user.id;
+    return this.salonsService.updateBookingMessage(user, bookingMessage, id);
+  }
+
+  @UseGuards(JwtGuard)
   @Get('mine/bookings')
   findBookingsForMySalon(
     @GetUser() user: any,

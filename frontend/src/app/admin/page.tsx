@@ -83,6 +83,7 @@ export default function AdminPage() {
   const [pendingServices, setPendingServices] = useState<PendingService[]>([]);
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
+  const [pendingPromotions, setPendingPromotions] = useState<any[]>([]);
   const [deletedSalons, setDeletedSalons] = useState<any[]>([]);
   const [deletedSellers, setDeletedSellers] = useState<any[]>([]);
   const [allSellers, setAllSellers] = useState<SellerRow[]>([]);
@@ -91,7 +92,7 @@ export default function AdminPage() {
   const [availableSalons, setAvailableSalons] = useState<PendingSalon[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
   const [featureDuration, setFeatureDuration] = useState<number>(30);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -384,7 +385,7 @@ export default function AdminPage() {
       try {
         const ts = Date.now();
         const noStore: RequestInit = { ...requestOptions, cache: 'no-store' } as any;
-        const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, allSellersRes, deletedSalonsRes, deletedSellersRes, metricsRes] = await Promise.all([
+        const [pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, allSellersRes, deletedSalonsRes, deletedSellersRes, metricsRes, promotionsRes] = await Promise.all([
           fetch(`/api/admin/salons/pending?ts=${ts}`, noStore),
           fetch(`/api/admin/salons/all?ts=${ts}`, noStore),
           fetch(`/api/admin/services/pending?ts=${ts}`, noStore),
@@ -394,9 +395,10 @@ export default function AdminPage() {
           fetch(`/api/admin/salons/deleted?ts=${ts}`, noStore),
           fetch(`/api/admin/sellers/deleted?ts=${ts}`, noStore),
           fetch(`/api/admin/metrics?ts=${ts}`, noStore),
+          fetch(`/api/promotions/admin/pending?ts=${ts}`, noStore),
         ]);
 
-        if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, allSellersRes, deletedSalonsRes, deletedSellersRes, metricsRes].some(res => res.status === 401)) {
+        if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, allSellersRes, deletedSalonsRes, deletedSellersRes, metricsRes, promotionsRes].some(res => res.status === 401)) {
             router.push('/login');
             return;
         }
@@ -411,6 +413,7 @@ export default function AdminPage() {
         setDeletedSalons(ensureArray<any>(await deletedSalonsRes.json()));
         setDeletedSellers(ensureArray<any>(await deletedSellersRes.json()));
         setMetrics(await metricsRes.json());
+        setPendingPromotions(ensureArray<any>(await promotionsRes.json()));
 
       } catch (error) {
         logger.error("Failed to fetch admin data:", error);
@@ -527,6 +530,62 @@ export default function AdminPage() {
     setDeleteReason('');
     setShowDeleteModal(true);
     setIsDeleting(false);
+  };
+
+  const handleApprovePromotion = async (promotionId: string) => {
+    if (authStatus !== 'authenticated') {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+      const res = await fetch(`/api/promotions/${promotionId}/approve`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Failed to approve promotion' }));
+        throw new Error(errorData.message || 'Failed to approve promotion');
+      }
+
+      toast.success('Promotion approved successfully!');
+      setPendingPromotions(pendingPromotions.filter(p => p.id !== promotionId));
+    } catch (error) {
+      toast.error(toFriendlyMessage(error, 'Failed to approve promotion'));
+    }
+  };
+
+  const handleRejectPromotion = async (promotionId: string) => {
+    if (authStatus !== 'authenticated') {
+      router.push('/login');
+      return;
+    }
+
+    const reason = window.prompt('Enter reason for rejection (optional):');
+    if (reason === null) return; // User cancelled
+
+    try {
+      const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+      const res = await fetch(`/api/promotions/${promotionId}/reject`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'include',
+        body: JSON.stringify({ reason: reason || undefined }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Failed to reject promotion' }));
+        throw new Error(errorData.message || 'Failed to reject promotion');
+      }
+
+      toast.success('Promotion rejected');
+      setPendingPromotions(pendingPromotions.filter(p => p.id !== promotionId));
+    } catch (error) {
+      toast.error(toFriendlyMessage(error, 'Failed to reject promotion'));
+    }
   };
 
   const confirmDeleteSalon = async () => {
@@ -741,6 +800,12 @@ export default function AdminPage() {
           className={`${styles.tabButton} ${view === 'products' ? styles.activeTab : ''}`}
         >
           Pending Products ({pendingProducts.length})
+        </button>
+        <button
+          onClick={() => setView('promotions')}
+          className={`${styles.tabButton} ${view === 'promotions' ? styles.activeTab : ''}`}
+        >
+          Pending Promotions ({pendingPromotions.length})
         </button>
         <button
           onClick={() => setView('deleted-salons')}
@@ -1344,6 +1409,70 @@ export default function AdminPage() {
               </div>
             );
           }) : <p>No pending products.</p>}
+          </>
+        )}
+
+        {view === 'promotions' && (
+          <>
+          {pendingPromotions.length > 0 ? pendingPromotions.map((promo) => {
+            const isService = Boolean(promo.service);
+            const item = isService ? promo.service : promo.product;
+            const itemName = isService ? item?.title : item?.name;
+            const providerName = isService
+              ? promo.service?.salon?.name
+              : `${promo.product?.seller?.firstName || ''} ${promo.product?.seller?.lastName || ''}`.trim();
+            const endDate = new Date(promo.endDate);
+            const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+            return (
+              <div key={promo.id} className={styles.listItem}>
+                <div className={styles.info}>
+                  <h4>{itemName}</h4>
+                  <p>
+                    <strong>Provider:</strong> {providerName || 'Unknown'} | <strong>Type:</strong> {isService ? 'Service' : 'Product'}
+                  </p>
+                  <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                    <span>
+                      <strong>Original:</strong>{' '}
+                      <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>
+                        R{promo.originalPrice.toFixed(2)}
+                      </span>
+                    </span>
+                    <span>
+                      <strong>Promotional:</strong>{' '}
+                      <span style={{ color: '#10b981', fontWeight: 600 }}>
+                        R{promo.promotionalPrice.toFixed(2)}
+                      </span>
+                    </span>
+                    <span>
+                      <strong>Discount:</strong>{' '}
+                      <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                        {promo.discountPercentage}% OFF
+                      </span>
+                    </span>
+                  </div>
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                    <strong>Duration:</strong> {new Date(promo.startDate).toLocaleDateString()} → {new Date(promo.endDate).toLocaleDateString()}
+                    {' '}({daysLeft > 0 ? `${daysLeft} days` : 'Expired'})
+                  </p>
+                </div>
+                <div className={styles.actions}>
+                  <button
+                    onClick={() => handleApprovePromotion(promo.id)}
+                    className={styles.approveButton}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleRejectPromotion(promo.id)}
+                    className={styles.rejectButton}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            );
+          }) : <p>No pending promotions.</p>}
           </>
         )}
 

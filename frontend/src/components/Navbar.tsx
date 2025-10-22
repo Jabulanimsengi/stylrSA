@@ -333,6 +333,7 @@ export default function Navbar() {
       { href: '/salons', label: 'Salons', icon: FaCut },
       { href: '/services', label: 'Services', icon: FaMagic },
       { href: '/products', label: 'Products', icon: FaBoxOpen },
+      { href: '/promotions', label: 'Promotions', icon: FaMagic },
     ],
     [],
   );

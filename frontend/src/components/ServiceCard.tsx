@@ -17,9 +17,11 @@ interface ServiceCardProps {
   onBook: (service: Service) => void;
   onSendMessage: () => void;
   onImageClick: (images: string[], index: number) => void;
+  promotion?: any;
+  onPromotionClick?: (promotion: any) => void;
 }
 
-export default function ServiceCard({ service, onBook, onSendMessage, onImageClick }: ServiceCardProps) {
+export default function ServiceCard({ service, onBook, onSendMessage, onImageClick, promotion, onPromotionClick }: ServiceCardProps) {
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
   const [isLiked, setIsLiked] = useState(Boolean(service.isLikedByCurrentUser));
@@ -96,6 +98,18 @@ export default function ServiceCard({ service, onBook, onSendMessage, onImageCli
               {activeImage + 1}/{images.length}
             </div>
           </>
+        )}
+        {promotion && (
+          <div 
+            className={styles.promotionBadge}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPromotionClick?.(promotion);
+            }}
+          >
+            <span className={styles.badgeIcon}>🏷️</span>
+            <span className={styles.badgeText}>Promo</span>
+          </div>
         )}
       </div>
       <div className={styles.content}>
