@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './PromotionCard.module.css';
@@ -130,7 +130,7 @@ export default function PromotionCard({ promotion, onImageClick }: PromotionCard
       const salon = await response.json();
       
       if (salon.bookingMessage) {
-        // Show confirmation modal
+        // Show confirmation modal - keep loading state while modal is open
         setSalonData(salon);
         setShowConfirmation(true);
       } else {
@@ -140,24 +140,26 @@ export default function PromotionCard({ promotion, onImageClick }: PromotionCard
     } catch (error) {
       console.error('Error fetching salon:', error);
       toast.error('Failed to load salon details');
+      setIsLoadingBooking(false);
       // Navigate anyway
       router.push(linkHref);
-    } finally {
-      setIsLoadingBooking(false);
     }
   };
 
-  const handleConfirmationAccept = () => {
+  const handleConfirmationAccept = useCallback(() => {
     setShowConfirmation(false);
+    setSalonData(null);
+    setIsLoadingBooking(false);
     if (linkHref && linkHref !== '#') {
       router.push(linkHref);
     }
-  };
+  }, [linkHref, router]);
 
-  const handleConfirmationClose = () => {
+  const handleConfirmationClose = useCallback(() => {
     setShowConfirmation(false);
     setSalonData(null);
-  };
+    setIsLoadingBooking(false);
+  }, []);
 
 
 
