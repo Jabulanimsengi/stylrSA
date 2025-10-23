@@ -2,6 +2,109 @@
 @import 'react-toastify/dist/ReactToastify.css';
 @import 'react-datepicker/dist/react-datepicker.css';
 
+/* Custom Toast Animations */
+@keyframes slideInRight {
+  from {
+    transform: translate3d(110%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(110%, 0, 0);
+    opacity: 0;
+  }
+}
+
+.Toastify__toast {
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  padding: 1rem !important;
+  font-weight: 500 !important;
+}
+
+.Toastify__toast--default {
+  background: var(--color-surface-elevated) !important;
+  color: var(--color-text-strong) !important;
+}
+
+.Toastify__toast--success {
+  background: var(--color-success-bg) !important;
+  color: var(--color-success-text) !important;
+}
+
+.Toastify__toast--error {
+  background: var(--color-error-bg) !important;
+  color: var(--color-error-text) !important;
+}
+
+.Toastify__toast--info {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #1e40af !important;
+}
+
+.Toastify__toast-container--bottom-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.Toastify__toast {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.Toastify__toast--closing {
+  animation: slideOutRight 0.3s ease-in;
+}
+
+/* Close button styling */
+.Toastify__close-button {
+  opacity: 0.7 !important;
+  color: currentColor !important;
+  font-size: 1.2rem !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+  transform: scale(1.1) !important;
+}
+
+.Toastify__close-button > svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Progress bar */
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+.Toastify__progress-bar--success {
+  background: var(--color-success) !important;
+}
+
+.Toastify__progress-bar--error {
+  background: var(--color-error-text) !important;
+}
+
+.Toastify__progress-bar--info {
+  background: #3b82f6 !important;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,7 +142,11 @@
     --space-lg: 1.5rem;
     --space-xl: 2rem;
     --space-2xl: 3rem;
+    --radius-xs: 0.25rem;
     --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
     --radius-full: 999px;
 
     --font-family-base: 'InterVariable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -49,9 +156,17 @@
     --font-size-lg: clamp(1.1rem, 0.25vw + 1rem, 1.25rem);
     --font-size-xl: clamp(1.35rem, 0.35vw + 1.25rem, 1.6rem);
     --font-size-2xl: clamp(1.6rem, 0.45vw + 1.55rem, 2rem);
-    --line-height-tight: 1.2;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
     --line-height-base: 1.5;
     --line-height-relaxed: 1.75;
+    --letter-spacing-tight: -0.02em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.025em;
 
     --link-color: var(--color-primary);
     --link-hover: #d4144c;
@@ -59,6 +174,31 @@
     --link-visited: #924061;
 
     --transition-base: 180ms ease;
+
+    /* Primary color scale */
+    --color-primary-50: #ffe5ed;
+    --color-primary-100: #ffccd9;
+    --color-primary-200: #ff99b3;
+    --color-primary-300: #ff668d;
+    --color-primary-400: #ff3367;
+    --color-primary-500: #F51957;
+    --color-primary-600: #d4144c;
+    --color-primary-700: #b31041;
+    --color-primary-800: #920d36;
+    --color-primary-900: #7a0d2c;
+
+    /* Semantic colors */
+    --color-success: #10b981;
+    --color-success-light: #6ee7b7;
+    --color-warning: #f59e0b;
+    --color-warning-light: #fbbf24;
+    --color-info: #3b82f6;
+    --color-info-light: #60a5fa;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #F51957 0%, #ff4d7d 100%);
+    --gradient-secondary: linear-gradient(135deg, #3ab7a5 0%, #2e9687 100%);
+    --gradient-sunset: linear-gradient(135deg, #F51957 0%, #ff6b35 100%);
 
     --primary-pink: var(--color-primary);
     --dark-gray: #43414A;
@@ -186,12 +326,24 @@
     margin: 0;
     font-family: var(--font-family-base);
     font-size: var(--font-size-base);
+    font-weight: var(--font-weight-regular);
     line-height: var(--line-height-base);
     background-color: var(--color-surface);
     color: var(--color-text-strong);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color var(--transition-base), color var(--transition-base);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-tight);
+    margin: 0;
+  }
+
+  strong, b {
+    font-weight: var(--font-weight-semibold);
   }
 
   * {
@@ -214,6 +366,66 @@
 
   a:visited {
     color: var(--link-visited);
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(245, 25, 87, 0.1);
+  }
+
+  /* Smooth page transitions */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Improved selection colors */
+  ::selection {
+    background-color: rgba(245, 25, 87, 0.2);
+    color: var(--color-text-strong);
+  }
+
+  /* Better placeholder styling */
+  ::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.6;
+  }
+
+  /* Touch-friendly interactions for mobile */
+  @media (hover: none) {
+    button:active,
+    a:active,
+    .clickable:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+  }
+
+  /* Minimum touch target sizes */
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"],
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 
@@ -260,12 +472,15 @@
 
 /* --- GLOBAL BUTTON STYLES --- */
 .btn {
-  @apply inline-flex items-center justify-center font-semibold border-2 border-transparent transition-transform transition-colors duration-200 ease-out shadow-sm;
+  @apply inline-flex items-center justify-center font-semibold border-2 border-transparent shadow-sm;
   padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   text-decoration: none;
   text-align: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -293,30 +508,42 @@
   border-color: var(--color-primary);
 }
 .btn-primary:hover {
-  @apply -translate-y-px shadow-md;
   background-color: white;
   color: var(--color-primary);
   border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 25, 87, 0.25);
 }
 .btn-primary:active {
-  @apply translate-y-0;
   background-color: var(--color-primary-strong);
   color: white;
   border-color: var(--color-primary-strong);
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(245, 25, 87, 0.2);
 }
 .btn-primary:disabled {
   @apply cursor-not-allowed;
   background-color: var(--color-primary-soft);
   color: var(--color-text-muted);
   border-color: var(--color-primary-soft);
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-secondary {
   @apply text-white;
   background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
 }
 .btn-secondary:hover {
   background-color: var(--color-secondary-strong);
+  border-color: var(--color-secondary-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(58, 183, 165, 0.25);
+}
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(58, 183, 165, 0.2);
 }
 
 .btn-ghost {
@@ -327,6 +554,13 @@
 .btn-ghost:hover {
   background-color: var(--btn-ghost-hover-bg);
   color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.btn-ghost:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .app-shell {

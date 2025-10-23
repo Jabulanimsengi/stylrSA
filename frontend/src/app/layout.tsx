@@ -21,6 +21,7 @@ import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import SkipToContent from '@/components/SkipToContent/SkipToContent';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -70,6 +71,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <body className={inter.className}>
+        <SkipToContent />
         <ErrorBoundary>
           <AuthSessionProvider>
             <ThemeProvider>
@@ -80,13 +82,25 @@ export default function RootLayout({
                       <Navbar />
                       <MobileNavIcons />
                       <div className="app-content">
-                        <main className="main-content">{children}</main>
+                        <main className="main-content" id="main-content">{children}</main>
                         <Footer />
                       </div>
                       <MobileBottomNav />
                     </div>
                     <ClientChatWidget />
-                    <ToastContainer position="bottom-right" theme="colored" />
+                    <ToastContainer 
+                      position="bottom-right" 
+                      theme="colored"
+                      autoClose={5000}
+                      hideProgressBar={false}
+                      newestOnTop={true}
+                      closeOnClick={true}
+                      rtl={false}
+                      pauseOnFocusLoss={true}
+                      draggable={true}
+                      pauseOnHover={true}
+                      closeButton={true}
+                    />
                     <CookieBanner />
                     <Suspense fallback={null}>
                       <Analytics />

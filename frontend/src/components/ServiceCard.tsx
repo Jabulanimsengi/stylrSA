@@ -116,6 +116,16 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
           <h3 className={styles.title}>{serviceTitle}</h3>
           <p className={styles.price}>R{service.price.toFixed(2)}</p>
         </div>
+        {service.salon && (
+          <div className={styles.locationInfo}>
+            <p className={styles.salonName}>{service.salon.name}</p>
+            {(service.salon.city || service.salon.province) && (
+              <p className={styles.salonLocation}>
+                {[service.salon.city, service.salon.province].filter(Boolean).join(', ')}
+              </p>
+            )}
+          </div>
+        )}
         <p className={`${styles.description} ${isExpanded ? styles.expanded : ''}`}>
           {sanitizeText(service.description || '')}
         </p>

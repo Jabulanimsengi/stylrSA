@@ -7,7 +7,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import FilterBar, { type FilterValues } from "@/components/FilterBar/FilterBar";
 import { SkeletonGroup, SkeletonCard } from "@/components/Skeleton/Skeleton";
 import styles from "../salons/SalonsPage.module.css";
-import { Service } from "@/types";
+import { Service, Salon, Booking } from "@/types";
 import { toast } from "react-toastify";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useStartConversation } from "@/hooks/useStartConversation";
@@ -15,6 +15,10 @@ import { useSocket } from "@/context/SocketContext";
 import PageNav from "@/components/PageNav";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import MobileSearch from "@/components/MobileSearch/MobileSearch";
+import BookingModal from "@/components/BookingModal";
+import BookingConfirmationModal from "@/components/BookingConfirmationModal/BookingConfirmationModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuthModal } from "@/context/AuthModalContext";
 
 const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
 
@@ -25,8 +29,15 @@ function ServicesPageContent() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [showBookingConfirmation, setShowBookingConfirmation] = useState(false);
+  const [pendingBookingService, setPendingBookingService] = useState<Service | null>(null);
+  const [pendingSalon, setPendingSalon] = useState<Salon | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { startConversation } = useStartConversation();
+  const { authStatus } = useAuth();
+  const { openModal } = useAuthModal();
   const socket = useSocket();
   const requestControllerRef = useRef<AbortController | null>(null);
   const latestRequestIdRef = useRef(0);
@@ -126,6 +137,78 @@ function ServicesPageContent() {
     setLightboxOpen(true);
   };
 
+  const handleBookService = async (service: Service) => {
+    if (authStatus !== 'authenticated') {
+      toast.info('Please log in to book a service.');
+      openModal('login');
+      return;
+    }
+
+    // Fetch salon details if not already available
+    let salonData: Salon;
+    if (!service.salon || !service.salon.name) {
+      try {
+        const res = await fetch(`/api/salons/${service.salonId}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to fetch salon details');
+        salonData = await res.json();
+        service.salon = {
+          id: salonData.id,
+          name: salonData.name,
+          ownerId: salonData.ownerId,
+          city: salonData.city,
+          province: salonData.province,
+        };
+      } catch (error) {
+        toast.error('Unable to load salon details. Please try again.');
+        return;
+      }
+    } else {
+      // If we have partial salon data, fetch full details to check for bookingMessage
+      try {
+        const res = await fetch(`/api/salons/${service.salonId}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to fetch salon details');
+        salonData = await res.json();
+      } catch (error) {
+        toast.error('Unable to load salon details. Please try again.');
+        return;
+      }
+    }
+
+    // Check if salon has a booking message
+    if (salonData.bookingMessage) {
+      // Show confirmation modal first
+      setPendingBookingService(service);
+      setPendingSalon(salonData);
+      setShowBookingConfirmation(true);
+    } else {
+      // Open booking modal directly
+      setSelectedService(service);
+      setBookingModalOpen(true);
+    }
+  };
+
+  const handleBookingConfirmationAccept = () => {
+    setShowBookingConfirmation(false);
+    if (pendingBookingService) {
+      setSelectedService(pendingBookingService);
+      setBookingModalOpen(true);
+      setPendingBookingService(null);
+      setPendingSalon(null);
+    }
+  };
+
+  const handleBookingConfirmationClose = () => {
+    setShowBookingConfirmation(false);
+    setPendingBookingService(null);
+    setPendingSalon(null);
+  };
+
+  const handleBookingSuccess = (booking: Booking) => {
+    setBookingModalOpen(false);
+    setSelectedService(null);
+    toast.success('Booking confirmed!');
+  };
+
   return (
     <div className={styles.container}>
       <PageNav />
@@ -164,7 +247,7 @@ function ServicesPageContent() {
               <ServiceCard
                 key={service.id}
                 service={service}
-                onBook={() => {}}
+                onBook={handleBookService}
                 onImageClick={handleOpenLightbox}
               />
             ))}
@@ -177,6 +260,35 @@ function ServicesPageContent() {
           images={lightboxImages}
           initialImageIndex={lightboxIndex}
           onClose={() => setLightboxOpen(false)}
+        />
+      )}
+
+      {bookingModalOpen && selectedService && selectedService.salon && (
+        <BookingModal
+          salon={{
+            id: selectedService.salon.id,
+            name: selectedService.salon.name,
+            ownerId: selectedService.salon.ownerId,
+            city: selectedService.salon.city || '',
+            province: selectedService.salon.province || '',
+          } as Salon}
+          service={selectedService}
+          onClose={() => {
+            setBookingModalOpen(false);
+            setSelectedService(null);
+          }}
+          onBookingSuccess={handleBookingSuccess}
+        />
+      )}
+
+      {showBookingConfirmation && pendingSalon && (
+        <BookingConfirmationModal
+          isOpen={showBookingConfirmation}
+          onClose={handleBookingConfirmationClose}
+          onAccept={handleBookingConfirmationAccept}
+          salonName={pendingSalon.name || ''}
+          salonLogo={pendingSalon.backgroundImage}
+          message={pendingSalon.bookingMessage || ''}
         />
       )}
     </div>
