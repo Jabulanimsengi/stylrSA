@@ -1,0 +1,2 @@
+The toast notification's close button is not working because the `.Toastify__toast-container` class has `pointer-events: none !important;`. 
+This prevents the close button from receiving click events. To fix this, I will remove the `pointer-events: none !important;` from the `.Toastify__toast-container` class.
