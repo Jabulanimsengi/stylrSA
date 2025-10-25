@@ -14,6 +14,8 @@ import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
 import FeaturedSalons from '@/components/FeaturedSalons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
+import BeforeAfterSlideshow from '@/components/BeforeAfterSlideshow/BeforeAfterSlideshow';
+import VideoSlideshow from '@/components/VideoSlideshow/VideoSlideshow';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -207,6 +209,12 @@ export default function HomePage() {
         <h2 className={styles.sectionTitle}>Recommended</h2>
         <FeaturedSalons />
       </section>
+
+      {/* Before & After Photos Slideshow */}
+      <BeforeAfterSlideshow />
+
+      {/* Service Videos Slideshow */}
+      <VideoSlideshow />
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>

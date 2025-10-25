@@ -3,7 +3,7 @@ import { useState, FormEvent, useTransition } from 'react';
 import { Salon, Service, Booking } from '@/types';
 import styles from './BookingModal.module.css';
 import { toast } from 'react-toastify';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaCalendarAlt } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { useSocket } from '@/context/SocketContext';
@@ -11,6 +11,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
+import TimeSlotPicker from './TimeSlotPicker/TimeSlotPicker';
 
 interface BookingModalProps {
   salon: Salon;
@@ -20,31 +21,36 @@ interface BookingModalProps {
 }
 
 export default function BookingModal({ salon, service, onClose, onBookingSuccess }: BookingModalProps) {
-  const [bookingTime, setBookingTime] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [clientPhone, setClientPhone] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const { authStatus, user } = useAuth(); // Get the user object
+  const { authStatus, user } = useAuth();
   const { openModal } = useAuthModal();
-  const socket = useSocket(); // Get the socket instance
-  // Using relative API path with cookie-based auth
+  const socket = useSocket();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!bookingTime) {
-      toast.error('Please select a date and time.');
+    
+    if (!selectedDate) {
+      toast.error('Please select a date.');
       return;
     }
     
-    setIsLoading(true);
+    if (!selectedSlot) {
+      toast.error('Please select an available time slot.');
+      return;
+    }
 
     if (authStatus !== 'authenticated' || !user) {
       toast.error("You must be logged in to book.");
       openModal('login');
-      setIsLoading(false);
       return;
     }
+    
+    setIsLoading(true);
 
     try {
       const newBooking = await apiJson(`/api/bookings`, {
@@ -52,7 +58,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceId: service.id,
-          bookingTime: bookingTime.toISOString(),
+          bookingTime: selectedSlot,
           clientPhone,
           isMobile,
         }),
@@ -115,19 +121,32 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
 
         <form onSubmit={handleSubmit} className={styles.formContent}>
             <div className={styles.formGroup}>
-                <label htmlFor="bookingTime">Preferred Date & Time</label>
+                <label htmlFor="bookingDate">
+                    <FaCalendarAlt style={{ marginRight: '0.5rem' }} />
+                    Select Date
+                </label>
                 <DatePicker
-                    id="bookingTime"
-                    selected={bookingTime}
-                    onChange={(date: Date | null) => setBookingTime(date)}
-                    showTimeSelect
-                    dateFormat="yyyy/MM/dd, hh:mm aa"
+                    id="bookingDate"
+                    selected={selectedDate}
+                    onChange={(date: Date | null) => {
+                        setSelectedDate(date);
+                        setSelectedSlot(null); // Reset slot when date changes
+                    }}
+                    dateFormat="MMMM d, yyyy"
                     className={styles.datePicker}
-                    placeholderText="Select a date and time"
-                    minDate={new Date()} // Prevent past dates
+                    placeholderText="Choose a date"
+                    minDate={new Date()}
+                    inline
                     required
                 />
             </div>
+
+            <TimeSlotPicker
+                serviceId={service.id}
+                selectedDate={selectedDate}
+                selectedSlot={selectedSlot}
+                onSlotSelect={setSelectedSlot}
+            />
             <div className={styles.formGroup}>
                 <label htmlFor="clientPhone">Your Contact Number</label>
                 <input

@@ -5,6 +5,63 @@
   margin-top: auto; /* Pushes footer to the bottom */
 }
 
+/* Dark mode footer adjustments */
+[data-theme='dark'] .footer {
+  background-color: #0F0F15;
+  background-image: linear-gradient(180deg, #12121A 0%, #0F0F15 100%);
+  color: #f5f5f7;
+}
+
+[data-theme='dark'] .description {
+  color: #b4b4c4;
+}
+
+[data-theme='dark'] .sectionTitle {
+  color: #f5f5f7;
+}
+
+[data-theme='dark'] .links a {
+  color: #b4b4c4;
+}
+
+[data-theme='dark'] .links a:hover {
+  color: #ff5c88;
+}
+
+[data-theme='dark'] .socialLink {
+  color: #f5f5f7;
+}
+
+[data-theme='dark'] .socialLink:hover {
+  color: #ff5c88;
+}
+
+[data-theme='dark'] .newsletterInput {
+  background-color: #1d1e2b;
+  border-color: #2f2f3d;
+  color: #f5f5f7;
+}
+
+[data-theme='dark'] .announcementTitle {
+  color: #f5f5f7;
+}
+
+[data-theme='dark'] .announcementDescription {
+  color: #b4b4c4;
+}
+
+[data-theme='dark'] .footerBottom {
+  color: #b4b4c4;
+}
+
+[data-theme='dark'] .legalLinks a {
+  color: #b4b4c4;
+}
+
+[data-theme='dark'] .legalLinks a:hover {
+  color: #f5f5f7;
+}
+
 .footerContent {
   max-width: 1280px;
   margin: 0 auto;

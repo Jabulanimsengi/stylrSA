@@ -145,6 +145,7 @@
   z-index: 2;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   gap: 0.15rem;
+  pointer-events: none;
 }
 
 .ratingValue {
@@ -173,6 +174,7 @@
 .cardImage {
   object-fit: cover;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 .salonCard:hover .cardImage {
@@ -182,6 +184,7 @@
 .salonCard.compact .cardImage {
   object-fit: contain;
   background: var(--skeleton-bg, #f0f0f0);
+  pointer-events: none;
 }
 
 .salonCard.compact .cardContent {
@@ -203,17 +206,35 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   flex-grow: 1;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.salonCard.compact .cardTitle:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
+}
+
+.salonCard.compact .cardTitle:visited {
+  color: var(--text-primary, #1c1c1e);
+}
+
+.salonCard.compact .cardTitle:visited:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
 }
 
 .salonCard.compact .cardLocation {
   font-size: 0.78rem;
   color: var(--text-muted, #666);
-  margin-top: 0;
+  margin: 0;
+  text-align: center;
 }
 
 .salonCard.compact .cardMeta {
   font-size: 0.75rem;
   color: var(--text-muted, #666);
+  margin: 0;
   margin-top: 0.25rem;
   padding-top: 0;
   border-top: none;
@@ -239,6 +260,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  display: block;
+}
+
+.cardTitle:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
 }
 
 .cardLocation {

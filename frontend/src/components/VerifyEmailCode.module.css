@@ -270,6 +270,99 @@
   border-color: #D0D0D0;
 }
 
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: #1a1a1a;
+  }
+
+  .title {
+    color: #ffffff;
+  }
+
+  .description {
+    color: #b3b3b3;
+  }
+
+  .description strong {
+    color: #ff3366;
+  }
+
+  .codeInput {
+    background: #2a2a2a;
+    border-color: #404040;
+    color: #ffffff;
+  }
+
+  .codeInput:hover:not(:disabled) {
+    border-color: #505050;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.08);
+  }
+
+  .codeInput:focus {
+    border-color: #ff3366;
+    background: #331122;
+    box-shadow: 
+      0 0 0 4px rgba(255, 51, 102, 0.2),
+      0 4px 12px rgba(255, 51, 102, 0.25);
+  }
+
+  .codeInput:not(:placeholder-shown) {
+    border-color: #ff3366;
+    background: linear-gradient(135deg, rgba(255, 51, 102, 0.1) 0%, rgba(212, 20, 76, 0.1) 100%);
+  }
+
+  .codeInput:disabled {
+    background: #1a1a1a;
+    border-color: #333333;
+  }
+
+  .codeInput::placeholder {
+    color: #404040;
+  }
+
+  .error {
+    color: #ff6b8a;
+    background: #2a1820;
+    border-left-color: #ff3366;
+  }
+
+  .submitButton {
+    background: linear-gradient(135deg, #ff3366 0%, #d4144c 100%);
+    box-shadow: 0 4px 12px rgba(255, 51, 102, 0.3);
+  }
+
+  .submitButton:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(255, 51, 102, 0.4);
+  }
+
+  .resendSection {
+    background: #2a2a2a;
+  }
+
+  .resendText {
+    color: #b3b3b3;
+  }
+
+  .resendButton {
+    color: #ff3366;
+  }
+
+  .resendButton:hover:not(:disabled) {
+    background: rgba(255, 51, 102, 0.15);
+  }
+
+  .cancelButton {
+    color: #b3b3b3;
+    border-color: #404040;
+  }
+
+  .cancelButton:hover {
+    background: #2a2a2a;
+    border-color: #505050;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1.5rem 1rem;

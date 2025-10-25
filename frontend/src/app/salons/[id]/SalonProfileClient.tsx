@@ -24,6 +24,7 @@ import ServiceCard from '@/components/ServiceCard';
 import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
 import ImageLightbox from '@/components/ImageLightbox';
+import VideoLightbox from '@/components/VideoLightbox/VideoLightbox';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toFriendlyMessage } from '@/lib/errors';
@@ -56,6 +57,10 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const [salon, setSalon] = useState<Salon | null>(initialSalon);
   const [services, setServices] = useState<Service[]>(initialSalon?.services ?? []);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>(initialSalon?.gallery ?? []);
+  const [beforeAfterPhotos, setBeforeAfterPhotos] = useState<any[]>([]);
+  const [salonVideos, setSalonVideos] = useState<any[]>([]);
+  const [isVideoLightboxOpen, setIsVideoLightboxOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(!initialSalon);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -93,6 +98,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
     if (initialSalon) {
       applySalon(initialSalon);
+      // Fetch salon-specific before/after photos and videos
+      fetchSalonMedia();
       return () => {
         isActive = false;
       };
@@ -239,6 +246,37 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     setIsLightboxOpen(false);
     setLightboxImages([]);
     setLightboxStartIndex(0);
+  };
+
+  const fetchSalonMedia = async () => {
+    try {
+      // Fetch before/after photos for this salon
+      const beforeAfterRes = await fetch(`/api/before-after/approved?salonId=${salonId}&limit=50`);
+      if (beforeAfterRes.ok) {
+        const beforeAfterData = await beforeAfterRes.json();
+        setBeforeAfterPhotos(beforeAfterData);
+      }
+
+      // Fetch videos for this salon
+      const videosRes = await fetch(`/api/videos/approved?salonId=${salonId}&limit=50`);
+      if (videosRes.ok) {
+        const videosData = await videosRes.json();
+        setSalonVideos(videosData);
+      }
+    } catch (error) {
+      logger.error('Failed to fetch salon media', error);
+      // Silently fail - media is not critical
+    }
+  };
+
+  const openVideoLightbox = (video: any) => {
+    setSelectedVideo(video);
+    setIsVideoLightboxOpen(true);
+  };
+
+  const closeVideoLightbox = () => {
+    setIsVideoLightboxOpen(false);
+    setSelectedVideo(null);
   };
 
   const handleBookClick = (service: Service) => {
@@ -493,6 +531,13 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         />
       )}
 
+      {isVideoLightboxOpen && selectedVideo && (
+        <VideoLightbox
+          videoUrl={selectedVideo.vimeoUrl}
+          onClose={closeVideoLightbox}
+        />
+      )}
+
       <PromotionDetailsModal
         promotion={selectedPromotion}
         isOpen={isPromotionModalOpen}
@@ -602,22 +647,106 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                   </p>
                 </section>
               )}
-              {galleryImages.length > 0 && (
+              {(galleryImages.length > 0 || beforeAfterPhotos.length > 0 || salonVideos.length > 0) && (
                 <section id="gallery-section">
                   <h2 className={styles.sectionTitle}>Gallery</h2>
-                  <div className={styles.galleryGrid}>
-                    {galleryImages.map((image, index) => (
-                      <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
-                        <Image
-                          src={transformCloudinary(image.imageUrl, { width: 400, quality: 'auto', format: 'auto', crop: 'fill' })}
-                          alt={image.caption || 'Salon work'}
-                          className={styles.galleryImage}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 200px"
-                        />
+                  
+                  {galleryImages.length > 0 && (
+                    <>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text)' }}>Photos</h3>
+                      <div className={styles.galleryGrid}>
+                        {galleryImages.map((image, index) => (
+                          <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
+                            <Image
+                              src={transformCloudinary(image.imageUrl, { width: 400, quality: 'auto', format: 'auto', crop: 'fill' })}
+                              alt={image.caption || 'Salon work'}
+                              className={styles.galleryImage}
+                              fill
+                              sizes="(max-width: 768px) 50vw, 200px"
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  )}
+
+                  {beforeAfterPhotos.length > 0 && (
+                    <>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '2rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Before & After Transformations</h3>
+                      <div className={styles.galleryGrid}>
+                        {beforeAfterPhotos.map((photo) => (
+                          <div 
+                            key={photo.id} 
+                            className={styles.galleryItem}
+                            onClick={() => openLightbox([photo.beforeImageUrl, photo.afterImageUrl], 0)}
+                            style={{ position: 'relative' }}
+                          >
+                            <Image
+                              src={transformCloudinary(photo.beforeImageUrl, { width: 400, quality: 'auto', format: 'auto', crop: 'fill' })}
+                              alt={photo.caption || 'Before transformation'}
+                              className={styles.galleryImage}
+                              fill
+                              sizes="(max-width: 768px) 50vw, 200px"
+                            />
+                            <div style={{
+                              position: 'absolute',
+                              top: '8px',
+                              left: '8px',
+                              background: 'rgba(0,0,0,0.7)',
+                              color: 'white',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                            }}>
+                              Before/After
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {salonVideos.length > 0 && (
+                    <>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '2rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Videos</h3>
+                      <div className={styles.galleryGrid}>
+                        {salonVideos.map((video) => (
+                          <div 
+                            key={video.id} 
+                            className={styles.galleryItem}
+                            onClick={() => openVideoLightbox(video)}
+                            style={{ position: 'relative', cursor: 'pointer' }}
+                          >
+                            <Image
+                              src={video.thumbnailUrl || '/placeholder-video.png'}
+                              alt={video.caption || 'Service video'}
+                              className={styles.galleryImage}
+                              fill
+                              sizes="(max-width: 768px) 50vw, 200px"
+                            />
+                            <div style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '48px',
+                              height: '48px',
+                              background: 'rgba(245, 25, 87, 0.9)',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'white',
+                              fontSize: '20px',
+                            }}>
+                              ▶
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </section>
               )}
               <section id="services-section">

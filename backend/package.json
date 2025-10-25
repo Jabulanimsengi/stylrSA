@@ -34,6 +34,7 @@
     "@nestjs/websockets": "^10.3.10",
     "@prisma/client": "^6.17.1",
     "@socket.io/redis-adapter": "^8.3.0",
+    "@types/streamifier": "^0.1.2",
     "argon2": "^0.40.3",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
@@ -54,6 +55,7 @@
     "rxjs": "^7.8.1",
     "socket.io": "^4.7.5",
     "speakeasy": "^2.0.0",
+    "streamifier": "^0.1.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

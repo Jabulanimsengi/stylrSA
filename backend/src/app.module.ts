@@ -29,6 +29,8 @@ import { SellersModule } from './sellers/sellers.module';
 import { MongoModule } from './mongo/mongo.module';
 import { MailModule } from './mail/mail.module';
 import { CsrfModule } from './common/csrf/csrf.module';
+import { BeforeAfterModule } from './before-after/before-after.module';
+import { VideosModule } from './videos/videos.module';
 
 @Module({
   imports: [
@@ -76,6 +78,8 @@ import { CsrfModule } from './common/csrf/csrf.module';
     MongoModule,
     MailModule,
     CsrfModule,
+    BeforeAfterModule,
+    VideosModule,
   ],
   controllers: [AppController],
   providers: [

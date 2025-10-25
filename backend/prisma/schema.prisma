@@ -100,6 +100,8 @@ model Salon {
   reviews              Review[]
   favorites            Favorite[]
   gallery              GalleryImage[]
+  beforeAfterPhotos    BeforeAfterPhoto[]
+  serviceVideos        ServiceVideo[]
 
   // Plan & visibility controls
   planCode             PlanCode?      @default(STARTER)
@@ -140,12 +142,14 @@ model Service {
   categoryId     String?
   category       ServiceCategory? @relation(fields: [categoryId], references: [id])
 
-  bookings       Booking[]
-  likes          ServiceLike[]
-  likeCount      Int            @default(0)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  promotions     Promotion[] // Relation to promotions
+  bookings          Booking[]
+  likes             ServiceLike[]
+  likeCount         Int               @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  promotions        Promotion[]       // Relation to promotions
+  beforeAfterPhotos BeforeAfterPhoto[]
+  serviceVideos     ServiceVideo[]
   @@index([salonId])
   @@index([approvalStatus])
 }
@@ -334,6 +338,60 @@ model GalleryImage {
   salon     Salon    @relation(fields: [salonId], references: [id])
   createdAt DateTime @default(now())
   @@index([salonId])
+}
+
+// Before/After Photos Model
+model BeforeAfterPhoto {
+  id              String         @id @default(uuid())
+  beforeImageUrl  String
+  afterImageUrl   String
+  caption         String?
+  approvalStatus  ApprovalStatus @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?        // Reason for rejection
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relations
+  salonId         String
+  salon           Salon          @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  serviceId       String?
+  service         Service?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  
+  @@index([salonId])
+  @@index([serviceId])
+  @@index([approvalStatus])
+  @@index([createdAt])
+}
+
+// Service Videos Model (TikTok-style short videos)
+model ServiceVideo {
+  id              String         @id @default(uuid())
+  videoUrl        String         // Vimeo video URL
+  vimeoId         String         @unique // Vimeo video ID for API operations
+  thumbnailUrl    String?        // Video thumbnail
+  duration        Int            // Duration in seconds (max 60)
+  caption         String?
+  approvalStatus  ApprovalStatus @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?        // Reason for rejection
+  views           Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relations
+  salonId         String
+  salon           Salon          @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  serviceId       String?
+  service         Service?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  
+  @@index([salonId])
+  @@index([serviceId])
+  @@index([approvalStatus])
+  @@index([createdAt])
+  @@index([views])
 }
 
 enum UserRole {

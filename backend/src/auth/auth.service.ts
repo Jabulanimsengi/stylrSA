@@ -59,37 +59,29 @@ export class AuthService {
             },
           });
 
-          // Try to send verification email (will fail silently if domain not configured)
-          try {
-            await this.mailService.sendVerificationEmail(
-              existingUser.email,
-              verificationCode,
-              existingUser.firstName,
-            );
-          } catch (error) {
-            console.log('[AUTH] Email sending failed (domain not configured):', error.message);
-          }
+          // Send verification email with new code
+          await this.mailService.sendVerificationEmail(
+            existingUser.email,
+            verificationCode,
+            existingUser.firstName,
+          );
 
           return {
-            message: 'Account already exists. You can log in now.',
-            requiresVerification: false, // Changed to false
+            message: 'Verification code resent. Please check your email.',
+            requiresVerification: true,
             isExisting: true,
           };
         } else {
-          // Code is still valid, just resend with existing code (will fail silently if domain not configured)
-          try {
-            await this.mailService.sendVerificationEmail(
-              existingUser.email,
-              existingUser.verificationToken!,
-              existingUser.firstName,
-            );
-          } catch (error) {
-            console.log('[AUTH] Email sending failed (domain not configured):', error.message);
-          }
+          // Code is still valid, just resend with existing code
+          await this.mailService.sendVerificationEmail(
+            existingUser.email,
+            existingUser.verificationToken!,
+            existingUser.firstName,
+          );
 
           return {
-            message: 'Account already exists. You can log in now.',
-            requiresVerification: false, // Changed to false
+            message: 'Verification code sent. Please check your email.',
+            requiresVerification: true,
             isExisting: true,
           };
         }
@@ -117,24 +109,20 @@ export class AuthService {
           role: dto.role,
           verificationToken: verificationCode,
           verificationExpires,
-          emailVerified: true, // Set to true since email verification is disabled
+          emailVerified: false, // Require email verification
         },
       });
 
-      // Send verification email with code (will fail silently if domain not configured)
-      try {
-        await this.mailService.sendVerificationEmail(
-          user.email,
-          verificationCode,
-          user.firstName,
-        );
-      } catch (error) {
-        console.log('[AUTH] Email sending failed (domain not configured), but registration continues:', error.message);
-      }
+      // Send verification email with code
+      await this.mailService.sendVerificationEmail(
+        user.email,
+        verificationCode,
+        user.firstName,
+      );
 
       return { 
-        message: 'Registration successful! You can now log in.',
-        requiresVerification: false, // Changed to false - no verification needed
+        message: 'Registration successful! Please check your email for verification code.',
+        requiresVerification: true, // Verification required
         isExisting: false,
       };
     } catch (error) {
@@ -212,11 +200,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // EMAIL VERIFICATION ENFORCEMENT - CURRENTLY DISABLED
-    // TODO: Enable this when custom domain is verified in Resend
-    // Uncomment the code below to require email verification for new users
-    
-    /*
+    // EMAIL VERIFICATION ENFORCEMENT - ENABLED
     const isNewUser = user.createdAt >= this.VERIFICATION_ENFORCEMENT_DATE;
     const isManualSignup = !user.oauthAccounts || user.oauthAccounts.length === 0;
     
@@ -225,7 +209,6 @@ export class AuthService {
         'Please verify your email address before logging in. Check your inbox for the verification code.'
       );
     }
-    */
 
     // Reset failed login attempts on successful login
     await this.prisma.user.update({

@@ -1,0 +1,465 @@
+/* Section */
+.section {
+  padding: 3rem 0;
+  background: var(--color-surface);
+}
+
+.sectionTitle {
+  font-size: clamp(1.25rem, 3vw, 2.5rem);
+  font-weight: 600;
+  margin-bottom: clamp(1rem, 3vw, 1.75rem);
+  color: var(--color-text-strong);
+  text-align: center;
+  padding: 0 1.5rem;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Container with navigation */
+.container {
+  width: 100%;
+  position: relative;
+  padding: 0 1rem;
+}
+
+/* Navigation buttons - visible on desktop only */
+.prevButton,
+.nextButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: none; /* Hidden by default (mobile) */
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary, #f51957);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(67, 65, 74, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  opacity: 1;
+}
+
+.prevButton:hover,
+.nextButton:hover {
+  background: var(--color-primary-dark, #d41245);
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 16px rgba(67, 65, 74, 0.2);
+}
+
+.prevButton:active,
+.nextButton:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.prevButton {
+  left: -1rem;
+}
+
+.nextButton {
+  right: -1rem;
+}
+
+.prevButton svg,
+.nextButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Show navigation on desktop */
+@media (min-width: 768px) {
+  .prevButton,
+  .nextButton {
+    display: flex;
+  }
+}
+
+/* Card - matches SalonCard design */
+.card {
+  position: relative;
+  background-color: var(--color-surface-elevated, #fffaf5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border, #cdbfb3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(245, 25, 87, 0.12),
+              0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: rgba(245, 25, 87, 0.2);
+}
+
+.card:hover .playOverlay {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.videoWrapper {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  flex-shrink: 0;
+  background: #000;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.videoThumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover .videoThumbnail {
+  transform: scale(1.05);
+}
+
+.videoPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #F51957 0%, #d4144c 100%);
+}
+
+/* Play overlay button */
+.playOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.playOverlay svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+}
+
+/* Video Badge */
+.videoBadge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  border-radius: 0.375rem;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.badgeLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Duration badge */
+.duration {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  z-index: 2;
+}
+
+.cardContent {
+  padding: 0.75rem 0.85rem 0.85rem;
+  gap: 0.35rem;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  flex-grow: 1;
+  margin: 0;
+  color: var(--text-primary, #1c1c1e);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.cardTitle:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
+}
+
+.cardTitle:visited {
+  color: var(--text-primary, #1c1c1e);
+}
+
+.cardTitle:visited:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
+}
+
+.cardLocation {
+  font-size: 0.78rem;
+  color: var(--text-muted, #666);
+  margin: 0;
+}
+
+.cardMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted, #666);
+  margin: 0;
+  padding-top: 0;
+  border-top: none;
+  text-align: center;
+}
+
+/* Skeleton Loading */
+.skeletonContainer {
+  display: flex;
+  gap: 1rem;
+  padding-inline: clamp(0.5rem, 4vw, 1.25rem);
+}
+
+.skeletonCard {
+  flex: none;
+  width: clamp(170px, 24vw, 210px);
+  height: 280px;
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    90deg,
+    rgba(240, 240, 240, 0.8) 0%,
+    rgba(225, 225, 225, 0.9) 50%,
+    rgba(240, 240, 240, 0.8) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Mobile scroll indicators */
+.scrollIndicators {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  padding: 0 0.5rem;
+  z-index: 5;
+}
+
+.scrollIndicatorLeft,
+.scrollIndicatorRight {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(245, 25, 87, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.scrollIndicatorLeft {
+  animation-delay: 0s;
+}
+
+.scrollIndicatorRight {
+  animation-delay: 1s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Hide scroll indicators on desktop */
+@media (min-width: 768px) {
+  .scrollIndicators {
+    display: none;
+  }
+}
+
+/* Slide counter */
+.slideCounter {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  z-index: 15;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide counter on desktop */
+@media (min-width: 768px) {
+  .slideCounter {
+    display: none;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .section {
+    padding: 2rem 0;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+  }
+
+  .card {
+    height: 240px;
+  }
+
+  .videoWrapper {
+    height: 165px;
+  }
+
+  .cardContent {
+    padding: 0.5rem;
+  }
+
+  .cardTitle {
+    font-size: 0.85rem;
+  }
+
+  .cardLocation {
+    font-size: 0.7rem;
+  }
+
+  .cardMeta {
+    font-size: 0.65rem;
+    margin-top: 0.2rem;
+  }
+
+  .videoBadge {
+    top: 0.4rem;
+    left: 0.4rem;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .badgeLabel {
+    font-size: 0.65rem;
+  }
+
+  .duration {
+    bottom: 0.4rem;
+    right: 0.4rem;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    height: 220px;
+  }
+
+  .videoWrapper {
+    height: 150px;
+  }
+
+  .cardContent {
+    padding: 0.625rem;
+  }
+
+  .cardTitle {
+    font-size: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .cardLocation {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+
+  .cardMeta {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  .videoBadge {
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .badgeLabel {
+    font-size: 0.7rem;
+  }
+
+  .duration {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .card {
+    height: 200px;
+  }
+
+  .videoWrapper {
+    height: 135px;
+  }
+}

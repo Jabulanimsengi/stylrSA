@@ -24,6 +24,7 @@ import { useSession } from 'next-auth/react';
 import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import AdminMediaReview from '@/components/AdminMediaReview';
 
 const ensureArray = <T,>(value: unknown): T[] =>
   Array.isArray(value) ? (value as T[]) : [];
@@ -92,7 +93,7 @@ export default function AdminPage() {
   const [availableSalons, setAvailableSalons] = useState<PendingSalon[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
   const [featureDuration, setFeatureDuration] = useState<number>(30);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -808,6 +809,12 @@ export default function AdminPage() {
           Pending Promotions ({pendingPromotions.length})
         </button>
         <button
+          onClick={() => setView('media')}
+          className={`${styles.tabButton} ${view === 'media' ? styles.activeTab : ''}`}
+        >
+          Media Review
+        </button>
+        <button
           onClick={() => setView('deleted-salons')}
           className={`${styles.tabButton} ${view === 'deleted-salons' ? styles.activeTab : ''}`}
         >
@@ -1474,6 +1481,10 @@ export default function AdminPage() {
             );
           }) : <p>No pending promotions.</p>}
           </>
+        )}
+
+        {view === 'media' && (
+          <AdminMediaReview />
         )}
 
         {view === 'deleted-sellers' && (

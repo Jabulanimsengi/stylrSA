@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Service } from '@/types';
+import ImageLightbox from '@/components/ImageLightbox/ImageLightbox';
 import styles from './FeaturedServiceCard.module.css';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { SkeletonCard } from './Skeleton/Skeleton';
@@ -15,6 +17,9 @@ interface FeaturedServiceCardProps {
 }
 
 export default function FeaturedServiceCard({ service }: FeaturedServiceCardProps) {
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
   const salonId = service.salon?.id ?? service.salonId;
   if (!salonId) return null;
 
@@ -44,30 +49,60 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
 
   const isCloudinarySource = typeof primaryImage === 'string' && primaryImage.includes('/image/upload/');
 
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLightboxIndex(0);
+    setIsLightboxOpen(true);
+  };
+
+  const handleLightboxNavigate = (direction: 'prev' | 'next') => {
+    if (direction === 'prev' && lightboxIndex > 0) {
+      setLightboxIndex(lightboxIndex - 1);
+    } else if (direction === 'next' && lightboxIndex < validImages.length - 1) {
+      setLightboxIndex(lightboxIndex + 1);
+    }
+  };
+
   return (
-    <Link href={`/salons/${salonId}`} className={styles.card} prefetch>
-      <div className={styles.cardImageWrapper}>
-        <Image
-          src={optimizedSrc}
-          alt={service.title}
-          className={styles.cardImage}
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          unoptimized={!isCloudinarySource}
-        />
-        {hasMultipleImages && (
-          <div className={styles.imageCounter}>
-            1/{validImages.length}
-          </div>
-        )}
+    <>
+      <div className={styles.card}>
+        <div 
+          className={styles.cardImageWrapper}
+          onClick={handleImageClick}
+        >
+          <Image
+            src={optimizedSrc}
+            alt={service.title}
+            className={styles.cardImage}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            unoptimized={!isCloudinarySource}
+          />
+          {hasMultipleImages && (
+            <div className={styles.imageCounter}>
+              1/{validImages.length}
+            </div>
+          )}
+        </div>
+        <div className={styles.cardContent}>
+          <h3 className={styles.cardTitle}>{service.title}</h3>
+          <Link href={`/salons/${salonId}`} className={styles.salonName}>
+            {salonName}
+          </Link>
+          <p className={styles.salonLocation}>{salonLocation}</p>
+          <p className={styles.price}>R{service.price.toFixed(2)}</p>
+        </div>
       </div>
-      <div className={styles.cardContent}>
-        <h3 className={styles.cardTitle}>{service.title}</h3>
-        <p className={styles.salonName}>{salonName}</p>
-        <p className={styles.salonLocation}>{salonLocation}</p>
-        <p className={styles.price}>R{service.price.toFixed(2)}</p>
-      </div>
-    </Link>
+
+      <ImageLightbox
+        images={validImages}
+        currentIndex={lightboxIndex}
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        onNavigate={handleLightboxNavigate}
+      />
+    </>
   );
 }
 

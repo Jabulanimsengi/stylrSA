@@ -14,10 +14,12 @@
   width: 100%;
   height: 150px;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .cardImage {
   object-fit: cover;
+  pointer-events: none;
 }
 
 .imageCounter {
@@ -63,6 +65,23 @@
 .salonName {
   @apply mb-2 text-sm;
   color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  display: block;
+}
+
+.salonName:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
+}
+
+.salonName:visited {
+  color: var(--color-text-muted);
+}
+
+.salonName:visited:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
 }
 
 .salonLocation {

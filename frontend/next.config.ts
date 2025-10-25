@@ -25,6 +25,11 @@ const nextConfig: NextConfig = {
         hostname: 'via.placeholder.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.vimeocdn.com',
+        pathname: '/**',
+      },
     ],
     formats: ['image/avif', 'image/webp'], // Modern formats first
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // Common device widths

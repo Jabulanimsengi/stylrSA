@@ -46,7 +46,7 @@ export const APP_PLANS: AppPlan[] = [
     priceCents: 19900,
     maxListings: 15,
     visibilityWeight: 3,
-    features: ['Up to 15 listings', 'Priority placement', 'Analytics + highlights'],
+    features: ['Up to 15 listings', 'Priority placement', 'Analytics + highlights', 'Short video uploads'],
   },
   {
     code: 'PRO',
@@ -55,7 +55,7 @@ export const APP_PLANS: AppPlan[] = [
     priceCents: 29900,
     maxListings: 27,
     visibilityWeight: 4,
-    features: ['Up to 27 listings', 'Top placement', 'Priority support', 'Featured eligibility'],
+    features: ['Up to 27 listings', 'Top placement', 'Priority support', 'Featured eligibility', 'Short video uploads'],
     popular: true,
   },
   {
@@ -70,6 +70,7 @@ export const APP_PLANS: AppPlan[] = [
       'Premium placement',
       'Dedicated support',
       'Early access promos',
+      'Short video uploads',
     ],
   },
 ];

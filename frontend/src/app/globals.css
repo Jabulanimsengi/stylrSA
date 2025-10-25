@@ -57,6 +57,7 @@
 /* Ensure toast container sits above modals and remains interactive */
 .Toastify__toast-container {
   z-index: 11000 !important;
+  /* Allow pointer events for close button interactions */
   pointer-events: auto !important;
 }
 
@@ -72,43 +73,64 @@
   animation: slideOutRight 0.3s ease-in;
 }
 
-/* Close button styling */
+/* Close button styling - Enhanced for better clickability */
 .Toastify__close-button {
-  opacity: 0.7 !important;
+  opacity: 0.8 !important;
   color: currentColor !important;
-  font-size: 1.2rem !important;
-  padding: 0 !important;
-  margin: 0 !important;
+  font-size: 1.3rem !important;
+  padding: 4px !important;
+  margin: 0 0 0 8px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 20px !important;
-  height: 20px !important;
-  min-width: 20px !important;
-  min-height: 20px !important;
-  transition: opacity 0.2s ease, transform 0.2s ease !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  transition: all 0.2s ease !important;
   cursor: pointer !important;
-  background: transparent !important;
+  background: rgba(0, 0, 0, 0.08) !important;
   border: none !important;
   outline: none !important;
-  position: relative !important;
-  z-index: 9999 !important;
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 99999 !important;
   pointer-events: auto !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
 }
 
 .Toastify__close-button:hover {
   opacity: 1 !important;
-  transform: scale(1.1) !important;
+  background: rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-50%) scale(1.1) !important;
 }
 
 .Toastify__close-button:active {
-  transform: scale(0.95) !important;
+  transform: translateY(-50%) scale(0.95) !important;
+  background: rgba(0, 0, 0, 0.2) !important;
 }
 
 .Toastify__close-button > svg {
-  width: 16px !important;
-  height: 16px !important;
+  width: 18px !important;
+  height: 18px !important;
   pointer-events: none !important;
+  flex-shrink: 0 !important;
+}
+
+/* Dark theme close button */
+[data-theme='dark'] .Toastify__close-button {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme='dark'] .Toastify__close-button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme='dark'] .Toastify__close-button:active {
+  background: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Progress bar */
@@ -140,11 +162,11 @@
     --color-primary-soft: #ffd1dd;
     --color-secondary: #3ab7a5;
     --color-secondary-strong: #2e9687;
-    --color-surface: #f9f6f1;
-    --color-surface-subtle: #f3ece3;
-    --color-surface-elevated: #fffaf5;
-    --color-border: #cdbfb3;
-    --color-border-strong: #a8968a;
+    --color-surface: #ffffff;
+    --color-surface-subtle: #f8f8f8;
+    --color-surface-elevated: #fafafa;
+    --color-border: #e5e5e5;
+    --color-border-strong: #d4d4d4;
     --color-text-strong: #43414A;
     --color-text-muted: #4D4952;
     --color-text-inverse: #FFFFFF;
@@ -264,10 +286,10 @@
     --hero-badge-bg: rgba(255, 255, 255, 0.16);
     --hero-filter-bg: rgba(17, 17, 29, 0.55);
     --hero-overlay-gradient: linear-gradient(160deg, rgba(10, 12, 32, 0.88) 12%, rgba(11, 13, 33, 0.65) 48%, rgba(12, 12, 30, 0.9) 100%);
-    --nav-surface: rgba(255, 250, 245, 0.94);
-    --nav-surface-subtle: rgba(255, 255, 255, 0.5);
-    --nav-surface-active: rgba(255, 255, 255, 0.85);
-    --nav-border: rgba(205, 191, 179, 0.9);
+    --nav-surface: #FFFFFF;
+    --nav-surface-subtle: #FFF0F5;
+    --nav-surface-active: linear-gradient(135deg, #F51957 0%, #FF1F63 100%);
+    --nav-border: #FFE5ED;
     --nav-text: var(--color-text-strong);
     --nav-link: var(--color-text-strong);
     --nav-link-hover: var(--color-primary);
@@ -332,17 +354,17 @@
     --hero-badge-bg: rgba(5, 5, 8, 0.48);
     --hero-filter-bg: rgba(12, 12, 22, 0.72);
     --hero-overlay-gradient: linear-gradient(160deg, rgba(5, 6, 16, 0.85) 10%, rgba(9, 11, 24, 0.78) 52%, rgba(5, 6, 14, 0.9) 100%);
-    --nav-surface: rgba(18, 18, 26, 0.95);
-    --nav-surface-subtle: rgba(30, 31, 45, 0.65);
-    --nav-surface-active: rgba(35, 36, 52, 0.85);
-    --nav-border: rgba(47, 47, 61, 0.95);
+    --nav-surface: #1A1A24;
+    --nav-surface-subtle: rgba(40, 35, 50, 0.65);
+    --nav-surface-active: linear-gradient(135deg, #ff5c88 0%, #ff7ba0 100%);
+    --nav-border: rgba(60, 50, 70, 0.5);
     --nav-text: var(--color-text-strong);
-    --nav-link: rgba(245, 245, 247, 0.82);
+    --nav-link: rgba(245, 245, 247, 0.85);
     --nav-link-hover: var(--color-primary);
-    --nav-link-active: var(--color-text-strong);
-    --nav-icon-bg: rgba(30, 31, 45, 0.9);
-    --nav-icon-hover-bg: rgba(44, 45, 60, 0.95);
-    --nav-badge-text: var(--color-text-inverse);
+    --nav-link-active: #FFFFFF;
+    --nav-icon-bg: rgba(40, 35, 50, 0.6);
+    --nav-icon-hover-bg: rgba(60, 50, 70, 0.8);
+    --nav-badge-text: #FFFFFF;
   }
 
   body {

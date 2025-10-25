@@ -37,6 +37,11 @@ import { toFriendlyMessage } from '@/lib/errors';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 import ReviewsTab from '@/components/ReviewsTab/ReviewsTab';
+import OperatingHoursInput, { OperatingHours, initializeOperatingHours } from '@/components/OperatingHoursInput';
+import BeforeAfterUpload from '@/components/BeforeAfterUpload/BeforeAfterUpload';
+import MyBeforeAfter from '@/components/MyBeforeAfter/MyBeforeAfter';
+import VideoUpload from '@/components/VideoUpload/VideoUpload';
+import MyVideos from '@/components/MyVideos/MyVideos';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
@@ -81,13 +86,18 @@ function DashboardPageContent() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'service' | 'product' | 'promotion' | 'gallery' } | null>(null);
   
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
-  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'booking-settings'>('bookings');
+  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'before-after' | 'videos' | 'booking-settings'>('bookings');
   const [selectedServiceForPromo, setSelectedServiceForPromo] = useState<Service | null>(null);
   const [isCreatePromoModalOpen, setIsCreatePromoModalOpen] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
   const [isSavingMessage, setIsSavingMessage] = useState(false);
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [bookingToComplete, setBookingToComplete] = useState<string | null>(null);
+  
+  // Operating hours state
+  const [operatingHours, setOperatingHours] = useState<OperatingHours>(initializeOperatingHours());
+  const [isEditingHours, setIsEditingHours] = useState(false);
+  const [isSavingHours, setIsSavingHours] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -173,6 +183,25 @@ function DashboardPageContent() {
       setSalon(salonData);
       setBookingMessage(salonData.bookingMessage || '');
       setIsEditingMessage(!salonData.bookingMessage); // If no message, start in edit mode
+      
+      // Initialize operating hours
+      if (salonData.operatingHours && Array.isArray(salonData.operatingHours)) {
+        const hoursObj: OperatingHours = initializeOperatingHours();
+        salonData.operatingHours.forEach((schedule: any) => {
+          if (schedule.day && schedule.open && schedule.close) {
+            hoursObj[schedule.day] = {
+              open: schedule.open,
+              close: schedule.close,
+              isOpen: true,
+            };
+          }
+        });
+        setOperatingHours(hoursObj);
+        setIsEditingHours(salonData.operatingHours.length === 0); // Start in edit mode if no hours set
+      } else {
+        setOperatingHours(initializeOperatingHours());
+        setIsEditingHours(true); // Start in edit mode if no hours
+      }
 
       const results = await Promise.allSettled([
         apiJson(`/api/salons/mine/services?ownerId=${ownerId}`),
@@ -336,6 +365,40 @@ function DashboardPageContent() {
       toast.error(toFriendlyMessage(e, 'Failed to save booking message'));
     } finally {
       setIsSavingMessage(false);
+    }
+  };
+
+  const saveOperatingHours = async () => {
+    if (!ownerId) return;
+    setIsSavingHours(true);
+    try {
+      // Convert to array format expected by backend
+      const hoursArray = Object.entries(operatingHours)
+        .filter(([_, data]) => data.isOpen)
+        .map(([day, data]) => ({
+          day,
+          open: data.open,
+          close: data.close,
+        }));
+
+      const operatingDays = hoursArray.map(h => h.day);
+
+      const updated = await apiJson(`/api/salons/mine?ownerId=${ownerId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operatingHours: hoursArray,
+          operatingDays: operatingDays,
+        }),
+      });
+      
+      setSalon(updated);
+      setIsEditingHours(false);
+      toast.success('Operating hours saved successfully! Your availability calendar will now show these hours.');
+    } catch (e: any) {
+      toast.error(toFriendlyMessage(e, 'Failed to save operating hours'));
+    } finally {
+      setIsSavingHours(false);
     }
   };
   
@@ -767,6 +830,18 @@ function DashboardPageContent() {
             Gallery
           </button>
           <button
+            onClick={() => setActiveMainTab('before-after')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'before-after' ? styles.activeMainTab : ''}`}
+          >
+            Before & After
+          </button>
+          <button
+            onClick={() => setActiveMainTab('videos')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'videos' ? styles.activeMainTab : ''}`}
+          >
+            Videos
+          </button>
+          <button
             onClick={() => setActiveMainTab('booking-settings')}
             className={`${styles.mainTabButton} ${activeMainTab === 'booking-settings' ? styles.activeMainTab : ''}`}
           >
@@ -923,6 +998,37 @@ function DashboardPageContent() {
                 </div>
               )) : <p>Your gallery is empty.</p>}
             </div>
+            </div>
+          </div>
+        )}
+
+        {activeMainTab === 'before-after' && salon && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard}>
+              <BeforeAfterUpload 
+                salonId={salon.id}
+                services={services}
+                onUploadComplete={fetchDashboardData}
+              />
+            </div>
+            <div className={styles.contentCard} style={{ marginTop: '2rem' }}>
+              <MyBeforeAfter />
+            </div>
+          </div>
+        )}
+
+        {activeMainTab === 'videos' && salon && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard}>
+              <VideoUpload 
+                salonId={salon.id}
+                services={services}
+                planCode={salon.planCode}
+                onUploadComplete={fetchDashboardData}
+              />
+            </div>
+            <div className={styles.contentCard} style={{ marginTop: '2rem' }}>
+              <MyVideos />
             </div>
           </div>
         )}
@@ -1085,6 +1191,154 @@ function DashboardPageContent() {
                     </>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Operating Hours Section */}
+            <div className={styles.contentCard} style={{ marginTop: '1.5rem' }}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>Operating Hours</h3>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <div className={styles.infoBox} style={{ marginBottom: '1.5rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.6' }}>
+                    <strong>Set Your Availability</strong>
+                    <br />
+                    Configure the days and hours your salon is open. This determines when customers can book appointments through the availability calendar. Time slots will only be shown during your operating hours.
+                  </p>
+                </div>
+
+                {!isEditingHours && salon?.operatingHours && Array.isArray(salon.operatingHours) && salon.operatingHours.length > 0 ? (
+                  // VIEW MODE: Show current operating hours
+                  <>
+                    <div style={{
+                      background: 'var(--color-surface-elevated)',
+                      border: '2px solid #10b981',
+                      borderRadius: '8px',
+                      padding: '1.5rem',
+                    }}>
+                      <div style={{
+                        display: 'grid',
+                        gap: '0.75rem',
+                      }}>
+                        {salon.operatingDays?.map((day: string) => {
+                          const schedule = salon.operatingHours.find((h: any) => h.day === day);
+                          return (
+                            <div key={day} style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '0.75rem',
+                              background: 'var(--color-surface)',
+                              borderRadius: '6px',
+                              border: '1px solid var(--color-border)',
+                            }}>
+                              <span style={{ fontWeight: 600, color: 'var(--color-text-strong)' }}>
+                                {day}
+                              </span>
+                              <span style={{ color: 'var(--color-text-muted)' }}>
+                                {schedule ? `${schedule.open} - ${schedule.close}` : 'Closed'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <p style={{ 
+                      marginTop: '1rem', 
+                      fontSize: '0.875rem', 
+                      color: '#10b981',
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Operating hours configured! Customers can now see available time slots based on these hours.
+                    </p>
+
+                    <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+                      <button
+                        onClick={() => setIsEditingHours(true)}
+                        className="btn btn-primary"
+                      >
+                        <FaEdit style={{ marginRight: '0.5rem' }} />
+                        Edit Hours
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  // EDIT MODE: Show OperatingHoursInput component
+                  <>
+                    <OperatingHoursInput
+                      hours={operatingHours}
+                      onChange={setOperatingHours}
+                    />
+
+                    <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+                      <button
+                        onClick={saveOperatingHours}
+                        disabled={isSavingHours}
+                        className="btn btn-primary"
+                        style={{ minWidth: '150px' }}
+                      >
+                        {isSavingHours ? 'Saving...' : 'Save Hours'}
+                      </button>
+                      {salon?.operatingHours && Array.isArray(salon.operatingHours) && salon.operatingHours.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setIsEditingHours(false);
+                            // Reset to saved hours
+                            if (salon.operatingHours && Array.isArray(salon.operatingHours)) {
+                              const hoursObj: OperatingHours = initializeOperatingHours();
+                              salon.operatingHours.forEach((schedule: any) => {
+                                if (schedule.day && schedule.open && schedule.close) {
+                                  hoursObj[schedule.day] = {
+                                    open: schedule.open,
+                                    close: schedule.close,
+                                    isOpen: true,
+                                  };
+                                }
+                              });
+                              setOperatingHours(hoursObj);
+                            }
+                          }}
+                          className="btn btn-secondary"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+
+                    {(!salon?.operatingHours || salon.operatingHours.length === 0) && (
+                      <div style={{
+                        marginTop: '1rem',
+                        padding: '1rem',
+                        background: 'rgba(245, 25, 87, 0.08)',
+                        border: '1px solid rgba(245, 25, 87, 0.2)',
+                        borderRadius: '8px',
+                      }}>
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-error-text)' }}>
+                          <strong>⚠️ No operating hours set!</strong><br />
+                          Customers won't be able to see available booking times until you configure your operating hours. Please set your schedule above and click Save Hours.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
