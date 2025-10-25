@@ -29,9 +29,11 @@
   border-radius: var(--radius-md) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
   padding: 1rem !important;
+  padding-right: 3rem !important;
   font-weight: 500 !important;
   position: relative !important;
   pointer-events: auto !important;
+  min-height: 64px !important;
 }
 
 .Toastify__toast--default {
@@ -118,6 +120,23 @@
   height: 18px !important;
   pointer-events: none !important;
   flex-shrink: 0 !important;
+}
+
+/* Toast body - prevent content from overlapping close button */
+.Toastify__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: calc(100% - 36px) !important;
+}
+
+.Toastify__toast-body > div {
+  pointer-events: none !important;
+  word-break: break-word !important;
+  flex: 1 !important;
 }
 
 /* Dark theme close button */

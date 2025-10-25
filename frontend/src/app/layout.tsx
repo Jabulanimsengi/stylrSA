@@ -31,8 +31,8 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: 'Stylr SA - Find and Book Salon Appointments Online',
-  description: 'Your one-stop platform for discovering, booking, and managing salon services. Find the best salons and stylists near you.',
-  keywords: 'salon, booking, appointment, beauty, haircut, nails, stylist, hairdresser',
+  description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, massage therapists, hair stylists, and more. Top-rated salons, spas, and beauty professionals in one platform.',
+  keywords: 'salon booking, beauty services, hair salon, braiding salon, nail salon, makeup artist, massage therapist, spa, barber, mens grooming, bridal services, South Africa, Johannesburg, Cape Town, Durban',
   authors: [{ name: 'Stylr SA Team' }],
   manifest: '/manifest.json',
   appleWebApp: {
@@ -42,24 +42,24 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Stylr SA - Find and Book Salon Appointments Online',
-    description: 'Your one-stop platform for discovering, booking, and managing salon services.',
-    url: 'https://thesalonhub.com', // Replace with your actual domain
+    description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, massage therapists, hair stylists, and more.',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app',
     siteName: 'Stylr SA',
     images: [
       {
-        url: 'https://thesalonhub.com/logo-transparent.png', // Replace with a link to your logo
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/logo-transparent.png`,
         width: 800,
         height: 600,
       },
     ],
-    locale: 'en_US',
+    locale: 'en_ZA',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Stylr SA - Find and Book Salon Appointments Online',
-    description: 'Your one-stop platform for discovering, booking, and managing salon services.',
-    images: ['https://thesalonhub.com/logo-transparent.png'], // Replace with a link to your logo
+    description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, and more.',
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/logo-transparent.png`],
   },
 };
 

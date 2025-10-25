@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 import styles from './HomePage.module.css';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -45,6 +46,33 @@ export default function HomePage() {
   const totalSlides = HERO_SLIDES.length;
   const socket = useSocket();
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // Organization Schema for homepage SEO
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Stylr SA',
+    alternateName: 'Stylr South Africa',
+    url: siteUrl,
+    logo: `${siteUrl}/logo-transparent.png`,
+    description: 'South Africa\'s premier platform for discovering and booking beauty services. Connect with top-rated salons, hair stylists, braiders, nail technicians, makeup artists, and wellness professionals.',
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'ZA',
+    },
+    sameAs: [
+      // Add your social media profiles here
+    ],
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${siteUrl}/services?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
 
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
@@ -149,6 +177,12 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
+      <Script
+        id="organization-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        strategy="afterInteractive"
+      />
       <div className={styles.fixedSearchBar}>
         <MobileSearch onSearch={handleSearch} />
       </div>
@@ -215,6 +249,36 @@ export default function HomePage() {
 
       {/* Service Videos Slideshow */}
       <VideoSlideshow />
+
+      {/* Service Categories Section for SEO */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
+        <div className={styles.categoryGrid} style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+          gap: '1.5rem',
+          marginBottom: '3rem'
+        }}>
+          <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
+            Braiding & Weaving
+          </Link>
+          <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
+            Nail Care
+          </Link>
+          <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
+            Makeup & Beauty
+          </Link>
+          <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
+            Haircuts & Styling
+          </Link>
+          <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
+            Massage & Spa
+          </Link>
+          <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
+            Men's Grooming
+          </Link>
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>

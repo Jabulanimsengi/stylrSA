@@ -7,7 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, changeFrequency: 'daily', priority: 1.0 },
     { url: `${siteUrl}/salons`, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/services`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/services`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/products`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/prices`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/about`, changeFrequency: 'monthly', priority: 0.6 },
@@ -17,6 +17,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/advice`, changeFrequency: 'weekly', priority: 0.5 },
     { url: `${siteUrl}/blog`, changeFrequency: 'weekly', priority: 0.5 },
     { url: `${siteUrl}/careers`, changeFrequency: 'monthly', priority: 0.4 },
+  ];
+
+  // Service category pages - HIGH PRIORITY for SEO
+  const serviceCategoryPages: MetadataRoute.Sitemap = [
+    { url: `${siteUrl}/services/braiding-weaving`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/nail-care`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/makeup-beauty`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/massage-body-treatments`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/skin-care-facials`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/waxing-hair-removal`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/haircuts-styling`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/hair-color-treatments`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/mens-grooming`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/bridal-services`, changeFrequency: 'weekly', priority: 0.9 },
+  ];
+
+  // Location-specific pages for local SEO
+  const locationPages: MetadataRoute.Sitemap = [
+    { url: `${siteUrl}/salons/gauteng`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/western-cape`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/kwazulu-natal`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/eastern-cape`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/mpumalanga`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/limpopo`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/north-west`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/free-state`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/northern-cape`, changeFrequency: 'weekly', priority: 0.8 },
   ];
 
   try {
@@ -30,8 +57,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticPages, ...salonEntries];
+    return [...staticPages, ...serviceCategoryPages, ...locationPages, ...salonEntries];
   } catch {
-    return staticPages;
+    return [...staticPages, ...serviceCategoryPages, ...locationPages];
   }
 }
