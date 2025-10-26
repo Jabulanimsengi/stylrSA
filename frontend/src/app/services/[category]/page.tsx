@@ -107,18 +107,31 @@ function ServiceCategoryContent() {
   const requestControllerRef = useRef<AbortController | null>(null);
   const latestRequestIdRef = useRef(0);
 
-  // Convert slug to category name
+  // Convert slug to category name with improved matching
   useEffect(() => {
     const fetchCategoryName = async () => {
       try {
         const categories = await getCategoriesCached();
+        
+        // Normalize slug: "haircuts-styling" -> "haircuts styling"
         const normalizedSlug = categorySlug.toLowerCase().replace(/-/g, ' ');
-        const match = categories.find(cat => 
-          cat.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ') === normalizedSlug ||
-          cat.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === categorySlug.toLowerCase()
-        );
+        
+        // Find matching category
+        const match = categories.find(cat => {
+          // Normalize category name: "Haircuts & Styling" -> "haircuts styling"
+          const normalizedCategoryName = cat.name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, '')  // Remove special chars including &
+            .replace(/\s+/g, ' ')  // Normalize spaces
+            .trim();
+          
+          return normalizedCategoryName === normalizedSlug;
+        });
+        
         if (match) {
           setCategoryName(match.name);
+        } else {
+          console.warn(`No category found for slug: ${categorySlug}`);
         }
       } catch (error) {
         console.error('Failed to fetch category name:', error);
@@ -135,6 +148,8 @@ function ServiceCategoryContent() {
   };
 
   const fetchServices = useCallback(async (additionalFilters: FilterValues) => {
+    if (!categoryName) return; // Don't fetch if category name is not set yet
+    
     requestControllerRef.current?.abort();
     const controller = new AbortController();
     requestControllerRef.current = controller;

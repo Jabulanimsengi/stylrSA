@@ -102,6 +102,15 @@
   pointer-events: auto !important;
   border-radius: 50% !important;
   flex-shrink: 0 !important;
+  visibility: visible !important;
+  overflow: visible !important;
+}
+
+/* Ensure the button is always clickable with maximum specificity */
+.Toastify__toast-container .Toastify__toast .Toastify__close-button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 99999 !important;
 }
 
 .Toastify__close-button:hover {
