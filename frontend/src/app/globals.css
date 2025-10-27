@@ -148,6 +148,19 @@
   flex: 1 !important;
 }
 
+/* Custom close button - ensure maximum clickability */
+.Toastify__close-button--custom {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.Toastify__close-button--custom:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}
+
 /* Dark theme close button */
 [data-theme='dark'] .Toastify__close-button {
   background: rgba(255, 255, 255, 0.12) !important;
@@ -158,6 +171,18 @@
 }
 
 [data-theme='dark'] .Toastify__close-button:active {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+[data-theme='dark'] .Toastify__close-button--custom {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme='dark'] .Toastify__close-button--custom:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme='dark'] .Toastify__close-button--custom:active {
   background: rgba(255, 255, 255, 0.25) !important;
 }
 

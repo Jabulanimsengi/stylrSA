@@ -56,6 +56,7 @@
     "socket.io": "^4.7.5",
     "speakeasy": "^2.0.0",
     "streamifier": "^0.1.1",
+    "thesalonhub-monorepo": "file:..",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

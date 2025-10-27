@@ -34,9 +34,9 @@ function collectPlanStats(plan: Record<string, any>, acc: PlanStats[] = []) {
 }
 
 async function explainQuery(label: string, sql: string) {
-  const rawResult = await prisma.$queryRawUnsafe<any[]>(
+  const rawResult = (await prisma.$queryRawUnsafe(
     `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${sql}`,
-  );
+  )) as any[];
 
   if (!Array.isArray(rawResult) || rawResult.length === 0) {
     throw new Error(`Unexpected EXPLAIN output for ${label}`);

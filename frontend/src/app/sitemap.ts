@@ -35,15 +35,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Location-specific pages for local SEO
   const locationPages: MetadataRoute.Sitemap = [
-    { url: `${siteUrl}/salons/gauteng`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/western-cape`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/kwazulu-natal`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/eastern-cape`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/salons/mpumalanga`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/salons/limpopo`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/salons/north-west`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/salons/free-state`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/salons/northern-cape`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/location/gauteng`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/western-cape`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/kwazulu-natal`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/eastern-cape`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/location/mpumalanga`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/location/limpopo`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/location/north-west`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/location/free-state`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/salons/location/northern-cape`, changeFrequency: 'weekly', priority: 0.8 },
   ];
 
   try {

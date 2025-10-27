@@ -94,9 +94,10 @@ export class AuthService {
     // generate the password hash
     const hash = await argon2.hash(dto.password);
     
+    // TEMPORARILY DISABLED: Email verification (waiting for email domain to propagate)
     // Generate 6-digit verification code
-    const verificationCode = this.generateVerificationCode();
-    const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    // const verificationCode = this.generateVerificationCode();
+    // const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     // save the new user in the db
     try {
@@ -107,22 +108,23 @@ export class AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           role: dto.role,
-          verificationToken: verificationCode,
-          verificationExpires,
-          emailVerified: false, // Require email verification
+          // TEMPORARILY DISABLED: Email verification
+          // verificationToken: verificationCode,
+          // verificationExpires,
+          emailVerified: true, // TEMPORARILY SET TO TRUE - Re-enable when email is working
         },
       });
 
-      // Send verification email with code
-      await this.mailService.sendVerificationEmail(
-        user.email,
-        verificationCode,
-        user.firstName,
-      );
+      // TEMPORARILY DISABLED: Send verification email with code
+      // await this.mailService.sendVerificationEmail(
+      //   user.email,
+      //   verificationCode,
+      //   user.firstName,
+      // );
 
       return { 
-        message: 'Registration successful! Please check your email for verification code.',
-        requiresVerification: true, // Verification required
+        message: 'Registration successful! You can now log in.',
+        requiresVerification: false, // TEMPORARILY DISABLED - Verification not required
         isExisting: false,
       };
     } catch (error) {
@@ -200,15 +202,16 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // EMAIL VERIFICATION ENFORCEMENT - ENABLED
-    const isNewUser = user.createdAt >= this.VERIFICATION_ENFORCEMENT_DATE;
-    const isManualSignup = !user.oauthAccounts || user.oauthAccounts.length === 0;
-    
-    if (isNewUser && !user.emailVerified && isManualSignup) {
-      throw new UnauthorizedException(
-        'Please verify your email address before logging in. Check your inbox for the verification code.'
-      );
-    }
+    // TEMPORARILY DISABLED: EMAIL VERIFICATION ENFORCEMENT
+    // Waiting for email domain to propagate - will re-enable once email is working
+    // const isNewUser = user.createdAt >= this.VERIFICATION_ENFORCEMENT_DATE;
+    // const isManualSignup = !user.oauthAccounts || user.oauthAccounts.length === 0;
+    // 
+    // if (isNewUser && !user.emailVerified && isManualSignup) {
+    //   throw new UnauthorizedException(
+    //     'Please verify your email address before logging in. Check your inbox for the verification code.'
+    //   );
+    // }
 
     // Reset failed login attempts on successful login
     await this.prisma.user.update({
@@ -416,12 +419,12 @@ export class AuthService {
     if (!user && email) {
       user = await this.prisma.user.findUnique({ where: { email } });
       if (user) {
-        // Check if email is verified before linking OAuth account
-        if (!user.emailVerified) {
-          throw new UnauthorizedException(
-            'Please verify your email address before using OAuth login. Check your inbox for the verification link.'
-          );
-        }
+        // TEMPORARILY DISABLED: Check if email is verified before linking OAuth account
+        // if (!user.emailVerified) {
+        //   throw new UnauthorizedException(
+        //     'Please verify your email address before using OAuth login. Check your inbox for the verification link.'
+        //   );
+        // }
         
         await this.prisma.oAuthAccount.create({
           data: {
@@ -460,12 +463,12 @@ export class AuthService {
       });
     }
 
-    // Final check: ensure user email is verified before issuing token
-    if (!user.emailVerified) {
-      throw new UnauthorizedException(
-        'Please verify your email address before logging in. Check your inbox for the verification link.'
-      );
-    }
+    // TEMPORARILY DISABLED: Final check: ensure user email is verified before issuing token
+    // if (!user.emailVerified) {
+    //   throw new UnauthorizedException(
+    //     'Please verify your email address before logging in. Check your inbox for the verification link.'
+    //   );
+    // }
 
     const accessToken = await this.signToken(user.id, user.email, user.role);
     const salon = await this.prisma.salon.findFirst({

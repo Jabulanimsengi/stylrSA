@@ -486,7 +486,7 @@ export class SalonsService {
       where.services = { some: servicesFilter };
     }
 
-    let orderBy: Prisma.SalonOrderByWithRelationInput | undefined;
+    let orderBy: any;
     if (sortBy === 'rating' || sortBy === 'top_rated')
       orderBy = { avgRating: 'desc' };
 
