@@ -3,11 +3,44 @@
 import type { CloseButtonProps } from 'react-toastify';
 
 export default function ToastCloseButton({ closeToast, ariaLabel }: CloseButtonProps) {
+  console.log('=== ToastCloseButton Rendered ===');
+  console.log('closeToast type:', typeof closeToast);
+  console.log('closeToast value:', closeToast);
+  console.log('ariaLabel:', ariaLabel);
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log('=== BUTTON CLICKED ===');
+    console.log('Event:', e);
+    console.log('Event target:', e.target);
+    console.log('Current target:', e.currentTarget);
+    
     e.preventDefault();
     e.stopPropagation();
     
-    closeToast(true);
+    console.log('After preventDefault and stopPropagation');
+    console.log('closeToast type inside handler:', typeof closeToast);
+    console.log('closeToast value inside handler:', closeToast);
+    
+    if (typeof closeToast === 'function') {
+      console.log('closeToast is a function, calling it now...');
+      try {
+        closeToast();
+        console.log('closeToast() called successfully (no args)');
+      } catch (error) {
+        console.error('Error calling closeToast():', error);
+        console.log('Trying to call with event as argument...');
+        try {
+          closeToast(e);
+          console.log('closeToast(e) called successfully');
+        } catch (error2) {
+          console.error('Error calling closeToast(e):', error2);
+        }
+      }
+    } else {
+      console.error('closeToast is NOT a function! Type:', typeof closeToast);
+    }
+    
+    console.log('=== BUTTON CLICK HANDLER COMPLETE ===');
   };
 
   return (
@@ -15,43 +48,18 @@ export default function ToastCloseButton({ closeToast, ariaLabel }: CloseButtonP
       type="button"
       className="Toastify__close-button Toastify__close-button--custom"
       onClick={handleClick}
+      onMouseDown={(e) => console.log('Mouse down on button', e)}
+      onMouseUp={(e) => console.log('Mouse up on button', e)}
       aria-label={ariaLabel ?? 'Close'}
       style={{
-        background: 'rgba(0, 0, 0, 0.08)',
-        border: 'none',
-        borderRadius: '50%',
-        width: '28px',
-        height: '28px',
-        minWidth: '28px',
-        minHeight: '28px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        padding: '4px',
         position: 'absolute',
         right: '8px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        transition: 'all 0.2s ease',
-        zIndex: 99999,
+        top: '8px',
+        zIndex: 999999,
         pointerEvents: 'auto',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)';
-        e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.08)';
-        e.currentTarget.style.transform = 'translateY(-50%)';
-      }}
-      onMouseDown={(e) => {
-        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.2)';
-        e.currentTarget.style.transform = 'translateY(-50%) scale(0.95)';
-      }}
-      onMouseUp={(e) => {
-        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)';
-        e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+        cursor: 'pointer',
+        background: 'rgba(255, 0, 0, 0.3)',
+        border: '2px solid red',
       }}
     >
       <svg

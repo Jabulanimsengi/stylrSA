@@ -22,6 +22,7 @@ import PageNav from '@/components/PageNav';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -34,9 +35,26 @@ function SalonsPageContent() {
   const searchParams = useSearchParams();
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
+  
+  // Auto-request geolocation when page loads
+  const { coordinates, error: geoError } = useGeolocation(true);
 
   const getInitialFilters = useCallback((): SalonPageFilters => {
     const params = new URLSearchParams(searchParams.toString());
+    const urlLat = params.get('lat');
+    const urlLon = params.get('lon');
+    const urlSortBy = params.get('sortBy');
+    
+    // Use URL params if available, otherwise use geolocation
+    const lat = urlLat || (coordinates?.latitude ? String(coordinates.latitude) : null);
+    const lon = urlLon || (coordinates?.longitude ? String(coordinates.longitude) : null);
+    
+    // Auto-enable distance sorting if we have coordinates but no explicit sort
+    let sortBy = urlSortBy || '';
+    if (!sortBy && lat && lon) {
+      sortBy = 'distance';
+    }
+    
     return {
       province: params.get('province') || '',
       city: params.get('city') || '',
@@ -44,14 +62,14 @@ function SalonsPageContent() {
       category: params.get('category') || '',
       q: params.get('q') || '',
       offersMobile: params.get('offersMobile') === 'true',
-      sortBy: params.get('sortBy') || '',
+      sortBy,
       openNow: params.get('openNow') === 'true',
       priceMin: params.get('priceMin') || '',
       priceMax: params.get('priceMax') || '',
-      lat: params.get('lat') || null,
-      lon: params.get('lon') || null,
+      lat,
+      lon,
     };
-  }, [searchParams]);
+  }, [searchParams, coordinates]);
 
   const [initialFilters] = useState<SalonPageFilters>(getInitialFilters);
 
@@ -98,6 +116,23 @@ function SalonsPageContent() {
   useEffect(() => {
     fetchSalons(getInitialFilters());
   }, [getInitialFilters, fetchSalons, authStatus]);
+
+  // Show notification when location is detected
+  useEffect(() => {
+    if (coordinates && !searchParams.get('lat')) {
+      toast.info('📍 Showing salons near your location', {
+        position: 'bottom-center',
+        autoClose: 3000,
+      });
+    }
+  }, [coordinates, searchParams]);
+
+  // Show error if geolocation fails
+  useEffect(() => {
+    if (geoError) {
+      logger.debug('Geolocation error:', geoError);
+    }
+  }, [geoError]);
 
 
   const handleToggleFavorite = async (e: React.MouseEvent, salonId: string) => {

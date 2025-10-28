@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { Salon } from '@/types';
-import styles from '../SalonsPage.module.css';
+import styles from '../../SalonsPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { FaHeart } from 'react-icons/fa';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';

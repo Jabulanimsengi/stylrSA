@@ -165,8 +165,8 @@ export default function HomePage() {
         }
         return;
       }
-      if (value.trim().length > 0) {
-        query.append(key, value);
+      if (typeof value === 'number' || (typeof value === 'string' && value.trim().length > 0)) {
+        query.append(key, String(value));
       }
     });
     const queryString = query.toString();

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import styles from './MobileFilter.module.css';
 import { getLocationsCached } from '@/lib/resourceCache';
 import { FilterValues } from '@/components/FilterBar/FilterBar';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface MobileFilterProps {
   onSearch: (filters: FilterValues) => void;
@@ -19,6 +20,9 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
   const [service, setService] = useState('');
   const [offersMobile, setOffersMobile] = useState(false);
   const fetchedLocationsRef = useRef(false);
+  
+  // Use geolocation hook
+  const { coordinates, isLoading: isGeoLoading, requestLocation } = useGeolocation();
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -59,13 +63,23 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
       service,
       category: '',
       offersMobile,
-      sortBy: '',
+      sortBy: coordinates ? 'distance' : '',
       openNow: false,
       priceMin: '',
       priceMax: '',
+      lat: coordinates?.latitude ?? null,
+      lon: coordinates?.longitude ?? null,
     };
     onSearch(filters);
     onClose();
+  };
+
+  const handleNearMe = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+    requestLocation();
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -150,6 +164,26 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
         </div>
 
         <div className={styles.footer}>
+          <button 
+            onClick={handleNearMe} 
+            disabled={isGeoLoading}
+            className={styles.nearMeButton}
+            style={{ 
+              marginBottom: '0.75rem', 
+              backgroundColor: '#28a745', 
+              color: 'white',
+              padding: '0.75rem',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '1rem',
+              fontWeight: '600',
+              width: '100%',
+              cursor: isGeoLoading ? 'not-allowed' : 'pointer',
+              opacity: isGeoLoading ? 0.6 : 1,
+            }}
+          >
+            {isGeoLoading ? 'Finding...' : '📍 Near Me'}
+          </button>
           <button onClick={handleSearch} className={styles.searchButton}>
             Search
           </button>

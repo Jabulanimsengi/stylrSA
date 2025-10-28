@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ToastCloseButton from '@/components/ToastCloseButton/ToastCloseButton';
+
 import { SocketProvider } from '@/context/SocketContext';
 import { AuthModalProvider } from '@/context/AuthModalContext';
 import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
@@ -90,9 +90,9 @@ export default function RootLayout({
                     </div>
                     <ClientChatWidget />
                     <ToastContainer 
-                      position="bottom-right" 
-                      theme="colored"
-                      autoClose={5000}
+                      position="top-right" 
+                      theme="light"
+                      autoClose={4000}
                       hideProgressBar={false}
                       newestOnTop={true}
                       closeOnClick={true}
@@ -100,7 +100,6 @@ export default function RootLayout({
                       pauseOnFocusLoss={true}
                       draggable={true}
                       pauseOnHover={true}
-                      closeButton={ToastCloseButton}
                     />
                     <CookieBanner />
                     <Suspense fallback={null}>

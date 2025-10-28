@@ -6,6 +6,7 @@ import styles from './FilterBar.module.css';
 import { toFriendlyMessage } from '@/lib/errors';
 import { getCategoriesCached, getLocationsCached } from '@/lib/resourceCache';
 import { apiJson } from '@/lib/api';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 export interface FilterValues {
   province: string;
@@ -17,6 +18,8 @@ export interface FilterValues {
   openNow: boolean;
   priceMin: string;
   priceMax: string;
+  lat?: number | string | null;
+  lon?: number | string | null;
 }
 
 type LocationsByProvince = Record<string, string[]>;
@@ -63,7 +66,6 @@ export default function FilterBar({
   const [openNow, setOpenNow] = useState(initialFilters.openNow ?? false);
   const [priceMin, setPriceMin] = useState(initialFilters.priceMin || '');
   const [priceMax, setPriceMax] = useState(initialFilters.priceMax || '');
-  const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [serviceSuggestions, setServiceSuggestions] = useState<ServiceSuggestion[]>([]);
   const [isServiceLoading, setIsServiceLoading] = useState(false);
@@ -72,6 +74,9 @@ export default function FilterBar({
   const router = useRouter();
   const enableAutoSearch = autoSearch ?? !isHomePage;
   const lastEmittedFiltersRef = useRef<string>('');
+  
+  // Use geolocation hook
+  const { coordinates, isLoading: isGeoLoading, requestLocation } = useGeolocation();
 
   const initialProvince = initialFilters.province ?? '';
   const initialCity = initialFilters.city ?? '';
@@ -138,7 +143,9 @@ export default function FilterBar({
     openNow,
     priceMin,
     priceMax,
-  }), [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax]);
+    lat: coordinates?.latitude ?? null,
+    lon: coordinates?.longitude ?? null,
+  }), [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, coordinates]);
 
   const triggerSearch = useCallback((filters: FilterValues, force = false) => {
     const serialized = JSON.stringify(filters);
@@ -161,6 +168,18 @@ export default function FilterBar({
     return () => clearTimeout(handler);
   }, [buildFilters, triggerSearch, enableAutoSearch]);
 
+  // Trigger search when coordinates become available
+  useEffect(() => {
+    if (coordinates && enableAutoSearch) {
+      const filters = buildFilters();
+      // Auto-enable distance sorting when location is available
+      if (!filters.sortBy) {
+        filters.sortBy = 'distance';
+      }
+      triggerSearch(filters, true);
+    }
+  }, [coordinates, enableAutoSearch, buildFilters, triggerSearch]);
+
   const handleSearchClick = () => {
     const filters = buildFilters();
     triggerSearch(filters, true);
@@ -171,19 +190,7 @@ export default function FilterBar({
       alert('Geolocation is not supported by your browser.');
       return;
     }
-    setIsGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        router.push(
-          `/salons?lat=${position.coords.latitude}&lon=${position.coords.longitude}`
-        );
-        setIsGeoLoading(false);
-      },
-      () => {
-        alert('Unable to retrieve your location.');
-        setIsGeoLoading(false);
-      }
-    );
+    requestLocation();
   };
 
   useEffect(() => {

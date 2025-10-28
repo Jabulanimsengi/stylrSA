@@ -42,18 +42,27 @@
 }
 
 .Toastify__toast--success {
-  background: var(--color-success-bg) !important;
-  color: var(--color-success-text) !important;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border-left: 4px solid #047857 !important;
 }
 
 .Toastify__toast--error {
-  background: var(--color-error-bg) !important;
-  color: var(--color-error-text) !important;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: #ffffff !important;
+  border-left: 4px solid #b91c1c !important;
 }
 
 .Toastify__toast--info {
-  background: rgba(59, 130, 246, 0.1) !important;
-  color: #1e40af !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  border-left: 4px solid #1d4ed8 !important;
+}
+
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border-left: 4px solid #b45309 !important;
 }
 
 /* Ensure toast container sits above modals and remains interactive */
@@ -61,6 +70,10 @@
   z-index: 11000 !important;
   /* Allow pointer events for close button interactions */
   pointer-events: auto !important;
+}
+
+.Toastify__toast-container--top-right {
+  animation: slideInRight 0.3s ease-out;
 }
 
 .Toastify__toast-container--bottom-right {
@@ -75,13 +88,16 @@
   animation: slideOutRight 0.3s ease-in;
 }
 
-/* Close button styling - Enhanced for better clickability */
-.Toastify__close-button {
-  opacity: 0.8 !important;
+/* Close button styling - Positioned at top right corner */
+.Toastify__close-button,
+.Toastify__close-button--custom,
+.Toastify__toast .Toastify__close-button,
+.Toastify__toast-container .Toastify__toast .Toastify__close-button {
+  opacity: 0.9 !important;
   color: currentColor !important;
   font-size: 1.3rem !important;
   padding: 4px !important;
-  margin: 0 0 0 8px !important;
+  margin: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -96,92 +112,77 @@
   outline: none !important;
   position: absolute !important;
   right: 8px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 99999 !important;
-  pointer-events: auto !important;
+  top: 8px !important;  /* Moved to top right corner */
+  transform: none !important;  /* Removed translate since we're at top */
+  z-index: 999999 !important;
+  pointer-events: all !important;
   border-radius: 50% !important;
   flex-shrink: 0 !important;
   visibility: visible !important;
   overflow: visible !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-user-select: none !important;
+  isolation: isolate !important;
+  touch-action: manipulation !important;
 }
 
-/* Ensure the button is always clickable with maximum specificity */
-.Toastify__toast-container .Toastify__toast .Toastify__close-button {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  z-index: 99999 !important;
-}
-
-.Toastify__close-button:hover {
+.Toastify__close-button:hover,
+.Toastify__close-button--custom:hover {
   opacity: 1 !important;
   background: rgba(0, 0, 0, 0.15) !important;
-  transform: translateY(-50%) scale(1.1) !important;
+  transform: scale(1.1) !important;  /* Removed translateY since button is at top */
 }
 
-.Toastify__close-button:active {
-  transform: translateY(-50%) scale(0.95) !important;
+.Toastify__close-button:active,
+.Toastify__close-button--custom:active {
+  transform: scale(0.95) !important;  /* Removed translateY since button is at top */
   background: rgba(0, 0, 0, 0.2) !important;
 }
 
-.Toastify__close-button > svg {
+.Toastify__close-button:focus-visible,
+.Toastify__close-button--custom:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}
+
+.Toastify__close-button > svg,
+.Toastify__close-button--custom > svg {
   width: 18px !important;
   height: 18px !important;
   pointer-events: none !important;
   flex-shrink: 0 !important;
 }
 
-/* Toast body - prevent content from overlapping close button */
+/* Toast body - prevent content from overlapping close button at top */
 .Toastify__toast-body {
-  padding: 0 !important;
+  padding: 8px 36px 8px 0 !important;  /* Add right padding to avoid button overlap */
   margin: 0 !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
   display: flex !important;
   align-items: center !important;
   width: 100% !important;
-  max-width: calc(100% - 36px) !important;
+  max-width: 100% !important;  /* Full width since we use padding instead */
 }
 
 .Toastify__toast-body > div {
-  pointer-events: none !important;
+  pointer-events: auto !important;
   word-break: break-word !important;
   flex: 1 !important;
 }
 
-/* Custom close button - ensure maximum clickability */
-.Toastify__close-button--custom {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  user-select: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-.Toastify__close-button--custom:focus-visible {
-  outline: 2px solid var(--color-primary) !important;
-  outline-offset: 2px !important;
-}
-
 /* Dark theme close button */
-[data-theme='dark'] .Toastify__close-button {
-  background: rgba(255, 255, 255, 0.12) !important;
-}
-
-[data-theme='dark'] .Toastify__close-button:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-}
-
-[data-theme='dark'] .Toastify__close-button:active {
-  background: rgba(255, 255, 255, 0.25) !important;
-}
-
+[data-theme='dark'] .Toastify__close-button,
 [data-theme='dark'] .Toastify__close-button--custom {
   background: rgba(255, 255, 255, 0.12) !important;
 }
 
+[data-theme='dark'] .Toastify__close-button:hover,
 [data-theme='dark'] .Toastify__close-button--custom:hover {
   background: rgba(255, 255, 255, 0.2) !important;
 }
 
+[data-theme='dark'] .Toastify__close-button:active,
 [data-theme='dark'] .Toastify__close-button--custom:active {
   background: rgba(255, 255, 255, 0.25) !important;
 }
@@ -192,15 +193,23 @@
 }
 
 .Toastify__progress-bar--success {
-  background: var(--color-success) !important;
+  background: #ffffff !important;
+  opacity: 0.7 !important;
 }
 
 .Toastify__progress-bar--error {
-  background: var(--color-error-text) !important;
+  background: #ffffff !important;
+  opacity: 0.7 !important;
 }
 
 .Toastify__progress-bar--info {
-  background: #3b82f6 !important;
+  background: #ffffff !important;
+  opacity: 0.7 !important;
+}
+
+.Toastify__progress-bar--warning {
+  background: #ffffff !important;
+  opacity: 0.7 !important;
 }
 
 @tailwind base;
@@ -341,7 +350,8 @@
     --hero-overlay-gradient: linear-gradient(160deg, rgba(10, 12, 32, 0.88) 12%, rgba(11, 13, 33, 0.65) 48%, rgba(12, 12, 30, 0.9) 100%);
     --nav-surface: #FFFFFF;
     --nav-surface-subtle: #FFF0F5;
-    --nav-surface-active: linear-gradient(135deg, #F51957 0%, #FF1F63 100%);
+    --nav-surface-active: #FAFAFA;
+    --nav-surface-hover: #F5F5F5;
     --nav-border: #FFE5ED;
     --nav-text: var(--color-text-strong);
     --nav-link: var(--color-text-strong);
@@ -409,7 +419,8 @@
     --hero-overlay-gradient: linear-gradient(160deg, rgba(5, 6, 16, 0.85) 10%, rgba(9, 11, 24, 0.78) 52%, rgba(5, 6, 14, 0.9) 100%);
     --nav-surface: #1A1A24;
     --nav-surface-subtle: rgba(40, 35, 50, 0.65);
-    --nav-surface-active: linear-gradient(135deg, #ff5c88 0%, #ff7ba0 100%);
+    --nav-surface-active: #252030;
+    --nav-surface-hover: rgba(60, 50, 70, 0.6);
     --nav-border: rgba(60, 50, 70, 0.5);
     --nav-text: var(--color-text-strong);
     --nav-link: rgba(245, 245, 247, 0.85);
