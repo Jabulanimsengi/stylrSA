@@ -17,6 +17,9 @@ export default function MyOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Don't show login modal while auth is still loading
+    if (authStatus === 'loading') return;
+    
     if (authStatus === 'unauthenticated') {
       openModal('login');
       return;
