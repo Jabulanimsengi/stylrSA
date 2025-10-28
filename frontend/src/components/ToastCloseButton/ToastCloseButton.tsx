@@ -19,14 +19,21 @@ export default function ToastCloseButton({ closeToast, ariaLabel }: CloseButtonP
       // Workaround for react-toastify v11 bug: Force remove from DOM
       // The closeToast callback doesn't actually remove the toast, so we do it manually
       setTimeout(() => {
-        if (toastElement && toastElement.parentNode) {
+        // Double-check element still exists and has a parent
+        if (toastElement && toastElement.parentNode && document.body.contains(toastElement)) {
           // Add closing animation class
           toastElement.classList.add('Toastify__toast--closing');
           
           // Remove after animation completes
           setTimeout(() => {
-            if (toastElement.parentNode) {
-              toastElement.parentNode.removeChild(toastElement);
+            // Triple-check before removing to avoid race conditions
+            if (toastElement.parentNode && document.body.contains(toastElement)) {
+              try {
+                toastElement.parentNode.removeChild(toastElement);
+              } catch (err) {
+                // Silently ignore if element was already removed
+                console.debug('[ToastCloseButton] Element already removed:', err);
+              }
             }
           }, 300);
         }
