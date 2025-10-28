@@ -402,6 +402,7 @@ export class AuthService {
     role?: string | null;
   }) {
     const { provider, providerAccountId, email, name, role } = body;
+    console.log('[SSO] Received role from frontend:', role);
     if (!provider || !providerAccountId) {
       throw new UnauthorizedException('Invalid SSO payload');
     }
@@ -446,7 +447,8 @@ export class AuthService {
       
       // Validate role or default to CLIENT
       const validRoles = ['CLIENT', 'SALON_OWNER', 'PRODUCT_SELLER'];
-      const userRole = role && validRoles.includes(role) ? role : 'CLIENT';
+      const userRole = role && validRoles.includes(role.toUpperCase()) ? role.toUpperCase() : 'CLIENT';
+      console.log('[SSO] Creating new user with role:', userRole);
       
       user = await this.prisma.user.create({
         data: {

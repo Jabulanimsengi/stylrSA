@@ -75,7 +75,12 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
     // This will be read by NextAuth callback after Google authentication
     if (typeof document !== 'undefined') {
       // Set cookie that expires in 10 minutes (enough time for OAuth flow)
-      document.cookie = `oauth_signup_role=${role}; path=/; max-age=600; SameSite=Lax`;
+      // Make sure to use uppercase to match backend validation
+      const roleValue = role.toUpperCase();
+      document.cookie = `oauth_signup_role=${roleValue}; path=/; max-age=600; SameSite=Lax`;
+      
+      console.log('[Register] Setting OAuth role cookie:', roleValue);
+      console.log('[Register] Current role state:', role);
     }
     
     const callbackUrl = role === 'SALON_OWNER' ? '/create-salon' : '/salons';

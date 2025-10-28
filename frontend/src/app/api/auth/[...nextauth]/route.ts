@@ -23,6 +23,9 @@ const handler = NextAuth({
           const cookieStore = cookies();
           const roleCookie = cookieStore.get('oauth_signup_role');
           const selectedRole = roleCookie?.value || 'CLIENT';
+          
+          console.log('[NextAuth] OAuth signup - role from cookie:', selectedRole);
+          console.log('[NextAuth] Cookie value:', roleCookie);
 
           // Clear cookie after reading
           cookieStore.delete('oauth_signup_role');
