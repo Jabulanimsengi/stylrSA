@@ -2,7 +2,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { SocketProvider } from '@/context/SocketContext';
@@ -18,6 +17,7 @@ import AuthSessionProvider from '@/components/AuthSessionProvider';
 import CookieBanner from '@/components/CookieBanner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Analytics from '@/components/Analytics';
+import ToasterClient from '@/components/ToasterClient';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
@@ -27,6 +27,10 @@ import SkipToContent from '@/components/SkipToContent/SkipToContent';
 const inter = Inter({ subsets: ['latin'] });
 
 export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   themeColor: '#8B4513',
 };
 
@@ -89,18 +93,7 @@ export default function RootLayout({
                       <MobileBottomNav />
                     </div>
                     <ClientChatWidget />
-                    <ToastContainer 
-                      position="top-right" 
-                      theme="light"
-                      autoClose={4000}
-                      hideProgressBar={false}
-                      newestOnTop={true}
-                      closeOnClick={true}
-                      rtl={false}
-                      pauseOnFocusLoss={true}
-                      draggable={true}
-                      pauseOnHover={true}
-                    />
+                    <ToasterClient />
                     <CookieBanner />
                     <Suspense fallback={null}>
                       <Analytics />

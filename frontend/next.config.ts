@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import withPWA from 'next-pwa';
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: require('path').join(__dirname, '..'),
   eslint: {
     ignoreDuringBuilds: true,
   },
