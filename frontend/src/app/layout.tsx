@@ -40,6 +40,9 @@ export const metadata: Metadata = {
   keywords: 'salon booking, beauty services, hair salon, braiding salon, nail salon, makeup artist, massage therapist, spa, barber, mens grooming, bridal services, South Africa, Johannesburg, Cape Town, Durban',
   authors: [{ name: 'Stylr SA Team' }],
   manifest: '/manifest.json',
+  verification: {
+    google: 'MdWcHRFxz3-UMrPPAxgFGXfqCoTTAzPRZ7a9igeRHRk',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
