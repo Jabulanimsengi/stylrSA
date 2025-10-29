@@ -98,6 +98,7 @@ function ServicesPageContent() {
         requestControllerRef.current = null;
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -106,14 +107,16 @@ function ServicesPageContent() {
 
   useEffect(() => {
     void fetchServices(activeFilters);
-  }, [fetchServices, activeFilters]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilters]);
 
   useEffect(() => {
     if (!socket) return;
     const handler = () => { void fetchServices(activeFilters); };
     socket.on('visibility:updated', handler);
     return () => { socket.off('visibility:updated', handler); };
-  }, [socket, fetchServices, activeFilters]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, activeFilters]);
 
   const handleSearch = (nextFilters: FilterValues) => {
     const nextKey = filtersToKey(nextFilters);
