@@ -717,6 +717,10 @@
     flex-direction: row;
   }
 
+  .app-content {
+    margin-left: 280px;
+  }
+
   .main-content {
     padding: var(--space-xl);
     padding-top: calc(var(--app-shell-top-gap) + var(--space-lg));
@@ -730,6 +734,16 @@
 @media (max-width: 1023px) {
   .app-shell {
     flex-direction: column;
+  }
+
+  .app-content {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1280px) {
+  .app-content {
+    margin-left: 260px;
   }
 }
 

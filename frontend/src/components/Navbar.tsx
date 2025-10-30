@@ -673,8 +673,6 @@ export default function Navbar() {
             </nav>
           )}
 
-          <div className={styles.spacer} />
-
           <div className={styles.sidebarFooter}>
             {authStatus === 'authenticated' ? null : (
               authButtons

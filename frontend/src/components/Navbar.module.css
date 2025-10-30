@@ -4,23 +4,24 @@
   background: linear-gradient(180deg, #FFFFFF 0%, #FFF8FA 100%);
   border-right: 1px solid var(--nav-border);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
-  position: sticky;
+  position: fixed;
   top: 0;
-  min-height: 100vh;
+  left: 0;
+  bottom: 0;
   height: 100vh;
   padding: var(--space-xl) var(--space-lg);
   display: flex;
   flex-direction: column;
   z-index: 40;
-  /* No scrolling on desktop - plenty of space, content fits within */
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebarContent {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 0;
+  min-height: 100%;
   gap: var(--space-lg);
   overflow-y: auto;
   overflow-x: hidden;
@@ -209,7 +210,6 @@
 }
 
 .sidebarFooter {
-  margin-top: auto;
   display: grid;
   gap: var(--space-sm);
 }
