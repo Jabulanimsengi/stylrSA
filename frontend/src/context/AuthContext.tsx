@@ -76,7 +76,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAuthStatus('unauthenticated');
         setUser(null);
       }
-    } catch {
+    } catch (error) {
+      console.error('[AuthContext] verifyUser error:', error);
       setAuthStatus('unauthenticated');
       setUser(null);
     } finally {
@@ -93,9 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback((userData: User) => {
     setUser(userData);
     setAuthStatus('authenticated');
-    // Trigger verification after a short delay to ensure cookie is set
-    setTimeout(() => void verifyUser(), 100);
-  }, [verifyUser]);
+  }, []);
 
   const logout = useCallback(() => {
     setUser(null);

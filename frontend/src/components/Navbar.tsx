@@ -184,6 +184,13 @@ export default function Navbar() {
         });
 
         if (!res.ok) {
+          // Silently handle 401 (not authenticated yet) - don't show error toast
+          if (res.status === 401) {
+            setNotifications([]);
+            setUnreadCountState(0);
+            setNextCursor(null);
+            return;
+          }
           throw new Error(`Failed to fetch notifications: ${res.status}`);
         }
 
