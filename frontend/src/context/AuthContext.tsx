@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { data: session, status: sessionStatus } = useSession();
   const attachedRef = useRef<string | null>(null);
   const verifyingRef = useRef<boolean>(false);
-  const isAuthenticatedRef = useRef<boolean>(false);
+  const justLoggedInRef = useRef<boolean>(false); // Track if user just logged in to prevent immediate re-verification
 
   const verifyUser = useCallback(async () => {
     if (verifyingRef.current) return;
@@ -46,6 +46,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             body: JSON.stringify({ token: backendJwt }),
           });
         } catch {}
+      }
+
+      // Skip verification if user just logged in - trust the login response
+      if (justLoggedInRef.current) {
+        justLoggedInRef.current = false;
+        verifyingRef.current = false;
+        return;
       }
 
       // Primary: cookie-based status check with cache-busting
@@ -73,21 +80,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const data = await res.json();
         setUser(data.user);
         setAuthStatus('authenticated');
-        isAuthenticatedRef.current = true;
       } else {
-        // Only reset if we're not already authenticated via login
-        if (!isAuthenticatedRef.current) {
-          setAuthStatus('unauthenticated');
-          setUser(null);
-        }
-      }
-    } catch (error) {
-      console.error('[AuthContext] verifyUser error:', error);
-      // Only reset if we're not already authenticated via login
-      if (!isAuthenticatedRef.current) {
         setAuthStatus('unauthenticated');
         setUser(null);
       }
+    } catch (error) {
+      console.error('[AuthContext] verifyUser error:', error);
+      setAuthStatus('unauthenticated');
+      setUser(null);
     } finally {
       verifyingRef.current = false;
     }
@@ -100,18 +100,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [sessionStatus, session, verifyUser]);
 
   const login = useCallback((userData: User) => {
-    // Set user and auth status immediately - no delayed verification
-    // The backend already validated the user and set the cookie during login
+    // Set user and auth status immediately
+    // The backend already validated credentials and set the cookie
     setUser(userData);
     setAuthStatus('authenticated');
-    isAuthenticatedRef.current = true;
+    // Mark that we just logged in so verifyUser doesn't run immediately
+    justLoggedInRef.current = true;
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
     setAuthStatus('unauthenticated');
     attachedRef.current = null;
-    isAuthenticatedRef.current = false;
+    justLoggedInRef.current = false;
     
     // Clear user-specific data from storage
     try {
