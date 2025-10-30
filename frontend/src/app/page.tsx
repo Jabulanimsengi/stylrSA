@@ -253,28 +253,81 @@ export default function HomePage() {
       {/* Service Categories Section for SEO */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
-        <div className={styles.categoryGrid} style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-          gap: '1.5rem',
-          marginBottom: '3rem'
-        }}>
-          <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
+        <div 
+          className={styles.categoryGrid} 
+          style={isMobile ? { 
+            display: 'flex',
+            gap: '1rem',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: '1rem',
+            marginBottom: '2rem'
+          } : { 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+            gap: '1.5rem',
+            marginBottom: '3rem'
+          }}
+        >
+          <Link href="/services/braiding-weaving" className="btn btn-primary" style={isMobile ? { 
+            minWidth: '200px',
+            flex: '0 0 auto',
+            textAlign: 'center',
+            scrollSnapAlign: 'start',
+            padding: '0.75rem 1.25rem',
+            fontSize: '0.95rem'
+          } : { textAlign: 'center' }}>
             Braiding & Weaving
           </Link>
-          <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
+          <Link href="/services/nail-care" className="btn btn-primary" style={isMobile ? { 
+            minWidth: '140px',
+            flex: '0 0 auto',
+            textAlign: 'center',
+            scrollSnapAlign: 'start',
+            padding: '0.75rem 1.25rem',
+            fontSize: '0.95rem'
+          } : { textAlign: 'center' }}>
             Nail Care
           </Link>
-          <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
+          <Link href="/services/makeup-beauty" className="btn btn-primary" style={isMobile ? { 
+            minWidth: '170px',
+            flex: '0 0 auto',
+            textAlign: 'center',
+            scrollSnapAlign: 'start',
+            padding: '0.75rem 1.25rem',
+            fontSize: '0.95rem'
+          } : { textAlign: 'center' }}>
             Makeup & Beauty
           </Link>
-          <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
+          <Link href="/services/haircuts-styling" className="btn btn-primary" style={isMobile ? { 
+            minWidth: '180px',
+            flex: '0 0 auto',
+            textAlign: 'center',
+            scrollSnapAlign: 'start',
+            padding: '0.75rem 1.25rem',
+            fontSize: '0.95rem'
+          } : { textAlign: 'center' }}>
             Haircuts & Styling
           </Link>
-          <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
+          <Link href="/services/massage-body-treatments" className="btn btn-primary" style={isMobile ? { 
+            minWidth: '160px',
+            flex: '0 0 auto',
+            textAlign: 'center',
+            scrollSnapAlign: 'start',
+            padding: '0.75rem 1.25rem',
+            fontSize: '0.95rem'
+          } : { textAlign: 'center' }}>
             Massage & Spa
           </Link>
-          <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
+          <Link href="/services/mens-grooming" className="btn btn-primary" style={isMobile ? { 
+            minWidth: '170px',
+            flex: '0 0 auto',
+            textAlign: 'center',
+            scrollSnapAlign: 'start',
+            padding: '0.75rem 1.25rem',
+            fontSize: '0.95rem'
+          } : { textAlign: 'center' }}>
             Men's Grooming
           </Link>
         </div>
