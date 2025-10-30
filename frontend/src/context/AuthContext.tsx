@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { data: session, status: sessionStatus } = useSession();
   const attachedRef = useRef<string | null>(null);
   const verifyingRef = useRef<boolean>(false);
+  const isAuthenticatedRef = useRef<boolean>(false);
 
   const verifyUser = useCallback(async () => {
     if (verifyingRef.current) return;
@@ -72,14 +73,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const data = await res.json();
         setUser(data.user);
         setAuthStatus('authenticated');
+        isAuthenticatedRef.current = true;
       } else {
-        setAuthStatus('unauthenticated');
-        setUser(null);
+        // Only reset if we're not already authenticated via login
+        if (!isAuthenticatedRef.current) {
+          setAuthStatus('unauthenticated');
+          setUser(null);
+        }
       }
     } catch (error) {
       console.error('[AuthContext] verifyUser error:', error);
-      setAuthStatus('unauthenticated');
-      setUser(null);
+      // Only reset if we're not already authenticated via login
+      if (!isAuthenticatedRef.current) {
+        setAuthStatus('unauthenticated');
+        setUser(null);
+      }
     } finally {
       verifyingRef.current = false;
     }
@@ -92,40 +100,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [sessionStatus, session, verifyUser]);
 
   const login = useCallback((userData: User) => {
+    // Set user and auth status immediately - no delayed verification
+    // The backend already validated the user and set the cookie during login
     setUser(userData);
     setAuthStatus('authenticated');
-    // Verify backend cookie is working after a delay, but don't reset state on failure
-    setTimeout(async () => {
-      if (verifyingRef.current) return;
-      verifyingRef.current = true;
-      
-      try {
-        const res = await fetch('/api/auth/status', { 
-          credentials: 'include',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache'
-          }
-        });
-        
-        // Only update user data if verification succeeds, don't reset on failure
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        }
-        // If it fails, keep the existing user state - don't reset to unauthenticated
-      } catch {
-        // Silently fail - user is already logged in with valid data from login response
-      } finally {
-        verifyingRef.current = false;
-      }
-    }, 500);
+    isAuthenticatedRef.current = true;
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
     setAuthStatus('unauthenticated');
     attachedRef.current = null;
+    isAuthenticatedRef.current = false;
     
     // Clear user-specific data from storage
     try {
