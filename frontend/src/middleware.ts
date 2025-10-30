@@ -2,17 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host');
-  
-  // Redirect www to non-www (e.g., www.stylrsa.co.za → stylrsa.co.za)
-  if (hostname?.startsWith('www.')) {
-    const newHostname = hostname.replace('www.', '');
-    const url = request.nextUrl.clone();
-    url.host = newHostname;
-    
-    // 301 Permanent Redirect (tells search engines the move is permanent)
-    return NextResponse.redirect(url, { status: 301 });
-  }
+  // WWW redirect is handled by Vercel at the edge (faster)
+  // No need to handle it here to avoid redirect loops
   
   return NextResponse.next();
 }
