@@ -1,100 +1,27 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { FaGoogle } from 'react-icons/fa';
-import styles from '../auth.module.css';
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include', // Important: send cookies with the request
-      });
-
-      if (!res.ok) {
-        throw new Error('Login failed. Please check your credentials.');
-      }
-
-      // The backend now handles the cookie, so we just need to redirect
-      router.push('/salons');
-
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    // Redirect to home page with login modal open
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
+    router.replace(`/?auth=login&redirect=${encodeURIComponent(callbackUrl)}`);
+  }, [router, searchParams]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Sign In</h1>
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="email" className={styles.label}>
-              Email address
-            </label>
-            <input
-              id="email" type="email" required value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="password" className={styles.label}>
-              Password
-            </label>
-            <input
-              id="password" type="password" required value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
-            />
-          </div>
-          {error && <p className={styles.errorMessage}>{error}</p>}
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn btn-primary"
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </div>
-        </form>
-        <div className={styles.oauthSection}>
-          <div className={styles.oauthDivider}>or continue with</div>
-          <button
-            type="button"
-            className={styles.oauthButton}
-            onClick={() => signIn('google', { callbackUrl: '/salons' })}
-          >
-            <FaGoogle aria-hidden />
-            Continue with Google
-          </button>
-        </div>
-        <p className={styles.footerText}>
-          Don't have an account?{' '}
-          <Link href="/register" className={styles.footerLink}>
-            Sign up
-          </Link>
-        </p>
-      </div>
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh',
+      color: 'var(--color-text-muted)'
+    }}>
+      <p>Redirecting to login...</p>
     </div>
   );
 }

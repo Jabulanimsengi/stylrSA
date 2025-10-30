@@ -20,6 +20,7 @@ import Analytics from '@/components/Analytics';
 import ToasterClient from '@/components/ToasterClient';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import ZoomHandler from '@/components/ZoomHandler';
+import AuthModalHandler from '@/components/AuthModalHandler';
 import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -94,6 +95,9 @@ export default function RootLayout({
               <AuthProvider> {/* Wrap with AuthProvider */}
                 <SocketProvider>
                   <AuthModalProvider>
+                    <Suspense fallback={null}>
+                      <AuthModalHandler />
+                    </Suspense>
                     <div className="app-shell">
                       <Navbar />
                       <MobileNavIcons />
