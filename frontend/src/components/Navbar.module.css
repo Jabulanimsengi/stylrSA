@@ -6,20 +6,30 @@
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
   position: sticky;
   top: 0;
+  min-height: 100vh;
   height: 100vh;
   padding: var(--space-xl) var(--space-lg);
   display: flex;
   flex-direction: column;
   z-index: 40;
-  /* No scrolling on desktop - plenty of space */
-  overflow-y: visible;
+  /* No scrolling on desktop - plenty of space, content fits within */
+  overflow: hidden;
 }
 
 .sidebarContent {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   gap: var(--space-lg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebarContent::-webkit-scrollbar {
+  display: none;
 }
 
 .logoRow {
