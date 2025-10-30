@@ -447,14 +447,14 @@
 
   /* Desktop zoom - only for large screens */
   @media (min-width: 1024px) {
-    /* Default: 75% zoom for logged-out users */
+    /* Default: 90% zoom for logged-out users */
     body {
-      zoom: 0.75;
-      -moz-transform: scale(0.75);
+      zoom: 0.9;
+      -moz-transform: scale(0.9);
       -moz-transform-origin: 0 0;
     }
     
-    /* 85% zoom for logged-in users */
+    /* 85% zoom for logged-in users (slightly smaller for more dashboard space) */
     body[data-auth="true"] {
       zoom: 0.85;
       -moz-transform: scale(0.85);
