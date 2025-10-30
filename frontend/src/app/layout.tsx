@@ -28,7 +28,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const viewport = {
   width: 'device-width',
-  initialScale: 1,
+  initialScale: 0.75,
   maximumScale: 1,
   userScalable: false,
   themeColor: '#8B4513',

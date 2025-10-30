@@ -46,8 +46,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
-    const initialTheme: Theme = prefersDark ? 'dark' : 'light';
+    // Default to light mode for new users (ignore system preference)
+    const initialTheme: Theme = 'light';
     setThemeState(initialTheme);
     applyTheme(initialTheme);
     setIsReady(true);
