@@ -64,3 +64,6 @@ booking.json
 review.json
 approve.json
 .vercel
+*.md
+!README.md
+!MOBILE_CONNECTION_FIX.md
