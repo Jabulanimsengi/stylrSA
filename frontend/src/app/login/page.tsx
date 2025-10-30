@@ -13,15 +13,6 @@ export default function LoginPage() {
     router.replace(`/?auth=login&redirect=${encodeURIComponent(callbackUrl)}`);
   }, [router, searchParams]);
 
-  return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh',
-      color: 'var(--color-text-muted)'
-    }}>
-      <p>Redirecting to login...</p>
-    </div>
-  );
+  // Don't render anything - just redirect
+  return null;
 }

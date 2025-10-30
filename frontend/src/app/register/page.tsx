@@ -13,15 +13,6 @@ export default function RegisterPage() {
     router.replace(`/?auth=register&redirect=${encodeURIComponent(callbackUrl)}`);
   }, [router, searchParams]);
 
-  return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh',
-      color: 'var(--color-text-muted)'
-    }}>
-      <p>Redirecting to registration...</p>
-    </div>
-  );
+  // Don't render anything - just redirect
+  return null;
 }

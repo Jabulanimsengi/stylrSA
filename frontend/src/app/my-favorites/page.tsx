@@ -23,8 +23,14 @@ export default function MyFavoritesPage() {
   const { authStatus } = useAuth();
 
   useEffect(() => {
+    // Don't redirect if still loading auth status
+    if (authStatus === 'loading') {
+      return;
+    }
+
     if (authStatus === 'unauthenticated') {
-      router.push('/login');
+      // Redirect to home with auth modal instead of /login page
+      router.push('/?auth=login&redirect=/my-favorites');
       return;
     }
 
@@ -38,7 +44,7 @@ export default function MyFavoritesPage() {
 
           if (!res.ok) {
             if (res.status === 401) {
-              router.push('/login');
+              router.push('/?auth=login&redirect=/my-favorites');
             }
             throw new Error('Failed to fetch favorites');
           }

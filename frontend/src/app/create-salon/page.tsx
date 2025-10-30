@@ -45,8 +45,14 @@ export default function CreateSalonPage() {
  
 
   useEffect(() => {
+    // Don't redirect if still loading auth status
+    if (authStatus === 'loading') {
+      return;
+    }
+
     if (authStatus === 'unauthenticated') {
-      router.push('/login');
+      // Redirect to home with auth modal instead of /login page
+      router.push('/?auth=login&redirect=/create-salon');
     }
   }, [authStatus, router]);
 

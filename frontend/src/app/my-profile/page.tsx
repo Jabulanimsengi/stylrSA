@@ -25,8 +25,15 @@ export default function MyProfilePage() {
  
 
   useEffect(() => {
+    // Don't redirect if still loading auth status
+    if (authStatus === 'loading') {
+      return;
+    }
+
     if (authStatus === 'unauthenticated') {
-      router.push('/login');
+      // Redirect to home with auth modal instead of /login page
+      router.push('/?auth=login&redirect=/my-profile');
+      return;
     }
 
     if (authStatus === 'authenticated') {

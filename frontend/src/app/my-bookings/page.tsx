@@ -53,10 +53,17 @@ export default function MyBookingsPage() {
   };
 
   useEffect(() => {
-    if (authStatus === 'unauthenticated') {
-      router.push('/');
+    // Don't redirect if still loading auth status
+    if (authStatus === 'loading') {
       return;
     }
+
+    if (authStatus === 'unauthenticated') {
+      // Redirect to home with auth modal instead of /login page
+      router.push('/?auth=login&redirect=/my-bookings');
+      return;
+    }
+
     if (authStatus === 'authenticated') {
       fetchBookings();
     }
@@ -134,7 +141,7 @@ export default function MyBookingsPage() {
     );
   }
   
-  if (authStatus === 'unauthenticated') return <p>Redirecting to login...</p>;
+  if (authStatus === 'unauthenticated') return null;
 
   return (
     <>
