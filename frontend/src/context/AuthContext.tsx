@@ -101,6 +101,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setAuthStatus('unauthenticated');
     attachedRef.current = null;
+    
+    // Clear user-specific data from storage
+    try {
+      if (typeof window !== 'undefined') {
+        // Clear all sessionStorage (user-specific)
+        sessionStorage.clear();
+        
+        // Selectively clear localStorage - keep theme and cookie consent
+        const keysToKeep = ['theme', 'cookieConsent', 'pwa-install-dismissed'];
+        const keepData: Record<string, string> = {};
+        
+        // Save data we want to keep
+        keysToKeep.forEach(key => {
+          const value = localStorage.getItem(key);
+          if (value) keepData[key] = value;
+        });
+        
+        // Clear everything
+        localStorage.clear();
+        
+        // Restore saved data
+        Object.entries(keepData).forEach(([key, value]) => {
+          localStorage.setItem(key, value);
+        });
+      }
+    } catch (error) {
+      console.error('Failed to clear storage on logout:', error);
+    }
   }, []);
 
   const refreshAuth = useCallback(async () => {

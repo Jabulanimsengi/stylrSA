@@ -66,8 +66,8 @@ export default function Navbar() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [hasPrefetchedRoutes, setHasPrefetchedRoutes] = useState(false);
 
-  const updateNotificationsCache = useCallback((items: Notification[], unread: number, cursor: string | null) => {
-    if (typeof window === 'undefined') return;
+  const updateNotificationsCache = useCallback((items: Notification[], unread: number, cursor: string | null, userId?: string) => {
+    if (typeof window === 'undefined' || !userId) return;
     try {
       sessionStorage.setItem(
         NOTIFICATIONS_CACHE_KEY,
@@ -76,6 +76,7 @@ export default function Navbar() {
           unreadCount: unread,
           nextCursor: cursor,
           timestamp: Date.now(),
+          userId, // Store user ID to validate cache belongs to current user
         }),
       );
     } catch {
@@ -83,8 +84,17 @@ export default function Navbar() {
     }
   }, []);
 
-  useEffect(() => {
+  const clearNotificationsCache = useCallback(() => {
     if (typeof window === 'undefined') return;
+    try {
+      sessionStorage.removeItem(NOTIFICATIONS_CACHE_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || authStatus !== 'authenticated' || !user) return;
     const cached = sessionStorage.getItem(NOTIFICATIONS_CACHE_KEY);
     if (!cached) return;
     try {
@@ -92,16 +102,21 @@ export default function Navbar() {
         items?: Notification[];
         unreadCount?: number;
         nextCursor?: string | null;
+        userId?: string;
       };
-      if (Array.isArray(parsed.items)) {
+      // Only load cache if it belongs to the current user
+      if (Array.isArray(parsed.items) && parsed.userId === user.id) {
         setNotifications(parsed.items);
         setUnreadCountState(parsed.unreadCount ?? 0);
         setNextCursor(parsed.nextCursor ?? null);
+      } else {
+        // Clear cache if it belongs to a different user
+        clearNotificationsCache();
       }
     } catch {
-      sessionStorage.removeItem(NOTIFICATIONS_CACHE_KEY);
+      clearNotificationsCache();
     }
-  }, []);
+  }, [authStatus, user, clearNotificationsCache]);
 
   const handleLogout = async () => {
     try {
@@ -111,6 +126,14 @@ export default function Navbar() {
         method: 'POST',
         credentials: 'include',
       });
+      
+      // Clear all cached data
+      clearNotificationsCache();
+      setNotifications([]);
+      setUnreadCountState(0);
+      setNextCursor(null);
+      
+      // Logout will handle clearing storage
       logout();
       toast.success('You have been logged out successfully.');
       router.push('/');
@@ -177,7 +200,7 @@ export default function Navbar() {
         const unreadValue = payload.unreadCount ?? nextItems.filter((n) => !n.isRead).length;
         setUnreadCountState(unreadValue);
         setNextCursor(payload.nextCursor ?? null);
-        updateNotificationsCache(nextItems, unreadValue, payload.nextCursor ?? null);
+        updateNotificationsCache(nextItems, unreadValue, payload.nextCursor ?? null, user?.id);
       } catch (error) {
         logger.error('Failed to load notifications', error);
         toast.error(toFriendlyMessage(error, 'Failed to load notifications.'));
@@ -192,6 +215,16 @@ export default function Navbar() {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // Clear notifications when user logs out
+  useEffect(() => {
+    if (authStatus === 'unauthenticated') {
+      setNotifications([]);
+      setUnreadCountState(0);
+      setNextCursor(null);
+      clearNotificationsCache();
+    }
+  }, [authStatus, clearNotificationsCache]);
 
   useEffect(() => {
     if (!socket) return;
@@ -217,7 +250,7 @@ export default function Navbar() {
         return nextItems;
       });
       setUnreadCountState(0);
-      updateNotificationsCache(nextItems, 0, nextCursor);
+      updateNotificationsCache(nextItems, 0, nextCursor, user?.id);
     } catch (error) {
       logger.error('Failed to mark notifications as read', error);
       toast.error(toFriendlyMessage(error, 'Failed to mark notifications as read.'));
@@ -233,7 +266,7 @@ export default function Navbar() {
       setNotifications([]);
       setNextCursor(null);
       setUnreadCountState(0);
-      updateNotificationsCache([], 0, null);
+      clearNotificationsCache();
     } catch (error) {
       logger.error('Failed to clear notifications', error);
       toast.error(toFriendlyMessage(error, 'Failed to clear notifications.'));
@@ -254,7 +287,7 @@ export default function Navbar() {
         });
         const nextUnread = updatedItems.filter((n) => !n.isRead).length;
         setUnreadCountState(nextUnread);
-        updateNotificationsCache(updatedItems, nextUnread, nextCursor);
+        updateNotificationsCache(updatedItems, nextUnread, nextCursor, user?.id);
       }
       setIsNotificationsOpen(false);
       
