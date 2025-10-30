@@ -23,6 +23,12 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Ignore PowerShell scripts (local automation only)
+*.ps1
+
+# Ignore environment variable exports
+vercel-env-vars.txt
+
 
 # --- Backend - NestJS ---
 # Ignore compiled TypeScript output
