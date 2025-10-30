@@ -273,85 +273,91 @@ export default function HomePage() {
         >
           <Link href="/services/braiding-weaving" className="btn btn-primary" style={isMobile ? { 
             minWidth: 'calc(42% - 0.5rem)',
-            maxWidth: 'calc(42% - 0.5rem)',
             flex: '0 0 auto',
             textAlign: 'center',
             scrollSnapAlign: 'start',
-            padding: '0.75rem 1rem',
-            fontSize: '0.9rem',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            padding: '0.75rem 0.5rem',
+            fontSize: '0.85rem',
+            lineHeight: '1.3',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '3rem'
           } : { textAlign: 'center' }}>
             Braiding & Weaving
           </Link>
           <Link href="/services/nail-care" className="btn btn-primary" style={isMobile ? { 
             minWidth: 'calc(42% - 0.5rem)',
-            maxWidth: 'calc(42% - 0.5rem)',
             flex: '0 0 auto',
             textAlign: 'center',
             scrollSnapAlign: 'start',
-            padding: '0.75rem 1rem',
-            fontSize: '0.9rem',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            padding: '0.75rem 0.5rem',
+            fontSize: '0.85rem',
+            lineHeight: '1.3',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '3rem'
           } : { textAlign: 'center' }}>
             Nail Care
           </Link>
           <Link href="/services/makeup-beauty" className="btn btn-primary" style={isMobile ? { 
             minWidth: 'calc(42% - 0.5rem)',
-            maxWidth: 'calc(42% - 0.5rem)',
             flex: '0 0 auto',
             textAlign: 'center',
             scrollSnapAlign: 'start',
-            padding: '0.75rem 1rem',
-            fontSize: '0.9rem',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            padding: '0.75rem 0.5rem',
+            fontSize: '0.85rem',
+            lineHeight: '1.3',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '3rem'
           } : { textAlign: 'center' }}>
             Makeup & Beauty
           </Link>
           <Link href="/services/haircuts-styling" className="btn btn-primary" style={isMobile ? { 
             minWidth: 'calc(42% - 0.5rem)',
-            maxWidth: 'calc(42% - 0.5rem)',
             flex: '0 0 auto',
             textAlign: 'center',
             scrollSnapAlign: 'start',
-            padding: '0.75rem 1rem',
-            fontSize: '0.9rem',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            padding: '0.75rem 0.5rem',
+            fontSize: '0.85rem',
+            lineHeight: '1.3',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '3rem'
           } : { textAlign: 'center' }}>
             Haircuts & Styling
           </Link>
           <Link href="/services/massage-body-treatments" className="btn btn-primary" style={isMobile ? { 
             minWidth: 'calc(42% - 0.5rem)',
-            maxWidth: 'calc(42% - 0.5rem)',
             flex: '0 0 auto',
             textAlign: 'center',
             scrollSnapAlign: 'start',
-            padding: '0.75rem 1rem',
-            fontSize: '0.9rem',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            padding: '0.75rem 0.5rem',
+            fontSize: '0.85rem',
+            lineHeight: '1.3',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '3rem'
           } : { textAlign: 'center' }}>
             Massage & Spa
           </Link>
           <Link href="/services/mens-grooming" className="btn btn-primary" style={isMobile ? { 
             minWidth: 'calc(42% - 0.5rem)',
-            maxWidth: 'calc(42% - 0.5rem)',
             flex: '0 0 auto',
             textAlign: 'center',
             scrollSnapAlign: 'start',
-            padding: '0.75rem 1rem',
-            fontSize: '0.9rem',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            padding: '0.75rem 0.5rem',
+            fontSize: '0.85rem',
+            lineHeight: '1.3',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '3rem'
           } : { textAlign: 'center' }}>
             Men's Grooming
           </Link>
