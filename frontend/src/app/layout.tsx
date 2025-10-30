@@ -19,6 +19,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import Analytics from '@/components/Analytics';
 import ToasterClient from '@/components/ToasterClient';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import ZoomHandler from '@/components/ZoomHandler';
 import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -105,6 +106,7 @@ export default function RootLayout({
                     <ClientChatWidget />
                     <ToasterClient />
                     <CookieBanner />
+                    <ZoomHandler />
                     <Suspense fallback={null}>
                       <Analytics />
                     </Suspense>

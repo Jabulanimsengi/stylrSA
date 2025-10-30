@@ -445,11 +445,19 @@
     transition: background-color var(--transition-base), color var(--transition-base);
   }
 
-  /* Desktop zoom to 75% - only for large screens */
+  /* Desktop zoom - only for large screens */
   @media (min-width: 1024px) {
+    /* Default: 75% zoom for logged-out users */
     body {
       zoom: 0.75;
       -moz-transform: scale(0.75);
+      -moz-transform-origin: 0 0;
+    }
+    
+    /* 85% zoom for logged-in users */
+    body[data-auth="true"] {
+      zoom: 0.85;
+      -moz-transform: scale(0.85);
       -moz-transform-origin: 0 0;
     }
   }
