@@ -445,6 +445,15 @@
     transition: background-color var(--transition-base), color var(--transition-base);
   }
 
+  /* Desktop zoom to 75% - only for large screens */
+  @media (min-width: 1024px) {
+    body {
+      zoom: 0.75;
+      -moz-transform: scale(0.75);
+      -moz-transform-origin: 0 0;
+    }
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-tight);
