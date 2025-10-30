@@ -73,6 +73,8 @@ export default withPWA({
   buildExcludes: [/middleware-manifest\.json$/],
   scope: '/',
   sw: 'sw.js',
+  // Force service worker update after domain migration
+  publicExcludes: ['!noprecache/**/*'],
   runtimeCaching: [
     {
       // Cloudinary images - can cache longer since they have unique URLs when changed

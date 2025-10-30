@@ -1,8 +1,9 @@
 {
   "name": "Stylr SA - Salon Booking Platform",
   "short_name": "Stylr SA",
+  "version": "2.0.0",
   "description": "Find and book salon appointments online. Discover the best salons, stylists, and beauty services near you.",
-  "start_url": "/",
+  "start_url": "/?v=2",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#8B4513",
