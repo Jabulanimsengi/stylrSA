@@ -112,9 +112,12 @@ function ServiceCategoryContent() {
     const fetchCategoryName = async () => {
       try {
         const categories = await getCategoriesCached();
+        console.log('[ServiceCategory] Available categories:', categories);
+        console.log('[ServiceCategory] Looking for slug:', categorySlug);
         
         // Normalize slug: "haircuts-styling" -> "haircuts styling"
-        const normalizedSlug = categorySlug.toLowerCase().replace(/-/g, ' ');
+        const normalizedSlug = categorySlug.toLowerCase().replace(/-/g, ' ').replace(/_/g, ' ').trim();
+        console.log('[ServiceCategory] Normalized slug:', normalizedSlug);
         
         // Find matching category
         const match = categories.find(cat => {
@@ -125,16 +128,40 @@ function ServiceCategoryContent() {
             .replace(/\s+/g, ' ')  // Normalize spaces
             .trim();
           
+          console.log(`[ServiceCategory] Comparing "${normalizedCategoryName}" with "${normalizedSlug}"`);
           return normalizedCategoryName === normalizedSlug;
         });
         
         if (match) {
+          console.log('[ServiceCategory] Category matched:', match);
           setCategoryName(match.name);
         } else {
-          console.warn(`No category found for slug: ${categorySlug}`);
+          console.warn(`[ServiceCategory] No exact match found for slug: ${categorySlug}`);
+          
+          // Fallback: Try partial matching
+          const partialMatch = categories.find(cat => {
+            const catWords = cat.name.toLowerCase().split(/\s+/);
+            const slugWords = normalizedSlug.split(/\s+/);
+            return slugWords.every(word => catWords.some(catWord => catWord.includes(word)));
+          });
+          
+          if (partialMatch) {
+            console.log('[ServiceCategory] Partial match found:', partialMatch);
+            setCategoryName(partialMatch.name);
+            toast.info(`Showing results for: ${partialMatch.name}`);
+          } else {
+            console.error('[ServiceCategory] No category match found at all');
+            toast.error(`Category "${categorySlug}" not found. Showing all services.`);
+            // Set to empty to allow page to load with all services
+            setCategoryName('');
+            setIsLoading(false);
+          }
         }
       } catch (error) {
-        console.error('Failed to fetch category name:', error);
+        console.error('[ServiceCategory] Failed to fetch category name:', error);
+        toast.error('Failed to load category. Please try again.');
+        setCategoryName('');
+        setIsLoading(false);
       }
     };
     fetchCategoryName();
@@ -148,8 +175,6 @@ function ServiceCategoryContent() {
   };
 
   const fetchServices = useCallback(async (additionalFilters: FilterValues) => {
-    if (!categoryName) return; // Don't fetch if category name is not set yet
-    
     requestControllerRef.current?.abort();
     const controller = new AbortController();
     requestControllerRef.current = controller;
@@ -158,7 +183,11 @@ function ServiceCategoryContent() {
     setIsLoading(true);
     try {
       const query = new URLSearchParams();
-      query.append("category", categoryName);
+      
+      // Only add category if we have a categoryName
+      if (categoryName) {
+        query.append("category", categoryName);
+      }
       
       if (additionalFilters.province) query.append("province", additionalFilters.province);
       if (additionalFilters.city) query.append("city", additionalFilters.city);
@@ -170,9 +199,15 @@ function ServiceCategoryContent() {
       if (additionalFilters.priceMax) query.append("priceMax", additionalFilters.priceMax);
 
       const url = `/api/services/search?${query.toString()}`;
+      console.log('[ServiceCategory] Fetching services with URL:', url);
       const res = await fetch(url, { credentials: "include", signal: controller.signal });
-      if (!res.ok) throw new Error("Failed to search services");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('[ServiceCategory] API error:', res.status, errorText);
+        throw new Error(`Failed to search services: ${res.status}`);
+      }
       const data = await res.json();
+      console.log('[ServiceCategory] Services fetched:', data.length, 'items');
       if (requestId !== latestRequestIdRef.current) {
         return;
       }
@@ -181,8 +216,10 @@ function ServiceCategoryContent() {
       if (controller.signal.aborted) {
         return;
       }
+      console.error('[ServiceCategory] Fetch error:', error);
       const message = error instanceof Error ? error.message : "Search failed";
       toast.error(message);
+      setServices([]);
     } finally {
       if (requestId === latestRequestIdRef.current) {
         setIsLoading(false);
@@ -191,8 +228,22 @@ function ServiceCategoryContent() {
     }
   }, [categoryName]);
 
+  // Track if we've attempted to load the category
+  const [categoryLoadAttempted, setCategoryLoadAttempted] = useState(false);
+  
   useEffect(() => {
-    if (categoryName) {
+    // Wait a bit for category name to be resolved, but don't wait forever
+    const timer = setTimeout(() => {
+      setCategoryLoadAttempted(true);
+    }, 2000); // Give 2 seconds for category to load
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Fetch services once we have categoryName OR after we've waited long enough
+    if (categoryName || categoryLoadAttempted) {
+      console.log('[ServiceCategory] Triggering fetch with categoryName:', categoryName);
       fetchServices({
         province: "",
         city: "",
@@ -205,7 +256,7 @@ function ServiceCategoryContent() {
         priceMax: "",
       });
     }
-  }, [categoryName, fetchServices]);
+  }, [categoryName, categoryLoadAttempted, fetchServices]);
 
   useEffect(() => {
     if (!socket) return;
