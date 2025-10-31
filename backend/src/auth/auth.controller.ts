@@ -44,8 +44,9 @@ export class AuthController {
     // Corrected 'access_token' to 'accessToken' to match the service's return object
     const { accessToken, user } = await this.authService.login(dto);
     const isProduction = process.env.NODE_ENV === 'production';
-    // Only set cookie domain in production to avoid localhost issues
-    const cookieDomain = isProduction ? process.env.COOKIE_DOMAIN : undefined;
+    // Set cookie domain if explicitly configured (for deployed environments)
+    // If not set, undefined allows cookies to work on localhost
+    const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: isProduction,
@@ -66,8 +67,9 @@ export class AuthController {
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     const isProduction = process.env.NODE_ENV === 'production';
-    // Only set cookie domain in production to avoid localhost issues
-    const cookieDomain = isProduction ? process.env.COOKIE_DOMAIN : undefined;
+    // Set cookie domain if explicitly configured (for deployed environments)
+    // Must match the domain used when setting the cookie
+    const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isProduction,
