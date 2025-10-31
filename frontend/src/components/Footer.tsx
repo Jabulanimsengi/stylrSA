@@ -31,8 +31,8 @@ export default function Footer() {
           <h3 className={styles.sectionTitle}>Company</h3>
           <ul className={styles.links}>
             <li><Link href="/about">About Us</Link></li>
-            <li><Link href="/blog">Blog</Link></li>
             <li><Link href="/contact">Contact</Link></li>
+            <li><Link href="/faq">FAQ</Link></li>
             <li><Link href="/careers">Careers</Link></li>
           </ul>
         </div>
@@ -43,7 +43,6 @@ export default function Footer() {
             <li><Link href="/how-it-works">How It Works</Link></li>
             <li><Link href="/advice">Advice</Link></li>
             <li><Link href="/prices">Prices</Link> <span style={{marginLeft:8, padding:'2px 6px', border:'1px solid #fff3', borderRadius:6, fontSize:12, opacity:0.9}}>Free plan • Video uploads on Growth+</span></li>
-            <li><Link href="/faq">FAQ</Link></li>
           </ul>
         </div>
 
