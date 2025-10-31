@@ -22,6 +22,10 @@ import { NotificationsService } from 'src/notifications/notifications.service';
     ).split(','),
     credentials: true,
   },
+  maxHttpBufferSize: 1e6, // 1MB max message size
+  pingTimeout: 20000, // 20 seconds
+  pingInterval: 25000, // 25 seconds
+  transports: ['websocket', 'polling'], // Allow fallback
 })
 export class EventsGateway implements OnGatewayInit {
   @WebSocketServer()
@@ -29,6 +33,7 @@ export class EventsGateway implements OnGatewayInit {
 
   private logger: Logger = new Logger('EventsGateway');
   private connectedUsers: Map<string, Set<string>> = new Map();
+  private cleanupInterval: NodeJS.Timeout;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -38,16 +43,29 @@ export class EventsGateway implements OnGatewayInit {
   ) {}
 
   afterInit(server: Server) {
-    try {
-      const url = process.env.REDIS_URL || process.env.REDIS_CONNECTION_STRING;
-      if (!url) return;
-      const pub = new Redis(url);
-      const sub = new Redis(url);
-      server.adapter(createAdapter(pub as any, sub as any));
-      this.logger.log('Socket.IO Redis adapter enabled');
-    } catch (err) {
-      this.logger.error('Failed to enable Redis adapter for Socket.IO', err instanceof Error ? err.stack : String(err));
+    // Only enable Redis if explicitly configured in production
+    const enableRedis = process.env.ENABLE_REDIS_ADAPTER === 'true';
+    
+    if (enableRedis && process.env.NODE_ENV === 'production') {
+      try {
+        const url = process.env.REDIS_URL || process.env.REDIS_CONNECTION_STRING;
+        if (url) {
+          const pub = new Redis(url);
+          const sub = new Redis(url);
+          server.adapter(createAdapter(pub as any, sub as any));
+          this.logger.log('Socket.IO Redis adapter enabled');
+        }
+      } catch (err) {
+        this.logger.error('Failed to enable Redis adapter for Socket.IO', err instanceof Error ? err.stack : String(err));
+      }
+    } else {
+      this.logger.log('Socket.IO using default in-memory adapter (single instance mode)');
     }
+
+    // Start cleanup interval - remove stale connections every 5 minutes
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupStaleConnections();
+    }, 5 * 60 * 1000); // 5 minutes
   }
 
   handleConnection(client: Socket) {
@@ -382,5 +400,35 @@ export class EventsGateway implements OnGatewayInit {
         : null,
       readAt: message.readAt ? message.readAt.toISOString() : null,
     };
+  }
+
+  private cleanupStaleConnections() {
+    const beforeSize = this.connectedUsers.size;
+    const emptyUsers: string[] = [];
+
+    // Find users with no active sockets
+    for (const [userId, sockets] of this.connectedUsers.entries()) {
+      if (sockets.size === 0) {
+        emptyUsers.push(userId);
+      }
+    }
+
+    // Remove empty entries
+    for (const userId of emptyUsers) {
+      this.connectedUsers.delete(userId);
+    }
+
+    if (emptyUsers.length > 0) {
+      this.logger.log(
+        `Cleaned up ${emptyUsers.length} stale user connections (${beforeSize} -> ${this.connectedUsers.size})`
+      );
+    }
+  }
+
+  onModuleDestroy() {
+    // Clean up interval on shutdown
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
   }
 }

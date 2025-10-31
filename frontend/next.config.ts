@@ -34,12 +34,14 @@ const nextConfig: NextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'], // Modern formats first
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // Common device widths
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Icon and thumbnail sizes
-    minimumCacheTTL: 60 * 60 * 24 * 7, // Cache images for 7 days
+    // Reduce device sizes to save memory in production
+    deviceSizes: process.env.NODE_ENV === 'production' ? [640, 750, 1080, 1920] : [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: process.env.NODE_ENV === 'production' ? [16, 32, 64, 128] : [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // Cache images for 30 days
     dangerouslyAllowSVG: false, // Security: block SVG uploads
     contentDispositionType: 'attachment', // Security: force download
-    unoptimized: false, // Always optimize images
+    // Disable image optimization if specified (use Cloudinary instead)
+    unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === 'true',
   },
   async rewrites() {
     const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:5000";
@@ -84,7 +86,7 @@ export default withPWA({
       options: {
         cacheName: 'cloudinary-images',
         expiration: {
-          maxEntries: 200,
+          maxEntries: 50, // Reduced from 200 to save memory
           maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
         },
       },
@@ -108,7 +110,7 @@ export default withPWA({
       options: {
         cacheName: 'next-image',
         expiration: {
-          maxEntries: 200,
+          maxEntries: 50, // Reduced from 200 to save memory
           maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
         },
       },

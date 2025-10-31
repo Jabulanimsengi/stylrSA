@@ -34,6 +34,14 @@ export class PrismaService extends BasePrismaClient implements OnModuleInit {
         },
       },
       log: ['warn', 'error'],
+      // Limit connection pool in production to reduce memory usage
+      ...(process.env.NODE_ENV === 'production' && {
+        __internal: {
+          engine: {
+            connection_limit: 3, // Limit to 3 connections (reduced from default 10)
+          },
+        },
+      }),
     });
   }
   
