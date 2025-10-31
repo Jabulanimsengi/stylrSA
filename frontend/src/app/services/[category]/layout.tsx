@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 type Props = {
   children: React.ReactNode;
-  params: { category: string };
+  params: Promise<{ category: string }>;
 };
 
 const CATEGORY_INFO: Record<string, { title: string; description: string; keywords: string }> = {
@@ -59,7 +59,7 @@ const CATEGORY_INFO: Record<string, { title: string; description: string; keywor
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { category } = params;
+  const { category } = await params;
   const categoryInfo = CATEGORY_INFO[category] || {
     title: 'Beauty Services | Stylr SA',
     description: 'Find and book professional beauty services in South Africa',
@@ -100,7 +100,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ServiceCategoryLayout({ children, params }: Props) {
-  const { category } = params;
+  const { category } = await params;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
 
   // Structured data for service category

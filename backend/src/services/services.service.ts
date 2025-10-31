@@ -262,19 +262,24 @@ export class ServicesService {
       sortBy,
     } = filters || {};
 
+    console.log('[ServicesService] Search filters:', filters);
+
     const where: any = {
       approvalStatus: 'APPROVED',
     };
 
     if (q) {
       where.title = { contains: String(q), mode: 'insensitive' };
+      console.log('[ServicesService] Filtering by service name:', q);
     }
     if (categoryId) {
       where.categoryId = String(categoryId);
+      console.log('[ServicesService] Filtering by categoryId:', categoryId);
     } else if (category) {
       where.category = {
         name: { contains: String(category), mode: 'insensitive' },
       };
+      console.log('[ServicesService] Filtering by category name:', category);
     }
     if (priceMin || priceMax) {
       where.price = {};
@@ -302,6 +307,8 @@ export class ServicesService {
     if (sortBy === 'price') orderBy = { price: 'asc' };
     if (sortBy === 'latest') orderBy = { createdAt: 'desc' };
 
+    console.log('[ServicesService] Prisma where clause:', JSON.stringify(where, null, 2));
+    
     const items = await this.prisma.service.findMany({
       where,
       include: {
@@ -319,6 +326,16 @@ export class ServicesService {
         category: { select: { id: true, name: true } },
       },
     });
+
+    console.log('[ServicesService] Found', items.length, 'services');
+    if (items.length > 0 && items.length <= 5) {
+      console.log('[ServicesService] Sample results:', items.map(s => ({
+        id: s.id,
+        title: s.title,
+        categoryId: s.categoryId,
+        categoryName: s.category?.name
+      })));
+    }
 
     // Attach isLikedByCurrentUser if user present
     const userId: string | null = user?.id ?? null;

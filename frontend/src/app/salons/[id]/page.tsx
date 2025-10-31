@@ -50,10 +50,8 @@ async function getSalon(id: string): Promise<Salon | null> {
   return null;
 }
 
-type RouteParams = { id: string } | Promise<{ id: string }>;
-
-export default async function SalonProfilePage({ params }: { params: RouteParams }) {
-  const { id } = await Promise.resolve(params);
+export default async function SalonProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const salon = await getSalon(id);
   return <SalonProfileClient initialSalon={salon} salonId={id} />;
 }

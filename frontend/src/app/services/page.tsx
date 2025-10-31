@@ -63,14 +63,19 @@ function ServicesPageContent() {
     requestControllerRef.current = controller;
     const requestId = ++latestRequestIdRef.current;
 
+    console.log('[ServicesPage] Fetching with filters:', filtersToUse);
     setIsLoading(true);
     try {
       const query = new URLSearchParams();
       if (filtersToUse.province) query.append("province", filtersToUse.province);
       if (filtersToUse.city) query.append("city", filtersToUse.city);
-      if (filtersToUse.category) query.append("category", filtersToUse.category);
+      if (filtersToUse.category) {
+        query.append("category", filtersToUse.category);
+        console.log('[ServicesPage] Category filter:', filtersToUse.category);
+      }
       if (filtersToUse.service) {
         query.append("q", filtersToUse.service);
+        console.log('[ServicesPage] Service search:', filtersToUse.service);
       }
       if (filtersToUse.offersMobile) query.append("offersMobile", "true");
       if (filtersToUse.sortBy) query.append("sortBy", filtersToUse.sortBy);
@@ -79,9 +84,15 @@ function ServicesPageContent() {
       if (filtersToUse.priceMax) query.append("priceMax", filtersToUse.priceMax);
 
       const url = `/api/services/search${query.toString() ? `?${query.toString()}` : ""}`;
+      console.log('[ServicesPage] API URL:', url);
       const res = await fetch(url, { credentials: "include", signal: controller.signal });
-      if (!res.ok) throw new Error("Failed to search services");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('[ServicesPage] API error:', res.status, errorText);
+        throw new Error("Failed to search services");
+      }
       const data = await res.json();
+      console.log('[ServicesPage] Received data:', data.length, 'services');
       if (requestId !== latestRequestIdRef.current) {
         return;
       }
@@ -90,8 +101,10 @@ function ServicesPageContent() {
       if (controller.signal.aborted) {
         return;
       }
+      console.error('[ServicesPage] Fetch error:', error);
       const message = error instanceof Error ? error.message : "Search failed";
       toast.error(message);
+      setServices([]);
     } finally {
       if (requestId === latestRequestIdRef.current) {
         setIsLoading(false);

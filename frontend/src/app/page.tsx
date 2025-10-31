@@ -157,6 +157,7 @@ export default function HomePage() {
   }, [handleObserver]);
 
   const handleSearch = (filters: FilterValues) => {
+    console.log('[HomePage] Search triggered with filters:', filters);
     const query = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (typeof value === 'boolean') {
@@ -170,8 +171,16 @@ export default function HomePage() {
       }
     });
     const queryString = query.toString();
-    const hasServiceQuery = filters.service.trim().length > 0;
-    const targetPath = hasServiceQuery ? '/services' : '/salons';
+    
+    // Route to /services if:
+    // 1. User typed a service name, OR
+    // 2. User selected a category
+    const hasServiceQuery = filters.service && filters.service.trim().length > 0;
+    const hasCategoryQuery = filters.category && filters.category.trim().length > 0;
+    const shouldSearchServices = hasServiceQuery || hasCategoryQuery;
+    
+    const targetPath = shouldSearchServices ? '/services' : '/salons';
+    console.log('[HomePage] Routing to:', targetPath, 'with query:', queryString);
     router.push(`${targetPath}${queryString ? `?${queryString}` : ''}`);
   };
 
