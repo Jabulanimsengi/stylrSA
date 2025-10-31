@@ -154,12 +154,12 @@ export default function Footer() {
         <div className={styles.featuredLinks}>
           <Link href="/blog/protective-hairstyles-guide" className={styles.featuredLink} title="Complete protective hairstyles guide">Knotless Braids Guide</Link>
           <Link href="/blog/cape-town-nail-trends" className={styles.featuredLink} title="Cape Town nail trends">Cape Town Nail Trends</Link>
-          <Link href="/blog/mens-grooming-durban" className={styles.featuredLink" title="Durban men's grooming">Durban Barber Guide</Link>
-          <Link href="/blog/wedding-makeup-artist" className={styles.featuredLink" title="Wedding makeup tips">Wedding Makeup Tips</Link>
-          <Link href="/blog/highveld-skincare-guide" className={styles.featuredLink" title="Highveld skincare guide">Highveld Skincare</Link>
-          <Link href="/blog/monthly-massage-benefits" className={styles.featuredLink" title="Massage benefits">Monthly Massage Benefits</Link>
-          <Link href="/blog/verified-reviews-importance" className={styles.featuredLink" title="Importance of verified reviews">Verified Reviews</Link>
-          <Link href="/blog/local-beauty-products" className={styles.featuredLink" title="Local SA beauty products">Local Beauty Products</Link>
+          <Link href="/blog/mens-grooming-durban" className={styles.featuredLink} title="Durban men's grooming">Durban Barber Guide</Link>
+          <Link href="/blog/wedding-makeup-artist" className={styles.featuredLink} title="Wedding makeup tips">Wedding Makeup Tips</Link>
+          <Link href="/blog/highveld-skincare-guide" className={styles.featuredLink} title="Highveld skincare guide">Highveld Skincare</Link>
+          <Link href="/blog/monthly-massage-benefits" className={styles.featuredLink} title="Massage benefits">Monthly Massage Benefits</Link>
+          <Link href="/blog/verified-reviews-importance" className={styles.featuredLink} title="Importance of verified reviews">Verified Reviews</Link>
+          <Link href="/blog/local-beauty-products" className={styles.featuredLink} title="Local SA beauty products">Local Beauty Products</Link>
         </div>
       </div>
       
