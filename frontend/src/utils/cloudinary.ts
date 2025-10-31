@@ -107,6 +107,29 @@ export const cloudinaryPresets = {
   }),
 };
 
+/**
+ * Fetch with timeout to prevent hanging requests
+ */
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 120000): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    return response;
+  } catch (error: any) {
+    clearTimeout(timeout);
+    if (error.name === 'AbortError') {
+      throw new Error('Upload timed out. Please check your connection and try again with a smaller file.');
+    }
+    throw error;
+  }
+}
+
 export async function uploadToCloudinary(file: File | Blob, options?: { folder?: string }): Promise<any> {
   // Validate file before upload (security check)
   if (file instanceof File) {
@@ -134,7 +157,7 @@ export async function uploadToCloudinary(file: File | Blob, options?: { folder?:
     throw new Error('Cloudinary is not configured. Missing NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME or NEXT_PUBLIC_CLOUDINARY_API_KEY.');
   }
 
-  const sigRes = await fetch('/api/cloudinary/signature', { credentials: 'include' });
+  const sigRes = await fetchWithTimeout('/api/cloudinary/signature', { credentials: 'include' }, 30000);
   if (!sigRes.ok) {
     throw new Error('Could not get upload signature. Please try again.');
   }
@@ -147,10 +170,14 @@ export async function uploadToCloudinary(file: File | Blob, options?: { folder?:
   if (options?.folder) form.append('folder', options.folder);
   form.append('signature', signature);
 
-  const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-    method: 'POST',
-    body: form,
-  });
+  const uploadRes = await fetchWithTimeout(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: 'POST',
+      body: form,
+    },
+    120000 // 2 minute timeout for large files
+  );
   if (!uploadRes.ok) {
     let err: any = null;
     try { err = await uploadRes.json(); } catch {}

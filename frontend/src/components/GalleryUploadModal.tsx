@@ -28,15 +28,42 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
   const filesRef = useRef<FileItem[]>([]);
   const [caption, setCaption] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [error, setError] = useState('');
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map((file) => ({
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    setIsProcessingFile(true);
+    setError('');
+
+    try {
+      const fileArray = Array.from(e.target.files);
+      
+      // Validate each file
+      const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+      for (const file of fileArray) {
+        if (file.size > MAX_SIZE) {
+          throw new Error(`File "${file.name}" is too large. Maximum size is 10MB. (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        }
+        if (!file.type.startsWith('image/')) {
+          throw new Error(`File "${file.name}" is not a valid image.`);
+        }
+      }
+
+      const newFiles = fileArray.map((file) => ({
         file,
         preview: URL.createObjectURL(file),
       }));
       setFiles((prev) => [...prev, ...newFiles]);
+      toast.success(`${fileArray.length} image(s) selected`);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to process files';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      e.target.value = '';
+    } finally {
+      setIsProcessingFile(false);
     }
   };
 
@@ -92,6 +119,11 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
 
       const toUpload = files.slice(0, allowed);
       let successCount = 0;
+      
+      if (toUpload.length > 0) {
+        toast.info(`Uploading ${toUpload.length} image(s)...`);
+      }
+      
       for (const { file } of toUpload) {
         const uploaded = await uploadToCloudinary(file);
         const url = uploaded.secure_url;
@@ -143,6 +175,13 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
         <form onSubmit={handleSubmit} className={styles.form}>
           {error && <p className={styles.errorMessage}>{error}</p>}
           
+          {isProcessingFile && (
+            <div style={{ padding: '12px', background: 'var(--color-surface-elevated)', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+              <span>Processing files...</span>
+            </div>
+          )}
+          
           <div className={styles.formGroup}>
             <label className={styles.label}>Select Images</label>
             <label htmlFor="gallery-upload" className={styles.fileInputLabel}>
@@ -156,6 +195,7 @@ export default function GalleryUploadModal({ salonId, onClose, onImageAdded }: G
               accept="image/*"
               onChange={handleFileChange}
               className={styles.fileInput}
+              disabled={isProcessingFile || isLoading}
             />
           </div>
 

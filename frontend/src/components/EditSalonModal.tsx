@@ -43,6 +43,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [heroImagesPreview, setHeroImagesPreview] = useState<string[]>([]);
   
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [error, setError] = useState('');
   const [addrQuery, setAddrQuery] = useState('');
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
@@ -112,22 +113,61 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
-    if (name === 'backgroundImage' && files[0]) {
-      const file = files[0];
-      setBackgroundImageFile(file);
-      if (backgroundImagePreview && backgroundImagePreview.startsWith('blob:')) {
-        URL.revokeObjectURL(backgroundImagePreview);
+    setIsProcessingFile(true);
+    setError('');
+
+    try {
+      if (name === 'backgroundImage' && files[0]) {
+        const file = files[0];
+        
+        // Validate file size early (10MB limit)
+        const MAX_SIZE = 10 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+          throw new Error(`File too large. Maximum size is 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
+        }
+
+        // Validate it's an image
+        if (!file.type.startsWith('image/')) {
+          throw new Error('Please select a valid image file.');
+        }
+
+        setBackgroundImageFile(file);
+        if (backgroundImagePreview && backgroundImagePreview.startsWith('blob:')) {
+          URL.revokeObjectURL(backgroundImagePreview);
+        }
+        setBackgroundImagePreview(URL.createObjectURL(file));
+        toast.success('Background image selected');
+      } else if (name === 'heroImages') {
+        const newFiles = Array.from(files);
+        
+        // Validate each file size
+        const MAX_SIZE = 10 * 1024 * 1024;
+        for (const file of newFiles) {
+          if (file.size > MAX_SIZE) {
+            throw new Error(`File "${file.name}" is too large. Maximum size is 10MB.`);
+          }
+          if (!file.type.startsWith('image/')) {
+            throw new Error(`File "${file.name}" is not a valid image.`);
+          }
+        }
+
+        setHeroImageFiles(prevFiles => [...prevFiles, ...newFiles]);
+        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+        setHeroImagesPreview(prevPreviews => [...prevPreviews, ...newPreviews]);
+        toast.success(`${newFiles.length} hero image(s) selected`);
       }
-      setBackgroundImagePreview(URL.createObjectURL(file));
-    } else if (name === 'heroImages') {
-      const newFiles = Array.from(files);
-      setHeroImageFiles(prevFiles => [...prevFiles, ...newFiles]);
-      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-      setHeroImagesPreview(prevPreviews => [...prevPreviews, ...newPreviews]);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to process file';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      // Reset the file input
+      e.target.value = '';
+    } finally {
+      setIsProcessingFile(false);
     }
   };
 
@@ -160,16 +200,25 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       let finalBackgroundImageUrl = backgroundImagePreview;
       if (backgroundImageFile && backgroundImagePreview?.startsWith('blob:')) {
         // Upload and extract the secure_url
+        toast.info('Uploading background image...');
         const uploaded = await uploadToCloudinary(backgroundImageFile);
         finalBackgroundImageUrl = uploaded.secure_url;
+        toast.success('Background image uploaded!');
       }
 
       const existingHeroImageUrls = heroImagesPreview.filter(p => !p.startsWith('blob:'));
       
       // Corrected hero images upload
+      if (heroImageFiles.length > 0) {
+        toast.info(`Uploading ${heroImageFiles.length} hero image(s)...`);
+      }
       const newHeroImageUrls = (
         await Promise.all(heroImageFiles.map(file => uploadToCloudinary(file)))
       ).map(r => r.secure_url);
+      
+      if (heroImageFiles.length > 0) {
+        toast.success(`${heroImageFiles.length} hero image(s) uploaded!`);
+      }
       
       const finalHeroImageUrls = [...existingHeroImageUrls, ...newHeroImageUrls];
 
@@ -363,10 +412,23 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
             </div>
             
             <h3 className={styles.subheading}>Images</h3>
+            {isProcessingFile && (
+              <div style={{ padding: '12px', background: 'var(--color-surface-elevated)', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '16px', height: '16px', border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+                <span>Processing file...</span>
+              </div>
+            )}
             <div className={styles.grid}>
               <div className={styles.imageUploadSection}>
                 <label className={styles.label}>Background Image</label>
-                <input type="file" name="backgroundImage" className={styles.fileInput} onChange={handleFileChange} accept="image/*" />
+                <input 
+                  type="file" 
+                  name="backgroundImage" 
+                  className={styles.fileInput} 
+                  onChange={handleFileChange} 
+                  accept="image/*"
+                  disabled={isProcessingFile || isUploading}
+                />
                 <div className={styles.imagePreviewContainer}>
                   {backgroundImagePreview && (
                     <div className={styles.imageWrapper}>
@@ -377,14 +439,22 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                         width={200}
                         height={160}
                       />
-                      <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(backgroundImagePreview, 'background')}>×</button>
+                      <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(backgroundImagePreview, 'background')} disabled={isProcessingFile || isUploading}>×</button>
                     </div>
                   )}
                 </div>
               </div>
               <div className={styles.imageUploadSection}>
                 <label className={styles.label}>Hero Images</label>
-                <input type="file" name="heroImages" multiple className={styles.fileInput} onChange={handleFileChange} accept="image/*" />
+                <input 
+                  type="file" 
+                  name="heroImages" 
+                  multiple 
+                  className={styles.fileInput} 
+                  onChange={handleFileChange} 
+                  accept="image/*"
+                  disabled={isProcessingFile || isUploading}
+                />
                 <div className={styles.imagePreviewContainer}>
                   {heroImagesPreview.map((src, index) => (
                     <div key={src} className={styles.imageWrapper}>
@@ -395,7 +465,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                         width={200}
                         height={160}
                       />
-                      <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(src, 'hero')}>×</button>
+                      <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(src, 'hero')} disabled={isProcessingFile || isUploading}>×</button>
                     </div>
                   ))}
                 </div>
