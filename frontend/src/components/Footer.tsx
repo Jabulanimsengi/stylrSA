@@ -6,7 +6,8 @@ import { FaFacebook, FaTwitter, FaInstagram } from 'react-icons/fa';
 export default function Footer() {
   return (
     <footer className={styles.footer}>
-      <div className={styles.footerContent}>
+      <div className={styles.seoFooterContent}>
+        {/* Column 1: Brand & Trust */}
         <div className={styles.footerSection}>
           <Link href="/" className={styles.logoLink}>
             <Image
@@ -18,8 +19,14 @@ export default function Footer() {
             />
           </Link>
           <p className={styles.description}>
-            At Stylr SA, we believe beauty begins with trust. Our platform helps you find verified salons, barbers, and beauty experts near you — so you can book with confidence, connect with professionals, and experience quality service every time.
+            At Stylr SA, we believe beauty begins with trust. Your go-to platform for verified salons, barbers, and beauty experts across South Africa.
           </p>
+          <div className={styles.trustBadges}>
+            <span className={styles.trustBadge}>✓ Verified Reviews Only</span>
+            <span className={styles.trustBadge}>✓ Local SA Businesses</span>
+            <span className={styles.trustBadge}>✓ Secure Booking</span>
+            <span className={styles.trustBadge}>✓ Free to Use</span>
+          </div>
           <div className={styles.socials}>
             <a href="#" aria-label="Facebook" className={styles.socialLink}><FaFacebook /></a>
             <a href="#" aria-label="Twitter" className={styles.socialLink}><FaTwitter /></a>
@@ -27,63 +34,132 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Column 2: Beauty Services */}
         <div className={styles.footerSection}>
-          <h3 className={styles.sectionTitle}>Company</h3>
+          <h3 className={styles.sectionTitle}>Beauty Services</h3>
           <ul className={styles.links}>
-            <li><Link href="/about">About Us</Link></li>
-            <li><Link href="/contact">Contact</Link></li>
-            <li><Link href="/faq">FAQ</Link></li>
-            <li><Link href="/careers">Careers</Link></li>
+            <li><Link href="/services/braiding-weaving" title="Braids, knotless braids, weaves in South Africa">Hair Braiding & Extensions</Link></li>
+            <li><Link href="/services/haircuts-styling" title="Professional haircuts and styling services">Haircuts & Styling</Link></li>
+            <li><Link href="/services/nail-care" title="Gel nails, acrylic nails, nail art">Nail Services</Link></li>
+            <li><Link href="/services/makeup-beauty" title="Bridal makeup, event makeup, special occasions">Makeup Artist</Link></li>
+            <li><Link href="/services/massage-body-treatments" title="Swedish massage, deep tissue massage">Massage & Wellness</Link></li>
+            <li><Link href="/services/skin-care-facials" title="Facials, skincare treatments, beauty products">Skincare & Facials</Link></li>
+            <li><Link href="/services/mens-grooming" title="Barber services, fades, beard grooming">Men's Grooming</Link></li>
+            <li><Link href="/services/waxing-hair-removal" title="Waxing services and hair removal">Waxing & Hair Removal</Link></li>
+            <li><Link href="/services/bridal-services" title="Wedding preparation, bridal packages">Bridal & Events</Link></li>
           </ul>
         </div>
 
+        {/* Column 3: Popular Locations (South Africa) */}
+        <div className={styles.footerSection}>
+          <h3 className={styles.sectionTitle}>South Africa Locations</h3>
+          <ul className={styles.links}>
+            <li><Link href="/salons/location/gauteng" title="Braids, nails, makeup in Johannesburg and Pretoria">Gauteng</Link></li>
+            <li><Link href="/salons/location/western-cape" title="Cape Town beauty salons and services">Western Cape</Link></li>
+            <li><Link href="/salons/location/kwazulu-natal" title="Durban beauty experts and salons">KwaZulu-Natal</Link></li>
+            <li><Link href="/salons/location/eastern-cape" title="Port Elizabeth and Eastern Cape salons">Eastern Cape</Link></li>
+            <li><Link href="/salons/location/free-state" title="Bloemfontein beauty services">Free State</Link></li>
+            <li><Link href="/salons/location/mpumalanga" title="Nelspruit and Mpumalanga beauty professionals">Mpumalanga</Link></li>
+            <li><Link href="/salons/location/limpopo" title="Polokwane salons and beauty services">Limpopo</Link></li>
+            <li><Link href="/salons/location/northern-cape" title="Kimberley and Northern Cape salons">Northern Cape</Link></li>
+          </ul>
+        </div>
+
+        {/* Column 4: Top Searches & Keywords */}
+        <div className={styles.footerSection}>
+          <h3 className={styles.sectionTitle}>Top Searches</h3>
+          <ul className={styles.links}>
+            <li><Link href="/services/braiding-weaving?location=western-cape" title="Best braiding services in Cape Town">Braids Cape Town</Link></li>
+            <li><Link href="/services/nail-care?location=gauteng" title="Professional nail artists in Johannesburg">Nail Artist Johannesburg</Link></li>
+            <li><Link href="/services/mens-grooming?location=kwazulu-natal" title="Best barber shops in Durban">Barber Durban</Link></li>
+            <li><Link href="/services/makeup-beauty" title="Wedding and special event makeup artists">Wedding Makeup</Link></li>
+            <li><Link href="/services/massage-body-treatments" title="Relaxing and therapeutic massage services">Massage Therapy</Link></li>
+            <li><Link href="/services/braiding-weaving" title="Hair extension specialists and services">Hair Extensions</Link></li>
+            <li><Link href="/services/nail-care" title="Gel nails and acrylic nail services near me">Gel Nails Near Me</Link></li>
+            <li><Link href="/salons" title="Professional and verified salons in SA">Professional Salon</Link></li>
+            <li><Link href="/products" title="South African beauty products and supplies">Beauty Products SA</Link></li>
+          </ul>
+        </div>
+
+        {/* Column 5: Helpful Resources */}
         <div className={styles.footerSection}>
           <h3 className={styles.sectionTitle}>Resources</h3>
           <ul className={styles.links}>
-            <li><Link href="/how-it-works">How It Works</Link></li>
-            <li><Link href="/advice">Advice</Link></li>
-            <li><Link href="/prices">Prices</Link> <span style={{marginLeft:8, padding:'2px 6px', border:'1px solid #fff3', borderRadius:6, fontSize:12, opacity:0.9}}>Free plan • Video uploads on Growth+</span></li>
+            <li><Link href="/blog" title="Beauty tips, trends, and guides">Beauty Blog</Link></li>
+            <li><Link href="/blog/how-to-find-best-braider" title="Guide to finding professional braiding stylists">How to Find Best Braider</Link></li>
+            <li><Link href="/blog/wedding-makeup-checklist" title="Complete wedding makeup preparation guide">Wedding Makeup Checklist</Link></li>
+            <li><Link href="/blog/2024-hair-trends" title="Latest hair trends and styles">2024 Hair Trends</Link></li>
+            <li><Link href="/blog/matric-dance-prep" title="Matric dance beauty preparation">Matric Dance Prep</Link></li>
+            <li><Link href="/blog/seasonal-beauty-tips" title="Seasonal beauty and wellness tips">Seasonal Beauty</Link></li>
+            <li><Link href="/advice" title="Comprehensive FAQ for customers and salons">FAQ & Support</Link></li>
+            <li><Link href="/contact" title="Get in touch with Stylr SA team">Contact Us</Link></li>
+            <li><Link href="/careers" title="Join the Stylr SA team">Careers</Link></li>
           </ul>
         </div>
 
+        {/* Column 6: Quick Links */}
         <div className={styles.footerSection}>
-          <h3 className={styles.sectionTitle}>Featured Articles</h3>
+          <h3 className={styles.sectionTitle}>Quick Actions</h3>
           <ul className={styles.links}>
-            <li><Link href="/blog/protective-hairstyles-guide" title="Complete guide to knotless braids, box braids, and protective styles in South Africa">Protective Hairstyles Guide</Link></li>
-            <li><Link href="/blog/cape-town-nail-trends" title="10 hottest nail trends in Cape Town from glazed donut to aura nails">Cape Town Nail Trends</Link></li>
-            <li><Link href="/blog/mens-grooming-durban" title="Modern barbering guide: fades, beard sculpting, and hot towel shaves in Durban">Men's Grooming Guide</Link></li>
-            <li><Link href="/blog/wedding-makeup-artist" title="How to find the perfect makeup artist for weddings and matric dances in Gauteng">Wedding Makeup Tips</Link></li>
-            <li><Link href="/blog/highveld-skincare-guide" title="Beat dry Highveld air with hydration tips and treatments for glowing skin">Highveld Skincare</Link></li>
+            <li><Link href="/salons" title="Find salons near you">Find a Salon</Link></li>
+            <li><Link href="/services" title="Browse all beauty services">Browse Services</Link></li>
+            <li><Link href="/promotions" title="Current deals and special offers">View Promotions</Link></li>
+            <li><Link href="/products" title="Shop beauty products">Shop Products</Link></li>
+            <li><Link href="/how-it-works" title="Learn how Stylr SA works">How It Works</Link></li>
+            <li><Link href="/register" title="Register your salon or join as customer">Join Stylr SA</Link></li>
+            <li><Link href="/prices" title="Pricing plans for salon owners">Salon Pricing</Link></li>
+            <li><Link href="/faq" title="Frequently asked questions">Help Center</Link></li>
           </ul>
         </div>
 
-        <div className={styles.footerSection}>
-          <h3 className={styles.sectionTitle}>Beauty & Wellness</h3>
-          <ul className={styles.links}>
-            <li><Link href="/blog/monthly-massage-benefits" title="Physical and mental health benefits of regular massage therapy">Monthly Massage Benefits</Link></li>
-            <li><Link href="/blog/stylr-promotions-guide" title="How to find and use special deals and promotions on Stylr SA">Using Promotions</Link></li>
-            <li><Link href="/blog/verified-reviews-importance" title="Why verified reviews matter and how to book with confidence">Verified Reviews</Link></li>
-            <li><Link href="/blog/local-beauty-products" title="5 must-have South African beauty products to support local businesses">Local Beauty Products</Link></li>
-            <li><Link href="/blog/matric-dance-prep" title="Ultimate Matric dance preparation checklist for hair, nails, and makeup">Matric Dance Prep</Link></li>
-          </ul>
-        </div>
-
-        <div className={styles.footerSection}>
-          <h3 className={styles.sectionTitle}>Contact</h3>
-          <ul className={styles.links}>
-            <li>
-              <a href="mailto:info@stylrsa.co.za">info@stylrsa.co.za</a>
-            </li>
-          </ul>
-        </div>
-
+        {/* Column 7: Newsletter & Contact */}
         <div className={styles.footerSection}>
           <h3 className={styles.sectionTitle}>Stay Updated</h3>
-          <p>Subscribe to our newsletter for the latest deals and updates.</p>
+          <p className={styles.newsletterDescription}>Get the latest beauty trends, exclusive deals, and salon news.</p>
           <form className={styles.newsletterForm}>
             <input type="email" placeholder="Your email address" className={styles.newsletterInput} />
             <button type="submit" className={styles.newsletterButton}>Subscribe</button>
           </form>
+          <div className={styles.contactInfo}>
+            <p className={styles.contactDetail}>
+              <strong>Email:</strong> 
+              <a href="mailto:info@stylrsa.co.za" className={styles.contactLink}>info@stylrsa.co.za</a>
+            </p>
+            <p className={styles.contactDetail}>
+              <strong>Support:</strong> 
+              <Link href="/faq" className={styles.contactLink}>Visit Help Center</Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Column 8: Legal & Important */}
+        <div className={styles.footerSection}>
+          <h3 className={styles.sectionTitle}>Company Info</h3>
+          <ul className={styles.links}>
+            <li><Link href="/about" title="About Stylr SA mission and story">About Stylr SA</Link></li>
+            <li><Link href="/terms" title="Terms of service and usage">Terms of Service</Link></li>
+            <li><Link href="/privacy" title="Privacy policy and data protection">Privacy Policy</Link></li>
+            <li><Link href="/cookie-policy" title="Cookie usage and settings">Cookie Policy</Link></li>
+            <li><Link href="/partner-guidelines" title="Guidelines for salon partners">Partner Guidelines</Link></li>
+            <li><Link href="/safety-security" title="Safety and security information">Safety & Security</Link></li>
+            <li><Link href="/accessibility" title="Accessibility information">Accessibility</Link></li>
+            <li><Link href="/blog" title="Stylr SA blog with beauty tips and trends">Blog</Link></li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Featured Articles Bar */}
+      <div className={styles.featuredArticlesBar}>
+        <h4 className={styles.featuredTitle}>📰 Popular Articles</h4>
+        <div className={styles.featuredLinks}>
+          <Link href="/blog/protective-hairstyles-guide" className={styles.featuredLink} title="Complete protective hairstyles guide">Knotless Braids Guide</Link>
+          <Link href="/blog/cape-town-nail-trends" className={styles.featuredLink} title="Cape Town nail trends">Cape Town Nail Trends</Link>
+          <Link href="/blog/mens-grooming-durban" className={styles.featuredLink" title="Durban men's grooming">Durban Barber Guide</Link>
+          <Link href="/blog/wedding-makeup-artist" className={styles.featuredLink" title="Wedding makeup tips">Wedding Makeup Tips</Link>
+          <Link href="/blog/highveld-skincare-guide" className={styles.featuredLink" title="Highveld skincare guide">Highveld Skincare</Link>
+          <Link href="/blog/monthly-massage-benefits" className={styles.featuredLink" title="Massage benefits">Monthly Massage Benefits</Link>
+          <Link href="/blog/verified-reviews-importance" className={styles.featuredLink" title="Importance of verified reviews">Verified Reviews</Link>
+          <Link href="/blog/local-beauty-products" className={styles.featuredLink" title="Local SA beauty products">Local Beauty Products</Link>
         </div>
       </div>
       
