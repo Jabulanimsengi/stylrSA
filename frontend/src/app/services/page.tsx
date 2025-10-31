@@ -41,6 +41,7 @@ function ServicesPageContent() {
   const socket = useSocket();
   const requestControllerRef = useRef<AbortController | null>(null);
   const latestRequestIdRef = useRef(0);
+  const isFetchingRef = useRef(false);
 
   const derivedFilters = useMemo<FilterValues>(() => ({
     province: params.get("province") ?? "",
@@ -58,12 +59,19 @@ function ServicesPageContent() {
   const activeFiltersKey = useMemo(() => filtersToKey(activeFilters), [activeFilters]);
 
   const fetchServices = useCallback(async (filtersToUse: FilterValues) => {
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) {
+      console.log('[ServicesPage] Fetch already in progress, skipping');
+      return;
+    }
+
     requestControllerRef.current?.abort();
     const controller = new AbortController();
     requestControllerRef.current = controller;
     const requestId = ++latestRequestIdRef.current;
 
     console.log('[ServicesPage] Fetching with filters:', filtersToUse);
+    isFetchingRef.current = true;
     setIsLoading(true);
     try {
       const query = new URLSearchParams();
@@ -109,19 +117,26 @@ function ServicesPageContent() {
       if (requestId === latestRequestIdRef.current) {
         setIsLoading(false);
         requestControllerRef.current = null;
+        isFetchingRef.current = false;
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    setActiveFilters(derivedFilters);
-  }, [derivedFilters]);
+    const newKey = filtersToKey(derivedFilters);
+    const currentKey = filtersToKey(activeFilters);
+    
+    // Only update if filters actually changed
+    if (newKey !== currentKey) {
+      setActiveFilters(derivedFilters);
+    }
+  }, [derivedFilters, activeFilters]);
 
   useEffect(() => {
     void fetchServices(activeFilters);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFilters]);
+  }, [activeFiltersKey]); // Use the memoized key instead of the object
 
   useEffect(() => {
     if (!socket) return;
@@ -129,7 +144,7 @@ function ServicesPageContent() {
     socket.on('visibility:updated', handler);
     return () => { socket.off('visibility:updated', handler); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, activeFilters]);
+  }, [socket, activeFiltersKey]); // Use the memoized key to prevent unnecessary re-subscriptions
 
   const handleSearch = (nextFilters: FilterValues) => {
     const nextKey = filtersToKey(nextFilters);
@@ -242,32 +257,36 @@ function ServicesPageContent() {
       )}
 
       <div className={styles.resultsShell}>
-        {isLoading ? (
-          services.length === 0 ? (
-            <SkeletonGroup count={6} className={styles.servicesGrid}>
-              {() => <SkeletonCard hasImage lines={3} />}
-            </SkeletonGroup>
-          ) : (
-            <div className={styles.loadingState}>
-              <LoadingSpinner />
-            </div>
-          )
+        {isLoading && services.length === 0 ? (
+          // Initial load - show skeletons
+          <SkeletonGroup count={6} className={styles.servicesGrid}>
+            {() => <SkeletonCard hasImage lines={3} />}
+          </SkeletonGroup>
         ) : services.length === 0 ? (
+          // No results found
           <div className={styles.emptyState}>
             <h2>No services found</h2>
             <p>Try adjusting your filters or exploring other categories.</p>
           </div>
         ) : (
-          <div className={styles.servicesGrid}>
-            {services.map((service) => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                onBook={handleBookService}
-                onImageClick={handleOpenLightbox}
-              />
-            ))}
-          </div>
+          // Show services with optional loading overlay
+          <>
+            <div className={styles.servicesGrid} style={{ opacity: isLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
+              {services.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  onBook={handleBookService}
+                  onImageClick={handleOpenLightbox}
+                />
+              ))}
+            </div>
+            {isLoading && (
+              <div className={styles.loadingOverlay}>
+                <LoadingSpinner />
+              </div>
+            )}
+          </>
         )}
       </div>
 
