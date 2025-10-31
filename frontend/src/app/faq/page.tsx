@@ -1,5 +1,3 @@
-'use client';
-
 import { Metadata } from 'next';
 import styles from '../info-page.module.css';
 import PageNav from '@/components/PageNav';
