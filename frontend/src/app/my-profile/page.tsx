@@ -73,9 +73,16 @@ export default function MyProfilePage() {
         throw new Error('Failed to update profile');
       }
 
-      toast.success('Profile updated successfully!');
+      const updatedData = await res.json();
+      setProfile(updatedData);
+      
+      // Enhanced success notification
+      toast.success(
+        `✅ Profile updated successfully!\n👤 Your changes have been saved.`,
+        { autoClose: 4000 }
+      );
     } catch (error) {
-      toast.error('Failed to update profile. Please try again.');
+      toast.error('❌ Failed to update profile. Please try again.');
     } finally {
       setIsSaving(false);
     }

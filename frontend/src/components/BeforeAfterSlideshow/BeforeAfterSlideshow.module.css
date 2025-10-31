@@ -9,7 +9,7 @@
   font-weight: 600;
   margin-bottom: clamp(1rem, 3vw, 1.75rem);
   color: var(--color-text-strong);
-  text-align: center;
+  text-align: left;
   padding: 0 1.5rem;
   max-width: 1280px;
   margin-left: auto;

@@ -279,7 +279,13 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       }
 
       const updatedSalon = await res.json();
-      toast.success('Salon profile updated!');
+      
+      // Enhanced success notification
+      toast.success(
+        `✅ Salon profile updated successfully!\n💼 Your changes have been saved and are now live.`,
+        { autoClose: 4000 }
+      );
+      
       onSalonUpdate(updatedSalon);
       onClose();
 

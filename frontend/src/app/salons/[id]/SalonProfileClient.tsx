@@ -672,7 +672,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
                   {beforeAfterPhotos.length > 0 && (
                     <>
-                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '2rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Before & After Transformations</h3>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '2rem', marginBottom: '1rem', color: 'var(--color-text)', textAlign: 'left' }}>Before & After Transformations</h3>
                       <div className={styles.galleryGrid}>
                         {beforeAfterPhotos.map((photo) => (
                           <div 

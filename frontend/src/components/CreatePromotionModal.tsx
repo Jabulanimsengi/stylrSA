@@ -63,7 +63,12 @@ export default function CreatePromotionModal({
         throw new Error(errorData.message || 'Failed to create promotion');
       }
 
-      toast.success('Promotion created! Awaiting admin approval.');
+      // Enhanced toast notification with clear messaging
+      toast.success(
+        `🎉 Promotion created successfully!\n⏳ Your promotion is pending admin approval and will be active once approved.`,
+        { autoClose: 5000 }
+      );
+      
       onSuccess?.();
       onClose();
     } catch (error) {

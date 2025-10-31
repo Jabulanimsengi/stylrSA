@@ -101,7 +101,20 @@ export default function ProductFormModal({ onClose, onProductAdded, initialData,
       });
 
       const savedProduct = await apiJson(apiEndpoint, { method, headers: { 'Content-Type': 'application/json' }, body });
-      toast.success(`Product ${isEditMode ? 'update submitted' : 'created and submitted'} for approval.`);
+      
+      // Enhanced toast notification with clear messaging
+      if (isEditMode) {
+        toast.success(
+          `✅ Product updated successfully!\n📋 Your changes will be reviewed by an admin before going live.`,
+          { autoClose: 5000 }
+        );
+      } else {
+        toast.success(
+          `🎉 Product created successfully!\n⏳ Your product is pending admin approval and will be visible once approved.`,
+          { autoClose: 5000 }
+        );
+      }
+      
       onProductAdded(savedProduct); // FIX: Use correct prop name
       filePreviews.forEach((preview) => URL.revokeObjectURL(preview));
       setFilePreviews([]);

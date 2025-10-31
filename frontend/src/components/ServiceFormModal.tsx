@@ -196,7 +196,20 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceData),
       });
-      toast.success(`Service ${initialService ? 'updated' : 'added'} successfully! It will be reviewed by an admin.`);
+      
+      // Enhanced toast notification with clear messaging
+      if (initialService) {
+        toast.success(
+          `✅ Service updated successfully!\n📋 Your changes will be reviewed by an admin before going live.`,
+          { autoClose: 5000 }
+        );
+      } else {
+        toast.success(
+          `🎉 Service added successfully!\n⏳ Your service is pending admin approval and will be visible once approved.`,
+          { autoClose: 5000 }
+        );
+      }
+      
       // Fire any provided callback name for backwards compatibility
       onServiceAddedOrUpdated?.(savedService);
       (typeof (onServiceSaved) === 'function') && onServiceSaved(savedService);
