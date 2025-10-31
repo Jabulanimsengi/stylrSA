@@ -10,10 +10,7 @@
   margin-bottom: clamp(1rem, 3vw, 1.75rem);
   color: var(--color-text-strong);
   text-align: left;
-  padding: 0 1.5rem;
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
+  padding: 0 clamp(1rem, 5vw, 2rem);
 }
 
 /* Container with navigation */
@@ -320,9 +317,8 @@
   }
 
   .sectionTitle {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     margin-bottom: 1rem;
-    padding: 0 1rem;
   }
 
   .card {
