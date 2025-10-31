@@ -70,21 +70,35 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const existingImages = watch('images');
 
   useEffect(() => {
     let cancelled = false;
+    setIsLoadingCategories(true);
     getCategoriesCached()
       .then((data) => {
         if (!cancelled) {
-          setCategories(data);
+          console.log('[ServiceFormModal] Categories loaded:', data);
+          if (!data || data.length === 0) {
+            console.warn('[ServiceFormModal] No categories found in database');
+            toast.warning('No service categories found. Please contact admin to set up categories.');
+          }
+          setCategories(data || []);
         }
       })
       .catch((error) => {
         if (!cancelled) {
+          console.error('[ServiceFormModal] Failed to load categories:', error);
           toast.error(toFriendlyMessage(error, 'Failed to load service categories.'));
+          setCategories([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingCategories(false);
         }
       });
     return () => {
@@ -237,13 +251,27 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
                         id="categoryId"
                         {...register('categoryId', { required: 'Please select a category' })}
                         className={styles.select}
+                        disabled={isLoadingCategories}
                     >
-                        <option value="">Select a category...</option>
-                        {categories.map(cat => (
-                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
+                        {isLoadingCategories ? (
+                          <option value="">Loading categories...</option>
+                        ) : categories.length === 0 ? (
+                          <option value="">No categories available</option>
+                        ) : (
+                          <>
+                            <option value="">Select a category...</option>
+                            {categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                          </>
+                        )}
                     </select>
                     {errors.categoryId && <p className={styles.errorMessage}>{errors.categoryId.message}</p>}
+                    {!isLoadingCategories && categories.length === 0 && (
+                      <p className={styles.errorMessage} style={{ marginTop: '0.5rem' }}>
+                        No categories found. Please run database seeding or contact support.
+                      </p>
+                    )}
                 </div>
             </div>
 
