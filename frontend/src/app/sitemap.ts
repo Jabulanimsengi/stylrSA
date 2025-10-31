@@ -16,6 +16,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/faq`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/advice`, changeFrequency: 'weekly', priority: 0.5 },
     { url: `${siteUrl}/blog`, changeFrequency: 'weekly', priority: 0.5 },
+    
+    // Blog articles - HIGH SEO VALUE
+    { url: `${siteUrl}/blog/protective-hairstyles-guide`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${siteUrl}/blog/cape-town-nail-trends`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${siteUrl}/blog/mens-grooming-durban`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${siteUrl}/blog/wedding-makeup-artist`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${siteUrl}/blog/highveld-skincare-guide`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${siteUrl}/blog/monthly-massage-benefits`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/stylr-promotions-guide`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/verified-reviews-importance`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/local-beauty-products`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/matric-dance-prep`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/careers`, changeFrequency: 'monthly', priority: 0.4 },
   ];
 

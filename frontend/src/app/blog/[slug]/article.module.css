@@ -1,0 +1,409 @@
+.articlePage {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+}
+
+.articleHeader {
+  margin-bottom: 3rem;
+}
+
+.breadcrumb {
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb a {
+  color: var(--primary-purple);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+  color: var(--primary-pink);
+}
+
+.articleMeta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.category {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  background: linear-gradient(90deg, var(--primary-pink-light), var(--primary-purple-light));
+  color: white;
+}
+
+.category.hair-braids {
+  background: linear-gradient(90deg, #8B4513, #D2691E);
+}
+
+.category.nail-care-trends {
+  background: linear-gradient(90deg, #FF69B4, #FFB6C1);
+}
+
+.category.mens-grooming {
+  background: linear-gradient(90deg, #2E8B57, #3CB371);
+}
+
+.category.makeup-special-events {
+  background: linear-gradient(90deg, #8A2BE2, #9370DB);
+}
+
+.category.skincare-wellness {
+  background: linear-gradient(90deg, #4169E1, #1E90FF);
+}
+
+.category.massage-wellness {
+  background: linear-gradient(90deg, #20B2AA, #48D1CC);
+}
+
+.category.platform-feature-guide {
+  background: linear-gradient(90deg, #FF6347, #FF7F50);
+}
+
+.category.ecommerce-products {
+  background: linear-gradient(90deg, #008B8B, #20B2AA);
+}
+
+.category.seasonal-events {
+  background: linear-gradient(90deg, #FF1493, #FF69B4);
+}
+
+.readTime {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.articleTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0 0 1.5rem;
+  color: var(--text-primary);
+}
+
+.articleDescription {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.articleContent {
+  margin-bottom: 4rem;
+}
+
+.contentSection {
+  margin-bottom: 2.5rem;
+}
+
+.sectionHeading {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+}
+
+.sectionContent {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.sectionContent p {
+  margin: 0 0 1.5rem;
+}
+
+.sectionContent p:last-child {
+  margin-bottom: 0;
+}
+
+.relatedArticles {
+  margin-bottom: 4rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--border-primary);
+}
+
+.relatedTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 2rem;
+  color: var(--text-primary);
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.relatedCard {
+  background: var(--background-white);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.relatedCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-purple);
+}
+
+.cardLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ribbonContent {
+  padding: 1.5rem;
+}
+
+.ribbonTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ribbonDescription {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ribbonMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ribbonCategory {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary-pink);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ribbonReadTime {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.ctaSection {
+  background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-darker) 100%);
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  margin: 4rem 0;
+  border: 1px solid var(--border-secondary);
+}
+
+.ctaContent {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 1rem;
+}
+
+.ctaDescription {
+  font-size: 1.1rem;
+  color: var(--text-inverse-secondary);
+  line-height: 1.6;
+  margin: 0 0 2rem;
+}
+
+.ctaButton {
+  display: inline-block;
+  background: linear-gradient(90deg, var(--primary-pink), var(--primary-purple));
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ctaButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode styles */
+[data-theme='dark'] .articlePage {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .articleTitle,
+[data-theme='dark'] .sectionHeading,
+[data-theme='dark'] .relatedTitle,
+[data-theme='dark'] .ribbonTitle {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .articleDescription,
+[data-theme='dark'] .sectionContent,
+[data-theme='dark'] .ribbonDescription {
+  color: var(--text-secondary);
+}
+
+[data-theme='dark'] .relatedCard {
+  background-color: var(--background-dark);
+  border-color: var(--border-primary);
+}
+
+[data-theme='dark'] .relatedArticles {
+  border-color: var(--border-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .articlePage {
+    padding: 1.5rem 1rem;
+  }
+  
+  .articleTitle {
+    font-size: 2rem;
+  }
+  
+  .articleDescription {
+    font-size: 1.1rem;
+  }
+  
+  .sectionHeading {
+    font-size: 1.5rem;
+  }
+  
+  .sectionContent {
+    font-size: 1rem;
+  }
+  
+  .relatedGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .relatedTitle {
+    font-size: 1.75rem;
+  }
+  
+  .ctaSection {
+    padding: 2rem 1.5rem;
+    margin: 3rem 0;
+  }
+  
+  .ctaTitle {
+    font-size: 1.75rem;
+  }
+  
+  .ctaDescription {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .articleTitle {
+    font-size: 1.75rem;
+  }
+  
+  .articleDescription {
+    font-size: 1rem;
+  }
+  
+  .sectionHeading {
+    font-size: 1.375rem;
+  }
+  
+  .sectionContent {
+    font-size: 0.95rem;
+  }
+  
+  .ribbonContent {
+    padding: 1.25rem;
+  }
+  
+  .ribbonTitle {
+    font-size: 1rem;
+  }
+  
+  .ribbonDescription {
+    font-size: 0.875rem;
+  }
+  
+  .ctaTitle {
+    font-size: 1.5rem;
+  }
+  
+  .ctaButton {
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .articleTitle {
+    font-size: 1.5rem;
+  }
+  
+  .articleDescription {
+    font-size: 0.9375rem;
+  }
+  
+  .sectionHeading {
+    font-size: 1.25rem;
+  }
+  
+  .sectionContent {
+    font-size: 0.875rem;
+  }
+  
+  .ribbonTitle {
+    font-size: 0.9375rem;
+  }
+  
+  .ribbonDescription {
+    font-size: 0.8125rem;
+  }
+  
+  .ctaTitle {
+    font-size: 1.375rem;
+  }
+  
+  .ctaButton {
+    font-size: 0.9375rem;
+    padding: 0.75rem 1.25rem;
+  }
+}

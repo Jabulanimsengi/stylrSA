@@ -48,6 +48,28 @@ export default function Footer() {
         </div>
 
         <div className={styles.footerSection}>
+          <h3 className={styles.sectionTitle}>Featured Articles</h3>
+          <ul className={styles.links}>
+            <li><Link href="/blog/protective-hairstyles-guide" title="Complete guide to knotless braids, box braids, and protective styles in South Africa">Protective Hairstyles Guide</Link></li>
+            <li><Link href="/blog/cape-town-nail-trends" title="10 hottest nail trends in Cape Town from glazed donut to aura nails">Cape Town Nail Trends</Link></li>
+            <li><Link href="/blog/mens-grooming-durban" title="Modern barbering guide: fades, beard sculpting, and hot towel shaves in Durban">Men's Grooming Guide</Link></li>
+            <li><Link href="/blog/wedding-makeup-artist" title="How to find the perfect makeup artist for weddings and matric dances in Gauteng">Wedding Makeup Tips</Link></li>
+            <li><Link href="/blog/highveld-skincare-guide" title="Beat dry Highveld air with hydration tips and treatments for glowing skin">Highveld Skincare</Link></li>
+          </ul>
+        </div>
+
+        <div className={styles.footerSection}>
+          <h3 className={styles.sectionTitle}>Beauty & Wellness</h3>
+          <ul className={styles.links}>
+            <li><Link href="/blog/monthly-massage-benefits" title="Physical and mental health benefits of regular massage therapy">Monthly Massage Benefits</Link></li>
+            <li><Link href="/blog/stylr-promotions-guide" title="How to find and use special deals and promotions on Stylr SA">Using Promotions</Link></li>
+            <li><Link href="/blog/verified-reviews-importance" title="Why verified reviews matter and how to book with confidence">Verified Reviews</Link></li>
+            <li><Link href="/blog/local-beauty-products" title="5 must-have South African beauty products to support local businesses">Local Beauty Products</Link></li>
+            <li><Link href="/blog/matric-dance-prep" title="Ultimate Matric dance preparation checklist for hair, nails, and makeup">Matric Dance Prep</Link></li>
+          </ul>
+        </div>
+
+        <div className={styles.footerSection}>
           <h3 className={styles.sectionTitle}>Contact</h3>
           <ul className={styles.links}>
             <li>
