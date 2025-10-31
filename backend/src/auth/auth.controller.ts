@@ -44,11 +44,13 @@ export class AuthController {
     // Corrected 'access_token' to 'accessToken' to match the service's return object
     const { accessToken, user } = await this.authService.login(dto);
     const isProduction = process.env.NODE_ENV === 'production';
+    // Only set cookie domain in production to avoid localhost issues
+    const cookieDomain = isProduction ? process.env.COOKIE_DOMAIN : undefined;
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax' as any,
-      domain: process.env.COOKIE_DOMAIN || undefined,
+      domain: cookieDomain,
       maxAge: 1000 * 60 * 60 * 24, // 1 day in milliseconds
       path: '/',
     });
@@ -64,11 +66,13 @@ export class AuthController {
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     const isProduction = process.env.NODE_ENV === 'production';
+    // Only set cookie domain in production to avoid localhost issues
+    const cookieDomain = isProduction ? process.env.COOKIE_DOMAIN : undefined;
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax' as any,
-      domain: process.env.COOKIE_DOMAIN || undefined,
+      domain: cookieDomain,
       path: '/',
     });
     return { message: 'Logout successful' };

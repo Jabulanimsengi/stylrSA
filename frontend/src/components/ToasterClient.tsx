@@ -2,10 +2,18 @@
 
 import { ToastContainer } from 'react-toastify';
 import ToastCloseButton from '@/components/ToastCloseButton';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ToasterClient() {
+  const { user } = useAuth();
+  
+  // Force re-mount when user changes to prevent DOM cleanup issues
+  // This fixes the "removeChild" error in development mode
+  const containerKey = user?.id || 'anonymous';
+  
   return (
     <ToastContainer
+      key={containerKey}
       position="bottom-right"
       theme="light"
       autoClose={5000}

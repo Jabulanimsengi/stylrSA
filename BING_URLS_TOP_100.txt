@@ -1,0 +1,127 @@
+# Top 100 Priority URLs for Bing Webmaster Tools
+# Copy and paste these into Bing URL Submission tool
+# Priority order: Highest priority first
+
+# === CORE PAGES (Priority 1.0 - 0.9) ===
+https://www.stylrsa.co.za/
+https://www.stylrsa.co.za/salons
+https://www.stylrsa.co.za/services
+
+# === SERVICE CATEGORY PAGES (Priority 0.9) - CRITICAL FOR SEO ===
+https://www.stylrsa.co.za/services/braiding-weaving
+https://www.stylrsa.co.za/services/nail-care
+https://www.stylrsa.co.za/services/makeup-beauty
+https://www.stylrsa.co.za/services/massage-body-treatments
+https://www.stylrsa.co.za/services/skin-care-facials
+https://www.stylrsa.co.za/services/waxing-hair-removal
+https://www.stylrsa.co.za/services/haircuts-styling
+https://www.stylrsa.co.za/services/hair-color-treatments
+https://www.stylrsa.co.za/services/mens-grooming
+https://www.stylrsa.co.za/services/bridal-services
+
+# === LOCATION PAGES (Priority 0.85-0.8) - LOCAL SEO ===
+https://www.stylrsa.co.za/salons/location/gauteng
+https://www.stylrsa.co.za/salons/location/western-cape
+https://www.stylrsa.co.za/salons/location/kwazulu-natal
+https://www.stylrsa.co.za/salons/location/eastern-cape
+https://www.stylrsa.co.za/salons/location/mpumalanga
+https://www.stylrsa.co.za/salons/location/limpopo
+https://www.stylrsa.co.za/salons/location/north-west
+https://www.stylrsa.co.za/salons/location/free-state
+https://www.stylrsa.co.za/salons/location/northern-cape
+
+# === PRODUCTS & PRICING (Priority 0.8-0.7) ===
+https://www.stylrsa.co.za/products
+https://www.stylrsa.co.za/prices
+
+# === INFORMATIONAL PAGES (Priority 0.6-0.5) ===
+https://www.stylrsa.co.za/about
+https://www.stylrsa.co.za/contact
+https://www.stylrsa.co.za/how-it-works
+https://www.stylrsa.co.za/faq
+https://www.stylrsa.co.za/advice
+https://www.stylrsa.co.za/blog
+https://www.stylrsa.co.za/careers
+
+# === MAJOR CITY VARIATIONS (High Search Volume) ===
+# Johannesburg
+https://www.stylrsa.co.za/salons?city=Johannesburg&province=Gauteng
+https://www.stylrsa.co.za/services?city=Johannesburg&province=Gauteng
+https://www.stylrsa.co.za/services/braiding-weaving?city=Johannesburg
+https://www.stylrsa.co.za/services/nail-care?city=Johannesburg
+https://www.stylrsa.co.za/services/makeup-beauty?city=Johannesburg
+https://www.stylrsa.co.za/services/haircuts-styling?city=Johannesburg
+
+# Cape Town
+https://www.stylrsa.co.za/salons?city=Cape%20Town&province=Western%20Cape
+https://www.stylrsa.co.za/services?city=Cape%20Town&province=Western%20Cape
+https://www.stylrsa.co.za/services/braiding-weaving?city=Cape%20Town
+https://www.stylrsa.co.za/services/nail-care?city=Cape%20Town
+https://www.stylrsa.co.za/services/makeup-beauty?city=Cape%20Town
+https://www.stylrsa.co.za/services/haircuts-styling?city=Cape%20Town
+
+# Durban
+https://www.stylrsa.co.za/salons?city=Durban&province=KwaZulu-Natal
+https://www.stylrsa.co.za/services?city=Durban&province=KwaZulu-Natal
+https://www.stylrsa.co.za/services/braiding-weaving?city=Durban
+https://www.stylrsa.co.za/services/nail-care?city=Durban
+https://www.stylrsa.co.za/services/makeup-beauty?city=Durban
+https://www.stylrsa.co.za/services/haircuts-styling?city=Durban
+
+# Pretoria
+https://www.stylrsa.co.za/salons?city=Pretoria&province=Gauteng
+https://www.stylrsa.co.za/services?city=Pretoria&province=Gauteng
+https://www.stylrsa.co.za/services/braiding-weaving?city=Pretoria
+https://www.stylrsa.co.za/services/nail-care?city=Pretoria
+https://www.stylrsa.co.za/services/makeup-beauty?city=Pretoria
+https://www.stylrsa.co.za/services/haircuts-styling?city=Pretoria
+
+# Port Elizabeth (Gqeberha)
+https://www.stylrsa.co.za/salons?city=Port%20Elizabeth&province=Eastern%20Cape
+https://www.stylrsa.co.za/services?city=Port%20Elizabeth&province=Eastern%20Cape
+https://www.stylrsa.co.za/services/braiding-weaving?city=Port%20Elizabeth
+https://www.stylrsa.co.za/services/nail-care?city=Port%20Elizabeth
+
+# Bloemfontein
+https://www.stylrsa.co.za/salons?city=Bloemfontein&province=Free%20State
+https://www.stylrsa.co.za/services?city=Bloemfontein&province=Free%20State
+https://www.stylrsa.co.za/services/braiding-weaving?city=Bloemfontein
+https://www.stylrsa.co.za/services/nail-care?city=Bloemfontein
+
+# Nelspruit (Mbombela)
+https://www.stylrsa.co.za/salons?city=Nelspruit&province=Mpumalanga
+https://www.stylrsa.co.za/services?city=Nelspruit&province=Mpumalanga
+https://www.stylrsa.co.za/services/braiding-weaving?city=Nelspruit
+https://www.stylrsa.co.za/services/nail-care?city=Nelspruit
+
+# Polokwane
+https://www.stylrsa.co.za/salons?city=Polokwane&province=Limpopo
+https://www.stylrsa.co.za/services?city=Polokwane&province=Limpopo
+https://www.stylrsa.co.za/services/braiding-weaving?city=Polokwane
+https://www.stylrsa.co.za/services/nail-care?city=Polokwane
+
+# Rustenburg
+https://www.stylrsa.co.za/salons?city=Rustenburg&province=North%20West
+https://www.stylrsa.co.za/services?city=Rustenburg&province=North%20West
+https://www.stylrsa.co.za/services/braiding-weaving?city=Rustenburg
+
+# Kimberley
+https://www.stylrsa.co.za/salons?city=Kimberley&province=Northern%20Cape
+https://www.stylrsa.co.za/services?city=Kimberley&province=Northern%20Cape
+
+# === COMBINATION SEARCHES (High Conversion) ===
+https://www.stylrsa.co.za/services/braiding-weaving?province=Gauteng
+https://www.stylrsa.co.za/services/nail-care?province=Gauteng
+https://www.stylrsa.co.za/services/makeup-beauty?province=Western%20Cape
+https://www.stylrsa.co.za/services/haircuts-styling?province=Western%20Cape
+https://www.stylrsa.co.za/services/mens-grooming?province=Gauteng
+https://www.stylrsa.co.za/services/bridal-services?province=Western%20Cape
+https://www.stylrsa.co.za/services/massage-body-treatments?province=Gauteng
+
+# === NEAR ME SEARCHES (Mobile Friendly) ===
+https://www.stylrsa.co.za/salons?openNow=true
+https://www.stylrsa.co.za/services?openNow=true
+https://www.stylrsa.co.za/services/braiding-weaving?openNow=true
+https://www.stylrsa.co.za/services/nail-care?openNow=true
+
+# Total: 100 URLs (optimized for Bing's limit)

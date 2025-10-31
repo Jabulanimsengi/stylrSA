@@ -9,6 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing token' }, { status: 400 });
     }
     const isProduction = process.env.NODE_ENV === 'production';
+    // Don't set domain in development to avoid localhost issues
     cookies().set('access_token', token, {
       httpOnly: true,
       sameSite: 'lax',

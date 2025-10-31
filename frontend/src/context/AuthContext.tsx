@@ -27,6 +27,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const verifyUser = useCallback(async () => {
     if (verifyingRef.current) return;
+    
+    // Skip verification if user just logged in - trust the login response
+    // Check BEFORE setting verifyingRef to avoid clearing the flag prematurely
+    if (justLoggedInRef.current) {
+      return;
+    }
+    
     verifyingRef.current = true;
 
     try {
@@ -46,13 +53,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             body: JSON.stringify({ token: backendJwt }),
           });
         } catch {}
-      }
-
-      // Skip verification if user just logged in - trust the login response
-      if (justLoggedInRef.current) {
-        justLoggedInRef.current = false;
-        verifyingRef.current = false;
-        return;
       }
 
       // Primary: cookie-based status check with cache-busting
@@ -104,8 +104,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // The backend already validated credentials and set the cookie
     setUser(userData);
     setAuthStatus('authenticated');
-    // Mark that we just logged in so verifyUser doesn't run immediately
+    // Mark that we just logged in so verifyUser doesn't run
+    // This flag persists until logout or page refresh
     justLoggedInRef.current = true;
+    
+    // Clear the flag after a short delay to allow normal verification on next page load
+    // But keep it long enough to prevent immediate re-verification from sessionStatus changes
+    setTimeout(() => {
+      justLoggedInRef.current = false;
+    }, 2000); // 2 seconds should be enough for the auth flow to stabilize
   }, []);
 
   const logout = useCallback(() => {

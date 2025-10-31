@@ -50,13 +50,15 @@ const handler = NextAuth({
             // Attach backend JWT as httpOnly cookie for API rewrites
             try {
               const isProduction = process.env.NODE_ENV === 'production';
-              cookies().set('access_token', String(data.jwt), {
+              // Don't set domain in development to avoid localhost issues
+              const cookieOptions: any = {
                 httpOnly: true,
                 sameSite: 'lax',
                 secure: isProduction,
                 path: '/',
                 maxAge: 60 * 60 * 24, // 1 day in seconds
-              });
+              };
+              cookies().set('access_token', String(data.jwt), cookieOptions);
             } catch {}
           }
         } catch {
