@@ -98,7 +98,7 @@ function ServiceCategoryContent() {
   const [showBookingConfirmation, setShowBookingConfirmation] = useState(false);
   const [pendingBookingService, setPendingBookingService] = useState<Service | null>(null);
   const [pendingSalon, setPendingSalon] = useState<Salon | null>(null);
-  const [categoryName, setCategoryName] = useState<string>("");
+  const [categoryName, setCategoryName] = useState<string | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { startConversation } = useStartConversation();
   const { authStatus } = useAuth();
@@ -152,16 +152,15 @@ function ServiceCategoryContent() {
           } else {
             console.error('[ServiceCategory] No category match found at all');
             toast.error(`Category "${categorySlug}" not found. Showing all services.`);
-            // Set to empty to allow page to load with all services
+            // Set to empty string to trigger fetch with all services
             setCategoryName('');
-            setIsLoading(false);
           }
         }
       } catch (error) {
         console.error('[ServiceCategory] Failed to fetch category name:', error);
         toast.error('Failed to load category. Please try again.');
+        // Set to empty string to trigger fetch with all services
         setCategoryName('');
-        setIsLoading(false);
       }
     };
     fetchCategoryName();
@@ -174,7 +173,7 @@ function ServiceCategoryContent() {
     content: 'Discover professional beauty services from top-rated salons across South Africa.'
   };
 
-  const fetchServices = useCallback(async (additionalFilters: FilterValues) => {
+  const fetchServices = useCallback(async (catName: string, additionalFilters: FilterValues) => {
     requestControllerRef.current?.abort();
     const controller = new AbortController();
     requestControllerRef.current = controller;
@@ -185,8 +184,11 @@ function ServiceCategoryContent() {
       const query = new URLSearchParams();
       
       // Only add category if we have a categoryName
-      if (categoryName) {
-        query.append("category", categoryName);
+      if (catName && catName.trim()) {
+        query.append("category", catName);
+        console.log('[ServiceCategory] Searching with category:', catName);
+      } else {
+        console.log('[ServiceCategory] No category - showing all services');
       }
       
       if (additionalFilters.province) query.append("province", additionalFilters.province);
@@ -226,25 +228,14 @@ function ServiceCategoryContent() {
         requestControllerRef.current = null;
       }
     }
-  }, [categoryName]);
+  }, []); // No dependencies - function is stable
 
-  // Track if we've attempted to load the category
-  const [categoryLoadAttempted, setCategoryLoadAttempted] = useState(false);
-  
+  // Fetch services when categoryName is resolved
   useEffect(() => {
-    // Wait a bit for category name to be resolved, but don't wait forever
-    const timer = setTimeout(() => {
-      setCategoryLoadAttempted(true);
-    }, 2000); // Give 2 seconds for category to load
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    // Fetch services once we have categoryName OR after we've waited long enough
-    if (categoryName || categoryLoadAttempted) {
-      console.log('[ServiceCategory] Triggering fetch with categoryName:', categoryName);
-      fetchServices({
+    // Don't fetch until category resolution is complete (or failed with empty string)
+    if (categoryName !== null) {
+      console.log('[ServiceCategory] Category resolved, fetching with:', categoryName || 'ALL SERVICES');
+      fetchServices(categoryName, {
         province: "",
         city: "",
         service: "",
@@ -256,31 +247,31 @@ function ServiceCategoryContent() {
         priceMax: "",
       });
     }
-  }, [categoryName, categoryLoadAttempted, fetchServices]);
+  }, [categoryName]); // Only categoryName dependency - fetchServices is stable
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || categoryName === null) return;
     const handler = () => { 
-      if (categoryName) {
-        fetchServices({
-          province: "",
-          city: "",
-          service: "",
-          category: categoryName,
-          offersMobile: false,
-          sortBy: "",
-          openNow: false,
-          priceMin: "",
-          priceMax: "",
-        });
-      }
+      console.log('[ServiceCategory] Socket visibility update, re-fetching');
+      fetchServices(categoryName, {
+        province: "",
+        city: "",
+        service: "",
+        category: categoryName,
+        offersMobile: false,
+        sortBy: "",
+        openNow: false,
+        priceMin: "",
+        priceMax: "",
+      });
     };
     socket.on('visibility:updated', handler);
     return () => { socket.off('visibility:updated', handler); };
-  }, [socket, fetchServices, categoryName]);
+  }, [socket, categoryName]); // fetchServices is stable, only track socket and categoryName
 
   const handleSearch = (nextFilters: FilterValues) => {
-    fetchServices(nextFilters);
+    console.log('[ServiceCategory] Manual search triggered with filters:', nextFilters);
+    fetchServices(categoryName || '', nextFilters);
   };
 
   useEffect(() => {
