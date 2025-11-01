@@ -101,6 +101,11 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
     }
   };
 
+  // Guard against undefined service
+  if (!service) {
+    return null;
+  }
+
   const totalCost = service.price + (isMobile && salon.mobileFee ? salon.mobileFee : 0);
   const isSubmitDisabled = isLoading || isPending;
 
@@ -114,7 +119,7 @@ export default function BookingModal({ salon, service, onClose, onBookingSuccess
 
         <div className={styles.details}>
             <p><strong>Salon:</strong> {salon.name}</p>
-            <p><strong>Service:</strong> {service.title}</p>
+            <p><strong>Service:</strong> {service.title || service.name || 'Service'}</p>
             <p><strong>Duration:</strong> {service.duration} minutes</p>
             <p><strong>Price:</strong> R{service.price.toFixed(2)}</p>
         </div>

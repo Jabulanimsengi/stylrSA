@@ -1,4 +1,4 @@
-/* Removed viewport-fixed stickyHeader; using PageNav */
+﻿/* Removed viewport-fixed stickyHeader; using PageNav */
 
 .stickyHeaderContent {
   --page-inline-padding: clamp(1.25rem, 4vw, 2.5rem);
@@ -10,6 +10,41 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.headerLeftSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.salonLogo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.logoPlaceholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary, #f51957), rgba(245, 25, 87, 0.7));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
 }
 
 .headerSpacer {
@@ -28,7 +63,7 @@
   font-weight: 700;
   color: var(--color-text-strong);
   margin: 0;
-  text-align: center;
+  text-align: left;
   flex-shrink: 0;
 }
 
@@ -993,6 +1028,16 @@
   .title {
     font-size: 0.8125rem;
     line-height: 1.2;
+  }
+  .salonLogo,
+  .logoPlaceholder {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    border-radius: 8px;
+  }
+  .headerLeftSection {
+    gap: 0.5rem;
   }
   .navButtonsContainer {
     gap: 0.3125rem;

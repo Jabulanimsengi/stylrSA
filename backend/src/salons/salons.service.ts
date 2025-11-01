@@ -345,22 +345,41 @@ export class SalonsService {
       throw new NotFoundException(`Salon with ID ${id} not found`);
     }
 
-    // Attach isLikedByCurrentUser for returned services if user is present
+    // Attach isFavorited for the salon if user is present
+    let salonWithFavorite: any = { ...salon };
     const userId: string | null = user?.id ?? null;
-    if (!userId || !Array.isArray((salon as any).services) || (salon as any).services.length === 0) {
-      return salon;
+    
+    if (userId) {
+      // Check if this salon is favorited by the user
+      const favorite = await this.prisma.favorite.findUnique({
+        where: {
+          userId_salonId: {
+            userId: userId,
+            salonId: salon.id,
+          },
+        },
+      });
+      salonWithFavorite.isFavorited = !!favorite;
+      
+      // Attach isLikedByCurrentUser for returned services if they exist
+      if (Array.isArray(salonWithFavorite.services) && salonWithFavorite.services.length > 0) {
+        const svcIds = salonWithFavorite.services.map((s: any) => s.id);
+        const liked = await this.prisma.serviceLike.findMany({
+          where: { userId, serviceId: { in: svcIds } },
+          select: { serviceId: true },
+        });
+        const likedSet = new Set(liked.map((l) => l.serviceId));
+        salonWithFavorite.services = salonWithFavorite.services.map((s: any) => ({
+          ...s,
+          isLikedByCurrentUser: likedSet.has(s.id),
+        }));
+      }
+    } else {
+      // No user logged in, set isFavorited to false
+      salonWithFavorite.isFavorited = false;
     }
-    const svcIds = (salon as any).services.map((s: any) => s.id);
-    const liked = await this.prisma.serviceLike.findMany({
-      where: { userId, serviceId: { in: svcIds } },
-      select: { serviceId: true },
-    });
-    const likedSet = new Set(liked.map((l) => l.serviceId));
-    (salon as any).services = (salon as any).services.map((s: any) => ({
-      ...s,
-      isLikedByCurrentUser: likedSet.has(s.id),
-    }));
-    return salon;
+    
+    return salonWithFavorite;
   }
 
   async update(user: any, id: string, dto: UpdateSalonDto) {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -82,6 +82,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   });
   const serviceLoadRef = useRef<HTMLDivElement | null>(null);
   const reviewLoadRef = useRef<HTMLDivElement | null>(null);
+  const [logoError, setLogoError] = useState(false);
 
   const reviews = salon?.reviews ?? EMPTY_REVIEWS;
 
@@ -558,7 +559,23 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
       <div>
         <PageNav />
         <div className={styles.stickyHeaderContent}>
-          <h1 className={styles.title}>{salon.name}</h1>
+          <div className={styles.headerLeftSection}>
+            {salon.logo && !logoError ? (
+              <Image
+                src={transformCloudinary(salon.logo, { width: 120, quality: 'auto', format: 'auto' })}
+                alt={`${salon.name} logo`}
+                className={styles.salonLogo}
+                width={60}
+                height={60}
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div className={styles.logoPlaceholder}>
+                <span>{salon.name.charAt(0).toUpperCase()}</span>
+              </div>
+            )}
+            <h1 className={styles.title}>{salon.name}</h1>
+          </div>
           <div className={styles.headerSpacer}>
             {authStatus === 'authenticated' && user?.id !== salon.ownerId && (
               <button type="button" onClick={handleSendMessageClick} className={styles.navButton} title="Message salon owner">
@@ -608,7 +625,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <div className={styles.infoContent}>
                   <p className={styles.infoLabel}>Today</p>
                   <p className={styles.infoValue}>
-                    {todayLabel}: {hoursRecord?.[todayLabel] ?? '—'}
+                    {todayLabel}: {hoursRecord?.[todayLabel] ?? 'ΓÇö'}
                   </p>
                   {hoursRecord && (
                     <button type="button" onClick={() => setShowWeek(v => !v)} className={styles.infoActionBtn}>
@@ -740,7 +757,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                               color: 'white',
                               fontSize: '20px',
                             }}>
-                              ▶
+                              Γû╢
                             </div>
                           </div>
                         ))}
@@ -830,7 +847,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                         <div key={review.id} style={{borderBottom: '1px dotted var(--color-border)', paddingBottom: '1rem', marginBottom: '1rem'}}>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                             <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
-                            <span style={{color: 'var(--accent-gold)'}}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                            <span style={{color: 'var(--accent-gold)'}}>{'Γÿà'.repeat(review.rating)}{'Γÿå'.repeat(5 - review.rating)}</span>
                           </div>
                           <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>&quot;{sanitizeText(review.comment)}&quot;</p>
                         </div>
