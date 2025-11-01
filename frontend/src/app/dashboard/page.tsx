@@ -334,8 +334,43 @@ function DashboardPageContent() {
   };
 
   const handleSalonUpdate = (updatedSalon: Salon) => {
+    console.log('📝 Dashboard received salon update:', {
+      name: updatedSalon.name,
+      logo: updatedSalon.logo,
+      backgroundImage: updatedSalon.backgroundImage
+    });
     setSalon(updatedSalon);
     setIsEditSalonModalOpen(false);
+    
+    // Force a refetch after a short delay to ensure database has committed
+    setTimeout(() => {
+      refetchSalon();
+    }, 500);
+  };
+
+  const refetchSalon = async () => {
+    if (!ownerId) return;
+    try {
+      const timestamp = Date.now();
+      const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}&_t=${timestamp}`, { 
+        credentials: 'include', 
+        cache: 'no-store' as any 
+      });
+      
+      if (salonRes.ok) {
+        const salonData = await salonRes.json();
+        if (salonData) {
+          console.log('🔄 Refetched salon data:', {
+            name: salonData.name,
+            logo: salonData.logo,
+            backgroundImage: salonData.backgroundImage
+          });
+          setSalon(salonData);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refetch salon:', error);
+    }
   };
 
   const toggleAvailability = async () => {

@@ -395,7 +395,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         heroImages: finalHeroImageUrls.map(url => url.substring(0, 100) + '...'),
       });
 
-      const res = await fetch(`/api/salons/mine?ownerId=${salon.ownerId}`, {
+      // Add cache-busting timestamp to force fresh data
+      const timestamp = Date.now();
+      const res = await fetch(`/api/salons/mine?ownerId=${salon.ownerId}&_t=${timestamp}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -418,14 +420,29 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
 
       const updatedSalon = await res.json();
       
-      // Enhanced success notification
+      // Verify logo was actually saved
+      console.log('✅ Salon updated successfully! Logo URL:', updatedSalon.logo);
+      
+      // Enhanced success notification with logo confirmation
+      const logoStatus = finalLogoUrl 
+        ? (updatedSalon.logo ? '✅ Logo saved!' : '⚠️ Logo may not have saved')
+        : '';
+      
       toast.success(
-        `✅ Salon profile updated successfully!\n💼 Your changes have been saved and are now live.`,
-        { autoClose: 4000 }
+        `✅ Salon profile updated successfully!\n💼 Your changes have been saved and are now live.\n${logoStatus}`,
+        { autoClose: 5000 }
       );
       
       onSalonUpdate(updatedSalon);
       onClose();
+      
+      // Force a small delay then trigger refetch in parent component
+      setTimeout(() => {
+        // This will help ensure cache is cleared
+        window.dispatchEvent(new CustomEvent('salon-updated', { 
+          detail: { salonId: salon.id, logo: updatedSalon.logo } 
+        }));
+      }, 100);
 
     } catch (error: any) {
       console.error('Salon update error:', error);

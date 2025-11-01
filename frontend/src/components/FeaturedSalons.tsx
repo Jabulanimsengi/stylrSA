@@ -28,13 +28,19 @@ export default function FeaturedSalons() {
   const fetchFeaturedSalons = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/salons/featured', { credentials: 'include' });
+      // Add cache-busting timestamp to force fresh data
+      const timestamp = Date.now();
+      const res = await fetch(`/api/salons/featured?_t=${timestamp}`, { 
+        credentials: 'include',
+        cache: 'no-store' as any
+      });
       if (!res.ok) {
         const errorText = await res.text();
         logger.error('Featured salons fetch failed:', { status: res.status, statusText: res.statusText, body: errorText });
         throw new Error(`Failed to fetch featured salons (${res.status}): ${errorText}`);
       }
       const data = await res.json();
+      console.log('🎯 Featured salons loaded:', data.map((s: any) => ({ name: s.name, hasLogo: !!s.logo })));
       setSalons(data);
     } catch (error) {
       logger.error('Failed to fetch featured salons:', error);
@@ -50,6 +56,19 @@ export default function FeaturedSalons() {
   useEffect(() => {
     fetchFeaturedSalons();
   }, [fetchFeaturedSalons, authStatus]);
+
+  // Listen for salon updates from EditSalonModal
+  useEffect(() => {
+    const handleSalonUpdate = (event: any) => {
+      console.log('🔄 FeaturedSalons: Salon updated event received, refetching...');
+      setTimeout(() => {
+        fetchFeaturedSalons();
+      }, 500);
+    };
+
+    window.addEventListener('salon-updated', handleSalonUpdate);
+    return () => window.removeEventListener('salon-updated', handleSalonUpdate);
+  }, [fetchFeaturedSalons]);
 
   const handleToggleFavorite = async (e: React.MouseEvent, salonId: string) => {
     e.preventDefault();

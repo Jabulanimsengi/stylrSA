@@ -79,6 +79,9 @@ function SalonsPageContent() {
     setIsLoading(true);
     const query = new URLSearchParams();
     
+    // Add cache-busting timestamp
+    query.append('_t', String(Date.now()));
+    
     let url = '/api/salons/approved';
     if (filters.province) query.append('province', filters.province);
     if (filters.city) query.append('city', filters.city);
@@ -100,9 +103,10 @@ function SalonsPageContent() {
     }
 
     try {
-      const res = await fetch(url, { credentials: 'include' });
+      const res = await fetch(url, { credentials: 'include', cache: 'no-store' as any });
       if (!res.ok) throw new Error('Failed to fetch salons');
       const data = await res.json();
+      console.log('📋 Salons loaded:', data.map((s: any) => ({ name: s.name, hasLogo: !!s.logo })));
       setSalons(data);
     } catch (error) {
       logger.error('Failed to fetch salons:', error);
@@ -133,6 +137,19 @@ function SalonsPageContent() {
       logger.debug('Geolocation error:', geoError);
     }
   }, [geoError]);
+
+  // Listen for salon updates from EditSalonModal
+  useEffect(() => {
+    const handleSalonUpdate = (event: any) => {
+      console.log('🔄 SalonsPage: Salon updated event received, refetching...');
+      setTimeout(() => {
+        fetchSalons(getInitialFilters());
+      }, 500);
+    };
+
+    window.addEventListener('salon-updated', handleSalonUpdate);
+    return () => window.removeEventListener('salon-updated', handleSalonUpdate);
+  }, [fetchSalons, getInitialFilters]);
 
 
   const handleToggleFavorite = async (e: React.MouseEvent, salonId: string) => {
