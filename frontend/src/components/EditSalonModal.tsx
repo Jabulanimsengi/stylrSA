@@ -39,8 +39,10 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
 
   const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null);
   const [heroImageFiles, setHeroImageFiles] = useState<File[]>([]);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [backgroundImagePreview, setBackgroundImagePreview] = useState<string | null>(null);
   const [heroImagesPreview, setHeroImagesPreview] = useState<string[]>([]);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
@@ -74,6 +76,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         longitude: (salon.longitude as any) ?? '' as any,
       });
       setBackgroundImagePreview(salon.backgroundImage || null);
+      setLogoPreview(salon.logo || null);
       setHeroImagesPreview(salon.heroImages || []);
 
       const rawHours = salon.operatingHours as unknown;
@@ -141,6 +144,26 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         }
         setBackgroundImagePreview(URL.createObjectURL(file));
         toast.success('Background image selected');
+      } else if (name === 'logo' && files[0]) {
+        const file = files[0];
+        
+        // Validate file size early (10MB limit)
+        const MAX_SIZE = 10 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+          throw new Error(`File too large. Maximum size is 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
+        }
+
+        // Validate it's an image
+        if (!file.type.startsWith('image/')) {
+          throw new Error('Please select a valid image file.');
+        }
+
+        setLogoFile(file);
+        if (logoPreview && logoPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(logoPreview);
+        }
+        setLogoPreview(URL.createObjectURL(file));
+        toast.success('Logo image selected');
       } else if (name === 'heroImages') {
         const newFiles = Array.from(files);
         
@@ -171,10 +194,13 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     }
   };
 
-  const handleDeleteImage = (imageUrlToDelete: string, imageType: 'background' | 'hero') => {
+  const handleDeleteImage = (imageUrlToDelete: string, imageType: 'background' | 'logo' | 'hero') => {
     if (imageType === 'background') {
       setBackgroundImageFile(null);
       setBackgroundImagePreview(null);
+    } else if (imageType === 'logo') {
+      setLogoFile(null);
+      setLogoPreview(null);
     } else {
       const updatedPreviews = heroImagesPreview.filter(img => img !== imageUrlToDelete);
       setHeroImagesPreview(updatedPreviews);
@@ -206,6 +232,15 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         toast.success('Background image uploaded!');
       }
 
+      let finalLogoUrl = logoPreview;
+      if (logoFile && logoPreview?.startsWith('blob:')) {
+        // Upload and extract the secure_url
+        toast.info('Uploading logo...');
+        const uploaded = await uploadToCloudinary(logoFile);
+        finalLogoUrl = uploaded.secure_url;
+        toast.success('Logo uploaded!');
+      }
+
       const existingHeroImageUrls = heroImagesPreview.filter(p => !p.startsWith('blob:'));
       
       // Corrected hero images upload
@@ -235,6 +270,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         whatsapp: cleanedWhatsapp || undefined,
         website: websiteValue && isValidUrl(websiteValue) ? websiteValue : undefined,
         backgroundImage: finalBackgroundImageUrl,
+        logo: finalLogoUrl,
         heroImages: finalHeroImageUrls,
         latitude: (formData as any).latitude !== '' ? Number((formData as any).latitude) : undefined,
         longitude: (formData as any).longitude !== '' ? Number((formData as any).longitude) : undefined,
@@ -446,6 +482,31 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                         height={160}
                       />
                       <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(backgroundImagePreview, 'background')} disabled={isProcessingFile || isUploading}>×</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className={styles.imageUploadSection}>
+                <label className={styles.label}>Salon Logo</label>
+                <input 
+                  type="file" 
+                  name="logo" 
+                  className={styles.fileInput} 
+                  onChange={handleFileChange} 
+                  accept="image/*"
+                  disabled={isProcessingFile || isUploading}
+                />
+                <div className={styles.imagePreviewContainer}>
+                  {logoPreview && (
+                    <div className={styles.imageWrapper}>
+                      <Image
+                        src={logoPreview}
+                        alt="Logo Preview"
+                        className={styles.imagePreview}
+                        width={200}
+                        height={160}
+                      />
+                      <button type="button" className={styles.deleteButton} onClick={() => handleDeleteImage(logoPreview, 'logo')} disabled={isProcessingFile || isUploading}>×</button>
                     </div>
                   )}
                 </div>

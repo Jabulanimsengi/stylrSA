@@ -354,11 +354,13 @@ export class SalonsService {
     const allowedFields: (
       | keyof UpdateSalonDto
       | 'backgroundImage'
+      | 'logo'
       | 'heroImages'
     )[] = [
       'name',
       'description',
       'backgroundImage',
+      'logo',
       'heroImages',
       'province',
       'city',

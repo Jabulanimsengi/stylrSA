@@ -71,6 +71,7 @@ model Salon {
   name                 String
   description          String?
   backgroundImage      String?
+  logo                 String?
   province             String
   heroImages           String[]
   city                 String

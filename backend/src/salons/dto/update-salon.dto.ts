@@ -93,6 +93,10 @@ export class UpdateSalonDto {
   @IsOptional()
   backgroundImage?: string | null; // This line has been changed to allow null
 
+  @IsUrl()
+  @IsOptional()
+  logo?: string | null;
+
   @IsArray()
   @IsUrl({}, { each: true })
   @IsOptional()

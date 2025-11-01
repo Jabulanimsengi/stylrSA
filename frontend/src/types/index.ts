@@ -37,6 +37,7 @@ export interface Salon {
   name: string;
   description?: string;
   backgroundImage?: string | null;
+  logo?: string | null;
   province: string;
   heroImages: string[];
   city: string;

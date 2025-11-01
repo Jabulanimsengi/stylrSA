@@ -74,6 +74,21 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
                 <div className={styles.reviewCount}>{salon.reviewCount} {salon.reviewCount === 1 ? 'review' : 'reviews'}</div>
               </div>
             )}
+            {salon.logo && (
+              <div className={styles.logoOverlay}>
+                <Image
+                  src={transformCloudinary(salon.logo, { 
+                    width: 80, 
+                    quality: 'auto', 
+                    format: 'auto' 
+                  })}
+                  alt={`${salon.name} logo`}
+                  className={styles.salonLogo}
+                  width={80}
+                  height={80}
+                />
+              </div>
+            )}
             <Image
               src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { 
                 width: 600, 
@@ -141,6 +156,21 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
             <div className={styles.ratingBadge}>
               <div className={styles.ratingValue}>★ {salon.avgRating.toFixed(1)}</div>
               <div className={styles.reviewCount}>{salon.reviewCount} {salon.reviewCount === 1 ? 'review' : 'reviews'}</div>
+            </div>
+          )}
+          {salon.logo && (
+            <div className={styles.logoOverlay}>
+              <Image
+                src={transformCloudinary(salon.logo, { 
+                  width: 80, 
+                  quality: 'auto', 
+                  format: 'auto' 
+                })}
+                alt={`${salon.name} logo`}
+                className={styles.salonLogo}
+                width={80}
+                height={80}
+              />
             </div>
           )}
           <Image
