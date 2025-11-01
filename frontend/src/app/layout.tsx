@@ -42,16 +42,6 @@ export const metadata: Metadata = {
   keywords: 'salon booking, beauty services, hair salon, braiding salon, nail salon, makeup artist, massage therapist, spa, barber, mens grooming, bridal services, South Africa, Johannesburg, Cape Town, Durban',
   authors: [{ name: 'Stylr SA Team' }],
   manifest: '/manifest.json',
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.png', type: 'image/png' },
-      { url: '/logo-transparent.png', type: 'image/png', sizes: '512x512' },
-    ],
-    apple: [
-      { url: '/logo-transparent.png', sizes: '180x180', type: 'image/png' },
-    ],
-  },
   verification: {
     google: 'MdWcHRFxz3-UMrPPAxgFGXfqCoTTAzPRZ7a9igeRHRk',
   },
