@@ -42,6 +42,35 @@ export class SalonsService {
     private eventsGateway: EventsGateway,
   ) {}
 
+  /**
+   * Validate that image URL is from trusted source (Cloudinary)
+   * Prevents external URL injection for security
+   */
+  private validateImageUrl(url: string | null | undefined, fieldName: string): void {
+    if (!url) return; // null/undefined is OK
+    
+    const cloudinaryDomain = process.env.CLOUDINARY_CLOUD_NAME;
+    if (!cloudinaryDomain) {
+      // If Cloudinary not configured, accept any URL (backward compatibility)
+      return;
+    }
+    
+    try {
+      const urlObj = new URL(url);
+      const isCloudinary = urlObj.hostname.includes('cloudinary.com') || 
+                          urlObj.hostname.includes('res.cloudinary.com');
+      
+      if (!isCloudinary) {
+        throw new BadRequestException(
+          `Invalid ${fieldName} URL. Only Cloudinary URLs are allowed for security reasons.`
+        );
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new BadRequestException(`Invalid ${fieldName} URL format.`);
+    }
+  }
+
   private async resolvePlanMeta(planCode: PlanCode) {
     try {
       const plan = await this.prisma.plan.findUnique({
@@ -348,6 +377,15 @@ export class SalonsService {
       throw new ForbiddenException(
         'You are not authorized to update this salon',
       );
+    }
+
+    // Validate image URLs for security (only Cloudinary allowed)
+    this.validateImageUrl(dto.backgroundImage, 'backgroundImage');
+    this.validateImageUrl(dto.logo, 'logo');
+    if (dto.heroImages && Array.isArray(dto.heroImages)) {
+      dto.heroImages.forEach((url, index) => {
+        this.validateImageUrl(url, `heroImages[${index}]`);
+      });
     }
 
     // Whitelist fields that exist on the Prisma Salon model to avoid unknown-argument errors

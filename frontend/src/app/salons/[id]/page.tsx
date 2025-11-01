@@ -30,6 +30,7 @@ export default function SalonDetailPage() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
@@ -157,13 +158,14 @@ export default function SalonDetailPage() {
       {/* Header with Logo */}
       <div className={styles.header}>
         <div className={styles.logoSection}>
-          {salon.logo ? (
+          {salon.logo && !logoError ? (
             <Image
-              src={transformCloudinary(salon.logo, { width: 120, quality: 'auto', format: 'auto' })}
+              src={transformCloudinary(salon.logo, { width: 240, quality: 'auto', format: 'auto' })}
               alt={`${salon.name} logo`}
               className={styles.mainLogo}
               width={120}
               height={120}
+              onError={() => setLogoError(true)}
             />
           ) : (
             <div className={styles.logoPlaceholder}>

@@ -9,7 +9,7 @@ import styles from './EditSalonModal.module.css';
 import { toast } from 'react-toastify';
 import { showError, toFriendlyMessage } from '@/lib/errors';
 import { FaTimes } from 'react-icons/fa';
-import { uploadToCloudinary } from '@/utils/cloudinary';
+import { uploadToCloudinary, transformCloudinary } from '@/utils/cloudinary';
 import { SalonUpdateSchema } from '@/lib/validation/schemas';
 
 interface EditSalonModalProps {
@@ -46,6 +46,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [error, setError] = useState('');
   const [addrQuery, setAddrQuery] = useState('');
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
@@ -75,9 +76,22 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         latitude: (salon.latitude as any) ?? '' as any,
         longitude: (salon.longitude as any) ?? '' as any,
       });
-      setBackgroundImagePreview(salon.backgroundImage || null);
-      setLogoPreview(salon.logo || null);
-      setHeroImagesPreview(salon.heroImages || []);
+      // Optimize existing image previews with Cloudinary transformations
+      setBackgroundImagePreview(
+        salon.backgroundImage 
+          ? transformCloudinary(salon.backgroundImage, { width: 400, quality: 'auto', format: 'auto' })
+          : null
+      );
+      setLogoPreview(
+        salon.logo 
+          ? transformCloudinary(salon.logo, { width: 200, quality: 'auto', format: 'auto' })
+          : null
+      );
+      setHeroImagesPreview(
+        salon.heroImages?.map(img => 
+          transformCloudinary(img, { width: 400, quality: 'auto', format: 'auto' })
+        ) || []
+      );
 
       const rawHours = salon.operatingHours as unknown;
       let hoursRecord: Record<string, string> | null = null;
@@ -116,6 +130,31 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const validateImageDimensions = (file: File, minWidth: number, minHeight: number): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        if (img.width < minWidth || img.height < minHeight) {
+          reject(new Error(
+            `Image too small. Minimum dimensions: ${minWidth}x${minHeight}px. Your image: ${img.width}x${img.height}px.`
+          ));
+        } else {
+          resolve();
+        }
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image for validation.'));
+      };
+      
+      img.src = url;
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
     if (!files || files.length === 0) return;
@@ -138,6 +177,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           throw new Error('Please select a valid image file.');
         }
 
+        // Validate dimensions (minimum 800x400 for background)
+        await validateImageDimensions(file, 800, 400);
+
         setBackgroundImageFile(file);
         if (backgroundImagePreview && backgroundImagePreview.startsWith('blob:')) {
           URL.revokeObjectURL(backgroundImagePreview);
@@ -158,16 +200,19 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           throw new Error('Please select a valid image file.');
         }
 
+        // Validate dimensions (minimum 200x200 for logo, recommended 512x512)
+        await validateImageDimensions(file, 200, 200);
+
         setLogoFile(file);
         if (logoPreview && logoPreview.startsWith('blob:')) {
           URL.revokeObjectURL(logoPreview);
         }
         setLogoPreview(URL.createObjectURL(file));
-        toast.success('Logo image selected');
+        toast.success('Logo image selected (Recommended: 512x512px or larger for best quality)');
       } else if (name === 'heroImages') {
         const newFiles = Array.from(files);
         
-        // Validate each file size
+        // Validate each file size and dimensions
         const MAX_SIZE = 10 * 1024 * 1024;
         for (const file of newFiles) {
           if (file.size > MAX_SIZE) {
@@ -176,6 +221,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           if (!file.type.startsWith('image/')) {
             throw new Error(`File "${file.name}" is not a valid image.`);
           }
+          // Validate dimensions (minimum 600x400 for hero images)
+          await validateImageDimensions(file, 600, 400);
         }
 
         setHeroImageFiles(prevFiles => [...prevFiles, ...newFiles]);
@@ -225,30 +272,47 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     try {
       let finalBackgroundImageUrl = backgroundImagePreview;
       if (backgroundImageFile && backgroundImagePreview?.startsWith('blob:')) {
-        // Upload and extract the secure_url
+        // Upload and extract the secure_url with progress tracking
         toast.info('Uploading background image...');
-        const uploaded = await uploadToCloudinary(backgroundImageFile);
+        const uploaded = await uploadToCloudinary(backgroundImageFile, {
+          onProgress: (progress) => {
+            setUploadProgress(prev => ({ ...prev, background: progress }));
+          }
+        });
         finalBackgroundImageUrl = uploaded.secure_url;
+        setUploadProgress(prev => ({ ...prev, background: 100 }));
         toast.success('Background image uploaded!');
       }
 
       let finalLogoUrl = logoPreview;
       if (logoFile && logoPreview?.startsWith('blob:')) {
-        // Upload and extract the secure_url
+        // Upload and extract the secure_url with progress tracking
         toast.info('Uploading logo...');
-        const uploaded = await uploadToCloudinary(logoFile);
+        const uploaded = await uploadToCloudinary(logoFile, {
+          publicId: `${salon.name.replace(/[^a-zA-Z0-9]/g, '_')}_logo`,
+          onProgress: (progress) => {
+            setUploadProgress(prev => ({ ...prev, logo: progress }));
+          }
+        });
         finalLogoUrl = uploaded.secure_url;
+        setUploadProgress(prev => ({ ...prev, logo: 100 }));
         toast.success('Logo uploaded!');
       }
 
       const existingHeroImageUrls = heroImagesPreview.filter(p => !p.startsWith('blob:'));
       
-      // Corrected hero images upload
+      // Corrected hero images upload with progress tracking
       if (heroImageFiles.length > 0) {
         toast.info(`Uploading ${heroImageFiles.length} hero image(s)...`);
       }
       const newHeroImageUrls = (
-        await Promise.all(heroImageFiles.map(file => uploadToCloudinary(file)))
+        await Promise.all(heroImageFiles.map((file, index) => 
+          uploadToCloudinary(file, {
+            onProgress: (progress) => {
+              setUploadProgress(prev => ({ ...prev, [`hero_${index}`]: progress }));
+            }
+          })
+        ))
       ).map(r => r.secure_url);
       
       if (heroImageFiles.length > 0) {
@@ -460,9 +524,60 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <span>Processing file...</span>
               </div>
             )}
+            
+            {/* Upload Progress Indicators */}
+            {Object.keys(uploadProgress).length > 0 && (
+              <div style={{ padding: '12px', background: 'var(--color-surface-elevated)', borderRadius: '8px', marginBottom: '16px' }}>
+                {uploadProgress.background !== undefined && uploadProgress.background < 100 && (
+                  <div style={{ marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Background Image</span>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--color-primary)' }}>{uploadProgress.background}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--color-border)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${uploadProgress.background}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.3s ease' }}></div>
+                    </div>
+                  </div>
+                )}
+                
+                {uploadProgress.logo !== undefined && uploadProgress.logo < 100 && (
+                  <div style={{ marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Logo</span>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--color-primary)' }}>{uploadProgress.logo}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--color-border)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${uploadProgress.logo}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.3s ease' }}></div>
+                    </div>
+                  </div>
+                )}
+                
+                {Object.keys(uploadProgress).filter(k => k.startsWith('hero_')).map(key => {
+                  const progress = uploadProgress[key];
+                  if (progress >= 100) return null;
+                  const index = key.replace('hero_', '');
+                  return (
+                    <div key={key} style={{ marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Hero Image {parseInt(index) + 1}</span>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--color-primary)' }}>{progress}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: 'var(--color-border)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${progress}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.3s ease' }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             <div className={styles.grid}>
               <div className={styles.imageUploadSection}>
-                <label className={styles.label}>Background Image</label>
+                <label className={styles.label}>
+                  Background Image
+                  <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Minimum: 800x400px, wide format recommended
+                  </span>
+                </label>
                 <input 
                   type="file" 
                   name="backgroundImage" 
@@ -487,7 +602,12 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 </div>
               </div>
               <div className={styles.imageUploadSection}>
-                <label className={styles.label}>Salon Logo</label>
+                <label className={styles.label}>
+                  Salon Logo
+                  <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Recommended: 512x512px or larger, square format
+                  </span>
+                </label>
                 <input 
                   type="file" 
                   name="logo" 
@@ -512,7 +632,12 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 </div>
               </div>
               <div className={styles.imageUploadSection}>
-                <label className={styles.label}>Hero Images</label>
+                <label className={styles.label}>
+                  Hero Images
+                  <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Minimum: 600x400px per image
+                  </span>
+                </label>
                 <input 
                   type="file" 
                   name="heroImages" 

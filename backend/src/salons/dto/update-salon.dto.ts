@@ -12,6 +12,7 @@ import {
   MaxLength,
   IsEnum,
   IsBoolean,
+  ValidateIf,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
@@ -91,10 +92,12 @@ export class UpdateSalonDto {
 
   @IsUrl()
   @IsOptional()
+  @ValidateIf((o) => o.backgroundImage !== null)
   backgroundImage?: string | null; // This line has been changed to allow null
 
   @IsUrl()
   @IsOptional()
+  @ValidateIf((o) => o.logo !== null)
   logo?: string | null;
 
   @IsArray()

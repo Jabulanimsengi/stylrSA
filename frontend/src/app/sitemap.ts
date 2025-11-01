@@ -9,6 +9,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/salons`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/services`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/products`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/sellers`, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${siteUrl}/promotions`, changeFrequency: 'daily', priority: 0.8 },
     { url: `${siteUrl}/prices`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/about`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/contact`, changeFrequency: 'monthly', priority: 0.6 },
@@ -16,6 +18,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/how-it-works`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/advice`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${siteUrl}/blog`, changeFrequency: 'weekly', priority: 0.5 },
+    
+    // Legal & Policy pages (lower priority but important for SEO)
+    { url: `${siteUrl}/terms`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteUrl}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteUrl}/cookie-policy`, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${siteUrl}/partner-guidelines`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteUrl}/safety-security`, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${siteUrl}/accessibility`, changeFrequency: 'yearly', priority: 0.2 },
     
     // Blog articles - HIGH SEO VALUE
     { url: `${siteUrl}/blog/protective-hairstyles-guide`, changeFrequency: 'monthly', priority: 0.8 },
@@ -28,6 +38,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/blog/verified-reviews-importance`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/blog/local-beauty-products`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/blog/matric-dance-prep`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/how-to-find-best-braider`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/wedding-makeup-checklist`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/2024-hair-trends`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/blog/seasonal-beauty-tips`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/careers`, changeFrequency: 'monthly', priority: 0.4 },
   ];
 
@@ -60,8 +74,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // Fetch dynamic salon pages
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/salons/approved`, { cache: 'no-store' });
-    const salons: Array<{ id: string; updatedAt?: string }>|null = res.ok ? await res.json() : null;
+    const salonRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/salons/approved`, { cache: 'no-store' });
+    const salons: Array<{ id: string; updatedAt?: string }>|null = salonRes.ok ? await salonRes.json() : null;
     const salonEntries: MetadataRoute.Sitemap = (salons || []).map((s) => ({
       url: `${siteUrl}/salons/${s.id}`,
       changeFrequency: 'weekly',
@@ -69,7 +83,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticPages, ...serviceCategoryPages, ...locationPages, ...salonEntries];
+    // Fetch dynamic seller pages if sellers endpoint exists
+    let sellerEntries: MetadataRoute.Sitemap = [];
+    try {
+      const sellerRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/sellers/approved`, { cache: 'no-store' });
+      if (sellerRes.ok) {
+        const sellers: Array<{ id: string; updatedAt?: string }>|null = await sellerRes.json();
+        sellerEntries = (sellers || []).map((seller) => ({
+          url: `${siteUrl}/sellers/${seller.id}`,
+          changeFrequency: 'weekly',
+          lastModified: seller.updatedAt ? new Date(seller.updatedAt) : undefined,
+          priority: 0.6,
+        }));
+      }
+    } catch (sellerError) {
+      // Silently fail if seller endpoint doesn't exist
+      console.log('Seller endpoint not available, skipping sellers from sitemap');
+    }
+
+    return [...staticPages, ...serviceCategoryPages, ...locationPages, ...salonEntries, ...sellerEntries];
   } catch {
     return [...staticPages, ...serviceCategoryPages, ...locationPages];
   }

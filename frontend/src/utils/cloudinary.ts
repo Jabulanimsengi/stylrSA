@@ -130,7 +130,14 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 1
   }
 }
 
-export async function uploadToCloudinary(file: File | Blob, options?: { folder?: string }): Promise<any> {
+export async function uploadToCloudinary(
+  file: File | Blob, 
+  options?: { 
+    folder?: string; 
+    publicId?: string;
+    onProgress?: (progress: number) => void;
+  }
+): Promise<any> {
   // Validate file before upload (security check)
   if (file instanceof File) {
     const { validateImageFile, isValidImageByContent } = await import('@/lib/file-validation');
@@ -168,20 +175,77 @@ export async function uploadToCloudinary(file: File | Blob, options?: { folder?:
   form.append('api_key', apiKey);
   form.append('timestamp', String(timestamp));
   if (options?.folder) form.append('folder', options.folder);
+  
+  // Add custom public_id to preserve filename (sanitized)
+  if (options?.publicId) {
+    form.append('public_id', options.publicId);
+  } else if (file instanceof File && file.name) {
+    // Auto-generate public_id from filename (remove extension, sanitize)
+    const publicId = file.name
+      .replace(/\.[^/.]+$/, '') // Remove extension
+      .replace(/[^a-zA-Z0-9_-]/g, '_') // Replace special chars
+      .substring(0, 100); // Limit length
+    form.append('public_id', publicId);
+  }
+  
   form.append('signature', signature);
 
-  const uploadRes = await fetchWithTimeout(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    {
-      method: 'POST',
-      body: form,
-    },
-    120000 // 2 minute timeout for large files
-  );
-  if (!uploadRes.ok) {
-    let err: any = null;
-    try { err = await uploadRes.json(); } catch {}
-    throw err || new Error('Upload failed.');
+  // Use XMLHttpRequest if progress callback provided, otherwise use fetch
+  if (options?.onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable && options.onProgress) {
+          const progress = Math.round((e.loaded / e.total) * 100);
+          options.onProgress(progress);
+        }
+      });
+      
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch (err) {
+            reject(new Error('Failed to parse upload response'));
+          }
+        } else {
+          try {
+            const error = JSON.parse(xhr.responseText);
+            reject(error);
+          } catch {
+            reject(new Error('Upload failed'));
+          }
+        }
+      });
+      
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed due to network error'));
+      });
+      
+      xhr.addEventListener('timeout', () => {
+        reject(new Error('Upload timed out'));
+      });
+      
+      xhr.timeout = 120000; // 2 minute timeout
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+      xhr.send(form);
+    });
+  } else {
+    // Fallback to fetch without progress
+    const uploadRes = await fetchWithTimeout(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: form,
+      },
+      120000 // 2 minute timeout for large files
+    );
+    if (!uploadRes.ok) {
+      let err: any = null;
+      try { err = await uploadRes.json(); } catch {}
+      throw err || new Error('Upload failed.');
+    }
+    return uploadRes.json();
   }
-  return uploadRes.json();
 }

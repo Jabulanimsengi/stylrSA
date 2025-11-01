@@ -23,6 +23,7 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [logoError, setLogoError] = useState(false);
 
   const handleImageClick = (e: React.MouseEvent) => {
     if (!enableLightbox) return; // Don't handle if lightbox disabled
@@ -74,21 +75,26 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
                 <div className={styles.reviewCount}>{salon.reviewCount} {salon.reviewCount === 1 ? 'review' : 'reviews'}</div>
               </div>
             )}
-            {salon.logo && (
-              <div className={styles.logoOverlay}>
+            <div className={styles.logoOverlay}>
+              {salon.logo && !logoError ? (
                 <Image
                   src={transformCloudinary(salon.logo, { 
-                    width: 80, 
+                    width: 128, 
                     quality: 'auto', 
                     format: 'auto' 
                   })}
                   alt={`${salon.name} logo`}
                   className={styles.salonLogo}
-                  width={80}
-                  height={80}
+                  width={64}
+                  height={64}
+                  onError={() => setLogoError(true)}
                 />
-              </div>
-            )}
+              ) : (
+                <div className={styles.logoPlaceholder}>
+                  <span>{salon.name.charAt(0).toUpperCase()}</span>
+                </div>
+              )}
+            </div>
             <Image
               src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { 
                 width: 600, 
@@ -158,21 +164,26 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
               <div className={styles.reviewCount}>{salon.reviewCount} {salon.reviewCount === 1 ? 'review' : 'reviews'}</div>
             </div>
           )}
-          {salon.logo && (
-            <div className={styles.logoOverlay}>
+          <div className={styles.logoOverlay}>
+            {salon.logo && !logoError ? (
               <Image
                 src={transformCloudinary(salon.logo, { 
-                  width: 80, 
+                  width: 128, 
                   quality: 'auto', 
                   format: 'auto' 
                 })}
                 alt={`${salon.name} logo`}
                 className={styles.salonLogo}
-                width={80}
-                height={80}
+                width={64}
+                height={64}
+                onError={() => setLogoError(true)}
               />
-            </div>
-          )}
+            ) : (
+              <div className={styles.logoPlaceholder}>
+                <span>{salon.name.charAt(0).toUpperCase()}</span>
+              </div>
+            )}
+          </div>
           <Image
             src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { 
               width: 600, 
