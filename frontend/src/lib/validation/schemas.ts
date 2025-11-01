@@ -32,6 +32,7 @@ export const SalonUpdateSchema = z.object({
   operatingDays: z.array(z.string()).optional().nullable(),
   operatingHours: OperatingHoursSchema.optional().nullable(),
   backgroundImage: z.string().url().optional().nullable(),
+  logo: z.string().url().optional().nullable(),
   heroImages: z.array(z.string().url()).optional(),
 });
 

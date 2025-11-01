@@ -384,15 +384,29 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       }
       const parsed = SalonUpdateSchema.partial().safeParse(payload);
       if (!parsed.success) {
+        console.error('❌ Validation failed:', parsed.error.issues);
         throw new Error(parsed.error.issues?.[0]?.message || 'Invalid form data');
       }
 
-      // Debug: Log what's being sent to backend
-      console.log('Updating salon with data:', {
-        ...parsed.data,
-        backgroundImage: finalBackgroundImageUrl?.substring(0, 100) + '...',
-        logo: finalLogoUrl?.substring(0, 100) + '...',
-        heroImages: finalHeroImageUrls.map(url => url.substring(0, 100) + '...'),
+      // Debug: Log what's ACTUALLY being sent to backend (parsed.data)
+      console.log('📤 Payload before validation:', {
+        backgroundImage: finalBackgroundImageUrl,
+        logo: finalLogoUrl,
+        heroImages: finalHeroImageUrls.length + ' images'
+      });
+      
+      console.log('📤 Payload after validation (parsed.data):', {
+        backgroundImage: parsed.data.backgroundImage,
+        logo: parsed.data.logo,
+        heroImages: parsed.data.heroImages?.length + ' images'
+      });
+      
+      console.log('🔍 Logo status:', {
+        logoFileUploaded: !!logoFile,
+        logoPreview: logoPreview?.substring(0, 50),
+        finalLogoUrl: finalLogoUrl,
+        inParsedData: parsed.data.logo !== undefined,
+        parsedLogoValue: parsed.data.logo
       });
 
       // Add cache-busting timestamp to force fresh data
