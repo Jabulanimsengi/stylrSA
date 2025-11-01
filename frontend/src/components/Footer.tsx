@@ -1,11 +1,55 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './Footer.module.css';
-import { FaFacebook, FaTwitter, FaInstagram } from 'react-icons/fa';
 
 export default function Footer() {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Stylr SA",
+    "description": "Your go-to platform for verified salons, barbers, and beauty experts across South Africa",
+    "url": "https://www.stylrsa.co.za",
+    "logo": "https://www.stylrsa.co.za/logo-white.png",
+    "image": "https://www.stylrsa.co.za/logo-white.png",
+    "telephone": "+27-11-123-4567",
+    "email": "info@stylrsa.co.za",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "111 Commissioner Street",
+      "addressLocality": "Johannesburg",
+      "addressRegion": "Gauteng",
+      "postalCode": "2001",
+      "addressCountry": "ZA"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -26.2041,
+      "longitude": 28.0473
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "08:00",
+        "closes": "17:00"
+      }
+    ],
+    "priceRange": "R",
+    "areaServed": {
+      "@type": "Country",
+      "name": "South Africa"
+    },
+    "sameAs": []
+  };
+
   return (
     <footer className={styles.footer}>
+      {/* Schema.org Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+
       <div className={styles.seoFooterContent}>
         {/* Column 1: Brand & Trust */}
         <div className={styles.footerSection}>
@@ -27,10 +71,24 @@ export default function Footer() {
             <span className={styles.trustBadge}>✓ Secure Booking</span>
             <span className={styles.trustBadge}>✓ Free to Use</span>
           </div>
-          <div className={styles.socials}>
-            <a href="#" aria-label="Facebook" className={styles.socialLink}><FaFacebook /></a>
-            <a href="#" aria-label="Twitter" className={styles.socialLink}><FaTwitter /></a>
-            <a href="#" aria-label="Instagram" className={styles.socialLink}><FaInstagram /></a>
+          
+          {/* Business Address */}
+          <div className={styles.contactInfo}>
+            <p className={styles.contactDetail}>
+              <strong>📍 Address:</strong><br />
+              111 Commissioner Street<br />
+              Johannesburg, 2001<br />
+              South Africa
+            </p>
+            <p className={styles.contactDetail}>
+              <strong>🕒 Business Hours:</strong><br />
+              Monday - Sunday<br />
+              08:00 - 17:00
+            </p>
+            <p className={styles.contactDetail}>
+              <strong>📧 Email:</strong> 
+              <a href="mailto:info@stylrsa.co.za" className={styles.contactLink}>info@stylrsa.co.za</a>
+            </p>
           </div>
         </div>
 
@@ -112,24 +170,19 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Column 7: Newsletter & Contact */}
+        {/* Column 7: Resources */}
         <div className={styles.footerSection}>
-          <h3 className={styles.sectionTitle}>Stay Updated</h3>
-          <p className={styles.newsletterDescription}>Get the latest beauty trends, exclusive deals, and salon news.</p>
-          <form className={styles.newsletterForm}>
-            <input type="email" placeholder="Your email address" className={styles.newsletterInput} />
-            <button type="submit" className={styles.newsletterButton}>Subscribe</button>
-          </form>
-          <div className={styles.contactInfo}>
-            <p className={styles.contactDetail}>
-              <strong>Email:</strong> 
-              <a href="mailto:info@stylrsa.co.za" className={styles.contactLink}>info@stylrsa.co.za</a>
-            </p>
-            <p className={styles.contactDetail}>
-              <strong>Support:</strong> 
-              <Link href="/faq" className={styles.contactLink}>Visit Help Center</Link>
-            </p>
-          </div>
+          <h3 className={styles.sectionTitle}>More Resources</h3>
+          <ul className={styles.links}>
+            <li><Link href="/sitemap.xml" title="Full site structure and pages">XML Sitemap</Link></li>
+            <li><Link href="/blog/rss" title="Subscribe to our blog feed">Blog RSS Feed</Link></li>
+            <li><Link href="/api-docs" title="Developer documentation">API Documentation</Link></li>
+            <li><Link href="/press" title="Press releases and media">Press & Media</Link></li>
+            <li><Link href="/testimonials" title="Customer success stories">Testimonials</Link></li>
+            <li><Link href="/community" title="Join our community">Community</Link></li>
+            <li><Link href="/support" title="24/7 customer support">Customer Support</Link></li>
+            <li><Link href="/affiliate" title="Become an affiliate partner">Affiliate Program</Link></li>
+          </ul>
         </div>
 
         {/* Column 8: Legal & Important */}

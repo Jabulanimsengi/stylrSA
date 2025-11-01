@@ -28,19 +28,7 @@
   color: #ff5c88;
 }
 
-[data-theme='dark'] .socialLink {
-  color: #f5f5f7;
-}
-
-[data-theme='dark'] .socialLink:hover {
-  color: #ff5c88;
-}
-
-[data-theme='dark'] .newsletterInput {
-  background-color: #1d1e2b;
-  border-color: #2f2f3d;
-  color: #f5f5f7;
-}
+/* Removed dark mode styles for social links and newsletter */
 
 [data-theme='dark'] .announcementTitle {
   color: #f5f5f7;
@@ -134,21 +122,24 @@
   transform: translateY(-1px);
 }
 
-/* Newsletter and contact styling */
-.newsletterDescription {
-  color: var(--light-silver);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
+/* Contact and business info styling */
 .contactInfo {
   margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .contactDetail {
-  margin: 0 0 0.5rem;
+  margin: 0 0 1rem;
   font-size: 0.875rem;
   color: var(--light-silver);
+  line-height: 1.6;
+}
+
+.contactDetail strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--white);
 }
 
 .contactLink {
@@ -160,6 +151,7 @@
 
 .contactLink:hover {
   color: var(--light-silver);
+  text-decoration: underline;
 }
 
 /* Dark mode for trust badges and featured bar */
@@ -234,52 +226,7 @@
   text-decoration: underline;
 }
 
-.socials {
-  display: flex;
-  gap: 1rem;
-  margin-top: auto; /* Pushes socials to the bottom of the section */
-}
-
-.socialLink {
-  color: var(--color-text-inverse);
-  font-size: 1.5rem;
-  transition: color 0.2s;
-}
-
-.socialLink:hover {
-  color: var(--primary-pink);
-}
-
-.newsletterForm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.newsletterInput {
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  border: 1px solid var(--color-border-strong);
-  background-color: var(--charcoal-black);
-  color: var(--white);
-  font-family: inherit;
-}
-
-.newsletterButton {
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  border: none;
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.newsletterButton:hover {
-  background-color: var(--color-primary-hover);
-}
+/* Removed social links and newsletter form styles */
 
 .mobileAppAnnouncement {
   max-width: 1280px;
@@ -420,21 +367,6 @@
   .sectionTitle {
     font-size: 1rem;
   }
-  .socials {
-    justify-content: center;
-    margin-top: 1rem;
-  }
-  .socialLink {
-    font-size: 1.35rem;
-  }
-  .newsletterForm {
-    margin-top: 0.75rem;
-  }
-  .newsletterInput,
-  .newsletterButton {
-    padding: 0.625rem;
-    font-size: 0.875rem;
-  }
   .mobileAppAnnouncement {
     padding: 1.25rem 1rem;
     margin: 1.5rem auto 0;
@@ -486,17 +418,6 @@
   .links {
     gap: 0.5rem;
     font-size: 0.85rem;
-  }
-  .socials {
-    gap: 0.75rem;
-  }
-  .socialLink {
-    font-size: 1.25rem;
-  }
-  .newsletterInput,
-  .newsletterButton {
-    padding: 0.55rem;
-    font-size: 0.8rem;
   }
   .mobileAppAnnouncement {
     padding: 1rem 0.75rem;
@@ -550,17 +471,6 @@
     gap: 0.4375rem;
     font-size: 0.8125rem;
   }
-  .socials {
-    gap: 0.625rem;
-  }
-  .socialLink {
-    font-size: 1.125rem;
-  }
-  .newsletterInput,
-  .newsletterButton {
-    padding: 0.5rem;
-    font-size: 0.75rem;
-  }
   .mobileAppAnnouncement {
     padding: 0.875rem 0.625rem;
     margin: 1.125rem auto 0;
@@ -612,17 +522,6 @@
   .links {
     gap: 0.375rem;
     font-size: 0.75rem;
-  }
-  .socials {
-    gap: 0.5rem;
-  }
-  .socialLink {
-    font-size: 1rem;
-  }
-  .newsletterInput,
-  .newsletterButton {
-    padding: 0.4375rem;
-    font-size: 0.6875rem;
   }
   .mobileAppAnnouncement {
     padding: 0.75rem 0.5rem;
