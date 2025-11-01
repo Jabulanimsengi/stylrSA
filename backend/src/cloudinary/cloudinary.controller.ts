@@ -1,5 +1,5 @@
 // backend/src/cloudinary/cloudinary.controller.ts
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { CloudinaryService } from './cloudinary.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -9,7 +9,15 @@ export class CloudinaryController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('signature')
-  getSignature() {
-    return this.cloudinaryService.getSignature();
+  getSignature(
+    @Query('folder') folder?: string,
+    @Query('public_id') publicId?: string,
+  ) {
+    // Build params object from query parameters
+    const params: Record<string, any> = {};
+    if (folder) params.folder = folder;
+    if (publicId) params.public_id = publicId;
+    
+    return this.cloudinaryService.getSignature(params);
   }
 }

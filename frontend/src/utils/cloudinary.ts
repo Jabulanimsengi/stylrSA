@@ -164,30 +164,35 @@ export async function uploadToCloudinary(
     throw new Error('Cloudinary is not configured. Missing NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME or NEXT_PUBLIC_CLOUDINARY_API_KEY.');
   }
 
-  const sigRes = await fetchWithTimeout('/api/cloudinary/signature', { credentials: 'include' }, 30000);
+  // Determine public_id BEFORE requesting signature (important for signature validation)
+  let finalPublicId = options?.publicId;
+  if (!finalPublicId && file instanceof File && file.name) {
+    // Auto-generate public_id from filename (remove extension, sanitize)
+    finalPublicId = file.name
+      .replace(/\.[^/.]+$/, '') // Remove extension
+      .replace(/[^a-zA-Z0-9_-]/g, '_') // Replace special chars
+      .substring(0, 100); // Limit length
+  }
+
+  // Build query string with ALL upload parameters so they're included in the signature
+  const signatureParams = new URLSearchParams();
+  if (options?.folder) signatureParams.append('folder', options.folder);
+  if (finalPublicId) signatureParams.append('public_id', finalPublicId);
+  
+  const signatureUrl = `/api/cloudinary/signature${signatureParams.toString() ? '?' + signatureParams.toString() : ''}`;
+  const sigRes = await fetchWithTimeout(signatureUrl, { credentials: 'include' }, 30000);
   if (!sigRes.ok) {
     throw new Error('Could not get upload signature. Please try again.');
   }
   const { signature, timestamp } = await sigRes.json();
 
+  // Build form with exact same parameters that were signed
   const form = new FormData();
   form.append('file', file);
   form.append('api_key', apiKey);
   form.append('timestamp', String(timestamp));
   if (options?.folder) form.append('folder', options.folder);
-  
-  // Add custom public_id to preserve filename (sanitized)
-  if (options?.publicId) {
-    form.append('public_id', options.publicId);
-  } else if (file instanceof File && file.name) {
-    // Auto-generate public_id from filename (remove extension, sanitize)
-    const publicId = file.name
-      .replace(/\.[^/.]+$/, '') // Remove extension
-      .replace(/[^a-zA-Z0-9_-]/g, '_') // Replace special chars
-      .substring(0, 100); // Limit length
-    form.append('public_id', publicId);
-  }
-  
+  if (finalPublicId) form.append('public_id', finalPublicId);
   form.append('signature', signature);
 
   // Use XMLHttpRequest if progress callback provided, otherwise use fetch

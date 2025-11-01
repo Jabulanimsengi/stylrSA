@@ -13,13 +13,32 @@ export class CloudinaryService {
     });
   }
 
-  getSignature(): { signature: string; timestamp: number } {
+  getSignature(params?: Record<string, any>): { signature: string; timestamp: number; [key: string]: any } {
     const timestamp = Math.round(new Date().getTime() / 1000);
+    
+    // Build parameters object - include any params passed from frontend
+    const paramsToSign: Record<string, any> = {
+      timestamp: timestamp,
+      ...params, // Include folder, public_id, etc. if provided
+    };
+    
+    // Remove undefined values and empty strings
+    Object.keys(paramsToSign).forEach(key => {
+      if (paramsToSign[key] === undefined || paramsToSign[key] === '') {
+        delete paramsToSign[key];
+      }
+    });
+    
     const signature = cloudinary.utils.api_sign_request(
-      { timestamp: timestamp },
+      paramsToSign,
       process.env.CLOUDINARY_API_SECRET as string,
     );
-    return { timestamp, signature };
+    
+    return { 
+      timestamp, 
+      signature,
+      ...paramsToSign // Return the params so frontend knows what was signed
+    };
   }
 
   async uploadImage(file: Express.Multer.File): Promise<UploadApiResponse> {
