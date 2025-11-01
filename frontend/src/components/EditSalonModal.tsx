@@ -44,6 +44,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [heroImagesPreview, setHeroImagesPreview] = useState<string[]>([]);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   
+  // Track original URLs (non-transformed) for submission
+  const [originalHeroImages, setOriginalHeroImages] = useState<string[]>([]);
+  
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
@@ -87,6 +90,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           ? transformCloudinary(salon.logo, { width: 200, quality: 'auto', format: 'auto' })
           : null
       );
+      // Store original hero images for submission
+      setOriginalHeroImages(salon.heroImages || []);
+      // Use transformed versions for preview only
       setHeroImagesPreview(
         salon.heroImages?.map(img => 
           transformCloudinary(img, { width: 400, quality: 'auto', format: 'auto' })
@@ -253,12 +259,19 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       setHeroImagesPreview(updatedPreviews);
 
       if (imageUrlToDelete.startsWith('blob:')) {
+        // Remove from new files
         const indexToRemove = heroImagesPreview.findIndex(p => p === imageUrlToDelete);
         const existingImagesCount = heroImagesPreview.filter(p => !p.startsWith('blob:')).length;
         const fileIndexToRemove = indexToRemove - existingImagesCount;
 
         if (fileIndexToRemove >= 0 && fileIndexToRemove < heroImageFiles.length) {
             setHeroImageFiles(prevFiles => prevFiles.filter((_, i) => i !== fileIndexToRemove));
+        }
+      } else {
+        // Remove from original hero images by finding the matching original URL
+        const indexInPreview = heroImagesPreview.findIndex(p => p === imageUrlToDelete);
+        if (indexInPreview >= 0 && indexInPreview < originalHeroImages.length) {
+          setOriginalHeroImages(prevOriginals => prevOriginals.filter((_, i) => i !== indexInPreview));
         }
       }
     }
@@ -270,9 +283,10 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     setError('');
 
     try {
-      let finalBackgroundImageUrl = backgroundImagePreview;
+      // Determine final background image URL
+      let finalBackgroundImageUrl: string | null = null;
       if (backgroundImageFile && backgroundImagePreview?.startsWith('blob:')) {
-        // Upload and extract the secure_url with progress tracking
+        // New background image uploaded
         toast.info('Uploading background image...');
         const uploaded = await uploadToCloudinary(backgroundImageFile, {
           onProgress: (progress) => {
@@ -282,11 +296,16 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         finalBackgroundImageUrl = uploaded.secure_url;
         setUploadProgress(prev => ({ ...prev, background: 100 }));
         toast.success('Background image uploaded!');
+      } else if (backgroundImagePreview && !backgroundImagePreview.startsWith('blob:')) {
+        // Existing background image kept (use original URL from salon, not transformed preview)
+        finalBackgroundImageUrl = salon.backgroundImage || null;
       }
+      // else: background image was deleted (backgroundImagePreview is null), send null
 
-      let finalLogoUrl = logoPreview;
+      // Determine final logo URL
+      let finalLogoUrl: string | null = null;
       if (logoFile && logoPreview?.startsWith('blob:')) {
-        // Upload and extract the secure_url with progress tracking
+        // New logo file uploaded
         toast.info('Uploading logo...');
         const uploaded = await uploadToCloudinary(logoFile, {
           publicId: `${salon.name.replace(/[^a-zA-Z0-9]/g, '_')}_logo`,
@@ -297,11 +316,16 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         finalLogoUrl = uploaded.secure_url;
         setUploadProgress(prev => ({ ...prev, logo: 100 }));
         toast.success('Logo uploaded!');
+      } else if (logoPreview && !logoPreview.startsWith('blob:')) {
+        // Existing logo kept (use original URL from salon, not transformed preview)
+        finalLogoUrl = salon.logo || null;
       }
+      // else: logo was deleted (logoPreview is null), send null
 
-      const existingHeroImageUrls = heroImagesPreview.filter(p => !p.startsWith('blob:'));
+      // Use original hero image URLs (not transformed previews)
+      const existingHeroImageUrls = originalHeroImages;
       
-      // Corrected hero images upload with progress tracking
+      // Upload new hero images with progress tracking
       if (heroImageFiles.length > 0) {
         toast.info(`Uploading ${heroImageFiles.length} hero image(s)...`);
       }
@@ -363,6 +387,14 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         throw new Error(parsed.error.issues?.[0]?.message || 'Invalid form data');
       }
 
+      // Debug: Log what's being sent to backend
+      console.log('Updating salon with data:', {
+        ...parsed.data,
+        backgroundImage: finalBackgroundImageUrl?.substring(0, 100) + '...',
+        logo: finalLogoUrl?.substring(0, 100) + '...',
+        heroImages: finalHeroImageUrls.map(url => url.substring(0, 100) + '...'),
+      });
+
       const res = await fetch(`/api/salons/mine?ownerId=${salon.ownerId}`, {
         method: 'PUT',
         headers: {
@@ -374,8 +406,14 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
 
       if (!res.ok) {
         let errData: any = null;
-        try { errData = await res.json(); } catch {}
-        throw errData || new Error('Failed to update salon');
+        try { 
+          errData = await res.json();
+          console.error('Backend error response:', errData);
+        } catch {}
+        
+        // Show the actual error message from backend if available
+        const errorMessage = errData?.message || errData?.error || `Failed to update salon (${res.status}: ${res.statusText})`;
+        throw new Error(errorMessage);
       }
 
       const updatedSalon = await res.json();
@@ -390,9 +428,10 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       onClose();
 
     } catch (error: any) {
-      const msg = toFriendlyMessage(error, 'Could not update salon profile.');
+      console.error('Salon update error:', error);
+      const msg = error?.message || toFriendlyMessage(error, 'Could not update salon profile.');
       setError(msg);
-      toast.error(msg);
+      toast.error(msg, { autoClose: 8000 });
     } finally {
       setIsUploading(false);
     }
