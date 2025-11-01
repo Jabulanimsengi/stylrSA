@@ -27,6 +27,13 @@ export default function CreateSalonPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanCode>('STARTER');
   const [hasSentProof, setHasSentProof] = useState(false);
   const [paymentReference, setPaymentReference] = useState('');
+  const [locationsData, setLocationsData] = useState<Record<string, string[]>>({});
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [addrQuery, setAddrQuery] = useState('');
+  const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
+  const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const [hours, setHours] = useState<Record<string,{open:string,close:string, isOpen: boolean}>>(
     Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string,{open:string,close:string, isOpen: boolean}>
@@ -43,6 +50,34 @@ export default function CreateSalonPage() {
     whatsapp: '0787770524',
   };
  
+  // Fetch locations data from API
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch('/api/locations');
+        if (response.ok) {
+          const data = await response.json();
+          setLocationsData(data);
+        }
+      } catch (error) {
+        logger.error('Failed to fetch locations data:', error);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  // Update available cities when province changes
+  useEffect(() => {
+    if (province && locationsData[province]) {
+      setAvailableCities(locationsData[province]);
+      // Reset city if it's not in the new province's cities
+      if (city && !locationsData[province].includes(city)) {
+        setCity('');
+      }
+    } else {
+      setAvailableCities([]);
+    }
+  }, [province, locationsData, city]);
 
   useEffect(() => {
     // Don't redirect if still loading auth status
@@ -56,17 +91,7 @@ export default function CreateSalonPage() {
     }
   }, [authStatus, router]);
 
-  const SA_PROVINCES = [
-    'Eastern Cape',
-    'Free State',
-    'Gauteng',
-    'KwaZulu-Natal',
-    'Limpopo',
-    'Mpumalanga',
-    'North West',
-    'Northern Cape',
-    'Western Cape',
-  ];
+  const SA_PROVINCES = Object.keys(locationsData).sort();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -79,6 +104,11 @@ export default function CreateSalonPage() {
       if (name.length > 100) throw new Error('Name must be 100 characters or fewer.');
       if (description.length > 500) throw new Error('Description must be 500 characters or fewer.');
       if (address.length > 255) throw new Error('Address must be 255 characters or fewer.');
+      
+      // Require coordinates for proximity-based search
+      if (!latitude || !longitude) {
+        throw new Error('Please use "Find on Map" to set your salon location. This helps customers find you nearby.');
+      }
 
       const isValidUrl = (value: string) => { try { new URL(value); return true; } catch { return false; } };
 
@@ -92,6 +122,8 @@ export default function CreateSalonPage() {
         email,
         description,
         offersMobile: bookingType !== 'ONSITE',
+        latitude,
+        longitude,
       };
       if (website && website.trim().length > 0 && isValidUrl(website.trim())) {
         payload.website = website.trim();
@@ -235,27 +267,79 @@ export default function CreateSalonPage() {
               className={styles.input}
             />
           </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="town">Town/Suburb</label>
+          <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+            <label htmlFor="addrQuery">Find on Map (Required for location-based search)</label>
             <input
-              id="town"
+              id="addrQuery"
               type="text"
-              value={town}
-              onChange={(e) => setTown(e.target.value)}
-              required
+              value={addrQuery}
+              onChange={(e) => {
+                const v = e.target.value;
+                setAddrQuery(v);
+                if (v.trim().length > 2) {
+                  const q = encodeURIComponent(v);
+                  fetch(`https://nominatim.openstreetmap.org/search?q=${q}, South Africa&format=json&limit=5`, {
+                    headers: { 'User-Agent': 'HairProsDirectory' }
+                  })
+                  .then(r => r.json())
+                  .then(data => {
+                    setAddrSuggestions(data || []);
+                    setShowAddrSuggestions(true);
+                  })
+                  .catch(() => {
+                    setAddrSuggestions([]);
+                    setShowAddrSuggestions(false);
+                  });
+                } else {
+                  setAddrSuggestions([]);
+                  setShowAddrSuggestions(false);
+                }
+              }}
+              placeholder="Search for your exact address (e.g., 123 Main St, Johannesburg)"
               className={styles.input}
             />
-          </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="city">City</label>
-            <input
-              id="city"
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              required
-              className={styles.input}
-            />
+            {showAddrSuggestions && addrSuggestions.length > 0 && (
+              <ul style={{
+                listStyle: 'none',
+                margin: '4px 0 0 0',
+                padding: 0,
+                border: '1px solid var(--color-border)',
+                borderRadius: 8,
+                backgroundColor: 'var(--color-bg)',
+                maxHeight: 200,
+                overflowY: 'auto',
+                position: 'relative',
+                zIndex: 10,
+              }}>
+                {addrSuggestions.map((s) => (
+                  <li 
+                    key={s.place_id} 
+                    style={{ 
+                      padding: '8px 12px', 
+                      cursor: 'pointer',
+                      borderBottom: '1px solid var(--color-border)',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-light)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onClick={() => {
+                      setAddress(s.display_name);
+                      setLatitude(parseFloat(s.lat));
+                      setLongitude(parseFloat(s.lon));
+                      setAddrQuery(s.display_name);
+                      setShowAddrSuggestions(false);
+                      toast.success('Location set successfully! 📍');
+                    }}
+                  >
+                    {s.display_name}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {latitude && longitude && (
+              <div style={{ marginTop: 8, padding: 8, backgroundColor: 'var(--color-success-bg)', border: '1px solid var(--color-success)', borderRadius: 4, fontSize: '0.875rem' }}>
+                ✓ Location set: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+              </div>
+            )}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="province">Province</label>
@@ -273,6 +357,28 @@ export default function CreateSalonPage() {
             </select>
           </div>
           <div className={styles.inputGroup}>
+            <label htmlFor="city">City/Town</label>
+            <select
+              id="city"
+              value={city}
+              onChange={(e) => {
+                const selectedCity = e.target.value;
+                setCity(selectedCity);
+                setTown(selectedCity);
+              }}
+              required
+              disabled={!province}
+              className={styles.input}
+            >
+              <option value="" disabled>
+                {!province ? 'Select a province first' : 'Select a city/town'}
+              </option>
+              {availableCities.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.inputGroup}>
             <label htmlFor="postalCode">Postal Code</label>
             <input
               id="postalCode"
@@ -283,6 +389,24 @@ export default function CreateSalonPage() {
               className={styles.input}
             />
           </div>
+          {latitude && longitude && (
+            <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+              <label>Map Preview</label>
+              <div style={{ border: '1px solid var(--color-border)', borderRadius: 8, overflow: 'hidden', height: 300 }}>
+                <iframe
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${longitude-0.01},${latitude-0.01},${longitude+0.01},${latitude+0.01}&layer=mapnik&marker=${latitude},${longitude}`}
+                  title="Salon Location Map"
+                />
+              </div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: 8 }}>
+                This is where your salon will appear on the map. Customers can find you based on their location.
+              </p>
+            </div>
+          )}
           <div className={styles.inputGroup}>
             <label htmlFor="phone">Phone Number</label>
             <input

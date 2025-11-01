@@ -54,6 +54,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [addrQuery, setAddrQuery] = useState('');
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
+  const [locationsData, setLocationsData] = useState<Record<string, string[]>>({});
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
 
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const [hours, setHours] = useState<Record<string, { open: string; close: string; isOpen: boolean }>>(
@@ -130,6 +132,31 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       setHours(nextHours);
     }
   }, [salon]);
+
+  // Fetch locations data from API
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch('/api/locations');
+        if (response.ok) {
+          const data = await response.json();
+          setLocationsData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch locations data:', error);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  // Update available cities when province changes
+  useEffect(() => {
+    if (formData.province && locationsData[formData.province]) {
+      setAvailableCities(locationsData[formData.province]);
+    } else {
+      setAvailableCities([]);
+    }
+  }, [formData.province, locationsData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -492,16 +519,44 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <input type="text" id="address" name="address" value={formData.address} onChange={handleChange} className={styles.input} />
               </div>
               <div>
-                <label htmlFor="town" className={styles.label}>Town/Suburb</label>
-                <input type="text" id="town" name="town" value={formData.town} onChange={handleChange} className={styles.input} />
-              </div>
-              <div>
-                <label htmlFor="city" className={styles.label}>City</label>
-                <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} className={styles.input} />
-              </div>
-              <div>
                 <label htmlFor="province" className={styles.label}>Province</label>
-                <input type="text" id="province" name="province" value={formData.province} onChange={handleChange} className={styles.input} />
+                <select 
+                  id="province" 
+                  name="province" 
+                  value={formData.province} 
+                  onChange={(e) => {
+                    handleChange(e);
+                    // Reset city when province changes
+                    setFormData(prev => ({ ...prev, city: '', town: '' }));
+                  }}
+                  className={styles.input}
+                >
+                  <option value="">Select a province</option>
+                  {Object.keys(locationsData).sort().map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="city" className={styles.label}>City/Town</label>
+                <select 
+                  id="city" 
+                  name="city" 
+                  value={formData.city} 
+                  onChange={(e) => {
+                    const selectedCity = e.target.value;
+                    setFormData(prev => ({ ...prev, city: selectedCity, town: selectedCity }));
+                  }}
+                  disabled={!formData.province}
+                  className={styles.input}
+                >
+                  <option value="">
+                    {!formData.province ? 'Select a province first' : 'Select a city/town'}
+                  </option>
+                  {availableCities.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <h3 className={styles.subheading}>Location</h3>
