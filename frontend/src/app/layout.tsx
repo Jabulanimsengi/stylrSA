@@ -45,9 +45,12 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon', type: 'image/png', sizes: '32x32' },
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/logo-transparent.png', type: 'image/png', sizes: '512x512' },
     ],
-    apple: '/apple-icon',
+    apple: [
+      { url: '/logo-transparent.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   verification: {
     google: 'MdWcHRFxz3-UMrPPAxgFGXfqCoTTAzPRZ7a9igeRHRk',
