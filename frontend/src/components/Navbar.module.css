@@ -577,9 +577,9 @@
   }
 
   .iconOnlyButton {
-    width: 34px;
-    height: 34px;
-    font-size: 0.9rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
   }
 
   .authActions :global(.btn) {

@@ -68,8 +68,8 @@
   height: 24px;
 }
 
-/* Show navigation on desktop */
-@media (min-width: 768px) {
+/* Show navigation on desktop only */
+@media (min-width: 769px) {
   .prevButton,
   .nextButton {
     display: flex;

@@ -569,24 +569,27 @@
     display: none;
   }
   .infoCard {
-    padding: 0.75rem 0.875rem;
-    min-width: calc(100% - 3rem);
+    padding: 0.6rem 0.7rem;
+    min-width: calc(100% - 3.5rem);
     flex-shrink: 0;
     scroll-snap-align: start;
   }
   .infoIcon {
-    width: 1.875rem;
-    height: 1.875rem;
-    font-size: 0.95rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.8rem;
   }
   .infoLabel {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   .infoValue {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
   .infoDetail {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+  }
+  .miniMap iframe {
+    min-height: 100px;
   }
   .heroMeta {
     width: 100%;
