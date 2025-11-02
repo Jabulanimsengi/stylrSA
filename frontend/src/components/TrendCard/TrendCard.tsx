@@ -99,21 +99,21 @@ export default function TrendCard({ trend, onLike }: TrendCardProps) {
         >
           <FaHeart />
         </button>
-        
-        {/* Overlay info - bottom of image */}
-        <div className={styles.overlay}>
-          <h3 className={styles.overlayTitle}>{trend.title}</h3>
-          {trend.styleName && (
-            <p className={styles.overlayStyleName}>{trend.styleName}</p>
-          )}
-          <div className={styles.overlayStats}>
-            <span className={styles.overlayStat}>
-              <FaEye /> {trend.viewCount.toLocaleString()}
-            </span>
-            <span className={styles.overlayStat}>
-              <FaHeart /> {likeCount.toLocaleString()}
-            </span>
-          </div>
+      </div>
+      
+      {/* Card content - below image */}
+      <div className={styles.cardContent}>
+        <h3 className={styles.cardTitle}>{trend.title}</h3>
+        {trend.styleName && (
+          <p className={styles.cardStyleName}>{trend.styleName}</p>
+        )}
+        <div className={styles.cardStats}>
+          <span className={styles.cardStat}>
+            <FaEye /> {trend.viewCount.toLocaleString()}
+          </span>
+          <span className={styles.cardStat}>
+            <FaHeart /> {likeCount.toLocaleString()}
+          </span>
         </div>
       </div>
     </Link>
