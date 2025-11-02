@@ -26,6 +26,7 @@ import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import AdminMediaReview from '@/components/AdminMediaReview';
 import AdminTrendsManager from '@/components/AdminTrendsManager/AdminTrendsManager';
+import AdminSalonTrendzManager from '@/components/AdminSalonTrendzManager/AdminSalonTrendzManager';
 
 const ensureArray = <T,>(value: unknown): T[] =>
   Array.isArray(value) ? (value as T[]) : [];
@@ -94,7 +95,7 @@ export default function AdminPage() {
   const [availableSalons, setAvailableSalons] = useState<PendingSalon[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
   const [featureDuration, setFeatureDuration] = useState<number>(30);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media' | 'trends'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media' | 'trends' | 'salon-trendz'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -822,6 +823,12 @@ export default function AdminPage() {
           Trendz
         </button>
         <button
+          onClick={() => setView('salon-trendz')}
+          className={`${styles.tabButton} ${view === 'salon-trendz' ? styles.activeTab : ''}`}
+        >
+          Salon Trendz
+        </button>
+        <button
           onClick={() => setView('deleted-salons')}
           className={`${styles.tabButton} ${view === 'deleted-salons' ? styles.activeTab : ''}`}
         >
@@ -1496,6 +1503,10 @@ export default function AdminPage() {
 
         {view === 'trends' && (
           <AdminTrendsManager />
+        )}
+
+        {view === 'salon-trendz' && (
+          <AdminSalonTrendzManager />
         )}
 
         {view === 'deleted-sellers' && (

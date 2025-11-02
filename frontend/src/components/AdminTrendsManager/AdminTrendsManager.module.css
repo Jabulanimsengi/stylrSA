@@ -21,18 +21,17 @@
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: var(--color-primary);
+  background: var(--muted-teal);
   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s;
 }
 
 .createButton:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-2px);
+  opacity: 0.85;
 }
 
 .loading {
@@ -147,25 +146,25 @@
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s;
 }
 
 .editButton {
-  background: var(--color-primary);
+  background: var(--muted-teal);
   color: white;
 }
 
 .editButton:hover {
-  background: var(--color-primary-dark);
+  opacity: 0.85;
 }
 
 .deleteButton {
-  background: #e74c3c;
+  background: var(--primary-pink);
   color: white;
 }
 
 .deleteButton:hover {
-  background: #c0392b;
+  opacity: 0.85;
 }
 
 /* Form Modal */
@@ -282,30 +281,93 @@
   cursor: pointer;
 }
 
+.uploadOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.fileUploadWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileUploadButton {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--muted-teal);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-align: center;
+}
+
+.fileUploadButton:hover {
+  opacity: 0.85;
+}
+
+.orDivider {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 14px;
+  position: relative;
+}
+
+.orDivider::before,
+.orDivider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.orDivider::before {
+  left: 0;
+}
+
+.orDivider::after {
+  right: 0;
+}
+
 .imageInput {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
 }
 
 .imageInput input {
   flex: 1;
 }
 
+.imageInput input:disabled,
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .addButton {
   padding: 12px 24px;
-  background: var(--color-primary);
+  background: var(--muted-teal);
   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s;
   white-space: nowrap;
 }
 
 .addButton:hover {
-  background: var(--color-primary-dark);
+  opacity: 0.85;
 }
 
 .imageGrid {
@@ -378,12 +440,12 @@
 }
 
 .submitButton {
-  background: var(--color-primary);
+  background: var(--muted-teal);
   color: white;
 }
 
 .submitButton:hover:not(:disabled) {
-  background: var(--color-primary-dark);
+  opacity: 0.85;
 }
 
 .submitButton:disabled {

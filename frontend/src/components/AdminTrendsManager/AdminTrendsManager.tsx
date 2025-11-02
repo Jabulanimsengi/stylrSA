@@ -5,7 +5,7 @@ import { Trend, TrendCategory, AgeGroup } from '@/types';
 import { toast } from 'react-toastify';
 import { FaEdit, FaTrash, FaEye, FaHeart, FaMousePointer, FaPlus, FaTimes } from 'react-icons/fa';
 import Image from 'next/image';
-import { transformCloudinary } from '@/utils/cloudinary';
+import { transformCloudinary, uploadToCloudinary } from '@/utils/cloudinary';
 import styles from './AdminTrendsManager.module.css';
 
 interface TrendFormData {
@@ -64,6 +64,8 @@ export default function AdminTrendsManager() {
   const [formData, setFormData] = useState<TrendFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageInput, setImageInput] = useState('');
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   useEffect(() => {
     fetchTrends();
@@ -170,6 +172,43 @@ export default function AdminTrendsManager() {
       toast.error('Error saving trend');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImages(true);
+    setUploadProgress(0);
+
+    try {
+      const uploadPromises = Array.from(files).map((file) =>
+        uploadToCloudinary(file, {
+          folder: 'trends',
+          onProgress: (progress) => {
+            setUploadProgress(progress);
+          },
+        })
+      );
+
+      const results = await Promise.all(uploadPromises);
+      const imageUrls = results.map((result) => result.secure_url);
+
+      setFormData({
+        ...formData,
+        images: [...formData.images, ...imageUrls],
+      });
+
+      toast.success(`${files.length} image(s) uploaded successfully!`);
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload images');
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(0);
+      // Reset file input
+      e.target.value = '';
     }
   };
 
@@ -321,17 +360,44 @@ export default function AdminTrendsManager() {
                 <label>
                   Images <span className={styles.required}>*</span>
                 </label>
-                <div className={styles.imageInput}>
-                  <input
-                    type="text"
-                    value={imageInput}
-                    onChange={(e) => setImageInput(e.target.value)}
-                    placeholder="Paste Cloudinary image URL"
-                  />
-                  <button type="button" onClick={addImage} className={styles.addButton}>
-                    Add Image
-                  </button>
+                
+                <div className={styles.uploadOptions}>
+                  <div className={styles.fileUploadWrapper}>
+                    <input
+                      type="file"
+                      id="imageUpload"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileUpload}
+                      disabled={uploadingImages}
+                      className={styles.fileInput}
+                    />
+                    <label htmlFor="imageUpload" className={styles.fileUploadButton}>
+                      {uploadingImages ? `Uploading... ${uploadProgress}%` : '📁 Upload Images'}
+                    </label>
+                  </div>
+
+                  <div className={styles.orDivider}>OR</div>
+
+                  <div className={styles.imageInput}>
+                    <input
+                      type="text"
+                      value={imageInput}
+                      onChange={(e) => setImageInput(e.target.value)}
+                      placeholder="Paste Cloudinary URL"
+                      disabled={uploadingImages}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={addImage} 
+                      className={styles.addButton}
+                      disabled={uploadingImages}
+                    >
+                      Add URL
+                    </button>
+                  </div>
                 </div>
+                
                 <div className={styles.imageGrid}>
                   {formData.images.map((img, index) => (
                     <div key={index} className={styles.imagePreview}>

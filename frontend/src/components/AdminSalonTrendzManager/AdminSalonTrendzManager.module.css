@@ -1,0 +1,294 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-plum);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  color: var(--color-text-muted);
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 250px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.filterButton {
+  padding: 10px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.filterButton:hover {
+  border-color: var(--muted-teal);
+}
+
+.filterButton.active {
+  background: var(--muted-teal);
+  color: white;
+  border-color: var(--muted-teal);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px;
+  color: var(--color-text-muted);
+}
+
+.salonsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.salonCard {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+}
+
+.salonHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.salonHeader h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-plum);
+}
+
+.location {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #f39c12;
+  font-weight: 600;
+}
+
+.toggles {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-size: 14px;
+}
+
+.toggleButton.enabled {
+  background: var(--muted-teal);
+  color: white;
+}
+
+.toggleButton.disabled {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.toggleButton:hover {
+  opacity: 0.85;
+}
+
+.premiumButton {
+  padding: 8px 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.premiumButton.premiumActive {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  border-color: #FFA500;
+}
+
+.premiumButton:hover:not(:disabled) {
+  border-color: #FFA500;
+}
+
+.premiumButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.serviceCategories {
+  margin-bottom: 16px;
+}
+
+.label {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.serviceTag {
+  padding: 4px 12px;
+  background: rgba(var(--muted-teal-rgb, 62, 153, 153), 0.1);
+  color: var(--muted-teal);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trendCategories {
+  margin-bottom: 16px;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.categoryButton {
+  padding: 8px 12px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text-muted);
+}
+
+.categoryButton:hover:not(:disabled) {
+  border-color: var(--muted-teal);
+  color: var(--muted-teal);
+}
+
+.categoryButton.categorySelected {
+  background: var(--muted-teal);
+  color: white;
+  border-color: var(--muted-teal);
+}
+
+.categoryButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stats {
+  display: flex;
+  gap: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .filterButtons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .salonHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .toggles {
+    width: 100%;
+  }
+
+  .toggleButton,
+  .premiumButton {
+    flex: 1;
+  }
+
+  .categoryGrid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  }
+
+  .stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
