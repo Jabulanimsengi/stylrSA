@@ -379,11 +379,6 @@
   min-width: 0;
 }
 
-.infoLocation { }
-.infoAvailability { }
-.infoToday { }
-.infoWeek { }
-
 .infoIcon {
   width: 2rem;
   height: 2rem;
@@ -543,9 +538,6 @@
   .hero {
     height: 16rem;
     margin-top: 4rem;
-  }
-  .container {
-    
   }
   .infoBoard {
     margin-bottom: 1.25rem;
@@ -780,9 +772,6 @@
   .hero {
     height: 12rem;
     margin-top: 3.5rem;
-  }
-  .container {
-    
   }
   .heroOverlay {
     padding: 1.25rem;
