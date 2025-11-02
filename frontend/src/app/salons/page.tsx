@@ -1,7 +1,7 @@
 // frontend/src/app/salons/page.tsx
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { transformCloudinary } from '@/utils/cloudinary';
@@ -278,9 +278,5 @@ function SalonsPageContent() {
 }
 
 export default function SalonsPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <SalonsPageContent />
-    </Suspense>
-  );
+  return <SalonsPageContent />;
 }

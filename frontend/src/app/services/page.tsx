@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -331,16 +331,5 @@ function ServicesPageContent() {
 }
 
 export default function ServicesPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className={styles.container}>
-          <h1 className={styles.title}>Services</h1>
-          <LoadingSpinner />
-        </div>
-      }
-    >
-      <ServicesPageContent />
-    </Suspense>
-  );
+  return <ServicesPageContent />;
 }

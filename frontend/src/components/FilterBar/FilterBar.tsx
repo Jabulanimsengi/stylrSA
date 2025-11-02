@@ -157,6 +157,9 @@ export default function FilterBar({
     onSearch(filters);
   }, [onSearch]);
 
+  // Track if we've processed coordinates to prevent infinite loops
+  const coordinatesProcessedRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!enableAutoSearch) {
       return;
@@ -166,19 +169,36 @@ export default function FilterBar({
       triggerSearch(nextFilters);
     }, 300);
     return () => clearTimeout(handler);
-  }, [buildFilters, triggerSearch, enableAutoSearch]);
+    // Intentionally excluding buildFilters to avoid re-triggering when only coordinates change
+    // The coordinates effect below handles location-based searches
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, enableAutoSearch]);
 
-  // Trigger search when coordinates become available
+  // Trigger search when coordinates become available (only once per coordinate set)
   useEffect(() => {
-    if (coordinates && enableAutoSearch) {
-      const filters = buildFilters();
-      // Auto-enable distance sorting when location is available
-      if (!filters.sortBy) {
-        filters.sortBy = 'distance';
-      }
-      triggerSearch(filters, true);
+    if (!coordinates || !enableAutoSearch) {
+      return;
     }
-  }, [coordinates, enableAutoSearch, buildFilters, triggerSearch]);
+    
+    const coordKey = `${coordinates.latitude},${coordinates.longitude}`;
+    // Prevent re-triggering for the same coordinates
+    if (coordinatesProcessedRef.current === coordKey) {
+      return;
+    }
+    
+    coordinatesProcessedRef.current = coordKey;
+    const filters = buildFilters();
+    
+    // Auto-enable distance sorting when location is available
+    if (!filters.sortBy) {
+      filters.sortBy = 'distance';
+      setSortBy('distance');
+    }
+    
+    triggerSearch(filters, true);
+    // Only depend on coordinates identity, not the function references
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coordinates, enableAutoSearch]);
 
   const handleSearchClick = () => {
     const filters = buildFilters();

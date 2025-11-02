@@ -561,14 +561,21 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         <div className={styles.stickyHeaderContent}>
           <div className={styles.headerLeftSection}>
             {salon.logo && !logoError ? (
-              <Image
-                src={transformCloudinary(salon.logo, { width: 120, quality: 'auto', format: 'auto' })}
-                alt={`${salon.name} logo`}
-                className={styles.salonLogo}
-                width={60}
-                height={60}
-                onError={() => setLogoError(true)}
-              />
+              <div 
+                className={styles.logoWrapper} 
+                onClick={() => openLightbox([salon.logo], 0)}
+                style={{ cursor: 'pointer' }}
+                title="Click to view full logo"
+              >
+                <Image
+                  src={transformCloudinary(salon.logo, { width: 120, quality: 'auto', format: 'auto' })}
+                  alt={`${salon.name} logo`}
+                  className={styles.salonLogo}
+                  width={60}
+                  height={60}
+                  onError={() => setLogoError(true)}
+                />
+              </div>
             ) : (
               <div className={styles.logoPlaceholder}>
                 <span>{salon.name.charAt(0).toUpperCase()}</span>
@@ -602,6 +609,18 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                   <p className={styles.infoLabel}>Location</p>
                   <p className={styles.infoValue}>{salon.town}, {salon.province}</p>
                   {salon.city && <p className={styles.infoDetail}>{salon.city}</p>}
+                  {mapSrc && (
+                    <div className={styles.miniMap}>
+                      <iframe
+                        src={mapSrc}
+                        width="100%"
+                        height="150"
+                        style={{ border: 0, borderRadius: '8px', marginTop: '8px' }}
+                        loading="lazy"
+                        title={`Map of ${salon.name}`}
+                      />
+                    </div>
+                  )}
                   <div className={styles.infoActions}>
                     <button type="button" onClick={handleCopyAddress} className={styles.infoActionBtn}>
                       <FaRegCopy /> Copy
@@ -625,7 +644,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <div className={styles.infoContent}>
                   <p className={styles.infoLabel}>Today</p>
                   <p className={styles.infoValue}>
-                    {todayLabel}: {hoursRecord?.[todayLabel] ?? 'ΓÇö'}
+                    {todayLabel}: {hoursRecord?.[todayLabel] ?? '—'}
                   </p>
                   {hoursRecord && (
                     <button type="button" onClick={() => setShowWeek(v => !v)} className={styles.infoActionBtn}>

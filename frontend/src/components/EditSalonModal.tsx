@@ -163,17 +163,28 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const validateImageDimensions = (file: File, minWidth: number, minHeight: number): Promise<void> => {
+  const validateImageDimensions = (file: File, minWidth: number, minHeight: number, recommended: { width: number, height: number } = { width: minWidth, height: minHeight }): Promise<void> => {
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       const url = URL.createObjectURL(file);
       
       img.onload = () => {
         URL.revokeObjectURL(url);
-        if (img.width < minWidth || img.height < minHeight) {
+        
+        // Calculate if image is too small (less than 75% of minimum)
+        const absoluteMinWidth = Math.floor(minWidth * 0.75);
+        const absoluteMinHeight = Math.floor(minHeight * 0.75);
+        
+        if (img.width < absoluteMinWidth || img.height < absoluteMinHeight) {
           reject(new Error(
-            `Image too small. Minimum dimensions: ${minWidth}x${minHeight}px. Your image: ${img.width}x${img.height}px.`
+            `Image too small. Minimum: ${minWidth}x${minHeight}px recommended. Your image: ${img.width}x${img.height}px. Try using a larger image for better quality.`
           ));
+        } else if (img.width < minWidth || img.height < minHeight) {
+          // Image is below recommended but above absolute minimum - show warning but allow
+          toast.warning(`Image is smaller than recommended (${recommended.width}x${recommended.height}px). Your image: ${img.width}x${img.height}px. Quality may be reduced.`, {
+            autoClose: 5000,
+          });
+          resolve();
         } else {
           resolve();
         }
@@ -181,7 +192,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image for validation.'));
+        reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
       };
       
       img.src = url;
@@ -210,8 +221,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           throw new Error('Please select a valid image file.');
         }
 
-        // Validate dimensions (minimum 800x400 for background)
-        await validateImageDimensions(file, 800, 400);
+        // Validate dimensions (recommended 1200x600 for background, minimum 600x300)
+        await validateImageDimensions(file, 600, 300, { width: 1200, height: 600 });
 
         setBackgroundImageFile(file);
         if (backgroundImagePreview && backgroundImagePreview.startsWith('blob:')) {
@@ -233,8 +244,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           throw new Error('Please select a valid image file.');
         }
 
-        // Validate dimensions (minimum 200x200 for logo, recommended 512x512)
-        await validateImageDimensions(file, 200, 200);
+        // Validate dimensions (recommended 512x512 for logo, minimum 150x150)
+        await validateImageDimensions(file, 150, 150, { width: 512, height: 512 });
 
         setLogoFile(file);
         if (logoPreview && logoPreview.startsWith('blob:')) {
@@ -254,8 +265,8 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           if (!file.type.startsWith('image/')) {
             throw new Error(`File "${file.name}" is not a valid image.`);
           }
-          // Validate dimensions (minimum 600x400 for hero images)
-          await validateImageDimensions(file, 600, 400);
+          // Validate dimensions (recommended 1200x800 for hero images, minimum 450x300)
+          await validateImageDimensions(file, 450, 300, { width: 1200, height: 800 });
         }
 
         setHeroImageFiles(prevFiles => [...prevFiles, ...newFiles]);
@@ -700,7 +711,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <label className={styles.label}>
                   Background Image
                   <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Minimum: 800x400px, wide format recommended
+                    Recommended: 1200x600px or larger. Minimum: 600x300px (wide format)
                   </span>
                 </label>
                 <input 
@@ -730,7 +741,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <label className={styles.label}>
                   Salon Logo
                   <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Recommended: 512x512px or larger, square format
+                    Recommended: 512x512px or larger. Minimum: 150x150px (square format)
                   </span>
                 </label>
                 <input 
@@ -760,7 +771,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <label className={styles.label}>
                   Hero Images
                   <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Minimum: 600x400px per image
+                    Recommended: 1200x800px or larger. Minimum: 450x300px per image
                   </span>
                 </label>
                 <input 
