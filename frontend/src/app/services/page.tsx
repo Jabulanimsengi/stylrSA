@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -331,5 +331,9 @@ function ServicesPageContent() {
 }
 
 export default function ServicesPage() {
-  return <ServicesPageContent />;
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ServicesPageContent />
+    </Suspense>
+  );
 }
