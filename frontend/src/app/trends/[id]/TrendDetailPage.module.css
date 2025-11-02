@@ -9,7 +9,7 @@
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: clamp(16px, 3vw, 24px);
 }
 
 .backButton {
@@ -36,7 +36,13 @@
 .content {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  gap: 48px;
+  gap: clamp(24px, 4vw, 48px);
+}
+
+@media (min-width: 1600px) {
+  .content {
+    gap: 64px;
+  }
 }
 
 .imageSection {
@@ -124,7 +130,7 @@
 
 .title {
   margin: 0 0 8px 0;
-  font-size: 36px;
+  font-size: clamp(24px, 4vw, 36px);
   font-weight: 700;
   color: var(--color-text-strong);
   line-height: 1.2;
@@ -272,15 +278,11 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 16px;
+    padding: 12px;
   }
 
-  .title {
-    font-size: 28px;
-  }
-
-  .styleName {
-    font-size: 16px;
+  .mainImage {
+    padding-top: 100%; /* 1:1 aspect ratio on mobile */
   }
 
   .header {
@@ -299,6 +301,7 @@
 
   .thumbnailGrid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 
   .stats {
@@ -308,7 +311,15 @@
 
   .findSalonsButton {
     font-size: 16px;
-    padding: 16px 24px;
+    padding: 14px 20px;
+  }
+  
+  .description h3 {
+    font-size: 18px;
+  }
+  
+  .description p {
+    font-size: 15px;
   }
 }
 
@@ -320,17 +331,24 @@
 }
 
 .salonsTitle {
-  font-size: 32px;
+  font-size: clamp(20px, 3.5vw, 32px);
   font-weight: 700;
   color: var(--color-text-strong);
-  margin: 0 0 32px 0;
+  margin: 0 0 clamp(24px, 3vw, 32px) 0;
   text-align: center;
 }
 
 .salonsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  max-width: 100%;
+}
+
+@media (min-width: 1400px) {
+  .salonsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .salonCard {
@@ -483,19 +501,83 @@
 }
 
 @media (max-width: 480px) {
-  .title {
-    font-size: 24px;
+  .container {
+    padding: 8px;
+  }
+
+  .backButton {
+    padding: 10px 16px;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .mainImage {
+    border-radius: 12px;
   }
 
   .thumbnailGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .thumbnail {
+    border-radius: 8px;
   }
 
-  .salonsTitle {
-    font-size: 20px;
+  .likeButton,
+  .shareButton {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .shareButton {
+    width: 42px;
+    height: 42px;
+  }
+
+  .description h3 {
+    font-size: 16px;
+  }
+  
+  .description p {
+    font-size: 14px;
+  }
+
+  .tag {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .findSalonsButton {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+
+  .salonsSection {
+    margin-top: 32px;
+    padding-top: 24px;
+  }
+
+  .salonsGrid {
+    gap: 12px;
+  }
+
+  .salonInfo {
+    padding: 16px;
   }
 
   .salonInfo h3 {
-    font-size: 18px;
+    font-size: 16px;
+  }
+  
+  .serviceTag {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+  
+  .contactIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
 }

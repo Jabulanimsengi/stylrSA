@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
 import { Trend, TrendCategory } from '@/types';
 import TrendCard from '../TrendCard/TrendCard';
 import styles from './TrendRow.module.css';
+
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 interface TrendRowProps {
   title: string;
@@ -14,75 +19,85 @@ interface TrendRowProps {
   onLike?: (trendId: string, isLiked: boolean) => void;
 }
 
-const CATEGORY_ICONS: Record<TrendCategory, string> = {
-  HAIRSTYLE: '💇',
-  NAILS: '💅',
-  SPA: '🧖',
-  MAKEUP: '💄',
-  SKINCARE: '✨',
-  MASSAGE: '💆',
-  BARBERING: '✂️',
-  BRAIDS: '🪢',
-  LOCS: '🔒',
-  EXTENSIONS: '👩‍🦱',
-};
-
 export default function TrendRow({ title, category, trends, onLike }: TrendRowProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (!scrollContainerRef.current) return;
-    const scrollAmount = 300;
-    const newPosition =
-      scrollContainerRef.current.scrollLeft +
-      (direction === 'right' ? scrollAmount : -scrollAmount);
-    scrollContainerRef.current.scrollTo({
-      left: newPosition,
-      behavior: 'smooth',
-    });
-  };
+  const [activeIndex, setActiveIndex] = useState(0);
 
   if (!trends || trends.length === 0) {
     return null;
   }
 
-  const icon = CATEGORY_ICONS[category] || '✨';
-
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <h2 className={styles.title}>
-          <span className={styles.icon}>{icon}</span> {title}
-        </h2>
+        <h2 className={styles.title}>{title}</h2>
         <Link href={`/trends?category=${category}`} className={styles.viewAll}>
           View All
         </Link>
       </div>
 
-      <div className={styles.scrollWrapper}>
-        <button
-          onClick={() => scroll('left')}
-          className={`${styles.scrollButton} ${styles.scrollButtonLeft}`}
-          aria-label="Scroll left"
+      <div className={styles.container}>
+        <Swiper
+          modules={[Navigation]}
+          navigation={{
+            prevEl: `.${styles.prevButton}-${category}`,
+            nextEl: `.${styles.nextButton}-${category}`,
+          }}
+          spaceBetween={16}
+          slidesPerView={'auto'}
+          style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
+          onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
+          breakpoints={{
+            320: {
+              slidesPerView: 1.15,
+              navigation: {
+                enabled: false,
+              },
+            },
+            768: {
+              slidesPerView: 4.1,
+              navigation: {
+                enabled: true,
+              },
+            },
+          }}
         >
-          <FaChevronLeft />
+          {trends.map((trend) => (
+            <SwiperSlide key={trend.id}>
+              <TrendCard trend={trend} onLike={onLike} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+
+        {/* Navigation buttons */}
+        <button className={`${styles.prevButton} ${styles.prevButton}-${category}`} aria-label="Previous">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <button className={`${styles.nextButton} ${styles.nextButton}-${category}`} aria-label="Next">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
         </button>
 
-        <div ref={scrollContainerRef} className={styles.scrollContainer}>
-          {trends.map((trend) => (
-            <div key={trend.id} className={styles.cardWrapper}>
-              <TrendCard trend={trend} onLike={onLike} />
-            </div>
-          ))}
+        {/* Scroll indicators for mobile */}
+        <div className={styles.scrollIndicators}>
+          <div className={styles.scrollIndicatorLeft}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </div>
+          <div className={styles.scrollIndicatorRight}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </div>
         </div>
 
-        <button
-          onClick={() => scroll('right')}
-          className={`${styles.scrollButton} ${styles.scrollButtonRight}`}
-          aria-label="Scroll right"
-        >
-          <FaChevronRight />
-        </button>
+        {/* Slide counter for mobile */}
+        <div className={styles.slideCounter}>
+          {activeIndex + 1}/{trends.length}
+        </div>
       </div>
     </section>
   );
