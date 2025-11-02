@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { FaStar, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 import styles from './AdminSalonTrendzManager.module.css';
 
 interface SalonTrendzData {
@@ -11,7 +11,6 @@ interface SalonTrendzData {
   city: string;
   province: string;
   avgRating: number;
-  serviceCategories: string[];
   trendzProfile: {
     isEnabled: boolean;
     categories: string[];
@@ -37,8 +36,8 @@ const TREND_CATEGORIES = [
 export default function AdminSalonTrendzManager() {
   const [salons, setSalons] = useState<SalonTrendzData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterEnabled, setFilterEnabled] = useState<'all' | 'enabled' | 'disabled'>('all');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchSalons();
@@ -64,65 +63,104 @@ export default function AdminSalonTrendzManager() {
     }
   };
 
-  const updateSalonProfile = async (
-    salonId: string,
-    updates: Partial<SalonTrendzData['trendzProfile']>
-  ) => {
+  const activateSalon = async (salonId: string) => {
     try {
       const res = await fetch(`/api/trends/admin/salons/${salonId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(updates),
+        body: JSON.stringify({ isEnabled: true }),
       });
 
       if (res.ok) {
-        toast.success('Salon profile updated!');
+        toast.success('Salon activated for Trendz!');
         fetchSalons();
       } else {
-        toast.error('Failed to update salon');
+        toast.error('Failed to activate salon');
       }
     } catch (error) {
-      toast.error('Error updating salon');
+      toast.error('Error activating salon');
     }
   };
 
-  const toggleEnabled = (salon: SalonTrendzData) => {
-    updateSalonProfile(salon.id, {
-      isEnabled: !salon.trendzProfile.isEnabled,
-    });
+  const deactivateSalon = async (salonId: string) => {
+    try {
+      const res = await fetch(`/api/trends/admin/salons/${salonId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ isEnabled: false }),
+      });
+
+      if (res.ok) {
+        toast.success('Salon deactivated from Trendz');
+        fetchSalons();
+      } else {
+        toast.error('Failed to deactivate salon');
+      }
+    } catch (error) {
+      toast.error('Error deactivating salon');
+    }
   };
 
-  const togglePremium = (salon: SalonTrendzData) => {
-    updateSalonProfile(salon.id, {
-      isPremium: !salon.trendzProfile.isPremium,
-    });
+  const startEditing = (salon: SalonTrendzData) => {
+    setEditingId(salon.id);
+    setSelectedCategories(salon.trendzProfile.categories);
   };
 
-  const toggleCategory = (salon: SalonTrendzData, category: string) => {
-    const currentCategories = salon.trendzProfile.categories;
-    const newCategories = currentCategories.includes(category)
-      ? currentCategories.filter((c) => c !== category)
-      : [...currentCategories, category];
-
-    updateSalonProfile(salon.id, {
-      categories: newCategories,
-    });
+  const cancelEditing = () => {
+    setEditingId(null);
+    setSelectedCategories([]);
   };
 
-  const filteredSalons = salons.filter((salon) => {
-    const matchesSearch =
-      salon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      salon.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      salon.province.toLowerCase().includes(searchTerm.toLowerCase());
+  const saveCategories = async (salonId: string) => {
+    try {
+      const res = await fetch(`/api/trends/admin/salons/${salonId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ categories: selectedCategories }),
+      });
 
-    const matchesFilter =
-      filterEnabled === 'all' ||
-      (filterEnabled === 'enabled' && salon.trendzProfile.isEnabled) ||
-      (filterEnabled === 'disabled' && !salon.trendzProfile.isEnabled);
+      if (res.ok) {
+        toast.success('Categories updated!');
+        setEditingId(null);
+        fetchSalons();
+      } else {
+        toast.error('Failed to update categories');
+      }
+    } catch (error) {
+      toast.error('Error updating categories');
+    }
+  };
 
-    return matchesSearch && matchesFilter;
-  });
+  const togglePremium = async (salon: SalonTrendzData) => {
+    try {
+      const res = await fetch(`/api/trends/admin/salons/${salon.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ isPremium: !salon.trendzProfile.isPremium }),
+      });
+
+      if (res.ok) {
+        toast.success(salon.trendzProfile.isPremium ? 'Premium removed' : 'Premium activated!');
+        fetchSalons();
+      } else {
+        toast.error('Failed to update premium status');
+      }
+    } catch (error) {
+      toast.error('Error updating premium status');
+    }
+  };
+
+  const toggleCategory = (category: string) => {
+    if (selectedCategories.includes(category)) {
+      setSelectedCategories(selectedCategories.filter((c) => c !== category));
+    } else {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+  };
 
   if (isLoading) {
     return <div className={styles.loading}>Loading salons...</div>;
@@ -131,146 +169,104 @@ export default function AdminSalonTrendzManager() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2>Manage Salon Trendz Profiles</h2>
-        <p className={styles.subtitle}>
-          Control which salons appear in trend recommendations
-        </p>
+        <h3>Manage Salon Trendz Recommendations</h3>
+        <p>Control which salons appear in trend recommendations</p>
       </div>
 
-      <div className={styles.filters}>
-        <input
-          type="text"
-          placeholder="Search salons..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={styles.searchInput}
-        />
-
-        <div className={styles.filterButtons}>
-          <button
-            onClick={() => setFilterEnabled('all')}
-            className={`${styles.filterButton} ${filterEnabled === 'all' ? styles.active : ''}`}
-          >
-            All ({salons.length})
-          </button>
-          <button
-            onClick={() => setFilterEnabled('enabled')}
-            className={`${styles.filterButton} ${filterEnabled === 'enabled' ? styles.active : ''}`}
-          >
-            Enabled ({salons.filter((s) => s.trendzProfile.isEnabled).length})
-          </button>
-          <button
-            onClick={() => setFilterEnabled('disabled')}
-            className={`${styles.filterButton} ${filterEnabled === 'disabled' ? styles.active : ''}`}
-          >
-            Disabled ({salons.filter((s) => !s.trendzProfile.isEnabled).length})
-          </button>
+      <div className={styles.stats}>
+        <div className={styles.statCard}>
+          <span className={styles.statValue}>{salons.filter(s => s.trendzProfile.isEnabled).length}</span>
+          <span className={styles.statLabel}>Active</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statValue}>{salons.filter(s => s.trendzProfile.isPremium).length}</span>
+          <span className={styles.statLabel}>Premium</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statValue}>{salons.length}</span>
+          <span className={styles.statLabel}>Total Salons</span>
         </div>
       </div>
 
-      {filteredSalons.length === 0 ? (
+      {salons.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No salons found matching your criteria</p>
+          <p>No salons found</p>
         </div>
       ) : (
         <div className={styles.salonsList}>
-          {filteredSalons.map((salon) => (
-            <div key={salon.id} className={styles.salonCard}>
-              <div className={styles.salonHeader}>
-                <div>
-                  <h3>{salon.name}</h3>
-                  <p className={styles.location}>
-                    {salon.city}, {salon.province}
-                  </p>
-                  {salon.avgRating > 0 && (
-                    <div className={styles.rating}>
-                      <FaStar /> {salon.avgRating.toFixed(1)}
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.toggles}>
-                  <button
-                    onClick={() => toggleEnabled(salon)}
-                    className={`${styles.toggleButton} ${salon.trendzProfile.isEnabled ? styles.enabled : styles.disabled}`}
-                  >
-                    {salon.trendzProfile.isEnabled ? (
-                      <>
-                        <FaCheck /> Enabled
-                      </>
-                    ) : (
-                      <>
-                        <FaTimes /> Disabled
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => togglePremium(salon)}
-                    disabled={!salon.trendzProfile.isEnabled}
-                    className={`${styles.premiumButton} ${salon.trendzProfile.isPremium ? styles.premiumActive : ''}`}
-                  >
-                    ⭐ Premium
-                  </button>
-                </div>
-              </div>
-
-              {salon.serviceCategories.length > 0 && (
-                <div className={styles.serviceCategories}>
-                  <p className={styles.label}>Services Offered:</p>
-                  <div className={styles.tags}>
-                    {salon.serviceCategories.map((cat, idx) => (
-                      <span key={idx} className={styles.serviceTag}>
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className={styles.trendCategories}>
-                <p className={styles.label}>Show in Trend Categories:</p>
-                <div className={styles.categoryGrid}>
-                  {TREND_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.value}
-                      onClick={() => toggleCategory(salon, cat.value)}
-                      disabled={!salon.trendzProfile.isEnabled}
-                      className={`${styles.categoryButton} ${
-                        salon.trendzProfile.categories.includes(cat.value)
-                          ? styles.categorySelected
-                          : ''
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {(salon.trendzProfile.impressions > 0 ||
-                salon.trendzProfile.clicks > 0) && (
-                <div className={styles.stats}>
-                  <span>
-                    👁️ {salon.trendzProfile.impressions.toLocaleString()}{' '}
-                    impressions
-                  </span>
-                  <span>
+          {salons.map((salon) => (
+            <div key={salon.id} className={styles.listItem}>
+              <div className={styles.info}>
+                <h4>{salon.name}</h4>
+                <p>{salon.city}, {salon.province}</p>
+                {salon.trendzProfile.impressions > 0 && (
+                  <p className={styles.analytics}>
+                    👁️ {salon.trendzProfile.impressions.toLocaleString()} impressions • 
                     🖱️ {salon.trendzProfile.clicks.toLocaleString()} clicks
-                  </span>
-                  {salon.trendzProfile.clicks > 0 && (
-                    <span>
-                      📊{' '}
-                      {(
-                        (salon.trendzProfile.clicks /
-                          salon.trendzProfile.impressions) *
-                        100
-                      ).toFixed(1)}
-                      % CTR
-                    </span>
-                  )}
-                </div>
-              )}
+                    {salon.trendzProfile.clicks > 0 && (
+                      <> • 📊 {((salon.trendzProfile.clicks / salon.trendzProfile.impressions) * 100).toFixed(1)}% CTR</>
+                    )}
+                  </p>
+                )}
+                
+                {editingId === salon.id ? (
+                  <div className={styles.categoryEditor}>
+                    <p><strong>Select Categories:</strong></p>
+                    <div className={styles.categoryGrid}>
+                      {TREND_CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.value}
+                          onClick={() => toggleCategory(cat.value)}
+                          className={`${styles.categoryChip} ${
+                            selectedCategories.includes(cat.value) ? styles.selected : ''
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.editorActions}>
+                      <button onClick={() => saveCategories(salon.id)} className={styles.saveButton}>
+                        <FaCheck /> Save
+                      </button>
+                      <button onClick={cancelEditing} className={styles.cancelButton}>
+                        <FaTimes /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : salon.trendzProfile.isEnabled && salon.trendzProfile.categories.length > 0 && (
+                  <div className={styles.categories}>
+                    <p><strong>Categories:</strong></p>
+                    <div className={styles.categoryList}>
+                      {salon.trendzProfile.categories.map((cat) => (
+                        <span key={cat} className={styles.categoryTag}>
+                          {TREND_CATEGORIES.find((c) => c.value === cat)?.label || cat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className={styles.actions}>
+                {salon.trendzProfile.isEnabled ? (
+                  <>
+                    <button onClick={() => startEditing(salon)} className={styles.editButton}>
+                      Edit Categories
+                    </button>
+                    <button onClick={() => togglePremium(salon)} className={salon.trendzProfile.isPremium ? styles.premiumButton : styles.makePremiumButton}>
+                      {salon.trendzProfile.isPremium ? '⭐ Premium' : 'Make Premium'}
+                    </button>
+                    <button onClick={() => deactivateSalon(salon.id)} className={styles.deactivateButton}>
+                      Deactivate
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={() => activateSalon(salon.id)} className={styles.activateButton}>
+                    Activate for Trendz
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

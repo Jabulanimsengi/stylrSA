@@ -86,7 +86,11 @@ export default function TrendCard({ trend, onLike }: TrendCardProps) {
           className={styles.image}
           sizes="(max-width: 768px) 100vw, 33vw"
         />
+        
+        {/* Category badge - top left */}
         <div className={styles.categoryBadge}>{categoryLabel}</div>
+        
+        {/* Like button - top right */}
         <button
           onClick={handleLike}
           className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
@@ -95,19 +99,21 @@ export default function TrendCard({ trend, onLike }: TrendCardProps) {
         >
           <FaHeart />
         </button>
-      </div>
-      <div className={styles.content}>
-        <h3 className={styles.title}>{trend.title}</h3>
-        {trend.styleName && (
-          <p className={styles.styleName}>{trend.styleName}</p>
-        )}
-        <div className={styles.stats}>
-          <span className={styles.stat}>
-            <FaEye /> {trend.viewCount.toLocaleString()}
-          </span>
-          <span className={styles.stat}>
-            <FaHeart /> {likeCount.toLocaleString()}
-          </span>
+        
+        {/* Overlay info - bottom of image */}
+        <div className={styles.overlay}>
+          <h3 className={styles.overlayTitle}>{trend.title}</h3>
+          {trend.styleName && (
+            <p className={styles.overlayStyleName}>{trend.styleName}</p>
+          )}
+          <div className={styles.overlayStats}>
+            <span className={styles.overlayStat}>
+              <FaEye /> {trend.viewCount.toLocaleString()}
+            </span>
+            <span className={styles.overlayStat}>
+              <FaHeart /> {likeCount.toLocaleString()}
+            </span>
+          </div>
         </div>
       </div>
     </Link>

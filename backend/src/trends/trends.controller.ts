@@ -49,41 +49,7 @@ export class TrendsController {
     return this.trendsService.findByCategory(category, userId);
   }
 
-  /**
-   * Get single trend by ID
-   * GET /api/trends/:id
-   */
-  @Get(':id')
-  findOne(
-    @Param('id') id: string,
-    @Query('userId') userId?: string,
-    @Req() req?: any,
-  ) {
-    const ipAddress = req?.ip || req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress;
-    return this.trendsService.findOne(id, userId, ipAddress);
-  }
-
   // ==================== USER ENDPOINTS ====================
-
-  /**
-   * Like a trend
-   * POST /api/trends/:id/like
-   */
-  @UseGuards(JwtGuard)
-  @Post(':id/like')
-  like(@GetUser() user: any, @Param('id') id: string) {
-    return this.trendsService.like(user.id, id);
-  }
-
-  /**
-   * Unlike a trend
-   * POST /api/trends/:id/unlike
-   */
-  @UseGuards(JwtGuard)
-  @Post(':id/unlike')
-  unlike(@GetUser() user: any, @Param('id') id: string) {
-    return this.trendsService.unlike(user.id, id);
-  }
 
   /**
    * Get user's liked trends
@@ -95,16 +61,33 @@ export class TrendsController {
     return this.trendsService.getUserLikes(user.id);
   }
 
+  // ==================== ADMIN ENDPOINTS ====================
+  // IMPORTANT: Admin routes must come BEFORE dynamic :id routes
+
   /**
-   * Track click-through
-   * POST /api/trends/:id/click
+   * Admin: Get all salons with Trendz profile
+   * GET /api/trends/admin/salons
    */
-  @Post(':id/click')
-  trackClickThrough(@Param('id') id: string) {
-    return this.trendsService.trackClickThrough(id);
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Get('admin/salons')
+  getAllSalonsWithTrendzProfile() {
+    return this.trendsSalonsService.getAllSalonsWithTrendzProfile();
   }
 
-  // ==================== ADMIN ENDPOINTS ====================
+  /**
+   * Admin: Update salon Trendz profile
+   * PUT /api/trends/admin/salons/:salonId
+   */
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Put('admin/salons/:salonId')
+  updateSalonTrendzProfile(
+    @Param('salonId') salonId: string,
+    @Body() data: any,
+  ) {
+    return this.trendsSalonsService.updateSalonTrendzProfile(salonId, data);
+  }
 
   /**
    * Get all trends for admin
@@ -154,6 +137,52 @@ export class TrendsController {
     return this.trendsService.delete(user, id);
   }
 
+  // ==================== DYNAMIC ROUTES ====================
+  // IMPORTANT: These must come AFTER static routes like admin/*
+
+  /**
+   * Get single trend by ID
+   * GET /api/trends/:id
+   */
+  @Get(':id')
+  findOne(
+    @Param('id') id: string,
+    @Query('userId') userId?: string,
+    @Req() req?: any,
+  ) {
+    const ipAddress = req?.ip || req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress;
+    return this.trendsService.findOne(id, userId, ipAddress);
+  }
+
+  /**
+   * Like a trend
+   * POST /api/trends/:id/like
+   */
+  @UseGuards(JwtGuard)
+  @Post(':id/like')
+  like(@GetUser() user: any, @Param('id') id: string) {
+    return this.trendsService.like(user.id, id);
+  }
+
+  /**
+   * Unlike a trend
+   * POST /api/trends/:id/unlike
+   */
+  @UseGuards(JwtGuard)
+  @Post(':id/unlike')
+  unlike(@GetUser() user: any, @Param('id') id: string) {
+    return this.trendsService.unlike(user.id, id);
+  }
+
+  /**
+   * Track click-through
+   * POST /api/trends/:id/click
+   */
+  @Post(':id/click')
+  trackClickThrough(@Param('id') id: string) {
+    return this.trendsService.trackClickThrough(id);
+  }
+
   // ==================== SALON RECOMMENDATIONS ====================
 
   /**
@@ -188,30 +217,5 @@ export class TrendsController {
     @Param('salonId') salonId: string,
   ) {
     return this.trendsSalonsService.trackSalonClick(trendId, salonId);
-  }
-
-  /**
-   * Admin: Get all salons with Trendz profile
-   * GET /api/trends/admin/salons
-   */
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN')
-  @Get('admin/salons')
-  getAllSalonsWithTrendzProfile() {
-    return this.trendsSalonsService.getAllSalonsWithTrendzProfile();
-  }
-
-  /**
-   * Admin: Update salon Trendz profile
-   * PUT /api/trends/admin/salons/:salonId
-   */
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN')
-  @Put('admin/salons/:salonId')
-  updateSalonTrendzProfile(
-    @Param('salonId') salonId: string,
-    @Body() data: any,
-  ) {
-    return this.trendsSalonsService.updateSalonTrendzProfile(salonId, data);
   }
 }

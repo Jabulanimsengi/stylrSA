@@ -170,24 +170,13 @@ export default function TrendDetailPage({ params }: PageProps) {
     }
   };
 
-  const handleShare = async () => {
+  const handleShareCopy = async () => {
     const url = window.location.href;
-    const text = `Check out this trending style: ${trend?.title}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: trend?.title, text, url });
-      } catch (error) {
-        // User cancelled or share failed
-      }
-    } else {
-      // Fallback: copy to clipboard
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard!');
-      } catch (error) {
-        toast.error('Failed to copy link');
-      }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard!');
+    } catch (error) {
+      toast.error('Failed to copy link');
     }
   };
 
@@ -214,10 +203,6 @@ export default function TrendDetailPage({ params }: PageProps) {
   return (
     <div className={styles.container}>
       <PageNav />
-
-      <button onClick={() => router.back()} className={styles.backButton}>
-        <FaArrowLeft /> Back
-      </button>
 
       <div className={styles.content}>
         <div className={styles.imageSection}>
@@ -286,7 +271,7 @@ export default function TrendDetailPage({ params }: PageProps) {
               >
                 <FaHeart /> {likeCount.toLocaleString()}
               </button>
-              <button onClick={handleShare} className={styles.shareButton}>
+              <button onClick={handleShareCopy} className={styles.shareButton} title="Copy link">
                 <FaShare />
               </button>
             </div>
