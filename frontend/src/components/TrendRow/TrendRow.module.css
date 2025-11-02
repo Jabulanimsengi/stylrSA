@@ -32,6 +32,14 @@
   color: var(--primary-pink);
 }
 
+.viewAll:visited {
+  color: var(--muted-teal);
+}
+
+.viewAll:visited:hover {
+  color: var(--primary-pink);
+}
+
 .container {
   width: 100%;
   position: relative;
