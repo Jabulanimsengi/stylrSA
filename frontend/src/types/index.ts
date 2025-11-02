@@ -247,3 +247,46 @@ export interface ProductOrder {
   seller?: Partial<User>;
   buyer?: Partial<User>;
 }
+
+// Trendz Feature Types
+export type TrendCategory =
+  | 'HAIRSTYLE'
+  | 'NAILS'
+  | 'SPA'
+  | 'MAKEUP'
+  | 'SKINCARE'
+  | 'MASSAGE'
+  | 'BARBERING'
+  | 'BRAIDS'
+  | 'LOCS'
+  | 'EXTENSIONS';
+
+export type AgeGroup =
+  | 'KIDS'
+  | 'TEENS'
+  | 'YOUNG_ADULTS'
+  | 'ADULTS'
+  | 'MATURE_ADULTS'
+  | 'ALL_AGES';
+
+export interface Trend {
+  id: string;
+  title: string;
+  description: string;
+  images: string[];
+  category: TrendCategory;
+  ageGroups: AgeGroup[];
+  styleName?: string;
+  tags: string[];
+  isActive: boolean;
+  priority: number;
+  viewCount: number;
+  likeCount: number;
+  shareCount: number;
+  clickThroughCount: number;
+  relatedServiceCategories: string[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  isLiked?: boolean;
+}

@@ -114,6 +114,10 @@ model Salon {
   planPaymentReference String?
   planProofSubmittedAt DateTime?
   planVerifiedAt       DateTime?
+  
+  // Trendz feature
+  trendzProfile        SalonTrendzProfile?
+  
   @@index([approvalStatus])
   @@index([city])
   @@index([province])
@@ -189,6 +193,7 @@ model Booking {
   service     Service       @relation(fields: [serviceId], references: [id])
   clientPhone String?
   review      Review?
+  referralSource String?
   @@index([userId])
   @@index([salonId])
   @@index([serviceId])
@@ -509,4 +514,110 @@ model AdminActionLog {
   createdAt  DateTime @default(now())
   @@index([createdAt])
   @@index([targetType, targetId])
+}
+
+// ============================================
+// TRENDZ FEATURE - NEW MODELS
+// ============================================
+
+enum TrendCategory {
+  HAIRSTYLE
+  NAILS
+  SPA
+  MAKEUP
+  SKINCARE
+  MASSAGE
+  BARBERING
+  BRAIDS
+  LOCS
+  EXTENSIONS
+}
+
+enum AgeGroup {
+  KIDS
+  TEENS
+  YOUNG_ADULTS
+  ADULTS
+  MATURE_ADULTS
+  ALL_AGES
+}
+
+model Trend {
+  id              String          @id @default(uuid())
+  title           String
+  description     String
+  images          String[]
+  category        TrendCategory
+  ageGroups       AgeGroup[]
+  styleName       String?
+  tags            String[]        @default([])
+  
+  isActive        Boolean         @default(true)
+  priority        Int             @default(0)
+  
+  viewCount       Int             @default(0)
+  likeCount       Int             @default(0)
+  shareCount      Int             @default(0)
+  clickThroughCount Int           @default(0)
+  
+  likes           TrendLike[]
+  views           TrendView[]
+  
+  relatedServiceCategories String[] @default([])
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  createdBy       String
+  
+  @@index([category])
+  @@index([isActive])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model TrendLike {
+  id        String   @id @default(uuid())
+  userId    String
+  trendId   String
+  trend     Trend    @relation(fields: [trendId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, trendId])
+  @@index([userId])
+  @@index([trendId])
+}
+
+model TrendView {
+  id        String   @id @default(uuid())
+  trendId   String
+  trend     Trend    @relation(fields: [trendId], references: [id], onDelete: Cascade)
+  userId    String?
+  ipAddress String?
+  viewedAt  DateTime @default(now())
+  
+  @@index([trendId])
+  @@index([userId])
+  @@index([viewedAt])
+}
+
+model SalonTrendzProfile {
+  id              String          @id @default(uuid())
+  salonId         String          @unique
+  salon           Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  
+  isEnabled       Boolean         @default(false)
+  categories      TrendCategory[] @default([])
+  
+  isPremium       Boolean         @default(false)
+  premiumUntil    DateTime?
+  
+  impressions     Int             @default(0)
+  clicks          Int             @default(0)
+  bookings        Int             @default(0)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([isEnabled])
+  @@index([isPremium])
 }

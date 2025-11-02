@@ -31,6 +31,7 @@ import { MailModule } from './mail/mail.module';
 import { CsrfModule } from './common/csrf/csrf.module';
 import { BeforeAfterModule } from './before-after/before-after.module';
 import { VideosModule } from './videos/videos.module';
+import { TrendsModule } from './trends/trends.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { VideosModule } from './videos/videos.module';
     CsrfModule,
     BeforeAfterModule,
     VideosModule,
+    TrendsModule,
   ],
   controllers: [AppController],
   providers: [

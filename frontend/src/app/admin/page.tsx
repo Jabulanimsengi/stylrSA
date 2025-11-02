@@ -25,6 +25,7 @@ import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import AdminMediaReview from '@/components/AdminMediaReview';
+import AdminTrendsManager from '@/components/AdminTrendsManager/AdminTrendsManager';
 
 const ensureArray = <T,>(value: unknown): T[] =>
   Array.isArray(value) ? (value as T[]) : [];
@@ -93,7 +94,7 @@ export default function AdminPage() {
   const [availableSalons, setAvailableSalons] = useState<PendingSalon[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
   const [featureDuration, setFeatureDuration] = useState<number>(30);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media' | 'trends'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -815,6 +816,12 @@ export default function AdminPage() {
           Media Review
         </button>
         <button
+          onClick={() => setView('trends')}
+          className={`${styles.tabButton} ${view === 'trends' ? styles.activeTab : ''}`}
+        >
+          Trendz
+        </button>
+        <button
           onClick={() => setView('deleted-salons')}
           className={`${styles.tabButton} ${view === 'deleted-salons' ? styles.activeTab : ''}`}
         >
@@ -1485,6 +1492,10 @@ export default function AdminPage() {
 
         {view === 'media' && (
           <AdminMediaReview />
+        )}
+
+        {view === 'trends' && (
+          <AdminTrendsManager />
         )}
 
         {view === 'deleted-sellers' && (

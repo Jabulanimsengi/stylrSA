@@ -17,6 +17,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import BeforeAfterSlideshow from '@/components/BeforeAfterSlideshow/BeforeAfterSlideshow';
 import VideoSlideshow from '@/components/VideoSlideshow/VideoSlideshow';
+import TrendRow from '@/components/TrendRow/TrendRow';
+import { Trend, TrendCategory } from '@/types';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -40,6 +42,8 @@ export default function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const loader = useRef(null);
+  const [trendsData, setTrendsData] = useState<Record<TrendCategory, Trend[]>>({} as Record<TrendCategory, Trend[]>);
+  const [trendsLoading, setTrendsLoading] = useState(true);
   
   const observer = useRef<IntersectionObserver | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -104,6 +108,25 @@ export default function HomePage() {
   useEffect(() => {
     fetchServices(1);
   }, [fetchServices]);
+
+  // Fetch trends data
+  useEffect(() => {
+    const fetchTrends = async () => {
+      try {
+        const res = await fetch('/api/trends');
+        if (res.ok) {
+          const data = await res.json();
+          setTrendsData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch trends:', error);
+      } finally {
+        setTrendsLoading(false);
+      }
+    };
+
+    fetchTrends();
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -252,6 +275,54 @@ export default function HomePage() {
         <h2 className={styles.sectionTitle}>Recommended</h2>
         <FeaturedSalons />
       </section>
+
+      {/* Trendz Sections */}
+      {!trendsLoading && Object.keys(trendsData).length > 0 && (
+        <>
+          {trendsData.HAIRSTYLE && trendsData.HAIRSTYLE.length > 0 && (
+            <TrendRow
+              title="Trending Hairstyles"
+              category="HAIRSTYLE"
+              trends={trendsData.HAIRSTYLE}
+            />
+          )}
+          {trendsData.BRAIDS && trendsData.BRAIDS.length > 0 && (
+            <TrendRow
+              title="Trending Braids"
+              category="BRAIDS"
+              trends={trendsData.BRAIDS}
+            />
+          )}
+          {trendsData.NAILS && trendsData.NAILS.length > 0 && (
+            <TrendRow
+              title="Trending Nails"
+              category="NAILS"
+              trends={trendsData.NAILS}
+            />
+          )}
+          {trendsData.SPA && trendsData.SPA.length > 0 && (
+            <TrendRow
+              title="Trending Spa"
+              category="SPA"
+              trends={trendsData.SPA}
+            />
+          )}
+          {trendsData.MAKEUP && trendsData.MAKEUP.length > 0 && (
+            <TrendRow
+              title="Trending Makeup"
+              category="MAKEUP"
+              trends={trendsData.MAKEUP}
+            />
+          )}
+          {trendsData.BARBERING && trendsData.BARBERING.length > 0 && (
+            <TrendRow
+              title="Trending Barbering"
+              category="BARBERING"
+              trends={trendsData.BARBERING}
+            />
+          )}
+        </>
+      )}
 
       {/* Before & After Photos Slideshow */}
       <BeforeAfterSlideshow />
