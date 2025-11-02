@@ -271,11 +271,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Recommended</h2>
-        <FeaturedSalons />
-      </section>
-
       {/* Trendz Sections */}
       {!trendsLoading && Object.keys(trendsData).length > 0 && (
         <>
@@ -323,6 +318,11 @@ export default function HomePage() {
           )}
         </>
       )}
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Recommended</h2>
+        <FeaturedSalons />
+      </section>
 
       {/* Before & After Photos Slideshow */}
       <BeforeAfterSlideshow />
