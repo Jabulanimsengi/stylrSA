@@ -132,11 +132,29 @@
 }
 
 @media (max-width: 768px) {
+  .heroActions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0 1rem;
+  }
+
+  .heroActions::-webkit-scrollbar {
+    display: none;
+  }
+
   .heroActions :global(.btn) {
-    min-width: 0;
+    flex: 0 0 auto;
+    min-width: calc(45% - 0.375rem);
     padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
     font-weight: 500;
+    scroll-snap-align: start;
   }
 }
 
@@ -307,12 +325,7 @@
   }
 
   .heroActions {
-    justify-content: center;
-  }
-
-  .heroActions :global(.btn) {
-    width: 100%;
-    max-width: 14rem;
+    justify-content: flex-start;
   }
 
   .heroControls {
@@ -369,11 +382,13 @@
 
   .heroActions {
     gap: 0.5rem;
+    padding: 0 0.75rem;
   }
 
   .heroActions :global(.btn) {
     padding: 0.35rem 0.65rem;
     font-size: 0.75rem;
+    min-width: calc(46% - 0.25rem);
   }
 
   .section {
@@ -434,11 +449,13 @@
 
   .heroActions {
     gap: 0.4rem;
+    padding: 0 0.625rem;
   }
 
   .heroActions :global(.btn) {
     padding: 0.3rem 0.55rem;
     font-size: 0.7rem;
+    min-width: calc(47% - 0.2rem);
   }
 
   .heroNavButton {
