@@ -17,30 +17,14 @@ const CITY_DATA: Record<string, Record<string, {
     'johannesburg': {
       name: 'Johannesburg',
       province: 'Gauteng',
-      population: '5.6M',
-      description: 'Find the best hair salons, nail salons, spas, and beauty services near you in Johannesburg. Book appointments at top-rated salons offering hair braiding, weaving, extensions, gel nails, manicures, pedicures, massages, facials, makeup artists, and more. Browse affordable beauty salons, luxury spas, mobile hairstylists, and bridal makeup artists in Joburg.',
-      keywords: [
-        'hair salon near me Johannesburg',
-        'nail salon near me Johannesburg',
-        'spa near me Johannesburg',
-        'best hair salon in Johannesburg',
-        'african hair braiding near me Johannesburg',
-        'hair weaving near me Johannesburg',
-        'gel nails near me Johannesburg',
-        'makeup artist near me Johannesburg',
-        'massage near me Johannesburg',
-        'beauty salon near me Johannesburg',
-        'hairdresser near me Johannesburg',
-        'manicure near me Johannesburg',
-        'pedicure near me Johannesburg',
-        'bridal makeup near me Johannesburg',
-        'facial near me Johannesburg',
-        'affordable hair salon Johannesburg',
-        'luxury spa Johannesburg',
-        'nail bar near me Johannesburg',
-        'lash extensions near me Johannesburg',
-        'waxing salon near me Johannesburg'
-      ]
+      description: 'Find the best hair salons, nail salons, spas, and beauty services near you in Johannesburg.',
+      keywords: ['hair salon near me Johannesburg', 'nail salon near me Johannesburg', 'spa near me Johannesburg']
+    },
+    'sandton': {
+      name: 'Sandton',
+      province: 'Gauteng',
+      description: 'Book luxury beauty services and premium salons in Sandton.',
+      keywords: ['luxury spa near me Sandton', 'best hair salon in Sandton', 'nail salon near me Sandton']
     },
     'pretoria': {
       name: 'Pretoria',

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { PROVINCES } from '@/lib/locationData';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
@@ -60,6 +61,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Location-specific pages for local SEO
+  // Dynamically generate city pages from locationData.ts
+  const cityPages: MetadataRoute.Sitemap = [];
+  Object.keys(PROVINCES).forEach(provinceSlug => {
+    const province = PROVINCES[provinceSlug];
+    province.cities.forEach((city, index) => {
+      // Major cities get higher priority and daily updates
+      const isMajorCity = index < 4 || ['johannesburg', 'pretoria', 'sandton', 'soweto', 'cape-town', 'durban'].includes(city.slug);
+      cityPages.push({
+        url: `${siteUrl}/salons/location/${provinceSlug}/${city.slug}`,
+        changeFrequency: isMajorCity ? 'daily' : 'weekly',
+        priority: isMajorCity ? 0.9 : 0.85,
+      });
+    });
+  });
+
   const locationPages: MetadataRoute.Sitemap = [
     // "Near me" page for local search
     { url: `${siteUrl}/salons/near-me`, changeFrequency: 'daily', priority: 0.95 },
@@ -74,34 +90,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/salons/location/north-west`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/salons/location/free-state`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/salons/location/northern-cape`, changeFrequency: 'weekly', priority: 0.8 },
-
-    // City pages (hyper-local SEO for major cities)
-    // Gauteng cities
-    { url: `${siteUrl}/salons/location/gauteng/johannesburg`, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/salons/location/gauteng/pretoria`, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/salons/location/gauteng/sandton`, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/salons/location/gauteng/soweto`, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/salons/location/gauteng/midrand`, changeFrequency: 'weekly', priority: 0.85 },
     
-    // Western Cape cities
-    { url: `${siteUrl}/salons/location/western-cape/cape-town`, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/salons/location/western-cape/stellenbosch`, changeFrequency: 'weekly', priority: 0.85 },
-    
-    // KwaZulu-Natal cities
-    { url: `${siteUrl}/salons/location/kwazulu-natal/durban`, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/salons/location/kwazulu-natal/umhlanga`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/location/kwazulu-natal/pietermaritzburg`, changeFrequency: 'weekly', priority: 0.85 },
-    
-    // Eastern Cape cities
-    { url: `${siteUrl}/salons/location/eastern-cape/port-elizabeth`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/location/eastern-cape/east-london`, changeFrequency: 'weekly', priority: 0.85 },
-    
-    // Other major cities
-    { url: `${siteUrl}/salons/location/mpumalanga/nelspruit`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/location/limpopo/polokwane`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/location/free-state/bloemfontein`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/location/north-west/rustenburg`, changeFrequency: 'weekly', priority: 0.85 },
-    { url: `${siteUrl}/salons/location/northern-cape/kimberley`, changeFrequency: 'weekly', priority: 0.85 },
+    // Add all city pages dynamically
+    ...cityPages,
   ];
 
   try {
