@@ -74,6 +74,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/salons/location/north-west`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/salons/location/free-state`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/salons/location/northern-cape`, changeFrequency: 'weekly', priority: 0.8 },
+
+    // City pages (hyper-local SEO for major cities)
+    // Gauteng cities
+    { url: `${siteUrl}/salons/location/gauteng/johannesburg`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/salons/location/gauteng/pretoria`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/salons/location/gauteng/sandton`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/salons/location/gauteng/soweto`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/salons/location/gauteng/midrand`, changeFrequency: 'weekly', priority: 0.85 },
+    
+    // Western Cape cities
+    { url: `${siteUrl}/salons/location/western-cape/cape-town`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/salons/location/western-cape/stellenbosch`, changeFrequency: 'weekly', priority: 0.85 },
+    
+    // KwaZulu-Natal cities
+    { url: `${siteUrl}/salons/location/kwazulu-natal/durban`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/salons/location/kwazulu-natal/umhlanga`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/kwazulu-natal/pietermaritzburg`, changeFrequency: 'weekly', priority: 0.85 },
+    
+    // Eastern Cape cities
+    { url: `${siteUrl}/salons/location/eastern-cape/port-elizabeth`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/eastern-cape/east-london`, changeFrequency: 'weekly', priority: 0.85 },
+    
+    // Other major cities
+    { url: `${siteUrl}/salons/location/mpumalanga/nelspruit`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/limpopo/polokwane`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/free-state/bloemfontein`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/north-west/rustenburg`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/salons/location/northern-cape/kimberley`, changeFrequency: 'weekly', priority: 0.85 },
   ];
 
   try {
