@@ -8,14 +8,14 @@
   align-items: center;
   gap: 10px;
   padding: 14px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F51957 0%, #3ab7a5 100%);
   color: white;
   border: none;
   border-radius: 50px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(245, 25, 87, 0.4);
   transition: all 0.3s ease;
   z-index: 9999;
   animation: pulse 2s infinite;
@@ -23,7 +23,7 @@
 
 .launcher:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 12px 32px rgba(245, 25, 87, 0.6);
 }
 
 .launcherIcon {
@@ -37,10 +37,10 @@
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 24px rgba(245, 25, 87, 0.4);
   }
   50% {
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.6);
+    box-shadow: 0 8px 32px rgba(245, 25, 87, 0.6);
   }
 }
 
@@ -80,7 +80,7 @@
 
 /* Header */
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F51957 0%, #3ab7a5 100%);
   color: white;
   padding: 16px 20px;
   display: flex;
@@ -195,7 +195,7 @@
 }
 
 .message.user {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F51957 0%, #3ab7a5 100%);
   color: white;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
@@ -232,9 +232,9 @@
 }
 
 .quickActionButton {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  background: rgba(245, 25, 87, 0.1);
+  color: #F51957;
+  border: 1px solid rgba(245, 25, 87, 0.3);
   padding: 8px 14px;
   border-radius: 20px;
   font-size: 13px;
@@ -245,8 +245,8 @@
 }
 
 .quickActionButton:hover {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
+  background: rgba(245, 25, 87, 0.2);
+  border-color: #F51957;
   transform: translateY(-1px);
 }
 
@@ -260,7 +260,7 @@
 .typingIndicator span {
   width: 8px;
   height: 8px;
-  background: #667eea;
+  background: #F51957;
   border-radius: 50%;
   animation: typing 1.4s infinite;
 }
@@ -305,12 +305,12 @@
 }
 
 .input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #F51957;
+  box-shadow: 0 0 0 3px rgba(245, 25, 87, 0.1);
 }
 
 .sendButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F51957 0%, #3ab7a5 100%);
   color: white;
   border: none;
   width: 44px;
@@ -325,7 +325,7 @@
 
 .sendButton:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(245, 25, 87, 0.3);
 }
 
 .sendButton:disabled {
@@ -356,7 +356,7 @@
 
 .suggestionChip {
   background: #f8f9fa;
-  color: #667eea;
+  color: #F51957;
   border: 1px solid #e0e0e0;
   padding: 8px 14px;
   border-radius: 20px;
@@ -367,8 +367,8 @@
 }
 
 .suggestionChip:hover {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+  background: rgba(245, 25, 87, 0.1);
+  border-color: #F51957;
   transform: translateY(-1px);
 }
 
