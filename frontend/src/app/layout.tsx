@@ -13,6 +13,7 @@ import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import MobileNavIcons from '@/components/MobileNavIcons';
 import ClientChatWidget from '@/components/ClientChatWidget';
+import ClientAISalonFinder from '@/components/ClientAISalonFinder';
 import AuthSessionProvider from '@/components/AuthSessionProvider';
 import CookieBanner from '@/components/CookieBanner';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -104,6 +105,7 @@ export default function RootLayout({
                       <MobileBottomNav />
                     </div>
                     <ClientChatWidget />
+                    <ClientAISalonFinder />
                     <Suspense fallback={null}>
                       <ToasterClient />
                     </Suspense>
