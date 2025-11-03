@@ -195,7 +195,7 @@
 }
 
 .message.user {
-  background: linear-gradient(135deg, #F51957 0%, #3ab7a5 100%);
+  background: var(--color-primary);
   color: white;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
@@ -515,7 +515,7 @@
 }
 
 .viewAllButton {
-  background: var(--color-secondary);
+  background: #673AB7;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -529,8 +529,8 @@
 }
 
 .viewAllButton:hover {
-  background: var(--color-secondary-strong);
-  box-shadow: 0 4px 12px rgba(58, 183, 165, 0.3);
+  background: #5E35B1;
+  box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
 }
 
 .noResults {
@@ -548,6 +548,4 @@
   text-align: center;
   color: #007BFF;
   font-size: 14px;
-}
- 14px;
 }
