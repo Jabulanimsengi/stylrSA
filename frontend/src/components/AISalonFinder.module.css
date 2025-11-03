@@ -2,28 +2,28 @@
 
 .launcher {
   position: fixed;
-  bottom: 24px;
+  bottom: 100px;
   right: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 14px 20px;
-  background: linear-gradient(135deg, #F51957 0%, #3ab7a5 100%);
+  background: linear-gradient(135deg, #007BFF 0%, #00BCD4 100%);
   color: white;
   border: none;
   border-radius: 50px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(245, 25, 87, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 123, 255, 0.3);
   transition: all 0.3s ease;
-  z-index: 9999;
+  z-index: 10000;
   animation: pulse 2s infinite;
 }
 
 .launcher:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(245, 25, 87, 0.6);
+  box-shadow: 0 12px 32px rgba(0, 188, 212, 0.5);
 }
 
 .launcherIcon {
@@ -80,7 +80,7 @@
 
 /* Header */
 .header {
-  background: linear-gradient(135deg, #F51957 0%, #3ab7a5 100%);
+  background: linear-gradient(135deg, #007BFF 0%, #00BCD4 100%);
   color: white;
   padding: 16px 20px;
   display: flex;
@@ -232,9 +232,9 @@
 }
 
 .quickActionButton {
-  background: rgba(245, 25, 87, 0.1);
-  color: #F51957;
-  border: 1px solid rgba(245, 25, 87, 0.3);
+  background: #00BCD4;
+  color: #FFFFFF;
+  border: 1px solid #00BCD4;
   padding: 8px 14px;
   border-radius: 20px;
   font-size: 13px;
@@ -245,9 +245,10 @@
 }
 
 .quickActionButton:hover {
-  background: rgba(245, 25, 87, 0.2);
-  border-color: #F51957;
+  background: #00ACC1;
+  border-color: #00ACC1;
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
 }
 
 /* Typing Indicator */
