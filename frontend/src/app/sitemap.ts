@@ -61,6 +61,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Location-specific pages for local SEO
   const locationPages: MetadataRoute.Sitemap = [
+    // "Near me" page for local search
+    { url: `${siteUrl}/salons/near-me`, changeFrequency: 'daily', priority: 0.95 },
+    
+    // Province pages
     { url: `${siteUrl}/salons/location/gauteng`, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${siteUrl}/salons/location/western-cape`, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${siteUrl}/salons/location/kwazulu-natal`, changeFrequency: 'weekly', priority: 0.85 },

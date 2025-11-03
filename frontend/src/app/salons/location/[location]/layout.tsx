@@ -33,8 +33,8 @@ const LOCATION_INFO: Record<string, { name: string; description: string; keyword
   },
   'kwazulu-natal': {
     name: 'KwaZulu-Natal',
-    description: 'Find the best salons and beauty professionals in KwaZulu-Natal. Book services at top hair salons, nail salons, and spas in Durban, Pietermaritzburg, and the North Coast.',
-    keywords: 'KwaZulu-Natal salons, Durban hair salon, Durban beauty salon, KZN spa, Durban nail salon, Pietermaritzburg salon',
+    description: 'Find the best salons and beauty professionals near you in KwaZulu-Natal. Book services at top hair salons, nail salons, and spas near me in Durban, Pietermaritzburg, Umhlanga, and the North Coast. Beauty services near you.',
+    keywords: 'salons near me KZN, hair salon near me Durban, nail salon near me Durban, spa near me Umhlanga, beauty professionals near me KwaZulu-Natal, Durban braiding salon',
   },
   'eastern-cape': {
     name: 'Eastern Cape',
