@@ -5,6 +5,22 @@ type Props = {
   params: Promise<{ category: string }>;
 };
 
+// Generate static params for all service category pages
+export async function generateStaticParams() {
+  return [
+    { category: 'haircuts-styling' },
+    { category: 'hair-color-treatments' },
+    { category: 'nail-care' },
+    { category: 'skin-care-facials' },
+    { category: 'massage-body-treatments' },
+    { category: 'makeup-beauty' },
+    { category: 'waxing-hair-removal' },
+    { category: 'braiding-weaving' },
+    { category: 'mens-grooming' },
+    { category: 'bridal-services' },
+  ];
+}
+
 const CATEGORY_INFO: Record<string, { title: string; description: string; keywords: string }> = {
   'haircuts-styling': {
     title: 'Haircuts & Styling Services | Book Top Stylists in South Africa',

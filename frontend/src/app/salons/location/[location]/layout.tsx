@@ -5,6 +5,21 @@ type Props = {
   params: Promise<{ location: string }>;
 };
 
+// Generate static params for all location pages
+export async function generateStaticParams() {
+  return [
+    { location: 'gauteng' },
+    { location: 'western-cape' },
+    { location: 'kwazulu-natal' },
+    { location: 'eastern-cape' },
+    { location: 'mpumalanga' },
+    { location: 'limpopo' },
+    { location: 'north-west' },
+    { location: 'free-state' },
+    { location: 'northern-cape' },
+  ];
+}
+
 const LOCATION_INFO: Record<string, { name: string; description: string; keywords: string }> = {
   'gauteng': {
     name: 'Gauteng',
