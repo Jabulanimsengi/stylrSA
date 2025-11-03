@@ -515,7 +515,7 @@
 }
 
 .viewAllButton {
-  background: #673AB7;
+  background: var(--color-secondary);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -529,8 +529,8 @@
 }
 
 .viewAllButton:hover {
-  background: #5E35B1;
-  box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
+  background: var(--color-secondary-strong);
+  box-shadow: 0 4px 12px rgba(58, 183, 165, 0.3);
 }
 
 .noResults {
