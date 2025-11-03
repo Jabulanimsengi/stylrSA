@@ -21,6 +21,7 @@ import ToasterClient from '@/components/ToasterClient';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import ZoomHandler from '@/components/ZoomHandler';
 import AuthModalHandler from '@/components/AuthModalHandler';
+import ClientInit from '@/components/ClientInit';
 import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -80,12 +81,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
+        <ClientInit />
         <SkipToContent />
         <ErrorBoundary>
           <AuthSessionProvider>
             <ThemeProvider>
-              <AuthProvider> {/* Wrap with AuthProvider */}
+              <AuthProvider>
                 <SocketProvider>
                   <AuthModalProvider>
                     <Suspense fallback={null}>
@@ -101,7 +103,9 @@ export default function RootLayout({
                       <MobileBottomNav />
                     </div>
                     <ClientChatWidget />
-                    <ToasterClient />
+                    <Suspense fallback={null}>
+                      <ToasterClient />
+                    </Suspense>
                     <CookieBanner />
                     <ZoomHandler />
                     <Suspense fallback={null}>

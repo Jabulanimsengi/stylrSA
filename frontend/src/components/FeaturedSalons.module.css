@@ -2,6 +2,8 @@
   width: 100%;
   position: relative;
   padding: 0 1rem;
+  overflow: visible;
+  isolation: isolate; /* Create new stacking context */
 }
 
 /* Navigation buttons - visible on desktop only */
@@ -22,8 +24,7 @@
   box-shadow: 0 4px 12px rgba(67, 65, 74, 0.15);
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;
-  opacity: 1;
+  z-index: 20;
 }
 
 .prevButton:hover,
@@ -52,11 +53,32 @@
   height: 24px;
 }
 
-/* Show navigation on desktop */
-@media (min-width: 768px) {
+/* Explicitly hide navigation on mobile */
+@media (max-width: 768px) {
+  .prevButton,
+  .nextButton {
+    display: none !important;
+  }
+}
+
+/* Show navigation on desktop only */
+@media (min-width: 769px) {
   .prevButton,
   .nextButton {
     display: flex;
+    pointer-events: auto; /* Ensure buttons are clickable */
+  }
+  
+  /* Ensure arrows are above other content */
+  .container {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .prevButton,
+  .nextButton {
+    position: absolute;
+    z-index: 999; /* Higher z-index to be above all content */
   }
 }
 

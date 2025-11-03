@@ -105,23 +105,70 @@ export class TrendsSalonsService {
       return hasMatchingService;
     });
 
-    // Calculate distance if coordinates provided
+    // Calculate distance if coordinates provided and apply proximity filtering with fallbacks
     if (latitude && longitude) {
-      salons = salons
-        .map((salon) => {
-          if (salon.latitude && salon.longitude) {
-            const distance = this.calculateDistance(
-              latitude,
-              longitude,
-              salon.latitude,
-              salon.longitude,
-            );
-            return { ...salon, distance };
-          }
-          return { ...salon, distance: 999999 }; // No coordinates = far away
-        })
+      // Add distance to all salons
+      const salonsWithDistance = salons.map((salon) => {
+        if (salon.latitude && salon.longitude) {
+          const distance = this.calculateDistance(
+            latitude,
+            longitude,
+            salon.latitude,
+            salon.longitude,
+          );
+          return { ...salon, distance };
+        }
+        return { ...salon, distance: 999999 }; // No coordinates = far away
+      });
+
+      // Try to find salons within the specified radius
+      let nearbySalons = salonsWithDistance
         .filter((salon) => salon.distance <= radius)
         .sort((a, b) => a.distance - b.distance);
+
+      // Fallback 1: If no salons found nearby, expand radius to 50km
+      if (nearbySalons.length === 0 && radius < 50) {
+        nearbySalons = salonsWithDistance
+          .filter((salon) => salon.distance <= 50)
+          .sort((a, b) => a.distance - b.distance);
+      }
+
+      // Fallback 2: If still no salons, get user's approximate location and find salons in same province/region
+      if (nearbySalons.length === 0) {
+        // Find the closest salon to determine user's likely province
+        const closestSalon = salonsWithDistance
+          .filter((salon) => salon.distance < 999999)
+          .sort((a, b) => a.distance - b.distance)[0];
+
+        if (closestSalon) {
+          // Find salons in the same province as the closest salon
+          const sameProvinceSalons = salonsWithDistance
+            .filter((salon) => 
+              salon.province && 
+              closestSalon.province &&
+              salon.province.toLowerCase() === closestSalon.province.toLowerCase()
+            )
+            .sort((a, b) => a.distance - b.distance);
+
+          if (sameProvinceSalons.length > 0) {
+            nearbySalons = sameProvinceSalons;
+          }
+        }
+      }
+
+      // Fallback 3: If still no results, return top-rated salons regardless of location
+      if (nearbySalons.length === 0) {
+        nearbySalons = salonsWithDistance
+          .filter((salon) => salon.distance < 999999) // Has coordinates
+          .sort((a, b) => {
+            // Sort by rating first, then distance
+            const ratingDiff = (b.avgRating || 0) - (a.avgRating || 0);
+            return ratingDiff !== 0 ? ratingDiff : a.distance - b.distance;
+          })
+          .slice(0, 10); // Limit to top 10
+      }
+
+      salons = nearbySalons;
     }
 
     // Sort by premium status, then rating, then recency

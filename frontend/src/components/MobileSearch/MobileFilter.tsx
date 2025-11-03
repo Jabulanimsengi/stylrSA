@@ -22,7 +22,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
   const fetchedLocationsRef = useRef(false);
   
   // Use geolocation hook
-  const { coordinates, isLoading: isGeoLoading, requestLocation } = useGeolocation();
+  const { coordinates, locationName, isLoading: isGeoLoading, isReverseGeocoding, requestLocation } = useGeolocation();
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -79,6 +79,16 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
       alert('Geolocation is not supported by your browser.');
       return;
     }
+    
+    // Track usage analytics
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'geolocation_requested', {
+        event_category: 'user_interaction',
+        event_label: 'mobile_filter_near_me',
+        page_location: window.location.pathname
+      });
+    }
+    
     requestLocation();
   };
 
@@ -182,7 +192,13 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
               opacity: isGeoLoading ? 0.6 : 1,
             }}
           >
-            {isGeoLoading ? 'Finding...' : '📍 Near Me'}
+            {isGeoLoading || isReverseGeocoding ? (
+              isReverseGeocoding ? 'Getting location...' : 'Finding...'
+            ) : locationName?.city ? (
+              `📍 Near ${locationName.city}`
+            ) : (
+              '📍 Near Me'
+            )}
           </button>
           <button onClick={handleSearch} className={styles.searchButton}>
             Search

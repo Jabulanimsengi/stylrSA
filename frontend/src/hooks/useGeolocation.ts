@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useReverseGeolocation, type ReverseGeolocationResult } from './useReverseGeolocation';
 
 export interface GeolocationCoordinates {
   latitude: number;
@@ -7,8 +8,10 @@ export interface GeolocationCoordinates {
 
 interface GeolocationState {
   coordinates: GeolocationCoordinates | null;
+  locationName: ReverseGeolocationResult | null;
   error: string | null;
   isLoading: boolean;
+  isReverseGeocoding: boolean;
 }
 
 const STORAGE_KEY = 'user_location';
@@ -16,14 +19,18 @@ const LOCATION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
 
 interface StoredLocation {
   coordinates: GeolocationCoordinates;
+  locationName?: ReverseGeolocationResult;
   timestamp: number;
 }
 
 export function useGeolocation(autoRequest: boolean = false) {
+  const { reverseGeocode } = useReverseGeolocation();
   const [state, setState] = useState<GeolocationState>({
     coordinates: null,
+    locationName: null,
     error: null,
     isLoading: false,
+    isReverseGeocoding: false,
   });
 
   const requestLocation = () => {
@@ -40,16 +47,34 @@ export function useGeolocation(autoRequest: boolean = false) {
     setState(prev => ({ ...prev, isLoading: true }));
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const coordinates = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
 
+        // Set coordinates first, then do reverse geocoding
+        setState(prev => ({ 
+          ...prev, 
+          coordinates,
+          isLoading: false,
+          isReverseGeocoding: true 
+        }));
+
+        // Perform reverse geocoding asynchronously
+        let locationName: ReverseGeolocationResult | null = null;
+        try {
+          locationName = await reverseGeocode(coordinates.latitude, coordinates.longitude);
+        } catch (reverseError) {
+          console.warn('Reverse geocoding failed:', reverseError);
+          // Continue without location name - not critical
+        }
+
         // Store in localStorage with timestamp
         try {
           const storedData: StoredLocation = {
             coordinates,
+            locationName,
             timestamp: Date.now(),
           };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
@@ -59,8 +84,10 @@ export function useGeolocation(autoRequest: boolean = false) {
 
         setState({
           coordinates,
+          locationName,
           error: null,
           isLoading: false,
+          isReverseGeocoding: false,
         });
       },
       (error) => {
@@ -75,8 +102,10 @@ export function useGeolocation(autoRequest: boolean = false) {
 
         setState({
           coordinates: null,
+          locationName: null,
           error: errorMessage,
           isLoading: false,
+          isReverseGeocoding: false,
         });
       },
       {
@@ -104,8 +133,10 @@ export function useGeolocation(autoRequest: boolean = false) {
         if (age < LOCATION_EXPIRY) {
           setState({
             coordinates: data.coordinates,
+            locationName: data.locationName || null,
             error: null,
             isLoading: false,
+            isReverseGeocoding: false,
           });
           return;
         }
@@ -131,8 +162,10 @@ export function useGeolocation(autoRequest: boolean = false) {
     }
     setState({
       coordinates: null,
+      locationName: null,
       error: null,
       isLoading: false,
+      isReverseGeocoding: false,
     });
   };
 

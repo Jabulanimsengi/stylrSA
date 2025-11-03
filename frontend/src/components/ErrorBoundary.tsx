@@ -13,13 +13,17 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  attemptedRecovery: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  private recoveryTimeout: NodeJS.Timeout | null = null;
+
   public state: State = {
     hasError: false,
     error: null,
     errorInfo: null,
+    attemptedRecovery: false,
   };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
@@ -42,13 +46,49 @@ export class ErrorBoundary extends Component<Props, State> {
         },
       },
     });
+
+    // Attempt automatic recovery for non-critical errors
+    if (!this.state.attemptedRecovery && this.shouldAttemptRecovery(error)) {
+      this.attemptAutoRecovery();
+    }
   }
+
+  componentWillUnmount() {
+    if (this.recoveryTimeout) {
+      clearTimeout(this.recoveryTimeout);
+    }
+  }
+
+  private shouldAttemptRecovery(error: Error): boolean {
+    // Don't auto-recover from critical errors
+    const errorMessage = error.message?.toLowerCase() || '';
+    const criticalPatterns = [
+      'invariant',
+      'hydration',
+      'element type is invalid',
+      'maximum update depth exceeded',
+    ];
+    
+    return !criticalPatterns.some(pattern => errorMessage.includes(pattern));
+  }
+
+  private attemptAutoRecovery = () => {
+    logger.info('Attempting automatic error recovery...');
+    
+    this.setState({ attemptedRecovery: true });
+    
+    // Wait briefly then try to recover
+    this.recoveryTimeout = setTimeout(() => {
+      this.handleReset();
+    }, 1500);
+  };
 
   private handleReset = () => {
     this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
+      attemptedRecovery: false,
     });
   };
 
@@ -63,7 +103,48 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // Default fallback UI
+      // Show recovery message if attempting auto-recovery
+      if (this.state.attemptedRecovery && !this.recoveryTimeout) {
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              padding: '1.5rem 2rem',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              textAlign: 'center',
+              zIndex: 9999,
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid #f3f3f3',
+                borderTop: '4px solid #3498db',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto 1rem',
+              }}
+            />
+            <p style={{ margin: 0, color: '#666', fontSize: '0.95rem' }}>
+              Recovering from error...
+            </p>
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        );
+      }
+
+      // Default fallback UI (only shown if auto-recovery failed or wasn't attempted)
       return (
         <div
           style={{
@@ -90,7 +171,9 @@ export class ErrorBoundary extends Component<Props, State> {
               Oops! Something went wrong
             </h1>
             <p style={{ marginBottom: '1.5rem', color: '#666' }}>
-              We're sorry for the inconvenience. An unexpected error has occurred.
+              {this.state.attemptedRecovery 
+                ? "We tried to recover automatically, but the error persists."
+                : "We're sorry for the inconvenience. An unexpected error has occurred."}
             </p>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (

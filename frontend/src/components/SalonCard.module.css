@@ -11,6 +11,27 @@
   flex-direction: column;
 }
 
+/* Subtle gradient overlay on cards */
+.salonCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 70%,
+    rgba(245, 25, 87, 0.03) 100%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.salonCard:hover::before {
+  opacity: 1;
+}
+
 .salonCard.compact {
   background-color: var(--color-surface-elevated, #fffaf5);
   border-radius: var(--radius-md);
@@ -23,17 +44,17 @@
 }
 
 .salonCard.compact:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(245, 25, 87, 0.12),
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(245, 25, 87, 0.15),
               0 8px 16px rgba(0, 0, 0, 0.08);
-  border-color: rgba(245, 25, 87, 0.2);
+  border-color: rgba(245, 25, 87, 0.3);
 }
 
 .salonCard:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(245, 25, 87, 0.12),
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(245, 25, 87, 0.15),
               0 8px 16px rgba(0, 0, 0, 0.08);
-  border-color: rgba(245, 25, 87, 0.2);
+  border-color: rgba(245, 25, 87, 0.3);
 }
 
 .favoriteButton {
@@ -277,6 +298,56 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.distanceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-secondary-soft, rgba(58, 183, 165, 0.1));
+  color: var(--color-secondary, #3ab7a5);
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  width: fit-content;
+}
+
+.distanceBadge svg {
+  flex-shrink: 0;
+}
+
+.salonCard.compact .distanceBadge {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.directionsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  color: var(--color-primary, #f51957);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--color-primary, #f51957);
+  border-radius: 12px;
+  margin-top: 0.25rem;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.directionsLink:hover {
+  background: var(--color-primary, #f51957);
+  color: white;
+}
+
+.salonCard.compact .directionsLink {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.4rem;
 }
 
 

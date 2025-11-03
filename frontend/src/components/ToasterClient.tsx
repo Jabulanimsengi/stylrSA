@@ -3,13 +3,34 @@
 import { ToastContainer } from 'react-toastify';
 import ToastCloseButton from '@/components/ToastCloseButton';
 import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useRef } from 'react';
+import { cleanupToastContainers } from '@/lib/portalUtils';
 
 export default function ToasterClient() {
   const { user } = useAuth();
+  const mountedRef = useRef(true);
+  const hasCleanedUp = useRef(false);
+  
+  useEffect(() => {
+    mountedRef.current = true;
+    
+    // Clean up any orphaned toast containers on first mount
+    if (!hasCleanedUp.current) {
+      cleanupToastContainers();
+      hasCleanedUp.current = true;
+    }
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   
   // Force re-mount when user changes to prevent DOM cleanup issues
-  // This fixes the "removeChild" error in development mode
   const containerKey = user?.id || 'anonymous';
+  
+  if (!mountedRef.current) {
+    return null;
+  }
   
   return (
     <ToastContainer
@@ -26,6 +47,9 @@ export default function ToasterClient() {
       pauseOnHover
       closeButton={(props) => <ToastCloseButton {...props} />}
       limit={3}
+      enableMultiContainer={false}
+      containerId="main-toast-container"
+      stacked
     />
   );
 }

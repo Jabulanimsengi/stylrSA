@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -36,6 +36,8 @@ export default function BeforeAfterSlideshow() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     fetchPhotos();
@@ -96,8 +98,17 @@ export default function BeforeAfterSlideshow() {
           <Swiper
             modules={[Navigation]}
             navigation={{
-              prevEl: `.${styles.prevButton}`,
-              nextEl: `.${styles.nextButton}`,
+              prevEl: prevRef.current,
+              nextEl: nextRef.current,
+            }}
+            onBeforeInit={(swiper) => {
+              if (typeof swiper.params.navigation !== 'boolean') {
+                const navigation = swiper.params.navigation;
+                if (navigation) {
+                  navigation.prevEl = prevRef.current;
+                  navigation.nextEl = nextRef.current;
+                }
+              }
             }}
             spaceBetween={16}
             slidesPerView={'auto'}
@@ -106,15 +117,9 @@ export default function BeforeAfterSlideshow() {
             breakpoints={{
               320: {
                 slidesPerView: 1.15,
-                navigation: {
-                  enabled: false,
-                },
               },
-              768: {
+              769: {
                 slidesPerView: 5.1,
-                navigation: {
-                  enabled: true,
-                },
               },
             }}
           >
@@ -153,12 +158,12 @@ export default function BeforeAfterSlideshow() {
           </Swiper>
 
           {/* Navigation buttons */}
-          <button className={styles.prevButton} aria-label="Previous">
+          <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M15 18l-6-6 6-6"/>
             </svg>
           </button>
-          <button className={styles.nextButton} aria-label="Next">
+          <button ref={nextRef} className={styles.nextButton} aria-label="Next">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 18l6-6-6-6"/>
             </svg>

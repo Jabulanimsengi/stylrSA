@@ -52,7 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             credentials: 'include',
             body: JSON.stringify({ token: backendJwt }),
           });
-        } catch {}
+        } catch (attachError) {
+          // Silently fail on attach - it's not critical
+          console.warn('[AuthContext] Failed to attach JWT, continuing...', attachError);
+        }
       }
 
       // Primary: cookie-based status check with cache-busting
@@ -81,13 +84,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(data.user);
         setAuthStatus('authenticated');
       } else {
+        // Not authenticated, but this is not an error - just set status
         setAuthStatus('unauthenticated');
         setUser(null);
       }
     } catch (error) {
-      console.error('[AuthContext] verifyUser error:', error);
-      setAuthStatus('unauthenticated');
-      setUser(null);
+      // Network or parsing error - gracefully degrade to unauthenticated
+      console.error('[AuthContext] verifyUser error (non-critical):', error);
+      
+      // Don't immediately set to unauthenticated on network errors
+      // Keep current state and retry will happen naturally on next interaction
+      if (error instanceof TypeError || (error as any)?.message?.includes('fetch')) {
+        console.log('[AuthContext] Network error detected, maintaining current auth state');
+        // Don't change auth status - let user continue with current session
+      } else {
+        // Other errors - set to unauthenticated
+        setAuthStatus('unauthenticated');
+        setUser(null);
+      }
     } finally {
       verifyingRef.current = false;
     }

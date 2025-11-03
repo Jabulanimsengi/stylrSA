@@ -1,5 +1,5 @@
 .sidebar {
-  width: 280px;
+  width: 260px;
   flex-shrink: 0;
   background: linear-gradient(180deg, #FFFFFF 0%, #FFF8FA 100%);
   border-right: 1px solid var(--nav-border);
@@ -8,7 +8,6 @@
   top: 0;
   left: 0;
   bottom: 0;
-  /* Removed height: 100vh - top/bottom: 0 already defines height */
   display: flex;
   flex-direction: column;
   z-index: 40;

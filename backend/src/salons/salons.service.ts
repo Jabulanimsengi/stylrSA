@@ -502,6 +502,7 @@ export class SalonsService {
       priceMax,
       lat,
       lon,
+      radius,
     } = filters || {};
 
     const where: any = {
@@ -621,6 +622,8 @@ export class SalonsService {
       const toRad = (v: number) => (v * Math.PI) / 180;
       const userLat = Number(lat);
       const userLon = Number(lon);
+      const maxRadius = radius ? Number(radius) : null;
+      
       salons = salons
         .map((s) => {
           if (s.latitude == null || s.longitude == null)
@@ -637,8 +640,18 @@ export class SalonsService {
           const d = R * c;
           return { ...s, __dist: d };
         })
+        .filter((s: any) => {
+          // Filter by radius if specified
+          if (maxRadius && s.__dist !== Number.POSITIVE_INFINITY) {
+            return s.__dist <= maxRadius;
+          }
+          return true;
+        })
         .sort((a: any, b: any) => a.__dist - b.__dist)
-        .map(({ __dist, ...rest }: any) => rest);
+        .map(({ __dist, ...rest }: any) => ({ 
+          ...rest, 
+          distance: __dist !== Number.POSITIVE_INFINITY ? __dist : null 
+        }));
     }
 
     // Attach favorite flag if logged-in

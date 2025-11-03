@@ -111,6 +111,32 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
           <div className={styles.cardContent}>
             <h2 className={styles.cardTitle}>{salon.name}</h2>
             <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+            {salon.distance !== null && salon.distance !== undefined && (
+              <>
+                <div className={styles.distanceBadge}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  <span>
+                    {salon.distance < 1 
+                      ? `${Math.round(salon.distance * 1000)}m away`
+                      : `${salon.distance.toFixed(1)}km away`
+                    }
+                  </span>
+                </div>
+                {salon.latitude && salon.longitude && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${salon.latitude},${salon.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.directionsLink}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Get Directions →
+                  </a>
+                )}
+              </>
+            )}
             {showHours && (() => {
               const oh = salon.operatingHours as unknown;
               let hoursRecord: Record<string, string> | null = null;
@@ -202,6 +228,32 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
             {salon.name}
           </Link>
           <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+          {salon.distance !== null && salon.distance !== undefined && (
+            <>
+              <div className={styles.distanceBadge}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                <span>
+                  {salon.distance < 1 
+                    ? `${Math.round(salon.distance * 1000)}m away`
+                    : `${salon.distance.toFixed(1)}km away`
+                  }
+                </span>
+              </div>
+              {salon.latitude && salon.longitude && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${salon.latitude},${salon.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.directionsLink}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Get Directions →
+                </a>
+              )}
+            </>
+          )}
           {showHours && (() => {
             const oh = salon.operatingHours as unknown;
             let hoursRecord: Record<string, string> | null = null;

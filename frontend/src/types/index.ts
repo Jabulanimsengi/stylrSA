@@ -76,6 +76,7 @@ export interface Salon {
   planPaymentReference?: string | null;
   planProofSubmittedAt?: string | null;
   planVerifiedAt?: string | null;
+  distance?: number | null; // Distance in km from user (when sorted by proximity)
 }
 
 export interface Service {

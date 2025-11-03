@@ -9,14 +9,16 @@ export interface RetryOptions {
 }
 
 const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
-  maxRetries: 2,
+  maxRetries: 3,
   initialDelayMs: 1000,
-  maxDelayMs: 4000,
+  maxDelayMs: 5000,
   shouldRetry: (error: any, attempt: number) => {
     // Retry on network errors or 5xx server errors
     if (!error?.statusCode) return true; // Network error
     if (error.statusCode >= 500 && error.statusCode < 600) return true; // Server error
-    if (error.statusCode === 429) return attempt < 1; // Rate limit, retry once
+    if (error.statusCode === 429) return attempt < 2; // Rate limit, retry twice
+    if (error.statusCode === 408) return true; // Request timeout
+    if (error.statusCode === 503) return true; // Service unavailable
     return false; // Don't retry client errors (4xx)
   }
 };
@@ -36,7 +38,18 @@ async function fetchWithRetry(
   for (let attempt = 0; attempt <= options.maxRetries; attempt++) {
     try {
       const optionsWithCsrf = await addCsrfHeader(init);
-      const res = await fetch(input, { credentials: 'include', ...optionsWithCsrf });
+      
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      const res = await fetch(input, { 
+        credentials: 'include', 
+        ...optionsWithCsrf,
+        signal: controller.signal 
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!res.ok) {
         const error = await parseErrorResponse(res);
@@ -63,9 +76,16 @@ async function fetchWithRetry(
       return res;
       
     } catch (error: any) {
-      // Network error or fetch failure
-      if (attempt < options.maxRetries && options.shouldRetry(error, attempt)) {
+      // Check if it's an abort error
+      if (error.name === 'AbortError') {
+        console.log('[API] Request timeout');
+        lastError = { message: 'Request timeout', statusCode: 408 };
+      } else {
         lastError = error;
+      }
+      
+      // Network error or fetch failure
+      if (attempt < options.maxRetries && options.shouldRetry(lastError, attempt)) {
         const delay = Math.min(
           options.initialDelayMs * Math.pow(2, attempt),
           options.maxDelayMs
@@ -75,7 +95,7 @@ async function fetchWithRetry(
         continue;
       }
       
-      throw error;
+      throw lastError;
     }
   }
   

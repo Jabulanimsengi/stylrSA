@@ -6,6 +6,22 @@
   text-align: center;
   padding: 4rem 2rem;
   min-height: 300px;
+  background: var(--color-surface-elevated);
+  border-radius: 16px;
+  border: 2px dashed var(--color-border);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle background pattern */
+.emptyState::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(245, 25, 87, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(58, 183, 165, 0.02) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .illustration {
@@ -17,11 +33,21 @@
 .icon {
   margin-bottom: 1.5rem;
   color: var(--color-text-muted);
-  opacity: 0.6;
+  opacity: 0.5;
   font-size: 4rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .title {

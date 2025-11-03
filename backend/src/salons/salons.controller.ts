@@ -50,6 +50,7 @@ export class SalonsController {
     @Query('priceMax') priceMax: string,
     @Query('lat') lat: string,
     @Query('lon') lon: string,
+    @Query('radius') radius: string,
     @GetUser() user: any,
   ) {
     return this.salonsService.findAllApproved(
@@ -67,6 +68,7 @@ export class SalonsController {
         priceMax,
         lat,
         lon,
+        radius,
       },
       user,
     );

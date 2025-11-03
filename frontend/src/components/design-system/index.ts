@@ -5,3 +5,4 @@ export { default as LoadingSpinner } from '../LoadingSpinner/LoadingSpinner';
 export { default as Breadcrumb } from '../Breadcrumb/Breadcrumb';
 export { default as FloatingInput } from '../FloatingInput/FloatingInput';
 export { default as SkipToContent } from '../SkipToContent/SkipToContent';
+export { default as Badge } from './Badge';

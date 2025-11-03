@@ -102,15 +102,11 @@ export default function VideoSlideshow() {
           breakpoints={{
             320: {
               slidesPerView: 1.15,
-              navigation: {
-                enabled: false,
-              },
+              navigation: false,
             },
-            768: {
+            769: {
               slidesPerView: 5.1,
-              navigation: {
-                enabled: true,
-              },
+              navigation: true,
             },
           }}
         >

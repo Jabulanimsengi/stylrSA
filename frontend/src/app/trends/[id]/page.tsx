@@ -120,8 +120,16 @@ export default function TrendDetailPage({ params }: PageProps) {
     try {
       let url = `/api/trends/${resolvedParams.id}/salons`;
       
+      // Add geolocation and radius parameters
+      const params = new URLSearchParams();
       if (coordinates) {
-        url += `?lat=${coordinates.latitude}&lon=${coordinates.longitude}`;
+        params.append('lat', coordinates.latitude.toString());
+        params.append('lon', coordinates.longitude.toString());
+        params.append('radius', '25'); // Start with 25km radius
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
 
       const res = await fetch(url, { credentials: 'include' });
@@ -129,6 +137,8 @@ export default function TrendDetailPage({ params }: PageProps) {
       if (res.ok) {
         const data = await res.json();
         setRecommendedSalons(data);
+      } else {
+        console.error('Failed to fetch salons:', res.status, res.statusText);
       }
     } catch (error) {
       console.error('Failed to fetch salons:', error);
@@ -148,8 +158,13 @@ export default function TrendDetailPage({ params }: PageProps) {
       console.error('Failed to track click');
     }
 
-    // Show salons section
+    // Show salons section and fetch salons
     setShowSalons(true);
+    
+    // Fetch salons if not already loaded
+    if (recommendedSalons.length === 0) {
+      await fetchRecommendedSalons();
+    }
     
     // Scroll to salons section
     setTimeout(() => {
@@ -168,6 +183,22 @@ export default function TrendDetailPage({ params }: PageProps) {
     } catch (error) {
       console.error('Failed to track salon click');
     }
+  };
+
+  const getLocationContext = () => {
+    if (!coordinates || !recommendedSalons.length) return '';
+    
+    const nearestSalon = recommendedSalons[0];
+    if (nearestSalon?.distance !== undefined) {
+      if (nearestSalon.distance <= 25) {
+        return '(Near You)';
+      } else if (nearestSalon.distance <= 50) {
+        return '(Within 50km)';
+      } else {
+        return `(In ${nearestSalon.province || 'Your Region'})`;
+      }
+    }
+    return '(Recommended)';
   };
 
   const handleShareCopy = async () => {
@@ -308,15 +339,24 @@ export default function TrendDetailPage({ params }: PageProps) {
       {showSalons && (
         <div id="recommended-salons" className={styles.salonsSection}>
           <h2 className={styles.salonsTitle}>
-            Salons Offering This Style {coordinates && '(Near You)'}
+            Salons Offering This Style {coordinates && getLocationContext()}
           </h2>
 
           {salonsLoading ? (
             <LoadingSpinner />
           ) : recommendedSalons.length === 0 ? (
             <div className={styles.noSalons}>
-              <p>No salons found in your area offering this style yet.</p>
-              <p>Try broadening your search or check back later!</p>
+              <p>No salons found offering this style yet.</p>
+              <p>This could be because:</p>
+              <ul>
+                <li>No salons in your area offer this specific style</li>
+                <li>Salons haven't updated their service categories</li>
+                <li>This is a newer trend that hasn't been adopted locally yet</li>
+              </ul>
+              <p>Try browsing all salons in your area or contact your favorite salon to request this style!</p>
+              <Link href="/salons" className={styles.browseSalonsLink}>
+                Browse All Salons
+              </Link>
             </div>
           ) : (
             <div className={styles.salonsGrid}>
@@ -348,7 +388,11 @@ export default function TrendDetailPage({ params }: PageProps) {
                     <h3>{salon.name}</h3>
                     <p className={styles.location}>
                       <FaMapMarkerAlt /> {salon.city}, {salon.province}
-                      {salon.distance && ` • ${salon.distance.toFixed(1)}km away`}
+                      {salon.distance !== undefined && salon.distance < 999999 && (
+                        <span className={styles.distance}>
+                          • {salon.distance < 1 ? '<1km' : `${Math.round(salon.distance)}km`} away
+                        </span>
+                      )}
                     </p>
 
                     {salon.avgRating > 0 && (

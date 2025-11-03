@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaSpinner, FaMapMarkerAlt, FaExclamationTriangle } from 'react-icons/fa';
 import styles from './FilterBar.module.css';
 import { toFriendlyMessage } from '@/lib/errors';
 import { getCategoriesCached, getLocationsCached } from '@/lib/resourceCache';
 import { apiJson } from '@/lib/api';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import RadiusSelector from '@/components/RadiusSelector';
 
 export interface FilterValues {
   province: string;
@@ -20,6 +22,8 @@ export interface FilterValues {
   priceMax: string;
   lat?: number | string | null;
   lon?: number | string | null;
+  radius: number;
+  radius?: number | null; // Radius filter in km
 }
 
 type LocationsByProvince = Record<string, string[]>;
@@ -66,6 +70,7 @@ export default function FilterBar({
   const [openNow, setOpenNow] = useState(initialFilters.openNow ?? false);
   const [priceMin, setPriceMin] = useState(initialFilters.priceMin || '');
   const [priceMax, setPriceMax] = useState(initialFilters.priceMax || '');
+  const [radius, setRadius] = useState<number | null>(initialFilters.radius ?? null);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [serviceSuggestions, setServiceSuggestions] = useState<ServiceSuggestion[]>([]);
   const [isServiceLoading, setIsServiceLoading] = useState(false);
@@ -76,7 +81,7 @@ export default function FilterBar({
   const lastEmittedFiltersRef = useRef<string>('');
   
   // Use geolocation hook
-  const { coordinates, isLoading: isGeoLoading, requestLocation } = useGeolocation();
+  const { coordinates, locationName, isLoading: isGeoLoading, isReverseGeocoding, error: geoError, requestLocation } = useGeolocation();
 
   const initialProvince = initialFilters.province ?? '';
   const initialCity = initialFilters.city ?? '';
@@ -145,7 +150,8 @@ export default function FilterBar({
     priceMax,
     lat: coordinates?.latitude ?? null,
     lon: coordinates?.longitude ?? null,
-  }), [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, coordinates]);
+    radius,
+  }), [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, coordinates, radius]);
 
   const triggerSearch = useCallback((filters: FilterValues, force = false) => {
     const serialized = JSON.stringify(filters);
@@ -172,7 +178,7 @@ export default function FilterBar({
     // Intentionally excluding buildFilters to avoid re-triggering when only coordinates change
     // The coordinates effect below handles location-based searches
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, enableAutoSearch]);
+  }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, radius, enableAutoSearch]);
 
   // Trigger search when coordinates become available (only once per coordinate set)
   useEffect(() => {
@@ -210,6 +216,16 @@ export default function FilterBar({
       alert('Geolocation is not supported by your browser.');
       return;
     }
+    
+    // Track usage analytics
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'geolocation_requested', {
+        event_category: 'user_interaction',
+        event_label: 'filter_bar_near_me',
+        page_location: window.location.pathname
+      });
+    }
+    
     requestLocation();
   };
 
@@ -415,6 +431,24 @@ export default function FilterBar({
           <option value="price">Lowest Price</option>
         </select>
       </div>
+      {coordinates && (
+        <div className={styles.filterGroup}>
+          <label htmlFor="radius">Within</label>
+          <select
+            id="radius"
+            value={radius ?? ''}
+            onChange={(e) => setRadius(e.target.value ? Number(e.target.value) : null)}
+            className={styles.filterSelect}
+          >
+            <option value="">Any distance</option>
+            <option value="5">5 km</option>
+            <option value="10">10 km</option>
+            <option value="25">25 km</option>
+            <option value="50">50 km</option>
+            <option value="100">100 km</option>
+          </select>
+        </div>
+      )}
       <div className={styles.checkboxGroup}>
         <input
           id="openNow"
@@ -461,6 +495,39 @@ export default function FilterBar({
       >
         {isGeoLoading ? 'Finding...' : '📍 Near Me'}
       </button>
+      
+      {/* Location Status Indicator */}
+      {(isGeoLoading || coordinates || geoError) && (
+        <div className={styles.locationStatus}>
+          {isGeoLoading && !coordinates && (
+            <>
+              <FaSpinner className={styles.spinner} />
+              <span>Detecting location...</span>
+            </>
+          )}
+          {coordinates && !isGeoLoading && (
+            <>
+              <FaMapMarkerAlt className={styles.iconSuccess} />
+              <span>
+                {isReverseGeocoding ? (
+                  'Getting location name...'
+                ) : locationName?.city ? (
+                  `Near ${locationName.city}${locationName.province ? `, ${locationName.province}` : ''}`
+                ) : (
+                  'Showing nearby results'
+                )}
+              </span>
+            </>
+          )}
+          {geoError && !coordinates && (
+            <>
+              <FaExclamationTriangle className={styles.iconWarning} />
+              <span>Using default location</span>
+            </>
+          )}
+        </div>
+      )}
+      
       {showSearchButton && (
         <button onClick={handleSearchClick} className={styles.searchButton} disabled={isSearching}>
           {isSearching ? 'Searching…' : 'Search'}

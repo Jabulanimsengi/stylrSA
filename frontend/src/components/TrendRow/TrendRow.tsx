@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
@@ -21,6 +21,8 @@ interface TrendRowProps {
 
 export default function TrendRow({ title, category, trends, onLike }: TrendRowProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
 
   if (!trends || trends.length === 0) {
     return null;
@@ -39,8 +41,17 @@ export default function TrendRow({ title, category, trends, onLike }: TrendRowPr
         <Swiper
           modules={[Navigation]}
           navigation={{
-            prevEl: `.${styles.prevButton}-${category}`,
-            nextEl: `.${styles.nextButton}-${category}`,
+            prevEl: prevRef.current,
+            nextEl: nextRef.current,
+          }}
+          onBeforeInit={(swiper) => {
+            if (typeof swiper.params.navigation !== 'boolean') {
+              const navigation = swiper.params.navigation;
+              if (navigation) {
+                navigation.prevEl = prevRef.current;
+                navigation.nextEl = nextRef.current;
+              }
+            }
           }}
           spaceBetween={16}
           slidesPerView={'auto'}
@@ -49,15 +60,9 @@ export default function TrendRow({ title, category, trends, onLike }: TrendRowPr
           breakpoints={{
             320: {
               slidesPerView: 1.15,
-              navigation: {
-                enabled: false,
-              },
             },
-            768: {
+            769: {
               slidesPerView: 4.1,
-              navigation: {
-                enabled: true,
-              },
             },
           }}
         >
@@ -69,12 +74,12 @@ export default function TrendRow({ title, category, trends, onLike }: TrendRowPr
         </Swiper>
 
         {/* Navigation buttons */}
-        <button className={`${styles.prevButton} ${styles.prevButton}-${category}`} aria-label="Previous">
+        <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
-        <button className={`${styles.nextButton} ${styles.nextButton}-${category}`} aria-label="Next">
+        <button ref={nextRef} className={styles.nextButton} aria-label="Next">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M9 18l6-6-6-6"/>
           </svg>

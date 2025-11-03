@@ -242,6 +242,25 @@ export default function HomePage() {
             <h1 className={styles.heroTitle}>Discover South Africa's Top Salons &amp; Beauty Experts</h1>
             <p className={styles.heroSubtitle}>Connect with trusted hairstylists, barbers, and beauty professionals — all in one digital hub built to grow your business and simplify client bookings.</p>
           </div>
+          
+          {/* Social Proof Stats */}
+          <div className={styles.heroStats}>
+            <div className={styles.stat}>
+              <strong className={styles.statValue}>10,000+</strong>
+              <span className={styles.statLabel}>Showed Interests</span>
+            </div>
+            <div className={styles.statDivider} />
+            <div className={styles.stat}>
+              <strong className={styles.statValue}>50,000+</strong>
+              <span className={styles.statLabel}>Projected Happy Clients</span>
+            </div>
+            <div className={styles.statDivider} />
+            <div className={styles.stat}>
+              <strong className={styles.statValue}>4.8★</strong>
+              <span className={styles.statLabel}>Average Rating</span>
+            </div>
+          </div>
+          
           <div className={styles.filterContainer}>
             <FilterBar onSearch={handleSearch} isHomePage={true} />
           </div>

@@ -96,6 +96,9 @@ function SalonsPageContent() {
     if (filters.sortBy === 'distance' && filters.lat && filters.lon) {
       query.append('lat', String(filters.lat));
       query.append('lon', String(filters.lon));
+      if (filters.radius) {
+        query.append('radius', String(filters.radius));
+      }
     }
     const queryString = query.toString();
     if (queryString) {
@@ -135,6 +138,10 @@ function SalonsPageContent() {
   useEffect(() => {
     if (geoError) {
       logger.debug('Geolocation error:', geoError);
+      // Don't show toast for permission denied, as it's user choice
+      if (!geoError.includes('denied')) {
+        toast.warn('Unable to get your location. Showing all salons instead.');
+      }
     }
   }, [geoError]);
 

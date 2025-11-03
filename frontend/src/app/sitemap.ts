@@ -74,7 +74,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // Fetch dynamic salon pages
-    const salonRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/salons/approved`, { cache: 'no-store' });
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_PATH || process.env.NEXT_PUBLIC_API_URL || 'https://stylrsa-production.up.railway.app';
+    const salonRes = await fetch(`${baseUrl}/api/salons/approved`, { cache: 'no-store' });
     const salons: Array<{ id: string; updatedAt?: string }>|null = salonRes.ok ? await salonRes.json() : null;
     const salonEntries: MetadataRoute.Sitemap = (salons || []).map((s) => ({
       url: `${siteUrl}/salons/${s.id}`,
@@ -86,7 +87,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch dynamic seller pages if sellers endpoint exists
     let sellerEntries: MetadataRoute.Sitemap = [];
     try {
-      const sellerRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/sellers/approved`, { cache: 'no-store' });
+      const sellerRes = await fetch(`${baseUrl}/api/sellers/approved`, { cache: 'no-store' });
       if (sellerRes.ok) {
         const sellers: Array<{ id: string; updatedAt?: string }>|null = await sellerRes.json();
         sellerEntries = (sellers || []).map((seller) => ({
