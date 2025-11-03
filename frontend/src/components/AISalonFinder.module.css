@@ -357,7 +357,7 @@
 
 .suggestionChip {
   background: #f8f9fa;
-  color: #F51957;
+  color: var(--color-primary);
   border: 1px solid #e0e0e0;
   padding: 8px 14px;
   border-radius: 20px;
@@ -369,7 +369,7 @@
 
 .suggestionChip:hover {
   background: rgba(245, 25, 87, 0.1);
-  border-color: #F51957;
+  border-color: var(--color-primary);
   transform: translateY(-1px);
 }
 
@@ -548,4 +548,6 @@
   text-align: center;
   color: #007BFF;
   font-size: 14px;
+}
+ 14px;
 }
