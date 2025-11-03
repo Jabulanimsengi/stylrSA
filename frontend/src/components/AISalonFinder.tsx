@@ -2,17 +2,29 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaRobot, FaTimes, FaMinus, FaPaperPlane, FaExpand } from 'react-icons/fa';
+import Link from 'next/link';
+import { FaRobot, FaTimes, FaMinus, FaPaperPlane, FaExpand, FaStar, FaMapMarkerAlt } from 'react-icons/fa';
 import styles from './AISalonFinder.module.css';
 import { parseUserInput, getQuickActions, ChatIntent } from '@/lib/chatIntent';
 import { FilterValues } from './FilterBar/FilterBar';
 
+interface Salon {
+  id: string;
+  name: string;
+  city: string;
+  province: string;
+  avgRating?: number;
+  reviews?: any[];
+}
+
 interface Message {
   id: string;
-  type: 'user' | 'bot';
+  type: 'user' | 'bot' | 'salons';
   content: string;
   quickActions?: string[];
   filters?: Partial<FilterValues>;
+  salons?: Salon[];
+  isLoading?: boolean;
 }
 
 export default function AISalonFinder() {
@@ -60,7 +72,30 @@ export default function AISalonFinder() {
     setMessages(prev => [...prev, botMessage]);
   };
 
-  const handleSendMessage = (text: string) => {
+  const fetchSalons = async (filters: Partial<FilterValues>) => {
+    const params = new URLSearchParams();
+    
+    if (filters.city) params.append('city', filters.city);
+    if (filters.province) params.append('province', filters.province);
+    if (filters.service) params.append('service', filters.service);
+    if (filters.category) params.append('category', filters.category);
+    if (filters.priceMin) params.append('priceMin', filters.priceMin);
+    if (filters.priceMax) params.append('priceMax', filters.priceMax);
+    if (filters.openNow) params.append('openNow', 'true');
+    if (filters.offersMobile) params.append('offersMobile', 'true');
+
+    try {
+      const response = await fetch(`/api/salons/approved?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch salons');
+      const salons = await response.json();
+      return salons;
+    } catch (error) {
+      console.error('Error fetching salons:', error);
+      return [];
+    }
+  };
+
+  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     // Add user message
@@ -74,28 +109,52 @@ export default function AISalonFinder() {
 
     // Show typing indicator
     setIsTyping(true);
-    setTimeout(() => {
-      // Parse intent
-      const intent = parseUserInput(text);
+    
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Parse intent
+    const intent = parseUserInput(text);
+    
+    // Add bot response
+    addBotMessage(intent);
+    setIsTyping(false);
+    
+    // If we have filters, fetch and show salons
+    if (intent.filters && Object.values(intent.filters).some(v => v && v !== '')) {
+      // Add loading message
+      const loadingMessage: Message = {
+        id: `loading-${Date.now()}`,
+        type: 'salons',
+        content: '',
+        isLoading: true
+      };
+      setMessages(prev => [...prev, loadingMessage]);
       
-      // Add bot response
-      addBotMessage(intent);
+      // Fetch salons
+      const salons = await fetchSalons(intent.filters);
       
-      // If we have filters, offer to show results
-      if (intent.filters && Object.values(intent.filters).some(v => v && v !== '')) {
-        setTimeout(() => {
-          const resultsMessage: Message = {
-            id: `bot-${Date.now()}-results`,
-            type: 'bot',
-            content: '📋 Ready to see results?',
-            quickActions: ['Show me salons', 'Refine search more']
-          };
-          setMessages(prev => [...prev, resultsMessage]);
-        }, 500);
+      // Remove loading message and add results
+      setMessages(prev => prev.filter(m => m.id !== loadingMessage.id));
+      
+      if (salons.length > 0) {
+        const salonMessage: Message = {
+          id: `salons-${Date.now()}`,
+          type: 'salons',
+          content: `Found ${salons.length} salon${salons.length > 1 ? 's' : ''} for you! 🎉`,
+          salons: salons.slice(0, 3), // Show top 3
+          filters: intent.filters
+        };
+        setMessages(prev => [...prev, salonMessage]);
+      } else {
+        const noResultsMessage: Message = {
+          id: `bot-${Date.now()}`,
+          type: 'bot',
+          content: "No salons found matching your criteria. Try broadening your search or removing some filters.",
+          quickActions: ['Try different location', 'Show all salons']
+        };
+        setMessages(prev => [...prev, noResultsMessage]);
       }
-      
-      setIsTyping(false);
-    }, 800); // Simulate thinking time
+    }
   };
 
   const handleQuickAction = (action: string) => {
@@ -179,33 +238,89 @@ export default function AISalonFinder() {
           <div className={styles.messages}>
             {messages.map((message) => (
               <div key={message.id} className={styles.messageWrapper}>
-                <div className={`${styles.message} ${styles[message.type]}`}>
-                  <div className={styles.messageContent}>
-                    {message.content.split('\\n').map((line, i) => (
-                      <p key={i} className={styles.messageLine}>{line}</p>
-                    ))}
+                {message.type === 'salons' ? (
+                  // Salon results display
+                  <div className={`${styles.message} ${styles.bot}`}>
+                    {message.isLoading ? (
+                      <div className={styles.loadingResults}>
+                        🔍 Finding salons for you...
+                      </div>
+                    ) : (
+                      <>
+                        <div className={styles.messageContent}>
+                          {message.content}
+                        </div>
+                        {message.salons && message.salons.length > 0 && (
+                          <div className={styles.salonResults}>
+                            {message.salons.map((salon) => (
+                              <Link
+                                key={salon.id}
+                                href={`/salon/${salon.id}`}
+                                className={styles.salonCard}
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <div className={styles.salonCardHeader}>
+                                  <h4 className={styles.salonCardName}>{salon.name}</h4>
+                                  {salon.avgRating && (
+                                    <div className={styles.salonCardRating}>
+                                      <FaStar /> {salon.avgRating.toFixed(1)}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className={styles.salonCardLocation}>
+                                  <FaMapMarkerAlt />
+                                  {salon.city}, {salon.province}
+                                </div>
+                                {salon.reviews && salon.reviews.length > 0 && (
+                                  <div className={styles.salonCardServices}>
+                                    {salon.reviews.length} review{salon.reviews.length > 1 ? 's' : ''}
+                                  </div>
+                                )}
+                              </Link>
+                            ))}
+                            {message.filters && (
+                              <button
+                                className={styles.viewAllButton}
+                                onClick={() => handleShowResults(message.filters)}
+                              >
+                                View All Results →
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                  
-                  {message.quickActions && message.quickActions.length > 0 && (
-                    <div className={styles.quickActions}>
-                      {message.quickActions.map((action, index) => (
-                        <button
-                          key={index}
-                          className={styles.quickActionButton}
-                          onClick={() => {
-                            if (action.toLowerCase() === 'show me salons') {
-                              handleShowResults(message.filters);
-                            } else {
-                              handleQuickAction(action);
-                            }
-                          }}
-                        >
-                          {action}
-                        </button>
+                ) : (
+                  // Regular text message
+                  <div className={`${styles.message} ${styles[message.type]}`}>
+                    <div className={styles.messageContent}>
+                      {message.content.split('\\n').map((line, i) => (
+                        <p key={i} className={styles.messageLine}>{line}</p>
                       ))}
                     </div>
-                  )}
-                </div>
+                    
+                    {message.quickActions && message.quickActions.length > 0 && (
+                      <div className={styles.quickActions}>
+                        {message.quickActions.map((action, index) => (
+                          <button
+                            key={index}
+                            className={styles.quickActionButton}
+                            onClick={() => {
+                              if (action.toLowerCase() === 'show me salons') {
+                                handleShowResults(message.filters);
+                              } else {
+                                handleQuickAction(action);
+                              }
+                            }}
+                          >
+                            {action}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             
