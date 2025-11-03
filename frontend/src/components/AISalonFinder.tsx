@@ -255,7 +255,7 @@ export default function AISalonFinder() {
                             {message.salons.map((salon) => (
                               <Link
                                 key={salon.id}
-                                href={`/salon/${salon.id}`}
+                                href={`/salons/${salon.id}`}
                                 className={styles.salonCard}
                                 onClick={() => setIsOpen(false)}
                               >
