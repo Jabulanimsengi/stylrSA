@@ -18,7 +18,7 @@ async function fetchSalon(id: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const salon = await fetchSalon(id);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
   const canonicalUrl = `${siteUrl}/salons/${id}`;
 
   if (!salon) {
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SalonLayout({ children, params }: Props) {
   const { id } = await params;
   const salon = await fetchSalon(id);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
   const breadcrumbSchema = salon ? {
     '@context': 'https://schema.org',

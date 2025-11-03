@@ -52,7 +52,7 @@ export default function HomePage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Organization Schema for homepage SEO
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',

@@ -38,6 +38,7 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'),
   title: 'Stylr SA - Find and Book Salon Appointments Online',
   description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, massage therapists, hair stylists, and more. Top-rated salons, spas, and beauty professionals in one platform.',
   keywords: 'salon booking, beauty services, hair salon, braiding salon, nail salon, makeup artist, massage therapist, spa, barber, mens grooming, bridal services, South Africa, Johannesburg, Cape Town, Durban',
@@ -54,11 +55,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Stylr SA - Find and Book Salon Appointments Online',
     description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, massage therapists, hair stylists, and more.',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za',
     siteName: 'Stylr SA',
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/logo-transparent.png`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/logo-transparent.png`,
         width: 800,
         height: 600,
       },
@@ -70,7 +71,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Stylr SA - Find and Book Salon Appointments Online',
     description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, and more.',
-    images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/logo-transparent.png`],
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/logo-transparent.png`],
   },
 };
 

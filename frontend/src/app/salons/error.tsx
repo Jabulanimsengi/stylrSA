@@ -47,3 +47,4 @@ export default function SalonsError({ error: _error, reset }: { error: Error & {
     </div>
   );
 }
+

@@ -47,3 +47,4 @@ export default function ServicesError({ error: _error, reset }: { error: Error &
     </div>
   );
 }
+

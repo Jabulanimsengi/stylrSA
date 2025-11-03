@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     keywords: 'South Africa salons, beauty services, hair salon',
   };
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
   const canonicalUrl = `${siteUrl}/salons/${location}`;
 
   const title = `Salons in ${locationInfo.name} | Hair, Nails, Spa & Beauty Services`;
@@ -108,7 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SalonsLocationLayout({ children, params }: Props) {
   const { location } = await params;
   const locationInfo = LOCATION_INFO[location] || { name: 'South Africa', description: '', keywords: '' };
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',

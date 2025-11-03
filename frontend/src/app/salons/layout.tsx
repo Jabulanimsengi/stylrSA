@@ -5,12 +5,12 @@ export const metadata: Metadata = {
   description: 'Explore the best salons and beauty professionals in South Africa. Find top-rated hair salons, nail salons, spas, barbershops, and more. Filter by location, services, ratings, and price.',
   keywords: 'salon, hair salon, nail salon, spa, beauty salon, barbershop, braiding salon, beauty professionals, South Africa',
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/salons`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/salons`,
   },
   openGraph: {
     title: 'Salons & Beauty Professionals | Find Top-Rated Salons Near You',
     description: 'Explore the best salons and beauty professionals in South Africa. Find top-rated hair salons, nail salons, spas, barbershops, and more.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/salons`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/salons`,
     siteName: 'Stylr SA',
     type: 'website',
   },
@@ -26,7 +26,7 @@ export default function SalonsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -57,3 +57,4 @@ export default function SalonsLayout({
     </>
   );
 }
+

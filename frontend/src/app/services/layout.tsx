@@ -5,12 +5,12 @@ export const metadata: Metadata = {
   description: 'Discover and book professional beauty services across South Africa. Find expert braiders, nail technicians, makeup artists, massage therapists, and more. Browse services by category, location, and price.',
   keywords: 'beauty services, salon services, braiding, nail salon, makeup artist, massage, spa, hair styling, waxing, mens grooming, bridal services, South Africa',
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/services`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/services`,
   },
   openGraph: {
     title: 'Beauty Services | Find Braiding, Nails, Makeup & More | Stylr SA',
     description: 'Discover and book professional beauty services across South Africa. Find expert braiders, nail technicians, makeup artists, massage therapists, and more.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app'}/services`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/services`,
     siteName: 'Stylr SA',
     type: 'website',
   },
@@ -26,7 +26,7 @@ export default function ServicesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stylrsa.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -57,3 +57,4 @@ export default function ServicesLayout({
     </>
   );
 }
+
