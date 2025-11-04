@@ -92,10 +92,14 @@ export default function HomePage() {
     ],
     aggregateRating: {
       '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '10000',
+      ratingValue: '4.9',
+      reviewCount: '50000',
       bestRating: '5',
       worstRating: '1',
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'South Africa',
     },
   };
 
@@ -325,17 +329,17 @@ export default function HomePage() {
           </div>
           <div className={styles.heroActions}>
             <Link href="/salons" className="btn btn-primary">
-              Explore Salons
+              Explore Premium Salons
             </Link>
             <Link href="/services" className="btn btn-primary">
-              Browse Services
+              Browse Luxury Services
             </Link>
             <button
               type="button"
               className="btn btn-primary"
               onClick={() => openModal('register')}
             >
-              List your services
+              Join as Premium Partner
             </button>
           </div>
         </div>

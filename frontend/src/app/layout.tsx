@@ -83,8 +83,8 @@ export const metadata: Metadata = {
     title: 'Stylr SA',
   },
   openGraph: {
-    title: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
-    description: 'Find and book beauty services across South Africa. Top-rated salons, braiders, nail techs, makeup artists, hair stylists & spas in one platform.',
+    title: 'Stylr SA: South Africa\'s Premier Destination for Luxury Beauty & Wellness',
+    description: 'Experience excellence with South Africa\'s most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Book exclusive appointments with the finest service providers.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za',
     siteName: 'Stylr SA',
     images: [
