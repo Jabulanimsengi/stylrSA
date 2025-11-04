@@ -40,16 +40,42 @@ export const viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'),
-  title: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
-  description: 'Find and book beauty services across South Africa. Top-rated salons, braiders, nail techs, makeup artists, hair stylists & spas in one platform.',
-  keywords: 'salon booking, beauty services, hair salon, braiding salon, nail salon, makeup artist, massage therapist, spa, barber, mens grooming, bridal services, South Africa, Johannesburg, Cape Town, Durban',
-  authors: [{ name: 'Stylr SA Team' }],
+  title: {
+    default: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
+    template: '%s | Stylr SA'
+  },
+  description: 'Stylr SA (stylrsa.co.za) - South Africa\'s #1 platform for booking beauty services. Find top-rated salons, braiders, nail techs, makeup artists, barbers & spas near you.',
+  keywords: [
+    // Brand keywords
+    'Stylr SA', 'stylrsa', 'stylrsa.co.za', 'Stylr South Africa',
+    // Core services
+    'salon booking', 'beauty services', 'hair salon', 'braiding salon', 'nail salon', 
+    'makeup artist', 'massage therapist', 'spa', 'barber', 'mens grooming', 'bridal services',
+    // Locations
+    'South Africa', 'Johannesburg', 'Cape Town', 'Durban', 'Pretoria',
+    // Action keywords
+    'book beauty services online', 'find salon near me', 'beauty appointments'
+  ],
+  authors: [{ name: 'Stylr SA Team', url: 'https://www.stylrsa.co.za' }],
+  creator: 'Stylr SA',
+  publisher: 'Stylr SA',
   manifest: '/manifest.json',
   alternates: {
     canonical: '/',
   },
   verification: {
     google: 'MdWcHRFxz3-UMrPPAxgFGXfqCoTTAzPRZ7a9igeRHRk',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   appleWebApp: {
     capable: true,
