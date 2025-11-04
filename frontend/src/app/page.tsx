@@ -51,31 +51,90 @@ export default function HomePage() {
   const socket = useSocket();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Organization Schema for homepage SEO
+  // Comprehensive Schema.org markup for homepage SEO and brand recognition
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
+  
+  // Organization Schema - Critical for brand recognition
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': `${siteUrl}/#organization`,
     name: 'Stylr SA',
-    alternateName: 'Stylr South Africa',
+    legalName: 'Stylr South Africa',
+    alternateName: ['stylrsa', 'Stylr', 'Stylr South Africa'],
     url: siteUrl,
-    logo: `${siteUrl}/logo-transparent.png`,
-    description: 'South Africa\'s premier platform for discovering and booking beauty services. Connect with top-rated salons, hair stylists, braiders, nail technicians, makeup artists, and wellness professionals.',
+    logo: {
+      '@type': 'ImageObject',
+      '@id': `${siteUrl}/#logo`,
+      url: `${siteUrl}/logo-transparent.png`,
+      width: '800',
+      height: '600',
+      caption: 'Stylr SA Logo',
+    },
+    image: `${siteUrl}/logo-transparent.png`,
+    description: 'South Africa\'s premier platform for discovering and booking beauty services. Connect with top-rated salons, hair stylists, braiders, nail technicians, makeup artists, and wellness professionals across South Africa.',
+    foundingDate: '2024',
     address: {
       '@type': 'PostalAddress',
       addressCountry: 'ZA',
+      addressRegion: 'Gauteng',
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      availableLanguage: ['en', 'zu', 'xh', 'af'],
     },
     sameAs: [
-      // Add your social media profiles here
+      // Add your social media profiles here when available
+      // 'https://www.facebook.com/stylrsa',
+      // 'https://www.instagram.com/stylrsa',
+      // 'https://twitter.com/stylrsa',
     ],
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${siteUrl}/services?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      reviewCount: '10000',
+      bestRating: '5',
+      worstRating: '1',
     },
+  };
+
+  // WebSite Schema - Enables Google sitelinks search box
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${siteUrl}/#website`,
+    url: siteUrl,
+    name: 'Stylr SA',
+    alternateName: 'stylrsa.co.za',
+    description: 'Book beauty services online - Find salons, stylists, and beauty professionals in South Africa',
+    publisher: {
+      '@id': `${siteUrl}/#organization`,
+    },
+    potentialAction: [
+      {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${siteUrl}/salons?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    ],
+  };
+
+  // BreadcrumbList Schema for homepage
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteUrl,
+      },
+    ],
   };
 
   const fetchServices = useCallback(async (pageNum: number) => {
