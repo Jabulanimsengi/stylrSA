@@ -40,11 +40,14 @@ export const viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'),
-  title: 'Stylr SA - Find and Book Salon Appointments Online',
-  description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, massage therapists, hair stylists, and more. Top-rated salons, spas, and beauty professionals in one platform.',
+  title: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
+  description: 'Find and book beauty services across South Africa. Top-rated salons, braiders, nail techs, makeup artists, hair stylists & spas in one platform.',
   keywords: 'salon booking, beauty services, hair salon, braiding salon, nail salon, makeup artist, massage therapist, spa, barber, mens grooming, bridal services, South Africa, Johannesburg, Cape Town, Durban',
   authors: [{ name: 'Stylr SA Team' }],
   manifest: '/manifest.json',
+  alternates: {
+    canonical: '/',
+  },
   verification: {
     google: 'MdWcHRFxz3-UMrPPAxgFGXfqCoTTAzPRZ7a9igeRHRk',
   },
@@ -54,8 +57,8 @@ export const metadata: Metadata = {
     title: 'Stylr SA',
   },
   openGraph: {
-    title: 'Stylr SA - Find and Book Salon Appointments Online',
-    description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, massage therapists, hair stylists, and more.',
+    title: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
+    description: 'Find and book beauty services across South Africa. Top-rated salons, braiders, nail techs, makeup artists, hair stylists & spas in one platform.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za',
     siteName: 'Stylr SA',
     images: [
@@ -70,8 +73,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Stylr SA - Find and Book Salon Appointments Online',
-    description: 'Find and book beauty services across South Africa. Discover expert braiders, nail technicians, makeup artists, and more.',
+    title: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
+    description: 'Find and book beauty services across South Africa. Top-rated salons, braiders, nail techs, makeup artists, hair stylists & spas in one platform.',
     images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/logo-transparent.png`],
   },
 };
