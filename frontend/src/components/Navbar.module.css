@@ -88,6 +88,78 @@
   color: var(--color-primary);
 }
 
+/* Company Section with Expandable Menu */
+.companySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.sectionLabelButton {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-strong);
+  font-weight: 700;
+  padding: 0.5rem 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all var(--transition-base);
+  width: 100%;
+}
+
+.sectionLabelButton:hover {
+  color: var(--color-primary);
+}
+
+.sectionLabelButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sectionLabelContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.sectionIcon {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.expandIcon {
+  font-size: 0.75rem;
+  transition: transform var(--transition-base);
+}
+
+.sectionLabelButtonOpen .expandIcon {
+  transform: rotate(180deg);
+}
+
+.companyMenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 0;
+}
+
+.companyMenuOpen {
+  max-height: 500px; /* Adjust based on content */
+  opacity: 1;
+  transition: max-height 0.3s ease-in, opacity 0.3s ease-in;
+}
+
+.companyMenu .navList {
+  padding-left: var(--space-sm);
+  border-left: 2px solid rgba(245, 25, 87, 0.1);
+}
+
 .navList {
   list-style: none;
   padding: 0;

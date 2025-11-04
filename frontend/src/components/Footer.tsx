@@ -175,13 +175,10 @@ export default function Footer() {
           <h3 className={styles.sectionTitle}>More Resources</h3>
           <ul className={styles.links}>
             <li><Link href="/sitemap.xml" title="Full site structure and pages">XML Sitemap</Link></li>
-            <li><Link href="/blog/rss" title="Subscribe to our blog feed">Blog RSS Feed</Link></li>
-            <li><Link href="/api-docs" title="Developer documentation">API Documentation</Link></li>
             <li><Link href="/press" title="Press releases and media">Press & Media</Link></li>
             <li><Link href="/testimonials" title="Customer success stories">Testimonials</Link></li>
             <li><Link href="/community" title="Join our community">Community</Link></li>
             <li><Link href="/support" title="24/7 customer support">Customer Support</Link></li>
-            <li><Link href="/affiliate" title="Become an affiliate partner">Affiliate Program</Link></li>
           </ul>
         </div>
 

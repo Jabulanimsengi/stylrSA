@@ -24,6 +24,13 @@ import {
   FaStore,
   FaShieldAlt,
   FaSignOutAlt,
+  FaBuilding,
+  FaChevronUp,
+  FaChevronDown,
+  FaInfoCircle,
+  FaDollarSign,
+  FaQuestionCircle,
+  FaEnvelope,
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
@@ -65,6 +72,7 @@ export default function Navbar() {
   const notificationsPortalRef = useRef<HTMLDivElement>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const [hasPrefetchedRoutes, setHasPrefetchedRoutes] = useState(false);
+  const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
 
   const updateNotificationsCache = useCallback((items: Notification[], unread: number, cursor: string | null, userId?: string) => {
     if (typeof window === 'undefined' || !userId) return;
@@ -374,6 +382,16 @@ export default function Navbar() {
       { href: '/services', label: 'Services', icon: FaMagic },
       { href: '/products', label: 'Products', icon: FaBoxOpen },
       { href: '/promotions', label: 'Promotions', icon: FaMagic },
+    ],
+    [],
+  );
+
+  const companyLinks: NavLinkItem[] = useMemo(
+    () => [
+      { href: '/about', label: 'About Us', icon: FaInfoCircle },
+      { href: '/prices', label: 'Pricing', icon: FaDollarSign },
+      { href: '/how-it-works', label: 'How It Works', icon: FaQuestionCircle },
+      { href: '/contact', label: 'Contact', icon: FaEnvelope },
     ],
     [],
   );
@@ -692,6 +710,29 @@ export default function Navbar() {
             <p className={styles.sectionLabel}>Discover</p>
             <ul className={styles.navList}>{discoverLinks.map(renderNavLink)}</ul>
           </nav>
+
+          {/* Company Info Section with Expandable Menu */}
+          <div className={styles.companySection}>
+            <button
+              type="button"
+              className={`${styles.sectionLabelButton} ${isCompanyMenuOpen ? styles.sectionLabelButtonOpen : ''}`}
+              onClick={() => setIsCompanyMenuOpen(!isCompanyMenuOpen)}
+            >
+              <span className={styles.sectionLabelContent}>
+                <FaBuilding className={styles.sectionIcon} />
+                <span>Company</span>
+              </span>
+              <span className={styles.expandIcon}>
+                {isCompanyMenuOpen ? <FaChevronUp /> : <FaChevronDown />}
+              </span>
+            </button>
+            
+            <div className={`${styles.companyMenu} ${isCompanyMenuOpen ? styles.companyMenuOpen : ''}`}>
+              <ul className={styles.navList}>
+                {companyLinks.map(renderNavLink)}
+              </ul>
+            </div>
+          </div>
 
           {authStatus === 'authenticated' && (
             <div>
