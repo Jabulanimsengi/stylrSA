@@ -16,7 +16,7 @@
   height: 44px;
   border-radius: 50%;
   border: none;
-  display: none; /* Hidden by default (mobile) */
+  display: none !important; /* Hidden by default (mobile) */
   align-items: center;
   justify-content: center;
   background: var(--color-primary, #f51957);
@@ -25,6 +25,9 @@
   cursor: pointer;
   transition: all 0.2s ease;
   z-index: 20;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .prevButton:hover,
@@ -206,7 +209,5 @@
 @media (min-width: 768px) {
   .slideCounter {
     display: none;
-  }
-}splay: none;
   }
 }
