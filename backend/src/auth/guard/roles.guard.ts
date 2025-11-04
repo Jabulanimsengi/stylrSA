@@ -19,7 +19,32 @@ export class RolesGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const role = req.user?.role;
-    if (!role) return false;
-    return requiredRoles.includes(String(role));
+    const userId = req.user?.id;
+    
+    console.log('[RolesGuard] Authorization check:', {
+      requiredRoles,
+      userRole: role,
+      userId,
+      hasUser: !!req.user,
+      endpoint: req.url
+    });
+    
+    if (!role) {
+      console.warn('[RolesGuard] Access denied - no role found on user object');
+      return false;
+    }
+    
+    const hasAccess = requiredRoles.includes(String(role));
+    
+    if (!hasAccess) {
+      console.warn('[RolesGuard] Access denied - role mismatch:', {
+        userRole: role,
+        requiredRoles
+      });
+    } else {
+      console.log('[RolesGuard] Access granted');
+    }
+    
+    return hasAccess;
   }
 }

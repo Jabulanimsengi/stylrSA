@@ -89,19 +89,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
       }
     } catch (error) {
-      // Network or parsing error - gracefully degrade to unauthenticated
-      console.error('[AuthContext] verifyUser error (non-critical):', error);
+      // Any error during verification means user is not authenticated
+      // This includes 401 responses (logged out), network errors, or parsing errors
+      console.error('[AuthContext] verifyUser error:', error);
       
-      // Don't immediately set to unauthenticated on network errors
-      // Keep current state and retry will happen naturally on next interaction
-      if (error instanceof TypeError || (error as any)?.message?.includes('fetch')) {
-        console.log('[AuthContext] Network error detected, maintaining current auth state');
-        // Don't change auth status - let user continue with current session
-      } else {
-        // Other errors - set to unauthenticated
-        setAuthStatus('unauthenticated');
-        setUser(null);
-      }
+      // Always clear auth state on error to ensure logout works correctly
+      // The backend returns 401 when user is logged out or session is invalid
+      setAuthStatus('unauthenticated');
+      setUser(null);
     } finally {
       verifyingRef.current = false;
     }
