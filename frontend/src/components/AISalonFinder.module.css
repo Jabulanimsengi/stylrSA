@@ -38,7 +38,7 @@
 /* Mobile adjustments - prevent overlap with bottom nav */
 @media (max-width: 768px) {
   .launcher {
-    bottom: 90px; /* Move above mobile bottom navigation */
+    bottom: 130px; /* Move well above mobile bottom navigation (80-90px tall) */
     right: 16px;
     padding: 12px 16px;
   }
@@ -54,7 +54,7 @@
 
 @media (max-width: 480px) {
   .launcher {
-    bottom: 85px; /* Extra clearance for small screens */
+    bottom: 125px; /* Extra clearance for small screens */
     right: 12px;
     padding: 10px 14px;
   }
