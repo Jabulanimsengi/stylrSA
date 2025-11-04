@@ -105,7 +105,10 @@
 @media (min-width: 769px) {
   .prevButton,
   .nextButton {
-    display: flex;
+    display: flex !important;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
 }
 
