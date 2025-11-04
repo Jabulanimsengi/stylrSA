@@ -42,7 +42,10 @@ export class AdminController {
   }
 
   @Get('salons/pending')
-  getPendingSalons() {
+  getPendingSalons(@Req() req: Request) {
+    const adminId = (req as any)?.user?.id;
+    const adminRole = (req as any)?.user?.role;
+    console.log('[AdminController] getPendingSalons called by:', { adminId, adminRole });
     return this.adminService.getPendingSalons();
   }
 

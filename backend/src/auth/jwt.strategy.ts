@@ -30,14 +30,37 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: { sub: string; role: string }): Promise<any | null> {
+    console.log('[JwtStrategy] Validating JWT payload:', { 
+      userId: payload.sub, 
+      roleInToken: payload.role 
+    });
+    
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
+    
     if (user) {
+      // Log role mismatch warning
+      if (payload.role && payload.role !== user.role) {
+        console.warn('[JwtStrategy] Role mismatch detected!', {
+          tokenRole: payload.role,
+          dbRole: user.role,
+          userId: user.id
+        });
+      }
+      
+      console.log('[JwtStrategy] User validated successfully:', {
+        userId: user.id,
+        email: user.email,
+        role: user.role
+      });
+      
       // The password should not be returned with the user object
       const { password: _password, ...result } = user;
       return result;
     }
+    
+    console.warn('[JwtStrategy] User not found for JWT payload:', payload.sub);
     return null;
   }
 }
