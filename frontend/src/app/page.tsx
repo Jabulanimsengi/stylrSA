@@ -302,25 +302,25 @@ export default function HomePage() {
         </div>
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <h1 className={styles.heroTitle}>Discover South Africa's Top Salons &amp; Beauty Experts</h1>
-            <p className={styles.heroSubtitle}>Connect with trusted hairstylists, barbers, and beauty professionals — all in one digital hub built to grow your business and simplify client bookings.</p>
+            <h1 className={styles.heroTitle}>South Africa's Premier Destination for Luxury Beauty &amp; Wellness</h1>
+            <p className={styles.heroSubtitle}>Experience excellence with South Africa's most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Elevate your beauty journey with the finest service providers in one exclusive platform.</p>
           </div>
           
-          {/* Social Proof Stats */}
+          {/* Premium Social Proof Stats */}
           <div className={styles.heroStats}>
             <div className={styles.stat}>
-              <strong className={styles.statValue}>10,000+</strong>
-              <span className={styles.statLabel}>Showed Interests</span>
+              <strong className={styles.statValue}>500+</strong>
+              <span className={styles.statLabel}>Premium Partners</span>
             </div>
             <div className={styles.statDivider} />
             <div className={styles.stat}>
               <strong className={styles.statValue}>50,000+</strong>
-              <span className={styles.statLabel}>Projected Happy Clients</span>
+              <span className={styles.statLabel}>Exclusive Bookings</span>
             </div>
             <div className={styles.statDivider} />
             <div className={styles.stat}>
-              <strong className={styles.statValue}>4.8★</strong>
-              <span className={styles.statLabel}>Average Rating</span>
+              <strong className={styles.statValue}>4.9★</strong>
+              <span className={styles.statLabel}>Elite Service Rating</span>
             </div>
           </div>
           

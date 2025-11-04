@@ -41,20 +41,23 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'),
   title: {
-    default: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
-    template: '%s | Stylr SA'
+    default: 'Stylr SA: Book Premium Salons, Luxury Spas & Top Beauty Experts',
+    template: '%s | Stylr SA - Premium Beauty & Wellness'
   },
-  description: 'Stylr SA (stylrsa.co.za) - South Africa\'s #1 platform for booking beauty services. Find top-rated salons, braiders, nail techs, makeup artists, barbers & spas near you.',
+  description: 'South Africa\'s premier destination for luxury beauty and wellness. Discover and book exclusive appointments at top-rated premium salons, medical spas, beauty clinics, and expert wellness professionals. Experience excellence with South Africa\'s finest.',
   keywords: [
-    // Brand keywords
-    'Stylr SA', 'stylrsa', 'stylrsa.co.za', 'Stylr South Africa',
-    // Core services
-    'salon booking', 'beauty services', 'hair salon', 'braiding salon', 'nail salon', 
-    'makeup artist', 'massage therapist', 'spa', 'barber', 'mens grooming', 'bridal services',
+    // Premium Brand keywords
+    'Stylr SA', 'stylrsa', 'stylrsa.co.za', 'premium beauty platform South Africa', 'luxury salon booking',
+    // Premium Services
+    'premium salon', 'luxury spa', 'medical spa', 'beauty clinic', 'top nail technician', 
+    'exclusive beauty services', 'high-end salon', 'luxury wellness', 'elite beauty professionals',
+    'premium braiding salon', 'luxury nail salon', 'top makeup artist', 'premium barber',
+    // Quality indicators
+    'top-rated salon', 'certified beauty professionals', 'expert stylists', 'professional beauty services',
     // Locations
-    'South Africa', 'Johannesburg', 'Cape Town', 'Durban', 'Pretoria',
+    'South Africa', 'Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Sandton', 'Rosebank',
     // Action keywords
-    'book beauty services online', 'find salon near me', 'beauty appointments'
+    'book premium salon', 'luxury beauty appointments', 'exclusive spa booking'
   ],
   authors: [{ name: 'Stylr SA Team', url: 'https://www.stylrsa.co.za' }],
   creator: 'Stylr SA',
@@ -83,8 +86,8 @@ export const metadata: Metadata = {
     title: 'Stylr SA',
   },
   openGraph: {
-    title: 'Stylr SA: South Africa\'s Premier Destination for Luxury Beauty & Wellness',
-    description: 'Experience excellence with South Africa\'s most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Book exclusive appointments with the finest service providers.',
+    title: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
+    description: 'Find and book beauty services across South Africa. Top-rated salons, braiders, nail techs, makeup artists, hair stylists & spas in one platform.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za',
     siteName: 'Stylr SA',
     images: [
@@ -99,8 +102,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Stylr SA - Book Hair, Nails, Makeup & Beauty Services Online',
-    description: 'Find and book beauty services across South Africa. Top-rated salons, braiders, nail techs, makeup artists, hair stylists & spas in one platform.',
+    title: 'Stylr SA: Premium Beauty & Wellness Platform',
+    description: 'South Africa\'s destination for luxury salons, medical spas, beauty clinics, and top wellness professionals. Experience excellence with elite service providers.',
     images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za'}/logo-transparent.png`],
   },
 };
