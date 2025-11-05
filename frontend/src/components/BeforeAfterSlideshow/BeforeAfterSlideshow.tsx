@@ -7,7 +7,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import styles from './BeforeAfterSlideshow.module.css';
-import ImageLightbox from '../ImageLightbox/ImageLightbox';
+import ImageLightbox from '@/components/ImageLightbox';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -38,6 +39,7 @@ export default function BeforeAfterSlideshow() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     fetchPhotos();
@@ -63,13 +65,7 @@ export default function BeforeAfterSlideshow() {
     setLightboxOpen(true);
   };
 
-  const handleLightboxNavigate = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && lightboxIndex > 0) {
-      setLightboxIndex(lightboxIndex - 1);
-    } else if (direction === 'next' && lightboxIndex < lightboxImages.length - 1) {
-      setLightboxIndex(lightboxIndex + 1);
-    }
-  };
+
 
   if (isLoading) {
     return (
@@ -96,13 +92,13 @@ export default function BeforeAfterSlideshow() {
         <h2 className={styles.sectionTitle}>Before & After Transformations</h2>
         <div className={styles.container}>
           <Swiper
-            modules={[Navigation]}
-            navigation={{
+            modules={isMobile ? [] : [Navigation]}
+            navigation={isMobile ? false : {
               prevEl: prevRef.current,
               nextEl: nextRef.current,
             }}
             onBeforeInit={(swiper) => {
-              if (typeof swiper.params.navigation !== 'boolean') {
+              if (!isMobile && typeof swiper.params.navigation !== 'boolean') {
                 const navigation = swiper.params.navigation;
                 if (navigation) {
                   navigation.prevEl = prevRef.current;
@@ -157,17 +153,21 @@ export default function BeforeAfterSlideshow() {
             ))}
           </Swiper>
 
-          {/* Navigation buttons */}
-          <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          </button>
-          <button ref={nextRef} className={styles.nextButton} aria-label="Next">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </button>
+          {/* Navigation buttons - hidden on mobile */}
+          {!isMobile && (
+            <>
+              <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </button>
+              <button ref={nextRef} className={styles.nextButton} aria-label="Next">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            </>
+          )}
 
           {/* Scroll indicators for mobile */}
           <div className={styles.scrollIndicators}>
@@ -190,13 +190,13 @@ export default function BeforeAfterSlideshow() {
         </div>
       </section>
 
-      <ImageLightbox
-        images={lightboxImages}
-        currentIndex={lightboxIndex}
-        isOpen={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-        onNavigate={handleLightboxNavigate}
-      />
+      {lightboxOpen && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialImageIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </>
   );
 }

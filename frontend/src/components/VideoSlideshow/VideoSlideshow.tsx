@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import VideoLightbox from '@/components/VideoLightbox/VideoLightbox';
 import styles from './VideoSlideshow.module.css';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -37,6 +38,9 @@ export default function VideoSlideshow() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<ServiceVideo | null>(null);
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     fetchVideos();
@@ -90,10 +94,19 @@ export default function VideoSlideshow() {
       <h2 className={styles.sectionTitle}>Service Video Highlights</h2>
       <div className={styles.container}>
         <Swiper
-          modules={[Navigation]}
-          navigation={{
-            prevEl: `.${styles.prevButton}`,
-            nextEl: `.${styles.nextButton}`,
+          modules={isMobile ? [] : [Navigation]}
+          navigation={isMobile ? false : {
+            prevEl: prevRef.current,
+            nextEl: nextRef.current,
+          }}
+          onBeforeInit={(swiper) => {
+            if (!isMobile && typeof swiper.params.navigation !== 'boolean') {
+              const navigation = swiper.params.navigation;
+              if (navigation) {
+                navigation.prevEl = prevRef.current;
+                navigation.nextEl = nextRef.current;
+              }
+            }
           }}
           spaceBetween={16}
           slidesPerView={'auto'}
@@ -102,11 +115,9 @@ export default function VideoSlideshow() {
           breakpoints={{
             320: {
               slidesPerView: 1.15,
-              navigation: false,
             },
             769: {
               slidesPerView: 5.1,
-              navigation: true,
             },
           }}
         >
@@ -160,17 +171,21 @@ export default function VideoSlideshow() {
           })}
         </Swiper>
 
-        {/* Navigation buttons */}
-        <button className={styles.prevButton} aria-label="Previous">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </button>
-        <button className={styles.nextButton} aria-label="Next">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </button>
+        {/* Navigation buttons - hidden on mobile */}
+        {!isMobile && (
+          <>
+            <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+            <button ref={nextRef} className={styles.nextButton} aria-label="Next">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          </>
+        )}
 
         {/* Scroll indicators for mobile */}
         <div className={styles.scrollIndicators}>

@@ -20,6 +20,7 @@ import BookingConfirmationModal from "@/components/BookingConfirmationModal/Book
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthModal } from "@/context/AuthModalContext";
 import { getCategoriesCached } from "@/lib/resourceCache";
+import EmptyState from "@/components/EmptyState/EmptyState";
 
 // SEO-optimized category information
 const CATEGORY_INFO: Record<string, { title: string; description: string; keywords: string; content: string }> = {
@@ -397,10 +398,11 @@ function ServiceCategoryContent() {
             </div>
           )
         ) : services.length === 0 ? (
-          <div className={styles.emptyState}>
-            <h2>No services found</h2>
-            <p>Try adjusting your filters or exploring other categories.</p>
-          </div>
+          <EmptyState
+            variant="no-services"
+            title="No Services Found"
+            description="Try adjusting your filters or exploring other categories to find what you're looking for."
+          />
         ) : (
           <div className={styles.servicesGrid}>
             {services.map((service) => (

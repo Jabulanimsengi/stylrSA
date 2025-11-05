@@ -4,9 +4,11 @@ import Image from 'next/image';
 import { FaHeart } from 'react-icons/fa';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { getImageWithFallback } from '@/lib/placeholders';
-import ImageLightbox from '@/components/ImageLightbox/ImageLightbox';
+import ImageLightbox from '@/components/ImageLightbox';
 import { Salon } from '@/types';
 import styles from './SalonCard.module.css';
+import AvailabilityIndicator from './AvailabilityIndicator/AvailabilityIndicator';
+import VerificationBadge from './VerificationBadge/VerificationBadge';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
@@ -46,13 +48,7 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
     setIsLightboxOpen(true);
   };
 
-  const handleLightboxNavigate = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && lightboxIndex > 0) {
-      setLightboxIndex(lightboxIndex - 1);
-    } else if (direction === 'next' && lightboxIndex < lightboxImages.length - 1) {
-      setLightboxIndex(lightboxIndex + 1);
-    }
-  };
+
 
   // If lightbox is disabled, wrap entire card in Link
   if (!enableLightbox) {
@@ -69,12 +65,20 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
         )}
         <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
           <div className={styles.imageWrapper}>
+            {salon.isVerified && (
+              <div className={styles.verificationOverlay}>
+                <VerificationBadge size="small" overlay={true} />
+              </div>
+            )}
             {salon.reviewCount !== undefined && salon.avgRating !== undefined && salon.reviewCount > 0 && (
               <div className={styles.ratingBadge}>
                 <div className={styles.ratingValue}>★ {salon.avgRating.toFixed(1)}</div>
                 <div className={styles.reviewCount}>{salon.reviewCount} {salon.reviewCount === 1 ? 'review' : 'reviews'}</div>
               </div>
             )}
+            <div className={styles.statusOverlay}>
+              <AvailabilityIndicator salon={salon} showNextAvailable={false} compact={true} />
+            </div>
             <div className={styles.logoOverlay}>
               {salon.logo && !logoError ? (
                 <Image
@@ -109,7 +113,9 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
             />
           </div>
           <div className={styles.cardContent}>
-            <h2 className={styles.cardTitle}>{salon.name}</h2>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>{salon.name}</h2>
+            </div>
             <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
             {salon.distance !== null && salon.distance !== undefined && (
               <>
@@ -184,12 +190,20 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
           className={styles.imageWrapper}
           onClick={handleImageClick}
         >
+          {salon.isVerified && (
+            <div className={styles.verificationOverlay}>
+              <VerificationBadge size="small" overlay={true} />
+            </div>
+          )}
           {salon.reviewCount !== undefined && salon.avgRating !== undefined && salon.reviewCount > 0 && (
             <div className={styles.ratingBadge}>
               <div className={styles.ratingValue}>★ {salon.avgRating.toFixed(1)}</div>
               <div className={styles.reviewCount}>{salon.reviewCount} {salon.reviewCount === 1 ? 'review' : 'reviews'}</div>
             </div>
           )}
+          <div className={styles.statusOverlay}>
+            <AvailabilityIndicator salon={salon} showNextAvailable={false} compact={true} />
+          </div>
           <div className={styles.logoOverlay}>
             {salon.logo && !logoError ? (
               <Image
@@ -224,10 +238,13 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
           />
         </div>
         <div className={styles.cardContent}>
-          <Link href={`/salons/${salon.id}`} className={styles.cardTitle}>
-            {salon.name}
-          </Link>
+          <div className={styles.cardHeader}>
+            <Link href={`/salons/${salon.id}`} className={styles.cardTitle}>
+              {salon.name}
+            </Link>
+          </div>
           <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+          <AvailabilityIndicator salon={salon} showNextAvailable={false} />
           {salon.distance !== null && salon.distance !== undefined && (
             <>
               <div className={styles.distanceBadge}>
@@ -281,13 +298,11 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
         </div>
       </div>
 
-      {enableLightbox && (
+      {enableLightbox && isLightboxOpen && (
         <ImageLightbox
           images={lightboxImages}
-          currentIndex={lightboxIndex}
-          isOpen={isLightboxOpen}
+          initialImageIndex={lightboxIndex}
           onClose={() => setIsLightboxOpen(false)}
-          onNavigate={handleLightboxNavigate}
         />
       )}
     </>

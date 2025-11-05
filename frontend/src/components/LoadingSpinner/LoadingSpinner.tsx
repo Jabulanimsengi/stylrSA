@@ -7,13 +7,15 @@ interface LoadingSpinnerProps {
   color?: 'primary' | 'secondary' | 'white';
   fullscreen?: boolean;
   text?: string;
+  inline?: boolean;
 }
 
 export default function LoadingSpinner({ 
   size = 'medium', 
   color = 'primary',
   fullscreen = false,
-  text
+  text,
+  inline = false
 }: LoadingSpinnerProps) {
   const spinnerContent = (
     <>
@@ -32,6 +34,10 @@ export default function LoadingSpinner({
         {spinnerContent}
       </div>
     );
+  }
+
+  if (inline) {
+    return spinnerContent;
   }
 
   return (

@@ -1077,6 +1077,40 @@ export default function AdminPage() {
               </div>
               <div className={styles.actions}>
                 <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
+                <button
+                  className={salon.isVerified ? styles.approveButton : styles.rejectButton}
+                  onClick={async () => {
+                    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+                    try {
+                      const r = await fetch(`/api/admin/salons/${salon.id}/verification`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders },
+                        credentials: 'include',
+                      });
+                      if (r.ok) {
+                        const updated = await r.json();
+                        toast.success(`Salon ${updated.isVerified ? 'verified' : 'unverified'}`);
+                        setAllSalons(prev => prev.map(s => s.id === salon.id ? { ...s, isVerified: updated.isVerified } : s));
+                        // Re-fetch to ensure consistency
+                        try {
+                          const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
+                          if (allRes.ok) {
+                            const fresh = ensureArray<PendingSalon>(await allRes.json());
+                            setAllSalons(fresh);
+                          }
+                        } catch {}
+                      } else {
+                        const errText = await r.text().catch(() => '');
+                        toast.error(`Failed to update verification (${r.status}). ${errText}`);
+                      }
+                    } catch (error) {
+                      toast.error('Error updating verification');
+                    }
+                  }}
+                  title={salon.isVerified ? 'Remove verification' : 'Verify service provider'}
+                >
+                  {salon.isVerified ? '✓ Verified' : 'Verify'}
+                </button>
                   <button
                     className={styles.rejectButton}
                     onClick={() => openDeleteSalonModal(salon)}

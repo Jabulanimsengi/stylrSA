@@ -5,11 +5,12 @@ import { toast } from 'react-toastify';
 import PageNav from '@/components/PageNav';
 import PromotionCard, { Promotion, PromotionCardSkeleton } from '@/components/PromotionCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import ImageLightbox from '@/components/ImageLightbox/ImageLightbox';
+import ImageLightbox from '@/components/ImageLightbox';
 import BookingModal from '@/components/BookingModal';
 import { Service, Salon } from '@/types';
 import styles from './promotions.module.css';
 import { toFriendlyMessage } from '@/lib/errors';
+import EmptyState from '@/components/EmptyState/EmptyState';
 
 export default function PromotionsPage() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -67,13 +68,7 @@ export default function PromotionsPage() {
     setIsLightboxOpen(true);
   };
 
-  const handleLightboxNavigate = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && lightboxIndex > 0) {
-      setLightboxIndex(lightboxIndex - 1);
-    } else if (direction === 'next' && lightboxIndex < lightboxImages.length - 1) {
-      setLightboxIndex(lightboxIndex + 1);
-    }
-  };
+
 
   const handleBookNow = (salonData: any, service: any) => {
     setSelectedSalon(salonData);
@@ -161,29 +156,11 @@ export default function PromotionsPage() {
           ))}
         </div>
       ) : filteredPromotions.length === 0 ? (
-        <div className={styles.emptyState}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-            <line x1="9" y1="9" x2="9.01" y2="9" />
-            <line x1="15" y1="9" x2="15.01" y2="9" />
-          </svg>
-          <h2>No Promotions Yet</h2>
-          <p>Salon owners haven't created any promotions at the moment.</p>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>
-            Check back soon for exciting deals and discounts!
-          </p>
-        </div>
+        <EmptyState
+          variant="no-promotions"
+          title="No Promotions Available"
+          description="Salon owners haven't created any promotions at the moment. Check back soon for exciting deals and discounts!"
+        />
       ) : (
         <>
           <div className={styles.resultCount}>
@@ -202,13 +179,13 @@ export default function PromotionsPage() {
         </>
       )}
 
-      <ImageLightbox
-        images={lightboxImages}
-        currentIndex={lightboxIndex}
-        isOpen={isLightboxOpen}
-        onClose={() => setIsLightboxOpen(false)}
-        onNavigate={handleLightboxNavigate}
-      />
+      {isLightboxOpen && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialImageIndex={lightboxIndex}
+          onClose={() => setIsLightboxOpen(false)}
+        />
+      )}
 
       {selectedSalon && selectedService && (
         <BookingModal

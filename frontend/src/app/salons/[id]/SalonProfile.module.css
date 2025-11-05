@@ -502,6 +502,28 @@
   padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--soft-pastel-pink);
 }
+
+.subsectionTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subsectionTitle::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 1.5rem;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-radius: 2px;
+}
+
 .servicesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
@@ -692,8 +714,8 @@
   
   .galleryItem {
     flex: 0 0 auto;
-    width: 140px;
-    height: 140px;
+    width: 220px;
+    height: 220px;
     scroll-snap-align: start;
   }
   .section {
@@ -702,6 +724,16 @@
   .sectionTitle {
     font-size: 1.35rem;
     margin-bottom: 1rem;
+  }
+  
+  .subsectionTitle {
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.875rem;
+  }
+  
+  .subsectionTitle::before {
+    height: 1.25rem;
   }
 }
 
@@ -763,8 +795,15 @@
   .sectionTitle {
     font-size: 1.25rem;
   }
+  
+  .subsectionTitle {
+    font-size: 1rem;
+    margin-top: 1.25rem;
+  }
+  
   .galleryItem {
-    height: 100px;
+    width: 180px;
+    height: 180px;
   }
 }
 
@@ -865,8 +904,8 @@
   }
   .galleryItem {
     flex: 0 0 auto;
-    width: 100px;
-    height: 100px;
+    width: 160px;
+    height: 160px;
   }
   .section {
     padding: 1.25rem 0;
@@ -874,6 +913,11 @@
   .sectionTitle {
     font-size: 1.1rem;
     margin-bottom: 0.875rem;
+  }
+  
+  .subsectionTitle {
+    font-size: 0.95rem;
+    margin-top: 1rem;
   }
 }
 
@@ -950,8 +994,8 @@
     gap: 0.5rem;
   }
   .galleryItem {
-    width: 90px;
-    height: 90px;
+    width: 150px;
+    height: 150px;
   }
   .section {
     padding: 1.125rem 0;
@@ -960,6 +1004,12 @@
     font-size: 1rem;
     margin-bottom: 0.75rem;
   }
+  
+  .subsectionTitle {
+    font-size: 0.9rem;
+    margin-top: 0.875rem;
+  }
+  
   .infoBoard {
     margin-bottom: 1rem;
   }

@@ -56,6 +56,7 @@ export interface Salon {
   operatingHours?: Record<string, string> | OperatingHourEntry[] | null;
   operatingDays?: string[];
   approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  isVerified?: boolean;
   avgRating?: number;
   reviewCount?: number;
   services?: Service[];

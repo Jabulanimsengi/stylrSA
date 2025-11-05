@@ -48,15 +48,18 @@
 }
 
 .spinner.primary > div {
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #ff3d75 100%);
+  box-shadow: 0 2px 8px rgba(245, 25, 87, 0.3);
 }
 
 .spinner.secondary > div {
-  background-color: var(--color-secondary);
+  background: linear-gradient(135deg, var(--color-secondary) 0%, #2e9687 100%);
+  box-shadow: 0 2px 8px rgba(58, 183, 165, 0.3);
 }
 
 .spinner.white > div {
   background-color: white;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
 }
 
 .spinner .bounce1 {

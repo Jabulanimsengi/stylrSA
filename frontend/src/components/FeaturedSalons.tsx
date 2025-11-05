@@ -12,6 +12,7 @@ import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { Salon } from '@/types';
 import styles from './FeaturedSalons.module.css';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -26,6 +27,7 @@ export default function FeaturedSalons() {
   const { openModal } = useAuthModal();
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const fetchFeaturedSalons = useCallback(async () => {
     setIsLoading(true);
@@ -126,13 +128,13 @@ export default function FeaturedSalons() {
   return (
     <div className={styles.container}>
       <Swiper
-        modules={[Navigation]}
-        navigation={{
+        modules={isMobile ? [] : [Navigation]}
+        navigation={isMobile ? false : {
           prevEl: prevRef.current,
           nextEl: nextRef.current,
         }}
         onBeforeInit={(swiper) => {
-          if (typeof swiper.params.navigation !== 'boolean') {
+          if (!isMobile && typeof swiper.params.navigation !== 'boolean') {
             const navigation = swiper.params.navigation;
             if (navigation) {
               navigation.prevEl = prevRef.current;
@@ -166,17 +168,21 @@ export default function FeaturedSalons() {
         ))}
       </Swiper>
       
-      {/* Navigation buttons */}
-      <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
-      </button>
-      <button ref={nextRef} className={styles.nextButton} aria-label="Next">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-      </button>
+      {/* Navigation buttons - hidden on mobile */}
+      {!isMobile && (
+        <>
+          <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <button ref={nextRef} className={styles.nextButton} aria-label="Next">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </>
+      )}
       
       {/* Scroll indicators for mobile */}
       <div className={styles.scrollIndicators}>

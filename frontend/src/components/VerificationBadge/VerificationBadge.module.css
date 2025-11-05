@@ -1,0 +1,92 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #3b82f6;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(59, 130, 246, 0.3));
+}
+
+.label {
+  font-size: inherit;
+  white-space: nowrap;
+}
+
+/* Size variants */
+.badge.small {
+  font-size: 0.75rem;
+}
+
+.badge.small .icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.badge.medium {
+  font-size: 0.875rem;
+}
+
+.badge.medium .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.badge.large {
+  font-size: 1rem;
+}
+
+.badge.large .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Overlay variant for cards */
+.badge.overlay {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.375rem 0.625rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 4;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.badge.overlay.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+}
+
+.badge.overlay.small .icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.badge.overlay.medium {
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8rem;
+}
+
+.badge.overlay.medium .icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.badge.overlay.large {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.badge.overlay.large .icon {
+  width: 1rem;
+  height: 1rem;
+}
+

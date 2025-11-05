@@ -64,7 +64,7 @@
   box-shadow: 0 4px 12px rgba(67, 65, 74, 0.15);
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;
+  z-index: 20;
 }
 
 .prevButton:hover,
@@ -80,11 +80,11 @@
 }
 
 .prevButton {
-  left: -1rem;
+  left: 0;
 }
 
 .nextButton {
-  right: -1rem;
+  right: 0;
 }
 
 .prevButton svg,

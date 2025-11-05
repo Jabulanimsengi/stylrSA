@@ -154,7 +154,7 @@
 
 .ratingBadge {
   position: absolute;
-  top: 0.5rem;
+  top: 3.5rem;
   left: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -167,6 +167,34 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   gap: 0.15rem;
   pointer-events: none;
+}
+
+.verificationOverlay {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.statusOverlay {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.salonCard.compact .statusOverlay {
+  bottom: 0.5rem;
+  right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .statusOverlay {
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
 }
 
 .ratingValue {
@@ -270,7 +298,13 @@
   gap: 3px;
 }
 
-
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 
 .cardTitle {
   font-size: 0.95rem;

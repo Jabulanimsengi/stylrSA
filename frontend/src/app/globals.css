@@ -251,17 +251,26 @@
     --color-error-text: #d4144c;
     --color-warning-bg: #fff4d6;
     --color-warning-text: #b7791f;
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
-    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
+    /* Shadow System - Elevation levels */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+    --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 
-    --space-3xs: 0.125rem;
-    --space-2xs: 0.25rem;
-    --space-xs: 0.5rem;
-    --space-sm: 0.75rem;
-    --space-md: 1rem;
-    --space-lg: 1.5rem;
-    --space-xl: 2rem;
-    --space-2xl: 3rem;
+    /* Spacing Scale - Complete system */
+    --space-3xs: 0.125rem;  /* 2px */
+    --space-2xs: 0.25rem;   /* 4px */
+    --space-xs: 0.5rem;     /* 8px */
+    --space-sm: 0.75rem;    /* 12px */
+    --space-md: 1rem;       /* 16px */
+    --space-lg: 1.5rem;     /* 24px */
+    --space-xl: 2rem;       /* 32px */
+    --space-2xl: 3rem;      /* 48px */
+    --space-3xl: 4rem;      /* 64px */
+    --space-4xl: 6rem;      /* 96px */
     --radius-xs: 0.25rem;
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
@@ -270,12 +279,23 @@
     --radius-full: 999px;
 
     --font-family-base: 'InterVariable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: clamp(0.95rem, 0.2vw + 0.9rem, 1rem);
-    --font-size-lg: clamp(1.1rem, 0.25vw + 1rem, 1.25rem);
-    --font-size-xl: clamp(1.35rem, 0.35vw + 1.25rem, 1.6rem);
-    --font-size-2xl: clamp(1.6rem, 0.45vw + 1.55rem, 2rem);
+    /* Typography Scale - Complete system */
+    --font-size-xs: 0.75rem;      /* 12px */
+    --font-size-sm: 0.875rem;     /* 14px */
+    --font-size-base: clamp(0.95rem, 0.2vw + 0.9rem, 1rem);  /* 16px */
+    --font-size-lg: clamp(1.1rem, 0.25vw + 1rem, 1.25rem);   /* 20px */
+    --font-size-xl: clamp(1.35rem, 0.35vw + 1.25rem, 1.6rem); /* 24px */
+    --font-size-2xl: clamp(1.6rem, 0.45vw + 1.55rem, 2rem);  /* 32px */
+    --font-size-3xl: clamp(2rem, 0.6vw + 1.8rem, 2.5rem);    /* 40px */
+    --font-size-4xl: clamp(2.5rem, 0.8vw + 2.2rem, 3rem);    /* 48px */
+    
+    /* Heading Sizes */
+    --heading-1: var(--font-size-4xl);
+    --heading-2: var(--font-size-3xl);
+    --heading-3: var(--font-size-2xl);
+    --heading-4: var(--font-size-xl);
+    --heading-5: var(--font-size-lg);
+    --heading-6: var(--font-size-base);
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
@@ -900,6 +920,25 @@ h3 {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+  }
+}
+
+/* Smooth scrolling for better UX */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Service } from '@/types';
-import ImageLightbox from '@/components/ImageLightbox/ImageLightbox';
+import ImageLightbox from '@/components/ImageLightbox';
 import styles from './FeaturedServiceCard.module.css';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { SkeletonCard } from './Skeleton/Skeleton';
@@ -52,16 +52,10 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
   const handleImageClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // Only open lightbox if we have at least one valid image
+    if (validImages.length === 0) return;
     setLightboxIndex(0);
     setIsLightboxOpen(true);
-  };
-
-  const handleLightboxNavigate = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && lightboxIndex > 0) {
-      setLightboxIndex(lightboxIndex - 1);
-    } else if (direction === 'next' && lightboxIndex < validImages.length - 1) {
-      setLightboxIndex(lightboxIndex + 1);
-    }
   };
 
   return (
@@ -95,13 +89,16 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
         </div>
       </div>
 
-      <ImageLightbox
-        images={validImages}
-        currentIndex={lightboxIndex}
-        isOpen={isLightboxOpen}
-        onClose={() => setIsLightboxOpen(false)}
-        onNavigate={handleLightboxNavigate}
-      />
+      {isLightboxOpen && (
+        <ImageLightbox
+          images={validImages}
+          initialImageIndex={lightboxIndex}
+          onClose={() => {
+            setIsLightboxOpen(false);
+            setLightboxIndex(0);
+          }}
+        />
+      )}
     </>
   );
 }

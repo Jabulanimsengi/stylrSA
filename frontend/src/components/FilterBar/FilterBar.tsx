@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSpinner, FaMapMarkerAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaSpinner, FaMapMarkerAlt, FaExclamationTriangle, FaBolt, FaStar } from 'react-icons/fa';
 import styles from './FilterBar.module.css';
 import { toFriendlyMessage } from '@/lib/errors';
 import { getCategoriesCached, getLocationsCached } from '@/lib/resourceCache';
@@ -305,12 +305,69 @@ export default function FilterBar({
     }
   }, [isSearching]);
 
+  const handleQuickFilter = (filterType: 'openNow' | 'nearMe' | 'topRated' | 'mobile') => {
+    const filters = buildFilters();
+    
+    switch (filterType) {
+      case 'openNow':
+        filters.openNow = !openNow;
+        setOpenNow(!openNow);
+        break;
+      case 'nearMe':
+        handleFindNearby();
+        return; // Early return as handleFindNearby handles the search
+      case 'topRated':
+        filters.sortBy = 'top_rated';
+        setSortBy('top_rated');
+        break;
+      case 'mobile':
+        filters.offersMobile = !offersMobile;
+        setOffersMobile(!offersMobile);
+        break;
+    }
+    
+    triggerSearch(filters, true);
+  };
+
   return (
-    <div
-      className={`${styles.filterBar} ${
-        isHomePage ? styles.homeFilterBar : ''
-      }`}
-    >
+    <>
+      {/* Quick Filters */}
+      <div className={styles.quickFilters}>
+        <button
+          type="button"
+          onClick={() => handleQuickFilter('openNow')}
+          className={`${styles.quickFilterBtn} ${openNow ? styles.active : ''}`}
+        >
+          <FaBolt /> Open Now
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickFilter('nearMe')}
+          className={styles.quickFilterBtn}
+        >
+          <FaMapMarkerAlt /> Near Me
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickFilter('topRated')}
+          className={`${styles.quickFilterBtn} ${sortBy === 'top_rated' ? styles.active : ''}`}
+        >
+          <FaStar /> Top Rated
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickFilter('mobile')}
+          className={`${styles.quickFilterBtn} ${offersMobile ? styles.active : ''}`}
+        >
+          <FaBolt /> Mobile Services
+        </button>
+      </div>
+
+      <div
+        className={`${styles.filterBar} ${
+          isHomePage ? styles.homeFilterBar : ''
+        }`}
+      >
       <div className={styles.filterGroup}>
         <label htmlFor="province">Province</label>
         <select
@@ -533,6 +590,7 @@ export default function FilterBar({
           {isSearching ? 'Searching…' : 'Search'}
         </button>
       )}
-    </div>
+      </div>
+    </>
   );
 }

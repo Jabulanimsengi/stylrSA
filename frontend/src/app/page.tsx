@@ -19,6 +19,7 @@ import BeforeAfterSlideshow from '@/components/BeforeAfterSlideshow/BeforeAfterS
 import VideoSlideshow from '@/components/VideoSlideshow/VideoSlideshow';
 import TrendRow from '@/components/TrendRow/TrendRow';
 import { Trend, TrendCategory } from '@/types';
+import ForYouRecommendations from '@/components/ForYouRecommendations/ForYouRecommendations';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -31,6 +32,11 @@ const HERO_SLIDES = [
 ];
 
 const SLIDE_INTERVAL = 6000;
+
+// Reduced slide count for mobile performance
+const getMobileSlides = () => {
+  return HERO_SLIDES.slice(0, 4); // Only first 4 slides on mobile
+};
 
 type ServiceWithSalon = Service & { salon: { id: string; name: string, city: string, province: string } };
 
@@ -47,9 +53,10 @@ export default function HomePage() {
   
   const observer = useRef<IntersectionObserver | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const totalSlides = HERO_SLIDES.length;
   const socket = useSocket();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const slidesToShow = isMobile ? getMobileSlides() : HERO_SLIDES;
+  const totalSlides = slidesToShow.length;
 
   // Comprehensive Schema.org markup for homepage SEO and brand recognition
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
@@ -285,9 +292,9 @@ export default function HomePage() {
         <SkeletonGroup count={8} className={styles.grid}>
           {() => <FeaturedServiceCardSkeleton />}</SkeletonGroup>
       )}
-      <section className={styles.hero}>
+      <section className={styles.hero} aria-label="Hero section with rotating images">
         <div className={styles.heroMedia} aria-hidden="true">
-          {HERO_SLIDES.map((slide, index) => (
+          {slidesToShow.map((slide, index) => (
             <Image
               key={slide.src}
               src={slide.src}
@@ -296,14 +303,16 @@ export default function HomePage() {
               fill
               priority={index === 0}
               sizes="100vw"
+              loading={index === 0 ? 'eager' : 'lazy'}
+              quality={isMobile ? 75 : 85}
             />
           ))}
           <div className={styles.heroGradient} />
         </div>
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <h1 className={styles.heroTitle}>South Africa's Premier Destination for Luxury Beauty &amp; Wellness</h1>
-            <p className={styles.heroSubtitle}>Experience excellence with South Africa's most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Elevate your beauty journey with the finest service providers in one exclusive platform.</p>
+            <h1 className={styles.heroTitle} id="hero-title">South Africa's Premier Destination for Luxury Beauty &amp; Wellness</h1>
+            <p className={styles.heroSubtitle} aria-describedby="hero-title">Experience excellence with South Africa's most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Elevate your beauty journey with the finest service providers in one exclusive platform.</p>
           </div>
           
           {/* Premium Social Proof Stats */}
@@ -324,24 +333,28 @@ export default function HomePage() {
             </div>
           </div>
           
-          <div className={styles.filterContainer}>
-            <FilterBar onSearch={handleSearch} isHomePage={true} />
-          </div>
-          <div className={styles.heroActions}>
-            <Link href="/salons" className="btn btn-primary">
-              Explore Premium Salons
-            </Link>
-            <Link href="/services" className="btn btn-primary">
-              Browse Luxury Services
-            </Link>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => openModal('register')}
-            >
-              Join as Premium Partner
-            </button>
-          </div>
+          {!isMobile && (
+            <div className={styles.filterContainer}>
+              <FilterBar onSearch={handleSearch} isHomePage={true} />
+            </div>
+          )}
+          {!isMobile && (
+            <div className={styles.heroActions}>
+              <Link href="/salons" className="btn btn-primary">
+                Explore Premium Salons
+              </Link>
+              <Link href="/services" className="btn btn-primary">
+                Browse Luxury Services
+              </Link>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => openModal('register')}
+              >
+                Join as Premium Partner
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Progress bar */}
@@ -401,6 +414,9 @@ export default function HomePage() {
         </>
       )}
 
+      {/* Personalized Recommendations for logged-in users */}
+      <ForYouRecommendations />
+
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Recommended</h2>
         <FeaturedSalons />
@@ -412,119 +428,40 @@ export default function HomePage() {
       {/* Service Videos Slideshow */}
       <VideoSlideshow />
 
-      {/* Service Categories Section for SEO */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
-        <div 
-          className={styles.categoryGrid} 
-          style={isMobile ? { 
-            display: 'flex',
-            gap: '1rem',
-            overflowX: 'auto',
-            scrollSnapType: 'x mandatory',
-            WebkitOverflowScrolling: 'touch',
-            marginBottom: '2rem',
-            scrollbarWidth: 'none', // Firefox
-            msOverflowStyle: 'none', // IE/Edge
-          } : { 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-            gap: '1.5rem',
-            marginBottom: '3rem'
-          }}
-        >
-          <Link href="/services/braiding-weaving" className="btn btn-primary" style={isMobile ? { 
-            minWidth: 'calc(42% - 0.5rem)',
-            flex: '0 0 auto',
-            textAlign: 'center',
-            scrollSnapAlign: 'start',
-            padding: '0.75rem 0.5rem',
-            fontSize: '0.85rem',
-            lineHeight: '1.3',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '3rem'
-          } : { textAlign: 'center' }}>
+      {/* Service Categories Section for SEO - Hidden on mobile */}
+      {!isMobile && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
+          <div 
+            className={styles.categoryGrid} 
+            style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+              gap: '1.5rem',
+              marginBottom: '3rem'
+            }}
+          >
+          <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
             Braiding & Weaving
           </Link>
-          <Link href="/services/nail-care" className="btn btn-primary" style={isMobile ? { 
-            minWidth: 'calc(42% - 0.5rem)',
-            flex: '0 0 auto',
-            textAlign: 'center',
-            scrollSnapAlign: 'start',
-            padding: '0.75rem 0.5rem',
-            fontSize: '0.85rem',
-            lineHeight: '1.3',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '3rem'
-          } : { textAlign: 'center' }}>
+          <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
             Nail Care
           </Link>
-          <Link href="/services/makeup-beauty" className="btn btn-primary" style={isMobile ? { 
-            minWidth: 'calc(42% - 0.5rem)',
-            flex: '0 0 auto',
-            textAlign: 'center',
-            scrollSnapAlign: 'start',
-            padding: '0.75rem 0.5rem',
-            fontSize: '0.85rem',
-            lineHeight: '1.3',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '3rem'
-          } : { textAlign: 'center' }}>
+          <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
             Makeup & Beauty
           </Link>
-          <Link href="/services/haircuts-styling" className="btn btn-primary" style={isMobile ? { 
-            minWidth: 'calc(42% - 0.5rem)',
-            flex: '0 0 auto',
-            textAlign: 'center',
-            scrollSnapAlign: 'start',
-            padding: '0.75rem 0.5rem',
-            fontSize: '0.85rem',
-            lineHeight: '1.3',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '3rem'
-          } : { textAlign: 'center' }}>
+          <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
             Haircuts & Styling
           </Link>
-          <Link href="/services/massage-body-treatments" className="btn btn-primary" style={isMobile ? { 
-            minWidth: 'calc(42% - 0.5rem)',
-            flex: '0 0 auto',
-            textAlign: 'center',
-            scrollSnapAlign: 'start',
-            padding: '0.75rem 0.5rem',
-            fontSize: '0.85rem',
-            lineHeight: '1.3',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '3rem'
-          } : { textAlign: 'center' }}>
+          <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
             Massage & Spa
           </Link>
-          <Link href="/services/mens-grooming" className="btn btn-primary" style={isMobile ? { 
-            minWidth: 'calc(42% - 0.5rem)',
-            flex: '0 0 auto',
-            textAlign: 'center',
-            scrollSnapAlign: 'start',
-            padding: '0.75rem 0.5rem',
-            fontSize: '0.85rem',
-            lineHeight: '1.3',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '3rem'
-          } : { textAlign: 'center' }}>
+          <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
             Men's Grooming
           </Link>
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>

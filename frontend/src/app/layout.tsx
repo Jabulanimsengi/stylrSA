@@ -27,6 +27,7 @@ import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import SkipToContent from '@/components/SkipToContent/SkipToContent';
+import BackToTop from '@/components/BackToTop';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -138,6 +139,7 @@ export default function RootLayout({
                     </div>
                     <ClientChatWidget />
                     <ClientAISalonFinder />
+                    <BackToTop />
                     <Suspense fallback={null}>
                       <ToasterClient />
                     </Suspense>

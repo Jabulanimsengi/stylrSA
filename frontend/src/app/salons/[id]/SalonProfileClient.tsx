@@ -35,6 +35,10 @@ import { sanitizeText } from '@/lib/sanitize';
 import PageNav from '@/components/PageNav';
 import PromotionDetailsModal from '@/components/PromotionDetailsModal/PromotionDetailsModal';
 import BookingConfirmationModal from '@/components/BookingConfirmationModal/BookingConfirmationModal';
+import CalendarSchedule from '@/components/CalendarSchedule/CalendarSchedule';
+import TrustBadges from '@/components/TrustBadges/TrustBadges';
+import SocialShare from '@/components/SocialShare/SocialShare';
+import VerificationBadge from '@/components/VerificationBadge/VerificationBadge';
 
 type Props = {
   initialSalon: Salon | null;
@@ -581,7 +585,13 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <span>{salon.name.charAt(0).toUpperCase()}</span>
               </div>
             )}
-            <h1 className={styles.title}>{salon.name}</h1>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <h1 className={styles.title}>{salon.name}</h1>
+                {salon.isVerified && <VerificationBadge size="medium" showLabel={true} />}
+              </div>
+              <TrustBadges salon={salon} showAll={true} />
+            </div>
           </div>
           <div className={styles.headerSpacer}>
             {authStatus === 'authenticated' && user?.id !== salon.ownerId && (
@@ -589,9 +599,13 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <FaEnvelope /> Message
               </button>
             )}
-            <button type="button" onClick={shareProfile} className={styles.navButton}>
-              <FaExternalLinkAlt /> Share
-            </button>
+            <SocialShare
+              url={`${typeof window !== 'undefined' ? window.location.origin : ''}/salons/${salon.id}`}
+              title={salon.name}
+              description={salon.description || `Check out ${salon.name} on Stylr SA`}
+              image={salon.backgroundImage || ''}
+              variant="button"
+            />
             {authStatus === 'authenticated' && (
               <button onClick={handleToggleFavorite} className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}>
                 <FaHeart />
@@ -689,7 +703,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                   
                   {galleryImages.length > 0 && (
                     <>
-                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text)' }}>Photos</h3>
+                      <h3 className={styles.subsectionTitle}>Photos</h3>
                       <div className={styles.galleryGrid}>
                         {galleryImages.map((image, index) => (
                           <div key={image.id} className={styles.galleryItem} onClick={() => openLightbox(galleryImageUrls, index)}>
@@ -708,7 +722,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
                   {beforeAfterPhotos.length > 0 && (
                     <>
-                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '2rem', marginBottom: '1rem', color: 'var(--color-text)', textAlign: 'left' }}>Before & After Transformations</h3>
+                      <h3 className={styles.subsectionTitle}>Before & After Transformations</h3>
                       <div className={styles.galleryGrid}>
                         {beforeAfterPhotos.map((photo) => (
                           <div 
@@ -745,7 +759,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
                   {salonVideos.length > 0 && (
                     <>
-                      <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '2rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Videos</h3>
+                      <h3 className={styles.subsectionTitle}>Videos</h3>
                       <div className={styles.galleryGrid}>
                         {salonVideos.map((video) => (
                           <div 
@@ -785,6 +799,24 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                   )}
                 </section>
               )}
+              
+              {/* Calendar Schedule Section */}
+              {services.length > 0 && (
+                <CalendarSchedule
+                  salon={salon}
+                  services={services}
+                  onServiceSelect={(service) => {
+                    setSelectedService(service);
+                  }}
+                  onSlotSelect={(slot) => {
+                    // When a slot is selected, open booking modal with that service
+                    if (selectedService) {
+                      setSelectedService(selectedService);
+                    }
+                  }}
+                />
+              )}
+
               <section id="services-section">
                 <h2 className={styles.sectionTitle}>Services</h2>
                 <div className={styles.servicesGrid}>

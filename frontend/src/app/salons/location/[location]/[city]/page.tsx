@@ -21,6 +21,7 @@ import PageNav from '@/components/PageNav';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
+import EmptyState from '@/components/EmptyState/EmptyState';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
@@ -199,9 +200,11 @@ function SalonsCityContent() {
           </div>
         )
       ) : salons.length === 0 ? (
-        <p className={styles.emptyState}>
-          No salons found in {cityName}. Try searching in the broader region or check back soon as we add more salons!
-        </p>
+        <EmptyState
+          variant="no-location"
+          title={`No Salons Found in ${cityName}`}
+          description="Try searching in the broader region or check back soon as we add more salons!"
+        />
       ) : (
         <div className={styles.salonGrid}>
           {salons.map((salon) => (

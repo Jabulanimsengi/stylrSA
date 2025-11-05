@@ -16,6 +16,9 @@ export interface EnhancedChatIntent {
     | 'location_query'
     | 'availability_query'
     | 'book_appointment'
+    | 'promotions_query'
+    | 'products_query'
+    | 'trends_query'
     | 'help'
     | 'unknown';
   
@@ -26,7 +29,7 @@ export interface EnhancedChatIntent {
   requiresAuth?: boolean;
   salonId?: string;
   serviceId?: string;
-  actionType?: 'view_salon' | 'view_services' | 'view_gallery' | 'view_reviews' | 'book_now' | 'show_prices';
+  actionType?: 'view_salon' | 'view_services' | 'view_gallery' | 'view_reviews' | 'book_now' | 'show_prices' | 'view_promotions' | 'view_products' | 'view_trends';
 }
 
 /**
@@ -51,12 +54,15 @@ export function parseEnhancedInput(input: string, context?: {
 ✅ Viewing salon galleries and reviews
 ✅ Making bookings directly from chat
 ✅ Comparing services and prices
+✅ Finding promotions and deals
+✅ Browsing beauty products
+✅ Discovering latest trends
 
 What would you like to do today?`,
       quickActions: [
         'Find salons near me',
-        'View salon profiles',
-        'Check prices',
+        'Show promotions',
+        'View services',
         'Book an appointment'
       ]
     };
@@ -163,7 +169,7 @@ Which salon's reviews would you like to see?`,
   }
 
   // Services query
-  if (/services?|what (do they|does|can)|offer/i.test(lowerInput)) {
+  if (/services?|what (do they|does|can)|offer|treatment/i.test(lowerInput)) {
     return {
       type: 'service_query',
       response: `💇‍♀️ I can show you all available services including:
@@ -184,6 +190,72 @@ What type of service are you looking for?`,
     };
   }
 
+  // Promotions and deals
+  if (/promotion|deal|discount|special|offer|sale|save|cheap/i.test(lowerInput)) {
+    return {
+      type: 'promotions_query',
+      response: `🎉 I can show you current promotions and deals! I have access to:
+      
+• Active promotions from salons
+• Service discounts
+• Product specials
+• Limited-time offers
+
+Let me find the best deals for you!`,
+      actionType: 'view_promotions',
+      quickActions: [
+        'Show all promotions',
+        'Find deals near me',
+        'Service discounts',
+        'Product specials'
+      ]
+    };
+  }
+
+  // Products query
+  if (/products?|buy|shop|store|purchase|sell|selling/i.test(lowerInput)) {
+    return {
+      type: 'products_query',
+      response: `🛍️ I can help you find products! I have access to:
+      
+• Beauty products for sale
+• Hair care products
+• Product catalogs
+• Pricing and availability
+
+What products are you looking for?`,
+      actionType: 'view_products',
+      quickActions: [
+        'Browse all products',
+        'Hair products',
+        'Beauty products',
+        'Products in stock'
+      ]
+    };
+  }
+
+  // Trends query
+  if (/trend|trending|style|fashion|latest|new|popular|what's (hot|in)/i.test(lowerInput)) {
+    return {
+      type: 'trends_query',
+      response: `✨ I can show you the latest beauty trends! I have access to:
+      
+• Trending hairstyles
+• Popular nail designs
+• Latest beauty trends
+• Trend categories (Hair, Nails, Makeup, etc.)
+
+What trends are you interested in?`,
+      actionType: 'view_trends',
+      quickActions: [
+        'Show all trends',
+        'Hair trends',
+        'Nail trends',
+        'Latest trends'
+      ]
+    };
+  }
+
   // Help request
   if (/help|what can you do|how (do|can) (i|you)|capabilities/i.test(lowerInput)) {
     return {
@@ -194,16 +266,38 @@ What type of service are you looking for?`,
 • "Find salons near me"
 • "Show salon profiles"
 • "View service listings"
+• "Show featured salons"
 
-**Prices & Services:**
+**Services & Prices:**
 • "How much does braiding cost?"
 • "Show me prices"
 • "Compare service prices"
+• "Search for hair services"
+• "Find nail services"
 
 **Gallery & Reviews:**
 • "Show salon photos"
 • "View before & after"
 • "Read reviews"
+• "View salon gallery"
+
+**Promotions & Deals:**
+• "Show me promotions"
+• "Find deals"
+• "What discounts are available?"
+• "Show current specials"
+
+**Products:**
+• "Browse products"
+• "Show beauty products"
+• "Find hair products"
+• "Products in stock"
+
+**Trends:**
+• "Show me trends"
+• "What's trending?"
+• "Latest hairstyles"
+• "Popular nail designs"
 
 **Booking:**
 • "Book an appointment"
@@ -219,7 +313,7 @@ Try asking me anything!`,
       quickActions: [
         'Find salons',
         'View services',
-        'Check prices',
+        'Show promotions',
         'Book appointment'
       ]
     };
@@ -287,13 +381,12 @@ export async function getSalonGallery(salonId: string) {
 }
 
 /**
- * Get salon reviews
+ * Get salon reviews (included in salon details)
  */
 export async function getSalonReviews(salonId: string) {
   try {
-    const response = await fetch(`/api/salons/${salonId}/reviews`);
-    if (!response.ok) throw new Error('Failed to fetch reviews');
-    return await response.json();
+    const salon = await getSalonDetails(salonId);
+    return salon?.reviews || [];
   } catch (error) {
     console.error('Error fetching reviews:', error);
     return null;
@@ -301,18 +394,147 @@ export async function getSalonReviews(salonId: string) {
 }
 
 /**
- * Get salon booking availability
+ * Get service booking availability
  */
-export async function getSalonAvailability(salonId: string, date?: string) {
+export async function getServiceAvailability(serviceId: string, date?: string) {
   try {
     const params = new URLSearchParams();
     if (date) params.append('date', date);
     
-    const response = await fetch(`/api/salons/${salonId}/availability?${params.toString()}`);
+    const response = await fetch(`/api/bookings/availability/${serviceId}?${params.toString()}`);
     if (!response.ok) throw new Error('Failed to fetch availability');
     return await response.json();
   } catch (error) {
     console.error('Error fetching availability:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all public promotions
+ */
+export async function getPromotions(salonId?: string) {
+  try {
+    const params = new URLSearchParams();
+    if (salonId) params.append('salonId', salonId);
+    
+    const response = await fetch(`/api/promotions/public?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch promotions');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching promotions:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all approved products
+ */
+export async function getProducts(filters?: {
+  category?: string;
+  priceMin?: string;
+  priceMax?: string;
+  search?: string;
+  inStock?: string;
+}) {
+  try {
+    const params = new URLSearchParams();
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.priceMin) params.append('priceMin', filters.priceMin);
+    if (filters?.priceMax) params.append('priceMax', filters.priceMax);
+    if (filters?.search) params.append('q', filters.search);
+    if (filters?.inStock) params.append('inStock', filters.inStock);
+    
+    const response = await fetch(`/api/products?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch products');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all active trends
+ */
+export async function getTrends(category?: string) {
+  try {
+    const url = category 
+      ? `/api/trends/category/${category}`
+      : '/api/trends';
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch trends');
+    const data = await response.json();
+    
+    // If fetching all trends, it returns grouped by category, so flatten it
+    if (!category && typeof data === 'object') {
+      return Object.values(data).flat();
+    }
+    return data;
+  } catch (error) {
+    console.error('Error fetching trends:', error);
+    return null;
+  }
+}
+
+/**
+ * Search for services
+ */
+export async function searchServices(filters?: {
+  q?: string;
+  category?: string;
+  categoryId?: string;
+  priceMin?: string;
+  priceMax?: string;
+  province?: string;
+  city?: string;
+  sortBy?: string;
+}) {
+  try {
+    const params = new URLSearchParams();
+    if (filters?.q) params.append('q', filters.q);
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.categoryId) params.append('categoryId', filters.categoryId);
+    if (filters?.priceMin) params.append('priceMin', filters.priceMin);
+    if (filters?.priceMax) params.append('priceMax', filters.priceMax);
+    if (filters?.province) params.append('province', filters.province);
+    if (filters?.city) params.append('city', filters.city);
+    if (filters?.sortBy) params.append('sortBy', filters.sortBy);
+    
+    const response = await fetch(`/api/services/search?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to search services');
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching services:', error);
+    return null;
+  }
+}
+
+/**
+ * Get featured salons
+ */
+export async function getFeaturedSalons() {
+  try {
+    const response = await fetch('/api/salons/featured');
+    if (!response.ok) throw new Error('Failed to fetch featured salons');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching featured salons:', error);
+    return null;
+  }
+}
+
+/**
+ * Get featured services
+ */
+export async function getFeaturedServices() {
+  try {
+    const response = await fetch('/api/services/featured');
+    if (!response.ok) throw new Error('Failed to fetch featured services');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching featured services:', error);
     return null;
   }
 }

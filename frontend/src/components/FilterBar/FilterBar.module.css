@@ -1,3 +1,44 @@
+.quickFilters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.quickFilterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: white;
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quickFilterBtn:hover {
+  border-color: var(--color-primary, #f51957);
+  color: var(--color-primary, #f51957);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 25, 87, 0.15);
+}
+
+.quickFilterBtn.active {
+  background: var(--color-primary, #f51957);
+  border-color: var(--color-primary, #f51957);
+  color: white;
+}
+
+.quickFilterBtn svg {
+  font-size: 0.875rem;
+}
+
 .filterBar {
   background-color: var(--color-surface-elevated);
   padding: 1.5rem;

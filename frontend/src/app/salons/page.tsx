@@ -23,6 +23,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import EmptyState from '@/components/EmptyState/EmptyState';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -221,7 +222,11 @@ function SalonsPageContent() {
           </div>
         )
       ) : salons.length === 0 ? (
-        <p className={styles.emptyState}>No salons found matching your criteria.</p>
+        <EmptyState
+          variant="no-results"
+          title="No Salons Found"
+          description="Try adjusting your filters or search terms to find salons near you."
+        />
       ) : (
         <div className={styles.salonGrid}>
           {salons.map((salon) => (

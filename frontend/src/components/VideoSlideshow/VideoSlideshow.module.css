@@ -33,7 +33,7 @@
   height: 44px;
   border-radius: 50%;
   border: none;
-  display: none !important; /* Hidden by default (mobile) */
+  display: none; /* Hidden by default (mobile) */
   align-items: center;
   justify-content: center;
   background: var(--color-primary, #f51957);
@@ -41,10 +41,7 @@
   box-shadow: 0 4px 12px rgba(67, 65, 74, 0.15);
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+  z-index: 20;
 }
 
 .prevButton:hover,
@@ -60,11 +57,11 @@
 }
 
 .prevButton {
-  left: -1rem;
+  left: 0;
 }
 
 .nextButton {
-  right: -1rem;
+  right: 0;
 }
 
 .prevButton svg,

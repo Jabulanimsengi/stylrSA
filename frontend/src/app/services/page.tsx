@@ -19,6 +19,7 @@ import BookingModal from "@/components/BookingModal";
 import BookingConfirmationModal from "@/components/BookingConfirmationModal/BookingConfirmationModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthModal } from "@/context/AuthModalContext";
+import EmptyState from "@/components/EmptyState/EmptyState";
 
 const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
 
@@ -264,10 +265,11 @@ function ServicesPageContent() {
           </SkeletonGroup>
         ) : services.length === 0 ? (
           // No results found
-          <div className={styles.emptyState}>
-            <h2>No services found</h2>
-            <p>Try adjusting your filters or exploring other categories.</p>
-          </div>
+          <EmptyState
+            variant="no-results"
+            title="No Services Found"
+            description="Try adjusting your filters or exploring other categories to find what you're looking for."
+          />
         ) : (
           // Show services with optional loading overlay
           <>
