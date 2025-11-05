@@ -23,6 +23,7 @@ import {
 } from '@/lib/aiChatbotEnhanced';
 import { parseUserInput } from '@/lib/chatIntent';
 import { useAuth } from '@/hooks/useAuth';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Message {
   id: string;
@@ -43,6 +44,7 @@ export default function EnhancedAIChatbot() {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { user, authStatus } = useAuth();
+  const { coordinates, locationName, requestLocation, error: locationError } = useGeolocation(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,13 +60,26 @@ export default function EnhancedAIChatbot() {
     }
   }, [isOpen, isMinimized]);
 
+  // Request location when chatbot opens (for better results)
+  useEffect(() => {
+    if (isOpen && !coordinates && !locationError) {
+      // Try to request location when chatbot opens (non-blocking)
+      // This will help with "near me" queries
+      requestLocation();
+    }
+  }, [isOpen, coordinates, locationError, requestLocation]);
+
   // Initial greeting when first opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const welcomeIntent = parseEnhancedInput('hello', { userId: user?.id });
+      const userLocation = coordinates ? { lat: coordinates.latitude, lng: coordinates.longitude } : undefined;
+      const welcomeIntent = parseEnhancedInput('hello', { 
+        userId: user?.id,
+        userLocation 
+      });
       addBotMessage(welcomeIntent.response, welcomeIntent.quickActions);
     }
-  }, [isOpen, user?.id]);
+  }, [isOpen, user?.id, coordinates]);
 
   const addBotMessage = (content: string, quickActions?: string[], data?: any, type: Message['type'] = 'bot') => {
     const botMessage: Message = {
@@ -77,9 +92,26 @@ export default function EnhancedAIChatbot() {
     setMessages(prev => [...prev, botMessage]);
   };
 
-  const handleSalonSearch = async (userInput: string) => {
+  const handleSalonSearch = async (userInput: string, searchCoordinates?: typeof coordinates) => {
     // Use existing search functionality
     const intent = parseUserInput(userInput);
+    
+    // Use provided coordinates or fall back to hook coordinates
+    const searchCoords = searchCoordinates ?? coordinates;
+    
+    // Check if user is asking for "near me" and request location if not available
+    const isNearMeQuery = /near me|nearby|close to me/i.test(userInput);
+    if (isNearMeQuery && !searchCoords && !locationError) {
+      requestLocation();
+      // Wait a bit for location to be fetched
+      await new Promise(resolve => setTimeout(resolve, 500));
+      // Re-check coordinates after wait
+      const updatedCoords = coordinates;
+      if (updatedCoords) {
+        // Coordinates are now available, use them
+        return handleSalonSearch(userInput, updatedCoords);
+      }
+    }
     
     if (intent.filters && Object.values(intent.filters).some(v => v && v !== '')) {
       const params = new URLSearchParams();
@@ -92,6 +124,16 @@ export default function EnhancedAIChatbot() {
       if (intent.filters.priceMax) params.append('priceMax', intent.filters.priceMax);
       if (intent.filters.openNow) params.append('openNow', 'true');
       if (intent.filters.offersMobile) params.append('offersMobile', 'true');
+      
+      // Add location coordinates if available (for distance sorting)
+      if (searchCoords) {
+        params.append('lat', searchCoords.latitude.toString());
+        params.append('lon', searchCoords.longitude.toString());
+        // If user asked for "near me" or no location specified, sort by distance
+        if (isNearMeQuery || (!intent.filters.city && !intent.filters.province)) {
+          params.append('sortBy', 'distance');
+        }
+      }
 
       try {
         const response = await fetch(`/api/salons/approved?${params.toString()}`);
@@ -99,10 +141,17 @@ export default function EnhancedAIChatbot() {
         const salons = await response.json();
         
         if (salons.length > 0) {
+          let locationContext = '';
+          if (isNearMeQuery && searchCoords) {
+            locationContext = locationName ? ` near ${locationName.city || 'you'}` : ' near you';
+          } else if (searchCoords && !intent.filters.city && !intent.filters.province) {
+            locationContext = locationName ? ` near ${locationName.city || 'you'}` : ' near you';
+          }
+          
           const salonMessage: Message = {
             id: `salons-${Date.now()}`,
             type: 'salons',
-            content: `🎉 Found ${salons.length} salon${salons.length > 1 ? 's' : ''}! Click any salon to view full profile, services, prices, and gallery.`,
+            content: `🎉 Found ${salons.length} salon${salons.length > 1 ? 's' : ''}${locationContext}! Click any salon to view full profile, services, prices, and gallery.`,
             data: salons.slice(0, 3),
             quickActions: ['View all results', 'Refine search']
           };
@@ -132,11 +181,31 @@ export default function EnhancedAIChatbot() {
     setIsTyping(true);
     await new Promise(resolve => setTimeout(resolve, 600));
     
-    // Parse with enhanced understanding
+    // Check if user is asking for "near me" and request location if not available
+    const isNearMeQuery = /near me|nearby|close to me/i.test(text);
+    if (isNearMeQuery && !coordinates && !locationError) {
+      requestLocation();
+      // Wait a bit for location to be fetched
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    // Parse with enhanced understanding - include user location
+    // Re-check coordinates after potential async fetch
+    const currentCoordinates = coordinates; // Use closure to capture latest state
+    const userLocation = currentCoordinates ? { lat: currentCoordinates.latitude, lng: currentCoordinates.longitude } : undefined;
     const enhancedIntent = parseEnhancedInput(text, { 
       userId: user?.id,
+      userLocation,
       currentSalon: null 
     });
+    
+    // If user asked for "near me" but location is not available and there was an error, add a helpful message
+    if (isNearMeQuery && !userLocation && locationError) {
+      addBotMessage(
+        `📍 I couldn't access your location. ${locationError}. Please allow location access in your browser settings, or tell me a specific city/area to search in.`,
+        ['Search in Johannesburg', 'Search in Sandton', 'Search in Cape Town']
+      );
+    }
     
     // Add enhanced bot response
     addBotMessage(enhancedIntent.response, enhancedIntent.quickActions);
@@ -144,8 +213,8 @@ export default function EnhancedAIChatbot() {
     
     // Handle specific intents and fetch data
     if (enhancedIntent.type === 'salon_info' || enhancedIntent.type === 'location_query') {
-      // Try to search for salons
-      const found = await handleSalonSearch(text);
+      // Try to search for salons - pass current coordinates
+      const found = await handleSalonSearch(text, coordinates);
       if (!found) {
         addBotMessage(
           "I couldn't find specific salons matching that query. Try refining your search or use one of the quick actions below.",
@@ -499,7 +568,7 @@ export default function EnhancedAIChatbot() {
       <button
         className={styles.launcher}
         onClick={() => setIsOpen(true)}
-        aria-label="Open AI Beauty Assistant"
+        aria-label="Open AI Assistant"
       >
         <FaRobot className={styles.launcherIcon} />
         <span className={styles.launcherText}>AI Assistant</span>
@@ -513,7 +582,7 @@ export default function EnhancedAIChatbot() {
         <div className={styles.headerContent}>
           <FaRobot className={styles.headerIcon} />
           <div>
-            <div className={styles.headerTitle}>AI Beauty Assistant</div>
+            <div className={styles.headerTitle}>AI Assistant</div>
             <div className={styles.headerSubtitle}>Ask me anything about salons!</div>
           </div>
         </div>

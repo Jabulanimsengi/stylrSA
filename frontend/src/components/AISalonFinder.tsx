@@ -194,7 +194,7 @@ export default function AISalonFinder() {
       <button
         className={styles.launcher}
         onClick={() => setIsOpen(true)}
-        aria-label="Open AI Salon Finder"
+        aria-label="Open AI Assistant"
       >
         <FaRobot className={styles.launcherIcon} />
         <span className={styles.launcherText}>Find Salons</span>
@@ -208,7 +208,7 @@ export default function AISalonFinder() {
         <div className={styles.headerContent}>
           <FaRobot className={styles.headerIcon} />
           <div>
-            <div className={styles.headerTitle}>AI Salon Finder</div>
+            <div className={styles.headerTitle}>AI Assistant</div>
             <div className={styles.headerSubtitle}>Your personal beauty assistant</div>
           </div>
         </div>

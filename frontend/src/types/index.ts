@@ -7,6 +7,8 @@ export type PlanPaymentStatus =
   | 'PROOF_SUBMITTED'
   | 'VERIFIED';
 
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
 export type OperatingHourEntry = {
   day: string;
   open: string;
@@ -291,4 +293,22 @@ export interface Trend {
   updatedAt: string;
   createdBy: string;
   isLiked?: boolean;
+}
+
+export interface SellerSummary {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  sellerPlanCode?: PlanCode | null;
+  sellerPlanPriceCents?: number | null;
+  sellerPlanPaymentStatus?: PlanPaymentStatus | null;
+  sellerPlanPaymentReference?: string | null;
+  sellerPlanProofSubmittedAt?: string | null;
+  sellerPlanVerifiedAt?: string | null;
+  sellerVisibilityWeight?: number | null;
+  sellerMaxListings?: number | null;
+  sellerFeaturedUntil?: string | null;
+  productsCount: number;
+  pendingProductsCount: number;
 }

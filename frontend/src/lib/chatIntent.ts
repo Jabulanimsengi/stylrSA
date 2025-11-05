@@ -1,4 +1,4 @@
-// AI Salon Finder - Intent matching logic
+// AI Assistant - Intent matching logic
 // Maps user input to filter combinations (NO EXTERNAL AI APIs - 100% FREE)
 
 import { FilterValues } from '@/components/FilterBar/FilterBar';

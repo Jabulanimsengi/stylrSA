@@ -27,12 +27,13 @@ import { logger } from '@/lib/logger';
 import AdminMediaReview from '@/components/AdminMediaReview';
 import AdminTrendsManager from '@/components/AdminTrendsManager/AdminTrendsManager';
 import AdminSalonTrendzManager from '@/components/AdminSalonTrendzManager/AdminSalonTrendzManager';
+import AdminBlogManager from '@/components/AdminBlogManager/AdminBlogManager';
 
 const ensureArray = <T,>(value: unknown): T[] =>
   Array.isArray(value) ? (value as T[]) : [];
 
 // FIX: Update PendingSalon to include the new fields from the backend response.
-type PendingSalon = Pick<Salon, 'id' | 'name' | 'approvalStatus' | 'createdAt'> & {
+type PendingSalon = Pick<Salon, 'id' | 'name' | 'approvalStatus' | 'createdAt' | 'city' | 'province' | 'isVerified'> & {
   owner: { id: string; email: string; firstName: string; lastName: string; };
   visibilityWeight?: number;
   maxListings?: number;
@@ -95,7 +96,7 @@ export default function AdminPage() {
   const [availableSalons, setAvailableSalons] = useState<PendingSalon[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
   const [featureDuration, setFeatureDuration] = useState<number>(30);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media' | 'trends' | 'salon-trendz'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media' | 'trends' | 'salon-trendz' | 'blogs'>('salons');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -434,8 +435,12 @@ export default function AdminPage() {
     let socket: Socket | null = null;
     try {
       socket = io('/', { transports: ['websocket'], withCredentials: true });
+      const getAuthHeaders = (): Record<string, string> => {
+        return session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+      };
       socket.on('salon:deleted', async () => {
         try {
+          const authHeaders = getAuthHeaders();
           const [allRes, sellersRes, delRes, deletedSellerRes] = await Promise.all([
             fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
             fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
@@ -450,6 +455,7 @@ export default function AdminPage() {
       });
       socket.on('seller:deleted', async () => {
         try {
+          const authHeaders = getAuthHeaders();
           const [pendingProductsRes, sellersRes, archivedRes] = await Promise.all([
             fetch(`/api/admin/products/pending?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
             fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
@@ -468,6 +474,7 @@ export default function AdminPage() {
       });
       socket.on('visibility:updated', async () => {
         try {
+          const authHeaders = getAuthHeaders();
           const [allRes, sellersRes, sellerRes] = await Promise.all([
             fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
             fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
@@ -827,6 +834,12 @@ export default function AdminPage() {
           className={`${styles.tabButton} ${view === 'salon-trendz' ? styles.activeTab : ''}`}
         >
           Salon Trendz
+        </button>
+        <button
+          onClick={() => setView('blogs')}
+          className={`${styles.tabButton} ${view === 'blogs' ? styles.activeTab : ''}`}
+        >
+          Blogs
         </button>
         <button
           onClick={() => setView('deleted-salons')}
@@ -1541,6 +1554,9 @@ export default function AdminPage() {
 
         {view === 'salon-trendz' && (
           <AdminSalonTrendzManager />
+        )}
+        {view === 'blogs' && (
+          <AdminBlogManager />
         )}
 
         {view === 'deleted-sellers' && (

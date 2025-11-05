@@ -44,9 +44,15 @@ export function parseEnhancedInput(input: string, context?: {
 
   // Greeting detection
   if (/^(hi|hello|hey|howzit|sawubona|good (morning|afternoon|evening))$/i.test(lowerInput)) {
+    const locationAvailable = context?.userLocation ? 
+      `📍 I can see your location - I'll find the best salons near you!` : 
+      `💡 Tip: Ask me to "find salons near me" to use your current location for better results!`;
+    
     return {
       type: 'greeting',
-      response: `👋 Hello! I'm your personal beauty assistant. I can help you with:
+      response: `👋 Hello! I'm your personal beauty assistant. ${locationAvailable}
+
+I can help you with:
       
 ✅ Finding salons near you
 ✅ Viewing salon profiles, services, and prices
@@ -319,10 +325,53 @@ Try asking me anything!`,
     };
   }
 
+  // Location-based queries (near me)
+  if (/near me|nearby|close to me|around here|my location|current location/i.test(lowerInput)) {
+    if (context?.userLocation) {
+      return {
+        type: 'location_query',
+        response: `📍 I'll help you find salons near your location! I can search for salons, services, and more based on where you are.
+
+What are you looking for?`,
+        quickActions: [
+          'Find salons near me',
+          'Hair salons nearby',
+          'Nail salons close by',
+          'Spas near me'
+        ],
+        filters: {
+          sortBy: 'distance'
+        }
+      };
+    } else {
+      return {
+        type: 'location_query',
+        response: `📍 I can help you find salons near you! To give you the best results, I'll need access to your location.
+
+Please allow location access when prompted, or tell me a specific city/area you'd like to search in.
+
+For example:
+• "Find braiding salons in Sandton"
+• "Show me nail salons in Johannesburg"
+• "What are the prices for haircuts?"`,
+        quickActions: [
+          'Find salons near me',
+          'Search in Johannesburg',
+          'Search in Sandton',
+          'View all services'
+        ]
+      };
+    }
+  }
+
   // Default: treat as search query
+  const locationHint = context?.userLocation 
+    ? ' I can also search near your location if you ask for "near me"!'
+    : '';
+    
   return {
     type: 'salon_info',
-    response: `🔍 Let me help you find what you're looking for. I can search for salons, services, and more.
+    response: `🔍 Let me help you find what you're looking for. I can search for salons, services, and more.${locationHint}
 
 Try being more specific, for example:
 • "Find braiding salons in Sandton"
