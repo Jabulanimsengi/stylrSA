@@ -293,7 +293,7 @@ function ServiceLocationContent() {
       }
     }
 
-    if (salonData.bookingMessage) {
+    if ((salonData as any).bookingMessage) {
       setPendingBookingService(service);
       setPendingSalon(salonData);
       setShowBookingConfirmation(true);
@@ -421,8 +421,8 @@ function ServiceLocationContent() {
           onClose={handleBookingConfirmationClose}
           onAccept={handleBookingConfirmationAccept}
           salonName={pendingSalon.name || ''}
-          salonLogo={pendingSalon.backgroundImage}
-          message={pendingSalon.bookingMessage || ''}
+          salonLogo={pendingSalon.backgroundImage ?? undefined}
+          message={(pendingSalon as any).bookingMessage || ''}
         />
       )}
     </div>
