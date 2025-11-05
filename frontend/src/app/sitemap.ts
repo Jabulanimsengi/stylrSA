@@ -60,6 +60,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/services/bridal-services`, changeFrequency: 'weekly', priority: 0.9 },
   ];
 
+  // Location-specific service pages - CRITICAL for local SEO
+  // Generate pages for all service categories × all cities
+  const serviceLocationPages: MetadataRoute.Sitemap = [];
+  const serviceCategories = [
+    'nail-care',
+    'massage-body-treatments',
+    'skin-care-facials',
+    'braiding-weaving',
+    'makeup-beauty',
+    'haircuts-styling',
+    'hair-color-treatments',
+    'waxing-hair-removal',
+    'mens-grooming',
+    'bridal-services',
+  ];
+  
+  Object.keys(PROVINCES).forEach(provinceSlug => {
+    const province = PROVINCES[provinceSlug];
+    province.cities.forEach((city, cityIndex) => {
+      const isMajorCity = cityIndex < 4 || ['johannesburg', 'pretoria', 'sandton', 'soweto', 'cape-town', 'durban'].includes(city.slug);
+      
+      serviceCategories.forEach(category => {
+        // High priority for top services (spas, nails, massage) in major cities
+        const isHighValueService = ['nail-care', 'massage-body-treatments', 'skin-care-facials'].includes(category);
+        const priority = isHighValueService && isMajorCity ? 0.88 : isHighValueService ? 0.85 : isMajorCity ? 0.85 : 0.8;
+        
+        serviceLocationPages.push({
+          url: `${siteUrl}/services/${category}/location/${provinceSlug}/${city.slug}`,
+          changeFrequency: isMajorCity ? 'weekly' : 'monthly',
+          priority,
+        });
+      });
+    });
+  });
+
   // Location-specific pages for local SEO
   // Dynamically generate city pages from locationData.ts
   const cityPages: MetadataRoute.Sitemap = [];
@@ -125,8 +160,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       console.log('Seller endpoint not available, skipping sellers from sitemap');
     }
 
-    return [...staticPages, ...serviceCategoryPages, ...locationPages, ...salonEntries, ...sellerEntries];
+    return [...staticPages, ...serviceCategoryPages, ...serviceLocationPages, ...locationPages, ...salonEntries, ...sellerEntries];
   } catch {
-    return [...staticPages, ...serviceCategoryPages, ...locationPages];
+    return [...staticPages, ...serviceCategoryPages, ...serviceLocationPages, ...locationPages];
   }
 }
