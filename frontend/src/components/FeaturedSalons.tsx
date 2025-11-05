@@ -184,19 +184,7 @@ export default function FeaturedSalons() {
         </>
       )}
       
-      {/* Scroll indicators for mobile */}
-      <div className={styles.scrollIndicators}>
-        <div className={styles.scrollIndicatorLeft}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </div>
-        <div className={styles.scrollIndicatorRight}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </div>
-      </div>
+      {/* Scroll indicators removed - not needed on any device */}
       
       {/* Slide counter for mobile */}
       <div className={styles.slideCounter}>

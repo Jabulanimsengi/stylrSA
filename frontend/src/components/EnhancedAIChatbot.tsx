@@ -24,6 +24,7 @@ import {
 import { parseUserInput } from '@/lib/chatIntent';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface Message {
   id: string;
@@ -45,6 +46,7 @@ export default function EnhancedAIChatbot() {
   const router = useRouter();
   const { user, authStatus } = useAuth();
   const { coordinates, locationName, requestLocation, error: locationError } = useGeolocation(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -577,8 +579,13 @@ export default function EnhancedAIChatbot() {
   }
 
   return (
-    <div className={`${styles.container} ${isMinimized ? styles.minimized : ''}`}>
-      <div className={styles.header}>
+    <>
+      {/* Mobile backdrop overlay - only show when open and on mobile */}
+      {isOpen && isMobile && (
+        <div className={styles.backdrop} onClick={() => setIsOpen(false)} />
+      )}
+      <div className={`${styles.container} ${isMinimized ? styles.minimized : ''}`}>
+        <div className={styles.header}>
         <div className={styles.headerContent}>
           <FaRobot className={styles.headerIcon} />
           <div>
@@ -970,6 +977,7 @@ export default function EnhancedAIChatbot() {
           )}
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 }

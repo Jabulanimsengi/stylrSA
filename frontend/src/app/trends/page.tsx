@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Trend, TrendCategory, AgeGroup } from '@/types';
 import TrendCard from '@/components/TrendCard/TrendCard';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import PageNav from '@/components/PageNav';
 import { toast } from 'react-toastify';
 import styles from './TrendsPage.module.css';
@@ -130,7 +130,7 @@ function TrendsPageContent() {
 
       {isLoading ? (
         <div className={styles.loadingState}>
-          <LoadingSpinner />
+          <LoadingSpinner size="medium" color="primary" />
         </div>
       ) : filteredTrends.length === 0 ? (
         <div className={styles.emptyState}>
@@ -150,7 +150,7 @@ function TrendsPageContent() {
 
 export default function TrendsPage() {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
+    <Suspense fallback={<LoadingSpinner size="medium" color="primary" />}>
       <TrendsPageContent />
     </Suspense>
   );

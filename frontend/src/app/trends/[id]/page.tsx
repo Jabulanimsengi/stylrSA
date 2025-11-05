@@ -247,7 +247,7 @@ export default function TrendDetailPage({ params }: PageProps) {
               alt={trend.title}
               fill
               className={styles.image}
-              sizes="(max-width: 768px) 100vw, 60vw"
+              sizes="(max-width: 768px) 100vw, 500px"
               priority
               onClick={() => openLightbox(0)}
               style={{ cursor: 'pointer' }}

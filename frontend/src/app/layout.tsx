@@ -8,6 +8,7 @@ import { SocketProvider } from '@/context/SocketContext';
 import { AuthModalProvider } from '@/context/AuthModalContext';
 import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
 import { ThemeProvider } from '@/context/ThemeContext';
+import { NavigationLoadingProvider } from '@/context/NavigationLoadingContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -125,10 +126,11 @@ export default function RootLayout({
               <AuthProvider>
                 <SocketProvider>
                   <AuthModalProvider>
-                    <Suspense fallback={null}>
-                      <AuthModalHandler />
-                    </Suspense>
-                    <div className="app-shell">
+                    <NavigationLoadingProvider>
+                      <Suspense fallback={null}>
+                        <AuthModalHandler />
+                      </Suspense>
+                      <div className="app-shell">
                       <Navbar />
                       <MobileNavIcons />
                       <div className="app-content">
@@ -151,6 +153,7 @@ export default function RootLayout({
                     <VercelAnalytics />
                     <SpeedInsights />
                     <PWAInstallPrompt />
+                    </NavigationLoadingProvider>
                   </AuthModalProvider>
                 </SocketProvider>
               </AuthProvider>

@@ -973,3 +973,26 @@ h3 {
   h2 { font-size: clamp(1.1rem, 4vw, 1.5rem); }
   h3 { font-size: clamp(1rem, 3.5vw, 1.25rem); }
 }
+
+/* Hide Swiper navigation arrows on mobile devices */
+@media (max-width: 768px) {
+  .swiper-button-prev,
+  .swiper-button-next,
+  .swiper-button-disabled {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Hide Swiper navigation arrows in lightbox/overlay contexts */
+[class*="overlay"] .swiper-button-prev,
+[class*="overlay"] .swiper-button-next,
+[class*="lightbox"] .swiper-button-prev,
+[class*="lightbox"] .swiper-button-next {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

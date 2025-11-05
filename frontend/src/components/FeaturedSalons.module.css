@@ -127,9 +127,9 @@
   }
 }
 
-/* Mobile scroll indicators */
+/* Mobile scroll indicators - hidden */
 .scrollIndicators {
-  display: flex;
+  display: none; /* Hide scroll indicators on all screen sizes */
   justify-content: space-between;
   position: absolute;
   top: 50%;
@@ -176,12 +176,7 @@
   }
 }
 
-/* Hide scroll indicators on desktop */
-@media (min-width: 768px) {
-  .scrollIndicators {
-    display: none;
-  }
-}
+/* Keep scroll indicators hidden on all screen sizes */
 
 /* Slide counter */
 .slideCounter {

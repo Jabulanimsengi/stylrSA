@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -9,6 +9,7 @@ import { Trend, TrendCategory } from '@/types';
 import TrendCard from '../TrendCard/TrendCard';
 import styles from './TrendRow.module.css';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useNavigationLoading } from '@/context/NavigationLoadingContext';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -25,6 +26,20 @@ export default function TrendRow({ title, category, trends, onLike }: TrendRowPr
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const router = useRouter();
+  const { setIsNavigating } = useNavigationLoading();
+
+  const handleHeadingClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(`/trends?category=${category}`);
+  };
+
+  const handleViewAllClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(`/trends?category=${category}`);
+  };
 
   if (!trends || trends.length === 0) {
     return null;
@@ -33,10 +48,12 @@ export default function TrendRow({ title, category, trends, onLike }: TrendRowPr
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{title}</h2>
-        <Link href={`/trends?category=${category}`} className={styles.viewAll}>
+        <a href={`/trends?category=${category}`} onClick={handleHeadingClick} className={styles.title}>
+          <h2>{title}</h2>
+        </a>
+        <a href={`/trends?category=${category}`} onClick={handleViewAllClick} className={styles.viewAll}>
           View All
-        </Link>
+        </a>
       </div>
 
       <div className={styles.container}>
@@ -91,19 +108,7 @@ export default function TrendRow({ title, category, trends, onLike }: TrendRowPr
           </>
         )}
 
-        {/* Scroll indicators for mobile */}
-        <div className={styles.scrollIndicators}>
-          <div className={styles.scrollIndicatorLeft}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          </div>
-          <div className={styles.scrollIndicatorRight}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </div>
-        </div>
+        {/* Scroll indicators removed - not needed on any device */}
 
         {/* Slide counter for mobile */}
         <div className={styles.slideCounter}>

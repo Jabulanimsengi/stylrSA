@@ -18,6 +18,26 @@
   gap: clamp(24px, 3vw, 40px);
   max-width: 100%;
   margin: 0 auto;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+  }
+  
+  .imageSection {
+    flex: 0 0 450px;
+    max-width: 450px;
+  }
+  
+  .infoSection {
+    flex: 1;
+    max-width: 600px;
+  }
 }
 
 .imageSection {
@@ -25,20 +45,25 @@
   flex-direction: column;
   gap: 20px;
   padding: clamp(12px, 2vw, 24px);
+  max-width: 450px !important;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .mainImage {
   position: relative;
   width: 100%;
-  max-width: 900px;
+  max-width: 100% !important;
   margin: 0 auto;
-  padding-top: 66.67%; /* 3:2 aspect ratio - more balanced */
+  padding-top: 75%; /* 4:3 aspect ratio - more compact */
   border-radius: 16px;
   overflow: hidden;
   background: var(--color-surface);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
 }
 
 .mainImage:hover {
@@ -47,14 +72,14 @@
 }
 
 .image {
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .thumbnailGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
 }

@@ -1,10 +1,13 @@
+'use client';
+
 import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { FaHeart } from 'react-icons/fa';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { getImageWithFallback } from '@/lib/placeholders';
 import ImageLightbox from '@/components/ImageLightbox';
+import { useNavigationLoading } from '@/context/NavigationLoadingContext';
 import { Salon } from '@/types';
 import styles from './SalonCard.module.css';
 import AvailabilityIndicator from './AvailabilityIndicator/AvailabilityIndicator';
@@ -26,6 +29,8 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [logoError, setLogoError] = useState(false);
+  const router = useRouter();
+  const { setIsNavigating } = useNavigationLoading();
 
   const handleImageClick = (e: React.MouseEvent) => {
     if (!enableLightbox) return; // Don't handle if lightbox disabled
@@ -50,20 +55,34 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
 
 
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on favorite button or other interactive elements
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
+      return;
+    }
+    if (!enableLightbox) {
+      setIsNavigating(true);
+      router.push(`/salons/${salon.id}`);
+    }
+  };
+
   // If lightbox is disabled, wrap entire card in Link
   if (!enableLightbox) {
     return (
-      <div className={`${styles.salonCard} ${compact ? styles.compact : ''}`}>
+      <div className={`${styles.salonCard} ${compact ? styles.compact : ''}`} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
         {showFavorite && onToggleFavorite && (
           <button
-            onClick={(e) => onToggleFavorite(e, salon.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(e, salon.id);
+            }}
             className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}
             aria-label={salon.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
           >
             <FaHeart />
           </button>
         )}
-        <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
+        <div className={styles.salonLink}>
           <div className={styles.imageWrapper}>
             {salon.isVerified && (
               <div className={styles.verificationOverlay}>
@@ -114,7 +133,17 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
           </div>
           <div className={styles.cardContent}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>{salon.name}</h2>
+              <h2 
+                className={styles.cardTitle}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsNavigating(true);
+                  router.push(`/salons/${salon.id}`);
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                {salon.name}
+              </h2>
             </div>
             <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
             {salon.distance !== null && salon.distance !== undefined && (
@@ -168,7 +197,7 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
               return <p className={styles.cardMeta}>Hours: {samples.join(' • ')}{extra}</p>;
             })()}
           </div>
-        </Link>
+        </div>
       </div>
     );
   }
@@ -239,12 +268,20 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
         </div>
         <div className={styles.cardContent}>
           <div className={styles.cardHeader}>
-            <Link href={`/salons/${salon.id}`} className={styles.cardTitle}>
+            <h2 
+              className={styles.cardTitle}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsNavigating(true);
+                router.push(`/salons/${salon.id}`);
+              }}
+              style={{ cursor: 'pointer' }}
+            >
               {salon.name}
-            </Link>
+            </h2>
           </div>
           <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
-          <AvailabilityIndicator salon={salon} showNextAvailable={false} />
+          {!compact && <AvailabilityIndicator salon={salon} showNextAvailable={false} />}
           {salon.distance !== null && salon.distance !== undefined && (
             <>
               <div className={styles.distanceBadge}>

@@ -49,12 +49,19 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
 
   if (!images || images.length === 0) return null;
 
+  // Update currentIndex when initialImageIndex changes
+  useEffect(() => {
+    if (initialImageIndex !== undefined && initialImageIndex >= 0 && initialImageIndex < images.length) {
+      setCurrentIndex(initialImageIndex);
+    }
+  }, [initialImageIndex, images.length]);
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <Image
           src={images[currentIndex]}
-          alt="Enlarged view"
+          alt={`Image ${currentIndex + 1} of ${images.length}`}
           className={styles.image}
           fill
           sizes="(max-width: 800px) 90vw, 800px"
@@ -64,8 +71,13 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
 
         {images.length > 1 && (
           <>
-            <button className={`${styles.navButton} ${styles.prevButton}`} onClick={handlePreviousClick}><FaChevronLeft /></button>
-            <button className={`${styles.navButton} ${styles.nextButton}`} onClick={handleNextClick}><FaChevronRight /></button>
+            <button className={`${styles.navButton} ${styles.prevButton}`} onClick={handlePreviousClick} aria-label="Previous image"><FaChevronLeft /></button>
+            <button className={`${styles.navButton} ${styles.nextButton}`} onClick={handleNextClick} aria-label="Next image"><FaChevronRight /></button>
+            
+            {/* Image Counter */}
+            <div className={styles.counter}>
+              {currentIndex + 1} / {images.length}
+            </div>
           </>
         )}
       </div>

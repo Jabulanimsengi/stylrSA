@@ -131,6 +131,9 @@ export default function AvailabilityIndicator({ salon, showNextAvailable = false
 
   // Use salon.isAvailableNow if available, otherwise calculate
   const isOpen = salon.isAvailableNow ?? availability.isOpen;
+  
+  // Use the correct status based on the final isOpen value
+  const displayStatus = isOpen ? 'Open now' : 'Closed';
 
   return (
     <div className={styles.container}>
@@ -138,7 +141,7 @@ export default function AvailabilityIndicator({ salon, showNextAvailable = false
         <span className={styles.icon}>
           {isOpen ? <FaBolt /> : <FaCircle />}
         </span>
-        <span className={styles.status}>{availability.status}</span>
+        <span className={styles.status}>{displayStatus}</span>
       </div>
       {availability.nextAvailable && !compact && (
         <div className={styles.nextAvailable}>

@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FaHeart, FaEye } from 'react-icons/fa';
 import { Trend } from '@/types';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { useNavigationLoading } from '@/context/NavigationLoadingContext';
 import { toast } from 'react-toastify';
 import styles from './TrendCard.module.css';
 
@@ -22,6 +23,8 @@ export default function TrendCard({ trend, onLike }: TrendCardProps) {
   const [isLiking, setIsLiking] = useState(false);
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
+  const router = useRouter();
+  const { setIsNavigating } = useNavigationLoading();
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,8 +74,17 @@ export default function TrendCard({ trend, onLike }: TrendCardProps) {
   const primaryImage = trend.images[0];
   const categoryLabel = trend.category.replace(/_/g, ' ');
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only handle navigation if it's not the like button being clicked
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    setIsNavigating(true);
+    router.push(`/trends/${trend.id}`);
+  };
+
   return (
-    <Link href={`/trends/${trend.id}`} className={styles.card}>
+    <div className={styles.card} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className={styles.imageWrapper}>
         <Image
           src={transformCloudinary(primaryImage, {
@@ -116,6 +128,6 @@ export default function TrendCard({ trend, onLike }: TrendCardProps) {
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
