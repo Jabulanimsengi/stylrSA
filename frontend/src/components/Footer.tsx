@@ -152,6 +152,8 @@ export default function Footer() {
             <li><Link href="/advice" title="Comprehensive FAQ for customers and salons">FAQ & Support</Link></li>
             <li><Link href="/contact" title="Get in touch with Stylr SA team">Contact Us</Link></li>
             <li><Link href="/careers" title="Join the Stylr SA team">Careers</Link></li>
+            <li><a href="https://www.allure.com" target="_blank" rel="noopener noreferrer" title="Beauty trends and tips">Allure Magazine</a></li>
+            <li><a href="https://www.vogue.co.uk/beauty" target="_blank" rel="noopener noreferrer" title="Beauty trends and inspiration">Vogue Beauty</a></li>
           </ul>
         </div>
 

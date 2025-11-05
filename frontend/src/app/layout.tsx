@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     default: 'Stylr SA: Book Premium Salons, Luxury Spas & Top Beauty Experts',
     template: '%s | Stylr SA - Premium Beauty & Wellness'
   },
-  description: 'South Africa\'s premier destination for luxury beauty and wellness. Discover and book exclusive appointments at top-rated premium salons, medical spas, beauty clinics, and expert wellness professionals. Experience excellence with South Africa\'s finest.',
+  description: 'South Africa\'s premier destination for luxury beauty & wellness. Book appointments at top-rated premium salons, medical spas, beauty clinics & expert wellness professionals.',
   keywords: [
     // Premium Brand keywords
     'Stylr SA', 'stylrsa', 'stylrsa.co.za', 'premium beauty platform South Africa', 'luxury salon booking',
