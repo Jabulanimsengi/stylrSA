@@ -9,32 +9,41 @@
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: clamp(12px, 2vw, 20px);
+  padding: 0;
 }
 
 .content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(20px, 3vw, 32px);
-  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 3vw, 40px);
+  max-width: 100%;
   margin: 0 auto;
 }
 
 .imageSection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  padding: clamp(12px, 2vw, 24px);
 }
 
 .mainImage {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* 1:1 aspect ratio - more compact */
-  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-top: 66.67%; /* 3:2 aspect ratio - more balanced */
+  border-radius: 16px;
   overflow: hidden;
   background: var(--color-surface);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mainImage:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
 }
 
 .image {
@@ -43,24 +52,28 @@
 
 .thumbnailGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .thumbnail {
   position: relative;
   width: 100%;
-  padding-top: 125%;
+  padding-top: 100%; /* 1:1 aspect ratio for thumbnails */
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
   background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .thumbnail:hover {
-  transform: scale(1.05);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .thumbnailImage {
@@ -86,6 +99,10 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 clamp(12px, 2vw, 24px);
 }
 
 .header {
@@ -96,27 +113,35 @@
 }
 
 .category {
-  margin: 0 0 8px 0;
-  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 12px 0;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: white;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(245, 25, 87, 0.3);
 }
 
 .title {
-  margin: 0 0 8px 0;
-  font-size: clamp(24px, 4vw, 36px);
-  font-weight: 700;
+  margin: 0 0 12px 0;
+  font-size: clamp(26px, 5vw, 40px);
+  font-weight: 800;
   color: var(--color-text-strong);
   line-height: 1.2;
+  letter-spacing: -0.5px;
 }
 
 .styleName {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   color: var(--color-text-muted);
   font-style: italic;
+  font-weight: 500;
 }
 
 .actions {
@@ -175,17 +200,26 @@
 .stats {
   display: flex;
   gap: 24px;
-  padding: 16px 0;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
+  padding: 20px;
+  background: var(--color-surface-elevated);
+  border-radius: 12px;
   font-size: 14px;
   color: var(--color-text-muted);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .stats span {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 500;
+}
+
+.description {
+  background: var(--color-surface-elevated);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .description h3 {
@@ -193,12 +227,24 @@
   font-size: 20px;
   font-weight: 700;
   color: var(--color-text-strong);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.description h3::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-radius: 2px;
 }
 
 .description p {
   margin: 0;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.8;
   color: var(--color-text);
 }
 
@@ -245,22 +291,26 @@
 
 @media (max-width: 1024px) {
   .content {
-    grid-template-columns: 1fr;
     gap: 32px;
   }
 
   .thumbnailGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
   .container {
+    padding: 0;
+  }
+
+  .imageSection {
     padding: 12px;
   }
 
   .mainImage {
-    padding-top: 100%; /* 1:1 aspect ratio on mobile */
+    padding-top: 75%; /* 4:3 aspect ratio on mobile - less tall */
+    border-radius: 12px;
   }
 
   .header {
@@ -278,13 +328,19 @@
   }
 
   .thumbnailGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
   }
 
   .stats {
-    flex-direction: column;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .stats span {
+    flex: 1 1 auto;
+    min-width: fit-content;
   }
 
   .findSalonsButton {
@@ -292,12 +348,30 @@
     padding: 14px 20px;
   }
   
+  .description {
+    padding: 20px;
+  }
+  
   .description h3 {
     font-size: 18px;
   }
   
+  .description h3::before {
+    height: 20px;
+  }
+  
   .description p {
     font-size: 15px;
+    line-height: 1.7;
+  }
+  
+  .category {
+    font-size: 12px;
+    padding: 5px 14px;
+  }
+  
+  .title {
+    font-size: clamp(22px, 6vw, 28px);
   }
 }
 
@@ -480,26 +554,25 @@
 
 @media (max-width: 480px) {
   .container {
-    padding: 8px;
+    padding: 0;
   }
 
-  .backButton {
-    padding: 10px 16px;
-    font-size: 14px;
-    margin-bottom: 16px;
+  .imageSection {
+    padding: 10px;
   }
 
   .mainImage {
     border-radius: 12px;
+    padding-top: 85%; /* Slightly taller on small mobile */
   }
 
   .thumbnailGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 8px;
   }
   
   .thumbnail {
-    border-radius: 8px;
+    border-radius: 10px;
   }
 
   .likeButton,
@@ -513,17 +586,41 @@
     height: 42px;
   }
 
+  .description {
+    padding: 16px;
+  }
+  
   .description h3 {
     font-size: 16px;
   }
   
+  .description h3::before {
+    height: 18px;
+    width: 3px;
+  }
+  
   .description p {
     font-size: 14px;
+    line-height: 1.6;
   }
 
   .tag {
     padding: 6px 12px;
     font-size: 12px;
+  }
+  
+  .category {
+    font-size: 11px;
+    padding: 4px 12px;
+  }
+  
+  .title {
+    font-size: clamp(20px, 6vw, 24px);
+  }
+  
+  .stats {
+    padding: 14px;
+    gap: 12px;
   }
 
   .findSalonsButton {
