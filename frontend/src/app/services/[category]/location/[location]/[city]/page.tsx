@@ -6,7 +6,7 @@ import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import FilterBar, { type FilterValues } from "@/components/FilterBar/FilterBar";
 import { SkeletonGroup, SkeletonCard } from "@/components/Skeleton/Skeleton";
-import styles from "../../../../../../salons/SalonsPage.module.css";
+import styles from "../../../../../salons/SalonsPage.module.css";
 import { Service, Salon, Booking } from "@/types";
 import { toast } from "react-toastify";
 import ImageLightbox from "@/components/ImageLightbox";
