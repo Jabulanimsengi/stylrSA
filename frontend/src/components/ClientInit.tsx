@@ -9,8 +9,13 @@ import { setupPortalErrorHandling } from '@/lib/portalUtils';
  */
 export default function ClientInit() {
   useEffect(() => {
-    // Set up portal error handling to prevent crashes
-    setupPortalErrorHandling();
+    try {
+      // Set up portal error handling to prevent crashes
+      setupPortalErrorHandling();
+    } catch (error) {
+      // Silently fail if initialization fails (e.g., chunk loading error)
+      console.warn('ClientInit failed to initialize:', error);
+    }
   }, []);
 
   return null;

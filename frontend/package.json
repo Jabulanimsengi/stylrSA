@@ -6,7 +6,8 @@
     "dev": "cross-env NEXT_BUILDER=webpack next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clear-cache": "node -e \"const fs = require('fs'); const path = require('path'); function rmDir(dir) { if (fs.existsSync(dir)) { fs.readdirSync(dir).forEach(f => { const filePath = path.join(dir, f); fs.statSync(filePath).isDirectory() ? rmDir(filePath) : fs.unlinkSync(filePath); }); fs.rmdirSync(dir); } } rmDir('.next'); console.log('Cache cleared!');\""
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",

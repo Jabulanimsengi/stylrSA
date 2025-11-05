@@ -4,12 +4,22 @@
   align-items: center;
   min-height: 100vh;
   padding: 48px;
+  background: var(--color-surface);
+}
+
+.salonsLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 0;
 }
 
 .container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0;
+  background: var(--color-surface);
+  min-height: 100vh;
 }
 
 .content {
@@ -26,12 +36,16 @@
     flex-direction: row;
     align-items: flex-start;
     justify-content: center;
-    gap: 40px;
+    gap: 48px;
+    padding: 0 24px;
   }
   
   .imageSection {
-    flex: 0 0 450px;
-    max-width: 450px;
+    flex: 0 0 500px;
+    max-width: 500px;
+    position: sticky;
+    top: 100px;
+    align-self: flex-start;
   }
   
   .infoSection {
@@ -45,7 +59,7 @@
   flex-direction: column;
   gap: 20px;
   padding: clamp(12px, 2vw, 24px);
-  max-width: 450px !important;
+  max-width: 500px !important;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -56,7 +70,7 @@
   width: 100%;
   max-width: 100% !important;
   margin: 0 auto;
-  padding-top: 75%; /* 4:3 aspect ratio - more compact */
+  aspect-ratio: 4 / 3;
   border-radius: 16px;
   overflow: hidden;
   background: var(--color-surface);
@@ -72,7 +86,9 @@
 }
 
 .image {
-  object-fit: contain;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
 }
 
 .thumbnailGrid {
@@ -87,7 +103,7 @@
 .thumbnail {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* 1:1 aspect ratio for thumbnails */
+  aspect-ratio: 1;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -103,6 +119,8 @@
 
 .thumbnailImage {
   object-fit: cover;
+  width: 100%;
+  height: 100%;
 }
 
 .moreOverlay {
@@ -142,7 +160,7 @@
   align-items: center;
   margin: 0 0 12px 0;
   padding: 6px 16px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: var(--color-primary);
   color: white;
   font-weight: 700;
   font-size: 13px;
@@ -262,7 +280,7 @@
   display: inline-block;
   width: 4px;
   height: 24px;
-  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: var(--color-primary);
   border-radius: 2px;
 }
 
@@ -334,7 +352,7 @@
   }
 
   .mainImage {
-    padding-top: 75%; /* 4:3 aspect ratio on mobile - less tall */
+    aspect-ratio: 4 / 3;
     border-radius: 12px;
   }
 
@@ -447,9 +465,15 @@
 .salonImage {
   position: relative;
   width: 100%;
-  padding-top: 75%; /* 4:3 aspect ratio */
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--color-surface);
+}
+
+.salonImage .image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
 }
 
 .premiumBadge {
@@ -588,7 +612,7 @@
 
   .mainImage {
     border-radius: 12px;
-    padding-top: 85%; /* Slightly taller on small mobile */
+    aspect-ratio: 3 / 4;
   }
 
   .thumbnailGrid {

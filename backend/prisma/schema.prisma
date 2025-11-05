@@ -32,6 +32,7 @@ model User {
   conversations1       Conversation[]  @relation("User1Conversations")
   conversations2       Conversation[]  @relation("User2Conversations")
   notifications        Notification[]
+  blogs                Blog[]
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
   oauthAccounts        OAuthAccount[]
@@ -599,6 +600,30 @@ model TrendView {
   @@index([trendId])
   @@index([userId])
   @@index([viewedAt])
+}
+
+// Blog Post Model
+model Blog {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  description String
+  content     Json     // Array of sections with heading and content
+  category    String
+  featured    Boolean  @default(false)
+  published   Boolean  @default(false)
+  readTime    String?  // e.g., "8 min read"
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+  
+  @@index([published])
+  @@index([featured])
+  @@index([category])
+  @@index([slug])
+  @@index([createdAt])
 }
 
 model SalonTrendzProfile {

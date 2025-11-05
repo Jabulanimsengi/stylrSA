@@ -11,7 +11,7 @@ import { transformCloudinary } from '@/utils/cloudinary';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ImageLightbox from '@/components/ImageLightbox';
 import styles from './TrendDetailPage.module.css';
 import PageNav from '@/components/PageNav';
@@ -219,7 +219,7 @@ export default function TrendDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <LoadingSpinner />
+        <LoadingSpinner size="large" color="primary" />
       </div>
     );
   }
@@ -240,9 +240,10 @@ export default function TrendDetailPage({ params }: PageProps) {
           <div className={styles.mainImage}>
             <Image
               src={transformCloudinary(trend.images[0], {
-                width: 800,
+                width: 1000,
                 quality: 'auto',
                 format: 'auto',
+                crop: 'fill',
               })}
               alt={trend.title}
               fill
@@ -264,14 +265,14 @@ export default function TrendDetailPage({ params }: PageProps) {
                 >
                   <Image
                     src={transformCloudinary(img, {
-                      width: 200,
-                      height: 250,
+                      width: 300,
+                      height: 300,
                       crop: 'fill',
                     })}
                     alt={`${trend.title} ${index + 2}`}
                     fill
                     className={styles.thumbnailImage}
-                    sizes="150px"
+                    sizes="(max-width: 768px) 100px, 150px"
                   />
                   {index === 3 && trend.images.length > 5 && (
                     <div className={styles.moreOverlay}>
@@ -343,7 +344,9 @@ export default function TrendDetailPage({ params }: PageProps) {
           </h2>
 
           {salonsLoading ? (
-            <LoadingSpinner />
+            <div className={styles.salonsLoading}>
+              <LoadingSpinner size="medium" color="primary" inline />
+            </div>
           ) : recommendedSalons.length === 0 ? (
             <div className={styles.noSalons}>
               <p>No salons found offering this style yet.</p>

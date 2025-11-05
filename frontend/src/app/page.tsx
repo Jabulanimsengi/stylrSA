@@ -186,7 +186,16 @@ export default function HomePage() {
         const res = await fetch('/api/trends');
         if (res.ok) {
           const data = await res.json();
-          setTrendsData(data);
+          
+          // Sort each category's trends by view count (descending - most views first)
+          const sortedData: Record<TrendCategory, Trend[]> = {} as Record<TrendCategory, Trend[]>;
+          Object.keys(data).forEach((category) => {
+            const categoryKey = category as TrendCategory;
+            const trends = data[categoryKey] as Trend[];
+            sortedData[categoryKey] = trends.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+          });
+          
+          setTrendsData(sortedData);
         }
       } catch (error) {
         console.error('Failed to fetch trends:', error);

@@ -127,9 +127,9 @@ export default function Footer() {
         <div className={styles.footerSection}>
           <h3 className={styles.sectionTitle}>Top Searches</h3>
           <ul className={styles.links}>
-            <li><Link href="/services/braiding-weaving?location=western-cape" title="Best braiding services in Cape Town">Braids Cape Town</Link></li>
-            <li><Link href="/services/nail-care?location=gauteng" title="Professional nail artists in Johannesburg">Nail Artist Johannesburg</Link></li>
-            <li><Link href="/services/mens-grooming?location=kwazulu-natal" title="Best barber shops in Durban">Barber Durban</Link></li>
+            <li><Link href="/services/braiding-weaving/location/western-cape/cape-town" title="Best braiding services in Cape Town">Braids Cape Town</Link></li>
+            <li><Link href="/services/nail-care/location/gauteng/johannesburg" title="Professional nail artists in Johannesburg">Nail Artist Johannesburg</Link></li>
+            <li><Link href="/services/mens-grooming/location/kwazulu-natal/durban" title="Best barber shops in Durban">Barber Durban</Link></li>
             <li><Link href="/services/makeup-beauty" title="Wedding and special event makeup artists">Wedding Makeup</Link></li>
             <li><Link href="/services/massage-body-treatments" title="Relaxing and therapeutic massage services">Massage Therapy</Link></li>
             <li><Link href="/services/braiding-weaving" title="Hair extension specialists and services">Hair Extensions</Link></li>

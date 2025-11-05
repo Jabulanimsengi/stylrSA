@@ -65,12 +65,16 @@ function TrendsPageContent() {
         const data = await res.json();
 
         // If fetching all trends (grouped by category), flatten the data
+        let trendsList: Trend[];
         if (selectedCategory === 'ALL') {
-          const allTrends = Object.values(data).flat() as Trend[];
-          setTrends(allTrends);
+          trendsList = Object.values(data).flat() as Trend[];
         } else {
-          setTrends(data);
+          trendsList = data;
         }
+        
+        // Sort by view count (descending - most views first)
+        trendsList.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+        setTrends(trendsList);
       } else {
         toast.error('Failed to load trends');
       }
@@ -81,9 +85,14 @@ function TrendsPageContent() {
     }
   };
 
-  const filteredTrends = selectedAgeGroup === 'ALL'
-    ? trends
-    : trends.filter((trend) => trend.ageGroups.includes(selectedAgeGroup as AgeGroup));
+  const filteredTrends = React.useMemo(() => {
+    let filtered = selectedAgeGroup === 'ALL'
+      ? trends
+      : trends.filter((trend) => trend.ageGroups.includes(selectedAgeGroup as AgeGroup));
+    
+    // Sort by view count (descending - most views first)
+    return filtered.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+  }, [trends, selectedAgeGroup]);
 
   return (
     <div className={styles.container}>

@@ -118,7 +118,9 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <ClientInit />
+        <Suspense fallback={null}>
+          <ClientInit />
+        </Suspense>
         <SkipToContent />
         <ErrorBoundary>
           <AuthSessionProvider>
