@@ -745,6 +745,159 @@ export class SalonsService {
     return salons;
   }
 
+  async findRecommended(user: any) {
+    if (!user) {
+      return [];
+    }
+
+    // Get user's favorites
+    const favorites = await this.prisma.favorite.findMany({
+      where: { userId: user.id },
+      include: {
+        salon: {
+          include: {
+            services: {
+              where: { approvalStatus: 'APPROVED' },
+              select: { categoryId: true, category: { select: { name: true } } }
+            },
+            reviews: {
+              where: { approvalStatus: 'APPROVED' },
+              select: { rating: true }
+            }
+          }
+        }
+      }
+    });
+
+    // Get user's booking history
+    const bookings = await this.prisma.booking.findMany({
+      where: { userId: user.id },
+      include: {
+        service: {
+          include: {
+            salon: {
+              include: {
+                services: {
+                  where: { approvalStatus: 'APPROVED' },
+                  select: { categoryId: true, category: { select: { name: true } } }
+                },
+                reviews: {
+                  where: { approvalStatus: 'APPROVED' },
+                  select: { rating: true }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    });
+
+    // Extract preferred categories from favorites and bookings
+    const preferredCategories = new Set<string>();
+    favorites.forEach(fav => {
+      fav.salon.services?.forEach(service => {
+        if (service.category?.name) {
+          preferredCategories.add(service.category.name);
+        }
+      });
+    });
+    bookings.forEach(booking => {
+      booking.service.salon.services?.forEach(service => {
+        if (service.category?.name) {
+          preferredCategories.add(service.category.name);
+        }
+      });
+    });
+
+    // Get favorite salon IDs to exclude them
+    const favoriteSalonIds = new Set(favorites.map(f => f.salonId));
+    const bookedSalonIds = new Set(bookings.map(b => b.service.salon.id));
+
+    // Find similar salons based on categories
+    let recommendedSalons = await this.prisma.salon.findMany({
+      where: {
+        approvalStatus: 'APPROVED',
+        id: {
+          notIn: Array.from(favoriteSalonIds)
+        },
+        services: {
+          some: {
+            approvalStatus: 'APPROVED',
+            category: preferredCategories.size > 0 ? {
+              name: {
+                in: Array.from(preferredCategories)
+              }
+            } : undefined
+          }
+        }
+      },
+      include: {
+        services: {
+          where: { approvalStatus: 'APPROVED' },
+          select: { categoryId: true, category: { select: { name: true } } }
+        },
+        reviews: {
+          where: { approvalStatus: 'APPROVED' },
+          select: { rating: true }
+        }
+      },
+      orderBy: [
+        { avgRating: 'desc' },
+        { reviewCount: 'desc' },
+        { visibilityWeight: 'desc' }
+      ],
+      take: 12
+    });
+
+    // If no category-based recommendations, get top-rated salons
+    if (recommendedSalons.length === 0) {
+      recommendedSalons = await this.prisma.salon.findMany({
+        where: {
+          approvalStatus: 'APPROVED',
+          id: {
+            notIn: Array.from(favoriteSalonIds)
+          }
+        },
+        include: {
+          services: {
+            where: { approvalStatus: 'APPROVED' },
+            select: { categoryId: true }
+          },
+          reviews: {
+            where: { approvalStatus: 'APPROVED' },
+            select: { rating: true }
+          }
+        },
+        orderBy: [
+          { visibilityWeight: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        take: 12
+      });
+    }
+
+    // Calculate average rating and review count
+    recommendedSalons = recommendedSalons.map((s: any) => {
+      const approvedReviews = s.reviews || [];
+      const reviewCount = approvedReviews.length;
+      const avgRating = reviewCount > 0 
+        ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
+        : 0;
+      
+      const { reviews, ...salon } = s;
+      return {
+        ...salon,
+        avgRating: Number(avgRating.toFixed(1)),
+        reviewCount,
+        isFavorited: favoriteSalonIds.has(salon.id)
+      };
+    });
+
+    return recommendedSalons;
+  }
+
   async updateMySalon(user: any, dto: UpdateSalonDto, ownerId: string) {
     // FIX: Allow ADMIN to update any salon
     if (user.id !== ownerId && user.role !== 'ADMIN') {

@@ -77,6 +77,15 @@ export class AdminController {
     );
   }
 
+  @Patch('salons/:salonId/verification')
+  toggleSalonVerification(
+    @Param('salonId') salonId: string,
+    @Req() req: Request,
+  ) {
+    const adminId = (req as any)?.user?.id as string | undefined;
+    return this.adminService.toggleSalonVerification(salonId, adminId);
+  }
+
   @Get('reviews/pending')
   getPendingReviews() {
     return this.adminService.getPendingReviews();

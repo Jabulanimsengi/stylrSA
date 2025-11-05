@@ -80,6 +80,12 @@ export class SalonsController {
     return this.salonsService.findFeatured(user);
   }
 
+  @UseGuards(JwtGuard)
+  @Get('recommended')
+  findRecommended(@GetUser() user: any) {
+    return this.salonsService.findRecommended(user);
+  }
+
   @Get('nearby')
   findNearby(@Query('lat') lat: number, @Query('lon') lon: number) {
     return this.salonsService.findNearby(lat, lon);

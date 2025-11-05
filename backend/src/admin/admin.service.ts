@@ -109,6 +109,7 @@ export class AdminService {
         id: true,
         name: true,
         approvalStatus: true,
+        isVerified: true,
         createdAt: true,
         planCode: true,
         planPriceCents: true,
@@ -167,6 +168,49 @@ export class AdminService {
 
     if (updated.owner) {
       const message = `Your salon "${updated.name}" has been ${status.toLowerCase()}.`;
+      const notification = await this.notificationsService.create(
+        updated.owner.id,
+        message,
+        { link: '/dashboard' },
+      );
+      this.eventsGateway.sendNotificationToUser(
+        updated.owner.id,
+        'newNotification',
+        notification,
+      );
+    }
+
+    return updated;
+  }
+
+  async toggleSalonVerification(salonId: string, adminId?: string) {
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+    });
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
+
+    const updated = await this.prisma.salon.update({
+      where: { id: salonId },
+      data: { isVerified: !salon.isVerified },
+      include: {
+        owner: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    if (adminId) {
+      void this.logAction({
+        adminId,
+        action: 'SALON_VERIFICATION_TOGGLE',
+        targetType: 'SALON',
+        targetId: salonId,
+        metadata: { isVerified: updated.isVerified },
+      });
+    }
+
+    if (updated.owner) {
+      const message = `Your salon "${updated.name}" has been ${updated.isVerified ? 'verified' : 'unverified'}.`;
       const notification = await this.notificationsService.create(
         updated.owner.id,
         message,
