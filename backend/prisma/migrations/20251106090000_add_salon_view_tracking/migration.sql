@@ -24,4 +24,13 @@ CREATE INDEX IF NOT EXISTS "SalonView_userId_idx" ON "SalonView"("userId");
 CREATE INDEX IF NOT EXISTS "SalonView_viewedAt_idx" ON "SalonView"("viewedAt");
 
 -- AddForeignKey
-ALTER TABLE "SalonView" ADD CONSTRAINT IF NOT EXISTS "SalonView_salonId_fkey" FOREIGN KEY ("salonId") REFERENCES "Salon"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'SalonView_salonId_fkey'
+    ) THEN
+        ALTER TABLE "SalonView" ADD CONSTRAINT "SalonView_salonId_fkey" FOREIGN KEY ("salonId") REFERENCES "Salon"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END$$;
