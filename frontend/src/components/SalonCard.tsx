@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FaHeart, FaEye } from 'react-icons/fa';
@@ -12,6 +12,7 @@ import { Salon } from '@/types';
 import styles from './SalonCard.module.css';
 import AvailabilityIndicator from './AvailabilityIndicator/AvailabilityIndicator';
 import VerificationBadge from './VerificationBadge/VerificationBadge';
+import { useSalonImpression } from '@/hooks/useSalonImpression';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
@@ -22,15 +23,26 @@ interface SalonCardProps {
   showHours?: boolean;
   compact?: boolean;
   enableLightbox?: boolean; // Enable image lightbox (default: false)
+  onViewCountUpdate?: (salonId: string, newCount: number) => void; // Callback when view count should be updated
 }
 
-export default function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = true, compact = false, enableLightbox = false }: SalonCardProps) {
+export default function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = true, compact = false, enableLightbox = false, onViewCountUpdate }: SalonCardProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [logoError, setLogoError] = useState(false);
   const router = useRouter();
   const { setIsNavigating } = useNavigationLoading();
+  
+  // Track impressions and update view count locally when tracked
+  const handleImpressionTracked = useCallback(() => {
+    if (onViewCountUpdate && salon.id) {
+      const currentCount = salon.viewCount || 0;
+      onViewCountUpdate(salon.id, currentCount + 1);
+    }
+  }, [salon.id, salon.viewCount, onViewCountUpdate]);
+  
+  const impressionRef = useSalonImpression(salon.id, compact, handleImpressionTracked); // Track impressions for compact cards
 
   const handleImageClick = (e: React.MouseEvent) => {
     if (!enableLightbox) return; // Don't handle if lightbox disabled
@@ -44,8 +56,8 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
       images.push(salon.backgroundImage);
     }
     // Add gallery images if available
-    if (salon.galleryImages && Array.isArray(salon.galleryImages)) {
-      images.push(...salon.galleryImages.map((img: any) => img.imageUrl || img));
+    if (salon.gallery && Array.isArray(salon.gallery)) {
+      images.push(...salon.gallery.map((img: any) => img.imageUrl || img));
     }
     
     setLightboxImages(images);
@@ -69,7 +81,12 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
   // If lightbox is disabled, wrap entire card in Link
   if (!enableLightbox) {
     return (
-      <div className={`${styles.salonCard} ${compact ? styles.compact : ''}`} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+      <div 
+        ref={compact ? impressionRef as any : null}
+        className={`${styles.salonCard} ${compact ? styles.compact : ''}`} 
+        onClick={handleCardClick} 
+        style={{ cursor: 'pointer' }}
+      >
         {showFavorite && onToggleFavorite && (
           <button
             onClick={(e) => {
@@ -212,7 +229,10 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
   // If lightbox enabled, use separate click handlers
   return (
     <>
-      <div className={`${styles.salonCard} ${compact ? styles.compact : ''}`}>
+      <div 
+        ref={compact ? impressionRef as any : null}
+        className={`${styles.salonCard} ${compact ? styles.compact : ''}`}
+      >
         {showFavorite && onToggleFavorite && (
           <button
             onClick={(e) => onToggleFavorite(e, salon.id)}

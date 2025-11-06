@@ -398,12 +398,26 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  pointer-events: none;
 }
 
 .miniMap iframe {
   display: block;
   width: 100%;
   min-height: 150px;
+  pointer-events: none;
+}
+
+.miniMap::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background: transparent;
 }
 
 @media (max-width: 768px) {
@@ -438,6 +452,9 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .infoActionBtn {
@@ -576,15 +593,18 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
     width: 100%;
+    padding-right: 1rem;
     padding-bottom: 0.5rem;
     margin-bottom: -0.5rem;
+    position: relative;
   }
   .infoGrid::-webkit-scrollbar {
     display: none;
   }
   .infoCard {
     padding: 0.6rem 0.7rem;
-    min-width: calc(100% - 3.5rem);
+    min-width: calc(85vw - 2rem);
+    max-width: calc(85vw - 2rem);
     flex-shrink: 0;
     scroll-snap-align: start;
   }
@@ -602,8 +622,17 @@
   .infoDetail {
     font-size: 0.7rem;
   }
+  .miniMap {
+    pointer-events: none;
+  }
   .miniMap iframe {
     min-height: 100px;
+    pointer-events: none;
+  }
+  .infoActions {
+    position: relative;
+    z-index: 2;
+    pointer-events: auto;
   }
   .heroMeta {
     width: 100%;
@@ -826,10 +855,12 @@
     overflow-x: auto;
     gap: 0.5rem;
     grid-template-columns: unset;
+    padding-right: 1rem;
   }
   .infoCard {
     padding: 0.55rem 0.65rem;
-    min-width: 88%;
+    min-width: calc(85vw - 1.5rem);
+    max-width: calc(85vw - 1.5rem);
     flex-shrink: 0;
     scroll-snap-align: start;
   }

@@ -15,6 +15,7 @@ import { Salon } from '@/types';
 import styles from './FeaturedSalons.module.css';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useNavigationLoading } from '@/context/NavigationLoadingContext';
+import { useSalonImpression } from '@/hooks/useSalonImpression';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -127,6 +128,14 @@ export default function FeaturedSalons() {
     }
   };
 
+  const handleViewCountUpdate = useCallback((salonId: string, newCount: number) => {
+    setSalons(prevSalons =>
+      prevSalons.map(salon =>
+        salon.id === salonId ? { ...salon, viewCount: newCount } : salon
+      )
+    );
+  }, []);
+
   if (isLoading) {
     return (
       <section className={styles.section}>
@@ -199,6 +208,7 @@ export default function FeaturedSalons() {
                 onToggleFavorite={handleToggleFavorite}
                 showHours={false}
                 compact
+                onViewCountUpdate={handleViewCountUpdate}
               />
             </SwiperSlide>
           ))}
