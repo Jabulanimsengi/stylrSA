@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { FaHeart } from 'react-icons/fa';
+import { FaHeart, FaEye } from 'react-icons/fa';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { getImageWithFallback } from '@/lib/placeholders';
 import ImageLightbox from '@/components/ImageLightbox';
@@ -146,6 +146,13 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
               </h2>
             </div>
             <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+            {compact && (
+              <div className={styles.cardStats}>
+                <span className={styles.cardStat}>
+                  <FaEye /> {(salon.viewCount || 0).toLocaleString()}
+                </span>
+              </div>
+            )}
             {salon.distance !== null && salon.distance !== undefined && (
               <>
                 <div className={styles.distanceBadge}>
@@ -281,6 +288,13 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
             </h2>
           </div>
           <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+          {compact && (
+            <div className={styles.cardStats}>
+              <span className={styles.cardStat}>
+                <FaEye /> {(salon.viewCount || 0).toLocaleString()}
+              </span>
+            </div>
+          )}
           {!compact && <AvailabilityIndicator salon={salon} showNextAvailable={false} />}
           {salon.distance !== null && salon.distance !== undefined && (
             <>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import styles from './ImageLightbox.module.css';
 import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -37,13 +36,20 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
   };
 
   useEffect(() => {
+    // Prevent body scroll when lightbox is open
+    document.body.style.overflow = 'hidden';
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowLeft') goToPrevious();
       if (e.key === 'ArrowRight') goToNext();
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [goToNext, goToPrevious, onClose]);
 
 
@@ -59,13 +65,14 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
-        <Image
-          src={images[currentIndex]}
-          alt={`Image ${currentIndex + 1} of ${images.length}`}
-          className={styles.image}
-          fill
-          sizes="(max-width: 800px) 90vw, 800px"
-        />
+        <div className={styles.imageWrapper}>
+          <img
+            src={images[currentIndex]}
+            alt={`Image ${currentIndex + 1} of ${images.length}`}
+            className={styles.image}
+            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
+          />
+        </div>
         
         <button className={styles.closeButton} onClick={onClose}><FaTimes /></button>
 

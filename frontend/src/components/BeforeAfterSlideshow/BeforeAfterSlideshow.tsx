@@ -8,6 +8,7 @@ import styles from './BeforeAfterSlideshow.module.css';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import SalonCard from '@/components/SalonCard';
 import { Salon } from '@/types';
+import ImageLightbox from '@/components/ImageLightbox';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -33,6 +34,9 @@ export default function BeforeAfterSlideshow() {
   const [photos, setPhotos] = useState<BeforeAfterPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -69,12 +73,14 @@ export default function BeforeAfterSlideshow() {
       ownerId: '',
       createdAt: '',
       updatedAt: '',
-      // Add gallery images for lightbox (before and after)
-      galleryImages: [
-        { imageUrl: photo.beforeImageUrl },
-        { imageUrl: photo.afterImageUrl }
-      ],
     } as Salon & { galleryImages?: any[] };
+  };
+
+  const handleImageClick = (photo: BeforeAfterPhoto) => {
+    // Open lightbox with both before and after images
+    setLightboxImages([photo.beforeImageUrl, photo.afterImageUrl]);
+    setLightboxIndex(0);
+    setLightboxOpen(true);
   };
 
 
@@ -135,13 +141,33 @@ export default function BeforeAfterSlideshow() {
               const salonData = transformPhotoToSalon(photo);
               return (
                 <SwiperSlide key={photo.id}>
-                  <SalonCard
-                    salon={salonData}
-                    showFavorite={false}
-                    showHours={false}
-                    compact={true}
-                    enableLightbox={true}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <SalonCard
+                      salon={salonData}
+                      showFavorite={false}
+                      showHours={false}
+                      compact={true}
+                      enableLightbox={false}
+                    />
+                    {/* Clickable overlay on image area for lightbox */}
+                    <div
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleImageClick(photo);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: isMobile ? '165px' : '200px', // Match image wrapper height (responsive)
+                        cursor: 'pointer',
+                        zIndex: 5,
+                      }}
+                      aria-label="View before and after images"
+                    />
+                  </div>
                 </SwiperSlide>
               );
             })}
@@ -170,6 +196,13 @@ export default function BeforeAfterSlideshow() {
         </div>
       </section>
 
+      {lightboxOpen && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialImageIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </>
   );
 }

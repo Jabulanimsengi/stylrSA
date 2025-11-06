@@ -61,6 +61,7 @@ export interface Salon {
   isVerified?: boolean;
   avgRating?: number;
   reviewCount?: number;
+  viewCount?: number;
   services?: Service[];
   reviews?: Review[];
   ownerId: string;
