@@ -207,6 +207,12 @@ export class ServicesService {
             featuredUntil: true,
           },
         },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 

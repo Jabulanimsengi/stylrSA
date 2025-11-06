@@ -2,7 +2,7 @@
 import { Controller, Get, Put, Param, Query, Body, UseGuards } from '@nestjs/common';
 import { AvailabilityService } from './availability.service';
 import { UpdateAvailabilityDto } from './dto/update-availability.dto';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { JwtGuard } from '../auth/guard/jwt.guard';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 
 @Controller('availability')
@@ -41,18 +41,15 @@ export class AvailabilityController {
    * Update availability for specific hours
    * PUT /api/availability/:salonId
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtGuard)
   @Put(':salonId')
   async updateAvailability(
     @Param('salonId') salonId: string,
     @Body() dto: UpdateAvailabilityDto,
     @GetUser() user: any,
   ) {
-    // Verify that the user owns this salon
-    // (Add salon ownership check here if needed)
-
     const date = new Date(dto.date);
-    return this.availabilityService.updateAvailability(salonId, date, dto.hours);
+    return this.availabilityService.updateAvailability(salonId, date, dto.hours, user.id);
   }
 }
 

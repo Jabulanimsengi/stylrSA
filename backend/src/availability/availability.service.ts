@@ -1,5 +1,5 @@
 // backend/src/availability/availability.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -80,7 +80,22 @@ export class AvailabilityService {
     salonId: string,
     date: Date,
     hours: Array<{ hour: number; isAvailable: boolean }>,
+    userId: string,
   ) {
+    // Verify that the user owns this salon
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+      select: { ownerId: true },
+    });
+
+    if (!salon) {
+      throw new NotFoundException('Salon not found');
+    }
+
+    if (salon.ownerId !== userId) {
+      throw new ForbiddenException('You do not own this salon');
+    }
+
     // Normalize date to start of day
     const startOfDay = new Date(date);
     startOfDay.setUTCHours(0, 0, 0, 0);
