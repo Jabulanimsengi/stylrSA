@@ -207,6 +207,28 @@
     color: var(--color-text-strong);
 }
 
+.checkboxGroup {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--color-text);
+}
+
+.radio {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
 .cancelButton:hover {
     background-color: color-mix(in srgb, var(--light-grey) 80%, var(--color-surface));
 }

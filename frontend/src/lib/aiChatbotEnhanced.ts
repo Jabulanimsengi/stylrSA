@@ -33,6 +33,88 @@ export interface EnhancedChatIntent {
 }
 
 /**
+ * Comprehensive category mapping for better service matching
+ */
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  'Hair Care & Styling': [
+    'hair', 'haircut', 'hairstyle', 'hairdo', 'cut', 'trim', 'style', 'styling',
+    'blowdry', 'blow dry', 'blowout', 'wash', 'shampoo', 'condition', 'treatment',
+    'curls', 'straighten', 'perm', 'relaxer', 'keratin', 'rebonding',
+    'color', 'colour', 'dye', 'tint', 'highlight', 'balayage', 'ombre', 'bleach',
+    'extensions', 'weave', 'wig', 'closure', 'frontal', 'bundles'
+  ],
+  'Braiding & Protective Styles': [
+    'braid', 'braids', 'braiding', 'cornrows', 'cornrow', 'box braids',
+    'senegalese', 'twists', 'twist', 'locs', 'locks', 'dreadlocks', 'dreads',
+    'crochet', 'faux locs', 'passion twists', 'marley twists', 'havana twists',
+    'goddess braids', 'knotless', 'feed-in', 'fulani', 'tribal braids',
+    'protective style', 'natural hair'
+  ],
+  'Nails & Manicure': [
+    'nail', 'nails', 'manicure', 'mani', 'pedicure', 'pedi', 'mani pedi',
+    'gel', 'gel nails', 'acrylic', 'acrylics', 'shellac', 'nail art',
+    'nail polish', 'nail design', 'french tips', 'ombre nails', 'chrome nails',
+    'nail extensions', 'nail overlay', 'nail removal', 'nail care',
+    'cuticle care', 'hand spa', 'foot spa'
+  ],
+  'Spa & Wellness': [
+    'spa', 'massage', 'facial', 'body scrub', 'body wrap', 'sauna',
+    'steam', 'hot stone', 'aromatherapy', 'reflexology', 'swedish massage',
+    'deep tissue', 'thai massage', 'relaxation', 'wellness', 'detox',
+    'body treatment', 'skin treatment', 'spa package', 'spa day'
+  ],
+  'Makeup & Beauty': [
+    'makeup', 'make up', 'make-up', 'mua', 'beauty', 'cosmetics',
+    'foundation', 'contour', 'eyeshadow', 'eyeliner', 'mascara', 'lipstick',
+    'blush', 'highlighter', 'glam', 'bridal makeup', 'wedding makeup',
+    'party makeup', 'special occasion', 'eyebrows', 'brows', 'lashes',
+    'eyelash extensions', 'lash lift', 'brow tint', 'brow lamination'
+  ],
+  'Skincare': [
+    'skincare', 'skin care', 'facial', 'face', 'acne', 'anti-aging',
+    'hydration', 'cleansing', 'exfoliation', 'mask', 'serum', 'moisturizer',
+    'peel', 'chemical peel', 'microdermabrasion', 'dermaplaning',
+    'laser treatment', 'led therapy', 'skin analysis', 'consultation',
+    'pigmentation', 'dark spots', 'wrinkles', 'fine lines'
+  ],
+  'Waxing & Hair Removal': [
+    'wax', 'waxing', 'brazilian', 'bikini', 'leg wax', 'arm wax',
+    'underarm', 'full body wax', 'face wax', 'eyebrow wax', 'upper lip',
+    'hair removal', 'threading', 'laser hair removal', 'ipl', 'sugaring'
+  ],
+  'Barber Services': [
+    'barber', 'barbering', 'fade', 'taper', 'line up', 'edge up',
+    'beard', 'beard trim', 'beard shaping', 'shave', 'hot towel shave',
+    'mens haircut', 'mens grooming', 'boys haircut', 'kids haircut',
+    'low fade', 'high fade', 'mid fade', 'skin fade', 'afro', 'shape up'
+  ],
+  'Special Occasions': [
+    'wedding', 'bridal', 'bride', 'bridesmaid', 'wedding party',
+    'prom', 'matric dance', 'graduation', 'birthday', 'photoshoot',
+    'event', 'special event', 'party', 'occasion', 'formal event'
+  ]
+};
+
+/**
+ * Extract service category from user input
+ */
+function extractCategoryFromText(text: string): string | undefined {
+  const lowerText = text.toLowerCase();
+  
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some(keyword => {
+      // Check for whole word matches or phrase matches
+      const regex = new RegExp(`\\b${keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
+      return regex.test(lowerText);
+    })) {
+      return category;
+    }
+  }
+  
+  return undefined;
+}
+
+/**
  * Enhanced intent parser with comprehensive understanding
  */
 export function parseEnhancedInput(input: string, context?: {
@@ -340,7 +422,10 @@ What are you looking for?`,
           'Spas near me'
         ],
         filters: {
-          sortBy: 'distance'
+          sortBy: 'distance',
+          latitude: context.userLocation.lat,
+          longitude: context.userLocation.lng,
+          radius: 10 // 10km radius
         }
       };
     } else {
@@ -364,26 +449,51 @@ For example:
     }
   }
 
-  // Default: treat as search query
+  // Default: treat as search query with intelligent category detection
+  const detectedCategory = extractCategoryFromText(input);
   const locationHint = context?.userLocation 
     ? ' I can also search near your location if you ask for "near me"!'
+    : '';
+  
+  const filters: any = {
+    q: input
+  };
+  
+  // Add detected category to filters
+  if (detectedCategory) {
+    filters.category = detectedCategory;
+  }
+  
+  // Add location if available
+  if (context?.userLocation) {
+    filters.latitude = context.userLocation.lat;
+    filters.longitude = context.userLocation.lng;
+    filters.radius = 10; // 10km radius
+  }
+  
+  const categoryMessage = detectedCategory 
+    ? `\n\n📂 I detected you're looking for: **${detectedCategory}**` 
     : '';
     
   return {
     type: 'salon_info',
-    response: `🔍 Let me help you find what you're looking for. I can search for salons, services, and more.${locationHint}
+    response: `🔍 I'll help you search for: "${input}"${categoryMessage}
 
-Try being more specific, for example:
-• "Find braiding salons in Sandton"
-• "Show me nail salons near me"
-• "What are the prices for haircuts?"
-• "Book an appointment for tomorrow"`,
-    quickActions: [
-      'Find salons near me',
-      'View all services',
-      'Check prices',
-      'Help'
-    ]
+Let me find the best matches for you!${locationHint}`,
+    filters,
+    quickActions: detectedCategory
+      ? [
+          `Show all ${detectedCategory}`,
+          'Filter by price',
+          'Near me',
+          'View details'
+        ]
+      : [
+          'Find salons near me',
+          'View all services',
+          'Check prices',
+          'Help'
+        ]
   };
 }
 
@@ -528,7 +638,7 @@ export async function getTrends(category?: string) {
 }
 
 /**
- * Search for services
+ * Search for services with location support
  */
 export async function searchServices(filters?: {
   q?: string;
@@ -539,6 +649,9 @@ export async function searchServices(filters?: {
   province?: string;
   city?: string;
   sortBy?: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
 }) {
   try {
     const params = new URLSearchParams();
@@ -549,7 +662,19 @@ export async function searchServices(filters?: {
     if (filters?.priceMax) params.append('priceMax', filters.priceMax);
     if (filters?.province) params.append('province', filters.province);
     if (filters?.city) params.append('city', filters.city);
-    if (filters?.sortBy) params.append('sortBy', filters.sortBy);
+    
+    // Location-based filtering
+    if (filters?.latitude !== undefined && filters?.longitude !== undefined) {
+      params.append('latitude', filters.latitude.toString());
+      params.append('longitude', filters.longitude.toString());
+      if (filters?.radius) {
+        params.append('radius', filters.radius.toString());
+      }
+      // Sort by distance when location is provided
+      params.append('sortBy', 'distance');
+    } else if (filters?.sortBy) {
+      params.append('sortBy', filters.sortBy);
+    }
     
     const response = await fetch(`/api/services/search?${params.toString()}`);
     if (!response.ok) throw new Error('Failed to search services');

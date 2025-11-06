@@ -91,6 +91,7 @@ export interface Service {
   description: string;
   price: number;
   duration: number;
+  pricingType?: 'PER_PERSON' | 'PER_COUPLE';
   category?: string;
   categoryId?: string;
   inclusions?: string[];

@@ -56,6 +56,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
   const [locationsData, setLocationsData] = useState<Record<string, string[]>>({});
   const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [fieldsLocked, setFieldsLocked] = useState(false);
 
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const [hours, setHours] = useState<Record<string, { open: string; close: string; isOpen: boolean }>>(
@@ -540,7 +541,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     // Reset city when province changes
                     setFormData(prev => ({ ...prev, city: '', town: '' }));
                   }}
+                  disabled={fieldsLocked}
                   className={styles.input}
+                  style={{ opacity: fieldsLocked ? 0.7 : 1 }}
                 >
                   <option value="">Select a province</option>
                   {Object.keys(locationsData).sort().map(p => (
@@ -550,25 +553,58 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
               </div>
               <div>
                 <label htmlFor="city" className={styles.label}>City/Town</label>
-                <select 
-                  id="city" 
-                  name="city" 
-                  value={formData.city} 
-                  onChange={(e) => {
-                    const selectedCity = e.target.value;
-                    setFormData(prev => ({ ...prev, city: selectedCity, town: selectedCity }));
-                  }}
-                  disabled={!formData.province}
-                  className={styles.input}
-                >
-                  <option value="">
-                    {!formData.province ? 'Select a province first' : 'Select a city/town'}
-                  </option>
-                  {availableCities.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                {fieldsLocked ? (
+                  <input 
+                    type="text"
+                    value={formData.city}
+                    readOnly
+                    disabled
+                    className={styles.input}
+                    style={{ opacity: 0.7 }}
+                  />
+                ) : (
+                  <select 
+                    id="city" 
+                    name="city" 
+                    value={formData.city} 
+                    onChange={(e) => {
+                      const selectedCity = e.target.value;
+                      setFormData(prev => ({ ...prev, city: selectedCity, town: selectedCity }));
+                    }}
+                    disabled={!formData.province}
+                    className={styles.input}
+                  >
+                    <option value="">
+                      {!formData.province ? 'Select a province first' : 'Select a city/town'}
+                    </option>
+                    {availableCities.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                )}
               </div>
+              {fieldsLocked && (
+                <div className={styles.fullWidth} style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+                    📍 Location fields auto-populated from map
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFieldsLocked(false)}
+                    style={{
+                      padding: '4px 12px',
+                      fontSize: '0.875rem',
+                      backgroundColor: 'var(--color-primary)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Edit Location
+                  </button>
+                </div>
+              )}
             </div>
             <h3 className={styles.subheading}>Location</h3>
             <div className={styles.grid}>
@@ -604,6 +640,35 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                             setFormData((prev: any) => ({ ...prev, address: s.display_name, latitude: s.lat, longitude: s.lon }));
                             setAddrQuery(s.display_name);
                             setShowAddrSuggestions(false);
+                            
+                            // Extract and auto-populate location fields from address details
+                            if (s.address) {
+                              const addr = s.address;
+                              const SA_PROVINCES = Object.keys(locationsData);
+                              
+                              // Extract province/state
+                              const provinceValue = addr.state || addr.province || '';
+                              if (provinceValue) {
+                                // Try to match with SA provinces
+                                const matchedProvince = SA_PROVINCES.find(p => 
+                                  provinceValue.toLowerCase().includes(p.toLowerCase()) || 
+                                  p.toLowerCase().includes(provinceValue.toLowerCase())
+                                );
+                                if (matchedProvince) {
+                                  setFormData((prev: any) => ({ ...prev, province: matchedProvince }));
+                                }
+                              }
+                              
+                              // Extract city
+                              const cityValue = addr.city || addr.town || addr.municipality || addr.county || '';
+                              if (cityValue) {
+                                setFormData((prev: any) => ({ ...prev, city: cityValue, town: cityValue }));
+                              }
+                              
+                              // Lock the fields after auto-population
+                              setFieldsLocked(true);
+                              toast.success('Location set successfully! 📍 Fields auto-populated.');
+                            }
                           }}>
                         {s.display_name}
                       </li>

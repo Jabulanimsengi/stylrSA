@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import styles from './HomePage.module.css';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSocket } from '@/context/SocketContext';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { Service } from '@/types';
 import FeaturedServiceCard, { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
 import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
 import FeaturedSalons from '@/components/FeaturedSalons';
+import FeaturedServicesCategoryRow from '@/components/FeaturedServicesCategoryRow/FeaturedServicesCategoryRow';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import BeforeAfterSlideshow from '@/components/BeforeAfterSlideshow/BeforeAfterSlideshow';
@@ -151,7 +152,7 @@ export default function HomePage() {
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/services/approved?page=${pageNum}&pageSize=12`);
+      const res = await fetch(`/api/services/approved?page=${pageNum}&pageSize=24`); // Increased to show more services
       if (res.ok) {
         // FIX: Explicitly typing the 'data' object from the API response
         const data: { services: ServiceWithSalon[], currentPage: number, totalPages: number } = await res.json();
@@ -174,6 +175,32 @@ export default function HomePage() {
       setIsLoading(false);
     }
   }, []);
+
+  // Group services by category
+  const groupedServices = useMemo(() => {
+    const grouped: Record<string, ServiceWithSalon[]> = {};
+    
+    services.forEach((service) => {
+      const categoryName = (service as any).category?.name || 'Other Services';
+      if (!grouped[categoryName]) {
+        grouped[categoryName] = [];
+      }
+      grouped[categoryName].push(service);
+    });
+    
+    // Sort categories by service count (descending) and maintain plan-based sorting within categories
+    return Object.entries(grouped)
+      .sort(([, aServices], [, bServices]) => bServices.length - aServices.length)
+      .reduce((acc, [category, categoryServices]) => {
+        // Sort services within category by plan weight
+        acc[category] = categoryServices.sort((a, b) => {
+          const planWeightA = a.salon?.visibilityWeight || 0;
+          const planWeightB = b.salon?.visibilityWeight || 0;
+          return planWeightB - planWeightA;
+        });
+        return acc;
+      }, {} as Record<string, ServiceWithSalon[]>);
+  }, [services]);
 
   useEffect(() => {
     fetchServices(1);
@@ -478,9 +505,13 @@ export default function HomePage() {
             {() => <FeaturedServiceCardSkeleton />}</SkeletonGroup>
         ) : (
           services.length > 0 && (
-            <div className={styles.grid}>
-              {services.map((service) => (
-                <FeaturedServiceCard key={service.id} service={service} />
+            <div>
+              {Object.entries(groupedServices).map(([categoryName, categoryServices]) => (
+                <FeaturedServicesCategoryRow
+                  key={categoryName}
+                  categoryName={categoryName}
+                  services={categoryServices}
+                />
               ))}
             </div>
           )

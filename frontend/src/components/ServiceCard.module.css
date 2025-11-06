@@ -189,10 +189,28 @@
   color: var(--color-text-strong);
   margin: 0;
 }
+.priceWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .price {
   @apply font-semibold text-primary;
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
+
+.pricingType {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-top: 0.15rem;
+  text-transform: lowercase;
+}
+
 .locationInfo {
   margin-top: 0.5rem;
   margin-bottom: 0.25rem;
@@ -301,6 +319,15 @@
     font-size: 0.8rem;
     line-height: 1.2;
   }
+  .pricingType {
+    font-size: 0.65rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
   .price {
     font-size: 0.75rem;
   }
@@ -364,6 +391,12 @@
   .title {
     font-size: 0.75rem;
     line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
   }
   .price {
     font-size: 0.7rem;

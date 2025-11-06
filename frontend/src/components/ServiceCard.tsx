@@ -114,7 +114,16 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
       <div className={styles.content}>
         <div className={styles.header}>
           <h3 className={styles.title}>{serviceTitle}</h3>
-          <p className={styles.price}>R{service.price.toFixed(2)}</p>
+          <div className={styles.priceWrapper}>
+            <p className={styles.price}>
+              R{service.price.toFixed(2)}
+              {service.pricingType && (
+                <span className={styles.pricingType}>
+                  {service.pricingType === 'PER_PERSON' ? 'per person' : 'per couple'}
+                </span>
+              )}
+            </p>
+          </div>
         </div>
         {service.salon && (
           <div className={styles.locationInfo}>

@@ -34,6 +34,7 @@ export default function CreateSalonPage() {
   const [addrQuery, setAddrQuery] = useState('');
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
+  const [fieldsLocked, setFieldsLocked] = useState(false);
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const [hours, setHours] = useState<Record<string,{open:string,close:string, isOpen: boolean}>>(
     Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string,{open:string,close:string, isOpen: boolean}>
@@ -88,8 +89,11 @@ export default function CreateSalonPage() {
     if (authStatus === 'unauthenticated') {
       // Redirect to home with auth modal instead of /login page
       router.push('/?auth=login&redirect=/create-salon');
+    } else if (authStatus === 'authenticated' && user?.email) {
+      // Pre-fill email from user registration
+      setEmail(user.email);
     }
-  }, [authStatus, router]);
+  }, [authStatus, router, user]);
 
   const SA_PROVINCES = Object.keys(locationsData).sort();
 
@@ -278,7 +282,7 @@ export default function CreateSalonPage() {
                 setAddrQuery(v);
                 if (v.trim().length > 2) {
                   const q = encodeURIComponent(v);
-                  fetch(`https://nominatim.openstreetmap.org/search?q=${q}, South Africa&format=json&limit=5`, {
+                  fetch(`https://nominatim.openstreetmap.org/search?q=${q}, South Africa&format=json&limit=5&addressdetails=1`, {
                     headers: { 'User-Agent': 'HairProsDirectory' }
                   })
                   .then(r => r.json())
@@ -327,7 +331,47 @@ export default function CreateSalonPage() {
                       setLongitude(parseFloat(s.lon));
                       setAddrQuery(s.display_name);
                       setShowAddrSuggestions(false);
-                      toast.success('Location set successfully! 📍');
+                      
+                      // Extract and auto-populate location fields from address details
+                      if (s.address) {
+                        const addr = s.address;
+                        
+                        // Extract province/state
+                        const provinceValue = addr.state || addr.province || '';
+                        if (provinceValue) {
+                          // Try to match with SA provinces
+                          const matchedProvince = SA_PROVINCES.find(p => 
+                            provinceValue.toLowerCase().includes(p.toLowerCase()) || 
+                            p.toLowerCase().includes(provinceValue.toLowerCase())
+                          );
+                          if (matchedProvince) {
+                            setProvince(matchedProvince);
+                          }
+                        }
+                        
+                        // Extract city
+                        const cityValue = addr.city || addr.town || addr.municipality || addr.county || '';
+                        if (cityValue) {
+                          setCity(cityValue);
+                        }
+                        
+                        // Extract town/suburb
+                        const townValue = addr.suburb || addr.neighbourhood || addr.village || '';
+                        if (townValue) {
+                          setTown(townValue);
+                        }
+                        
+                        // Extract postal code
+                        const postalValue = addr.postcode || '';
+                        if (postalValue) {
+                          setPostalCode(postalValue);
+                        }
+                        
+                        // Lock the fields after auto-population
+                        setFieldsLocked(true);
+                      }
+                      
+                      toast.success('Location set successfully! 📍 Fields auto-populated.');
                     }}
                   >
                     {s.display_name}
@@ -340,6 +384,28 @@ export default function CreateSalonPage() {
                 ✓ Location set: {latitude.toFixed(6)}, {longitude.toFixed(6)}
               </div>
             )}
+            {fieldsLocked && (
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+                  📍 Location fields auto-populated from map
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFieldsLocked(false)}
+                  style={{
+                    padding: '4px 12px',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'var(--color-primary)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Edit Location
+                </button>
+              </div>
+            )}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="province">Province</label>
@@ -348,7 +414,9 @@ export default function CreateSalonPage() {
               value={province}
               onChange={(e) => setProvince(e.target.value)}
               required
+              disabled={fieldsLocked}
               className={styles.input}
+              style={{ opacity: fieldsLocked ? 0.7 : 1 }}
             >
               <option value="" disabled>Select a province</option>
               {SA_PROVINCES.map(p => (
@@ -358,25 +426,37 @@ export default function CreateSalonPage() {
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="city">City/Town</label>
-            <select
-              id="city"
-              value={city}
-              onChange={(e) => {
-                const selectedCity = e.target.value;
-                setCity(selectedCity);
-                setTown(selectedCity);
-              }}
-              required
-              disabled={!province}
-              className={styles.input}
-            >
-              <option value="" disabled>
-                {!province ? 'Select a province first' : 'Select a city/town'}
-              </option>
-              {availableCities.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            {fieldsLocked ? (
+              <input
+                id="city"
+                type="text"
+                value={city}
+                readOnly
+                disabled
+                className={styles.input}
+                style={{ opacity: 0.7 }}
+              />
+            ) : (
+              <select
+                id="city"
+                value={city}
+                onChange={(e) => {
+                  const selectedCity = e.target.value;
+                  setCity(selectedCity);
+                  setTown(selectedCity);
+                }}
+                required
+                disabled={!province}
+                className={styles.input}
+              >
+                <option value="" disabled>
+                  {!province ? 'Select a province first' : 'Select a city/town'}
+                </option>
+                {availableCities.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="postalCode">Postal Code</label>
@@ -386,7 +466,10 @@ export default function CreateSalonPage() {
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
               required
+              readOnly={fieldsLocked}
+              disabled={fieldsLocked}
               className={styles.input}
+              style={{ opacity: fieldsLocked ? 0.7 : 1 }}
             />
           </div>
           {latitude && longitude && (

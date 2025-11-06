@@ -42,6 +42,7 @@ import BeforeAfterUpload from '@/components/BeforeAfterUpload/BeforeAfterUpload'
 import MyBeforeAfter from '@/components/MyBeforeAfter/MyBeforeAfter';
 import VideoUpload from '@/components/VideoUpload/VideoUpload';
 import MyVideos from '@/components/MyVideos/MyVideos';
+import AvailabilityManager from '@/components/AvailabilityManager/AvailabilityManager';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
@@ -86,7 +87,7 @@ function DashboardPageContent() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'service' | 'product' | 'promotion' | 'gallery' } | null>(null);
   
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
-  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'before-after' | 'videos' | 'booking-settings'>('bookings');
+  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'before-after' | 'videos' | 'booking-settings' | 'availability'>('bookings');
   const [selectedServiceForPromo, setSelectedServiceForPromo] = useState<Service | null>(null);
   const [isCreatePromoModalOpen, setIsCreatePromoModalOpen] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
@@ -882,6 +883,12 @@ function DashboardPageContent() {
           >
             Booking Settings
           </button>
+          <button
+            onClick={() => setActiveMainTab('availability')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'availability' ? styles.activeMainTab : ''}`}
+          >
+            Availability
+          </button>
         </div>
 
         {activeMainTab === 'reviews' && <ReviewsTab />}
@@ -1375,6 +1382,14 @@ function DashboardPageContent() {
                   </>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeMainTab === 'availability' && (
+          <div className={styles.contentGrid}>
+            <div className={styles.contentCard} style={{ gridColumn: '1 / -1' }}>
+              <AvailabilityManager salonId={salon.id} />
             </div>
           </div>
         )}

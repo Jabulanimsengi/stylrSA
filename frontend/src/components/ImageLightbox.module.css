@@ -147,10 +147,29 @@
 
 /* Counter positioning adjustments for mobile */
 @media (max-width: 768px) {
+  .overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important; /* Dynamic viewport height for mobile */
+  }
+
+  .closeButton {
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.25rem !important;
+    z-index: 1000003 !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+  }
+
   .counter {
     bottom: 0.75rem !important;
     font-size: 0.75rem !important;
     padding: 0.4rem 0.75rem !important;
+    z-index: 1000003 !important;
   }
   
   .navButton {

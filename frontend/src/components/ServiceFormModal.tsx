@@ -15,6 +15,7 @@ interface ServiceFormInputs {
   description: string;
   price: number;
   duration: number;
+  pricingType?: 'PER_PERSON' | 'PER_COUPLE';
   categoryId: string;
   images: string[];
 }
@@ -314,6 +315,39 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
                         placeholder="e.g., 250"
                     />
                     {errors.price && <p className={styles.errorMessage}>{errors.price.message}</p>}
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Pricing Type (Optional)</label>
+                    <div className={styles.checkboxGroup}>
+                        <label className={styles.checkboxLabel}>
+                            <input
+                                type="radio"
+                                value="PER_PERSON"
+                                {...register('pricingType')}
+                                className={styles.radio}
+                            />
+                            <span>Per Person</span>
+                        </label>
+                        <label className={styles.checkboxLabel}>
+                            <input
+                                type="radio"
+                                value="PER_COUPLE"
+                                {...register('pricingType')}
+                                className={styles.radio}
+                            />
+                            <span>Per Couple</span>
+                        </label>
+                        <label className={styles.checkboxLabel}>
+                            <input
+                                type="radio"
+                                value=""
+                                {...register('pricingType')}
+                                className={styles.radio}
+                            />
+                            <span>Not specified</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div className={styles.formGroup}>

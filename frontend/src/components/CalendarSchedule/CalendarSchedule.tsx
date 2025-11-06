@@ -76,16 +76,44 @@ export default function CalendarSchedule({
       setLoading(true);
       try {
         const dateString = selectedDate.toISOString().split('T')[0];
-        const response = await fetch(
-          `/api/bookings/availability/${selectedService.id}?date=${dateString}`
-        );
+        
+        // Fetch both booking availability and custom availability
+        const [bookingResponse, customAvailabilityResponse] = await Promise.all([
+          fetch(`/api/bookings/availability/${selectedService.id}?date=${dateString}`),
+          fetch(`/api/availability/${salon.id}?date=${dateString}`)
+        ]);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch availability');
+        if (!bookingResponse.ok) {
+          throw new Error('Failed to fetch booking availability');
         }
 
-        const data = await response.json();
-        setAvailability(data);
+        const bookingData = await bookingResponse.json();
+        
+        // Merge with custom availability if available
+        if (customAvailabilityResponse.ok) {
+          const customAvailability = await customAvailabilityResponse.json();
+          
+          // Override booking availability with custom availability
+          if (customAvailability.slots && bookingData.slots) {
+            bookingData.slots = bookingData.slots.map((slot: TimeSlot) => {
+              const hour = new Date(slot.time).getHours();
+              const customSlot = customAvailability.slots.find((s: any) => s.hour === hour);
+              
+              // If provider marked this hour as unavailable, override it
+              if (customSlot && !customSlot.isAvailable) {
+                return {
+                  ...slot,
+                  status: 'unavailable' as const,
+                  available: false,
+                };
+              }
+              
+              return slot;
+            });
+          }
+        }
+        
+        setAvailability(bookingData);
       } catch (error) {
         console.error('Error fetching availability:', error);
         setAvailability(null);
@@ -95,7 +123,7 @@ export default function CalendarSchedule({
     };
 
     fetchAvailability();
-  }, [selectedService, selectedDate]);
+  }, [selectedService, selectedDate, salon.id]);
 
   const handleDateClick = (date: Date) => {
     // Don't allow selection of past dates
