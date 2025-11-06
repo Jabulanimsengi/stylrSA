@@ -1,10 +1,24 @@
 .card {
-  @apply flex flex-col overflow-hidden shadow-sm;
-  background-color: var(--color-surface-elevated);
-  color: var(--color-text-strong);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  position: relative;
+  background-color: var(--color-surface-elevated, #fffaf5);
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--color-border, #cdbfb3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 280px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Salon profile variant - flexible height to show book button */
+.card.salonProfile {
+  height: auto;
+  min-height: 320px;
+  overflow: visible;
 }
 .card:hover {
   transform: translateY(-6px);
@@ -13,22 +27,22 @@
   border-color: rgba(245, 25, 87, 0.2);
 }
 .imageContainer {
+  position: relative;
   width: 100%;
-  height: 150px; /* Reduced height for a more compact look */
+  aspect-ratio: auto;
+  height: 200px;
+  flex-shrink: 0;
+  background: var(--skeleton-bg, #f0f0f0);
   overflow: hidden;
   cursor: pointer;
-  position: relative;
 }
 .image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  object-fit: contain;
+  background: var(--skeleton-bg, #f0f0f0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.imageContainer:hover .image {
-  transform: scale(1.08);
+.card:hover .image {
+  transform: scale(1.05);
 }
 .imageOverlay {
   position: absolute;
@@ -73,41 +87,41 @@
 }
 .imageCounter {
   position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: clamp(0.45rem, 1.5vw, 0.65rem);
+  right: clamp(0.55rem, 2.5vw, 0.85rem);
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: white;
-  padding: 0.3rem 0.6rem;
-  border-radius: 12px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
   font-size: 0.75rem;
   font-weight: 600;
   z-index: 2;
   pointer-events: none;
   letter-spacing: 0.02em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .promotionBadge {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: clamp(0.45rem, 1.5vw, 0.65rem);
+  left: clamp(0.55rem, 2.5vw, 0.85rem);
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
   color: white;
-  padding: 0.4rem 0.75rem;
-  border-radius: 20px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.375rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   z-index: 3;
-  box-shadow: 0 3px 10px rgba(238, 90, 111, 0.5);
+  box-shadow: 0 2px 8px rgba(238, 90, 111, 0.5);
   display: flex;
   align-items: center;
   gap: 0.3rem;
   transition: transform 0.2s, box-shadow 0.2s;
   pointer-events: auto;
+  letter-spacing: 0.02em;
 }
 
 .promotionBadge:hover {
@@ -175,87 +189,167 @@
   margin-top: 0.5rem;
 }
 .content {
-  @apply flex flex-1 flex-col p-3;
+  padding: 0.75rem 0.85rem 0.85rem;
+  gap: 0.35rem;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow flex shrinking */
+}
+
+.card.salonProfile .content {
+  padding: 0.85rem 1rem 1rem;
 }
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 .title {
-  @apply font-semibold;
-  color: var(--color-text-strong);
+  font-size: 0.95rem;
+  font-weight: 600;
   margin: 0;
+  color: var(--text-primary, #1c1c1e);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-align: center;
+  flex-shrink: 0;
 }
 .priceWrapper {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted, #666);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.priceWrapper.salonProfilePrice {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
 .price {
-  @apply font-semibold text-primary;
-  white-space: nowrap;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  color: var(--color-primary, #f51957);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.priceWrapper.salonProfilePrice .price {
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .pricingType {
   font-size: 0.7rem;
   font-weight: 400;
-  color: var(--color-text-muted);
-  margin-top: 0.15rem;
+  color: var(--text-muted, #666);
   text-transform: lowercase;
 }
 
 .locationInfo {
-  margin-top: 0.5rem;
-  margin-bottom: 0.25rem;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .salonName {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-strong);
-  margin: 0 0 0.25rem 0;
+  font-size: 0.78rem;
+  color: var(--text-muted, #666);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+  text-align: center;
 }
 .salonLocation {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  color: var(--text-muted, #666);
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-.salonLocation::before {
-  content: '📍';
-  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+  text-align: center;
 }
 .description {
-  @apply mt-2 text-sm leading-relaxed;
-  color: var(--color-text-muted);
-  flex-grow: 1;
+  display: none;
+}
+
+.card.salonProfile .description {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-size: 0.8rem;
+  color: var(--text-muted, #666);
+  margin: 0.5rem 0 0.25rem 0;
+  line-height: 1.4;
+  flex-shrink: 1;
+  min-height: 0;
 }
+
 .description.expanded {
+  display: none;
+}
+
+.card.salonProfile .description.expanded {
   display: block;
   -webkit-line-clamp: unset;
-  line-clamp: unset;
 }
+
 .expandButton {
-  @apply mt-2 self-start bg-transparent p-0 text-xs font-semibold text-primary underline;
+  display: none;
+}
+
+.card.salonProfile .expandButton {
+  display: inline-block;
+  background: transparent;
   border: none;
+  color: var(--color-primary, #f51957);
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
+  padding: 0.25rem 0;
+  margin-top: 0.25rem;
+  text-decoration: underline;
+  align-self: flex-start;
 }
 .footer {
-  @apply mt-4 flex flex-row items-center gap-3 pt-3;
-  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border, #cdbfb3);
+  flex-shrink: 0;
+}
+
+.footer.salonProfileFooter {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--color-border, #cdbfb3);
+}
+
+.salonProfileBookButton {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 1.5rem !important;
+  min-height: 44px;
 }
 .likeButton {
   @apply flex items-center gap-2 bg-transparent p-0 text-sm;
@@ -297,162 +391,142 @@
 }
 
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .card {
-    border-radius: 0.375rem;
+    height: 240px;
   }
+
+  .card.salonProfile {
+    min-height: 280px;
+  }
+
   .imageContainer {
-    height: 100px;
+    height: 165px;
   }
-  .carouselButton {
-    display: none;
+
+  .imageCounter {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
   }
+
+  .promotionBadge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+  }
+
   .content {
     padding: 0.5rem;
   }
-  .header {
-    align-items: center;
-    margin-bottom: 0.25rem;
-    gap: 0.35rem;
-  }
+
   .title {
-    font-size: 0.8rem;
-    line-height: 1.2;
+    font-size: 0.85rem;
   }
-  .pricingType {
-    font-size: 0.65rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    word-break: break-word;
-  }
-  .price {
-    font-size: 0.75rem;
-  }
-  .locationInfo {
-    margin-top: 0.35rem;
-    margin-bottom: 0.2rem;
-  }
+
   .salonName {
-    font-size: 0.75rem;
-    margin-bottom: 0.15rem;
+    font-size: 0.7rem;
   }
+
   .salonLocation {
     font-size: 0.7rem;
   }
-  .salonLocation::before {
+
+  .priceWrapper {
+    margin-top: 0.2rem;
     font-size: 0.65rem;
   }
-  .description {
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-    line-height: 1.3;
+
+  .priceWrapper.salonProfilePrice {
+    font-size: 0.9rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
   }
-  .expandButton {
-    font-size: 0.7rem;
-    margin-top: 0.25rem;
+
+  .priceWrapper.salonProfilePrice .price {
+    font-size: 1.1rem;
   }
+
+  .footer.salonProfileFooter {
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+  }
+
+  .salonProfileBookButton {
+    font-size: 0.9rem !important;
+    padding: 0.65rem 1.25rem !important;
+    min-height: 40px;
+  }
+
+  .carouselButton {
+    display: none;
+  }
+
   .footer {
     gap: 0.5rem;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
+    padding-top: 0.4rem;
   }
+
   .likeButton {
     gap: 0.3rem;
     font-size: 0.7rem;
     padding: 0.25rem 0.4rem;
   }
+
   .likeButton svg {
     width: 16px;
     height: 16px;
   }
+
   .footer :global(.btn) {
     padding: 0.45rem 0.6rem;
     font-size: 0.75rem;
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .card {
-    border-radius: 0.3rem;
+    height: 220px;
   }
+
+  .card.salonProfile {
+    min-height: 260px;
+  }
+
   .imageContainer {
-    height: 85px;
+    height: 150px;
   }
-  .content {
-    padding: 0.4rem;
+
+  .priceWrapper.salonProfilePrice {
+    font-size: 0.85rem;
   }
-  .header {
-    margin-bottom: 0.2rem;
-    gap: 0.25rem;
+
+  .priceWrapper.salonProfilePrice .price {
+    font-size: 1rem;
   }
-  .title {
-    font-size: 0.75rem;
-    line-height: 1.15;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    word-break: break-word;
+
+  .salonProfileBookButton {
+    font-size: 0.85rem !important;
+    padding: 0.6rem 1rem !important;
+    min-height: 38px;
   }
-  .price {
-    font-size: 0.7rem;
-  }
-  .locationInfo {
-    margin-top: 0.3rem;
-    margin-bottom: 0.15rem;
-  }
-  .salonName {
-    font-size: 0.7rem;
-    margin-bottom: 0.1rem;
-  }
-  .salonLocation {
-    font-size: 0.65rem;
-  }
-  .salonLocation::before {
-    font-size: 0.6rem;
-  }
-  .description {
-    font-size: 0.7rem;
-    margin-top: 0.2rem;
-    line-height: 1.25;
-  }
-  .expandButton {
-    font-size: 0.65rem;
-    margin-top: 0.2rem;
-  }
+
   .footer {
     gap: 0.4rem;
-    margin-top: 0.4rem;
-    padding-top: 0.4rem;
+    padding-top: 0.35rem;
   }
+
   .likeButton {
     gap: 0.25rem;
     font-size: 0.65rem;
     padding: 0.2rem 0.35rem;
   }
+
   .likeButton svg {
     width: 14px;
     height: 14px;
   }
+
   .footer :global(.btn) {
     padding: 0.35rem 0.5rem;
     font-size: 0.7rem;
-  }
-}
-
-@media (min-width: 641px) {
-  .footer {
-    gap: 1rem;
-  }
-  .likeButton {
-    padding: 0.35rem 0.75rem;
-  }
-  .footer :global(.btn) {
-    padding: 0.55rem 1.25rem;
-    font-size: 0.95rem;
   }
 }

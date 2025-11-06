@@ -1,79 +1,121 @@
 .categorySection {
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
+  padding: 0 clamp(1rem, 5vw, 2rem);
 }
 
 .categoryTitle {
-  font-size: 1.5rem;
+  font-size: 1.1rem; /* Smaller than sectionTitle */
   font-weight: 700;
   color: var(--color-text-strong);
-  margin-bottom: 1rem;
-  padding-left: 0.5rem;
+  margin-bottom: 0.75rem; /* Small vertical distance */
+  padding-left: 0;
+  text-align: left;
 }
 
-.servicesRow {
+.carouselContainer {
+  position: relative;
+}
+
+.servicesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;
-}
-
-.serviceCardWrapper {
+  max-width: 100%;
   width: 100%;
 }
 
-/* Mobile styles */
 @media (max-width: 768px) {
   .categorySection {
     margin-bottom: 2rem;
+    padding: 0 clamp(1rem, 3vw, 1.5rem);
   }
 
   .categoryTitle {
-    font-size: 1.125rem;
-    margin-bottom: 0.75rem;
-    padding-left: 1rem;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    padding-left: 0;
   }
 
-  .servicesRow {
+  .servicesGrid {
+    grid-template-columns: unset; /* Disable grid for mobile carousel */
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    gap: 1rem;
-    padding: 0 1rem;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    padding: 0; /* Remove extra padding, parent handles it */
+    gap: 1rem;
+    margin-left: -0.5rem; /* Offset for peek effect */
+    margin-right: -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 
-  .servicesRow::-webkit-scrollbar {
+  .servicesGrid::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
   }
 
-  .serviceCardWrapper {
-    min-width: 85%;
-    max-width: 85%;
+  .servicesGrid > * {
     flex-shrink: 0;
+    width: calc(80% - 0.5rem); /* One card plus peek */
     scroll-snap-align: start;
   }
 
-  /* Show a peek of the next card */
-  .servicesRow::after {
-    content: '';
-    min-width: 1px;
-    flex-shrink: 0;
+  .scrollButton {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .scrollButton:hover {
+    opacity: 1;
+  }
+
+  .scrollButton.left {
+    left: 0.5rem;
+  }
+
+  .scrollButton.right {
+    right: 0.5rem;
   }
 }
 
-@media (max-width: 480px) {
-  .categoryTitle {
-    font-size: 1rem;
-    padding-left: 0.75rem;
+@media (max-width: 540px) {
+  .categorySection {
+    padding: 0 clamp(0.75rem, 3vw, 1rem);
   }
 
-  .servicesRow {
-    padding: 0 0.75rem;
+  .servicesGrid {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .categorySection {
+    padding: 0 clamp(0.625rem, 2.5vw, 0.875rem);
   }
 
-  .serviceCardWrapper {
-    min-width: 90%;
-    max-width: 90%;
+  .servicesGrid {
+    padding-left: 0.125rem;
+    padding-right: 0.125rem;
+    margin-left: -0.125rem;
+    margin-right: -0.125rem;
   }
 }
 

@@ -25,14 +25,15 @@ export default function ForYouRecommendations() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch recommendations');
+          // Silently fail - don't throw error, just return empty array
+          setSalons([]);
+          return;
         }
 
         const data = await response.json();
-        setSalons(data);
+        setSalons(data || []);
       } catch (error) {
-        console.error('Error fetching recommendations:', error);
-        // Don't show error toast - just show empty state
+        // Silently handle error - don't log to console or show toast
         setSalons([]);
       } finally {
         setIsLoading(false);
@@ -116,6 +117,7 @@ export default function ForYouRecommendations() {
             showFavorite
             onToggleFavorite={handleToggleFavorite}
             showHours={false}
+            compact
           />
         ))}
       </div>

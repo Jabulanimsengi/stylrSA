@@ -181,7 +181,13 @@ export default function HomePage() {
     const grouped: Record<string, ServiceWithSalon[]> = {};
     
     services.forEach((service) => {
-      const categoryName = (service as any).category?.name || 'Other Services';
+      // Try multiple ways to get category name
+      const categoryName = 
+        (service as any).category?.name || 
+        (service as any).categoryName || 
+        service.category || 
+        'Other Services';
+      
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
       }
@@ -189,7 +195,7 @@ export default function HomePage() {
     });
     
     // Sort categories by service count (descending) and maintain plan-based sorting within categories
-    return Object.entries(grouped)
+    const sorted = Object.entries(grouped)
       .sort(([, aServices], [, bServices]) => bServices.length - aServices.length)
       .reduce((acc, [category, categoryServices]) => {
         // Sort services within category by plan weight
@@ -200,6 +206,13 @@ export default function HomePage() {
         });
         return acc;
       }, {} as Record<string, ServiceWithSalon[]>);
+    
+    // Debug: Log grouped services
+    if (Object.keys(sorted).length > 0) {
+      console.log('Grouped services by category:', Object.keys(sorted).map(cat => `${cat}: ${sorted[cat].length} services`));
+    }
+    
+    return sorted;
   }, [services]);
 
   useEffect(() => {
@@ -504,8 +517,8 @@ export default function HomePage() {
           <SkeletonGroup count={8} className={styles.grid}>
             {() => <FeaturedServiceCardSkeleton />}</SkeletonGroup>
         ) : (
-          services.length > 0 && (
-            <div>
+          services.length > 0 && Object.keys(groupedServices).length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
               {Object.entries(groupedServices).map(([categoryName, categoryServices]) => (
                 <FeaturedServicesCategoryRow
                   key={categoryName}
@@ -514,6 +527,10 @@ export default function HomePage() {
                 />
               ))}
             </div>
+          ) : (
+            <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+              No featured services available at the moment.
+            </p>
           )
         )}
 

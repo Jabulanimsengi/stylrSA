@@ -828,6 +828,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       onImageClick={openLightbox}
                       promotion={promotionsMap.get(service.id)}
                       onPromotionClick={handlePromotionClick}
+                      variant="salonProfile"
                     />
                   ))}
                   {visibleServicesCount < services.length && (

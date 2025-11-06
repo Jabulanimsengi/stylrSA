@@ -86,7 +86,7 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
           </Link>
           <p className={styles.salonLocation}>{salonLocation}</p>
           <div className={styles.cardPrice}>
-            R{service.price.toFixed(2)}
+            <span className={styles.price}>R{service.price.toFixed(2)}</span>
             {service.pricingType && (
               <span className={styles.pricingType}>
                 {service.pricingType === 'PER_PERSON' ? 'per person' : 'per couple'}
