@@ -46,7 +46,10 @@ export class BookingsService {
     }
 
     const salon = service.salon;
-    const requestedDate = new Date(date);
+    // Parse date string as local date (YYYY-MM-DD format)
+    // new Date("2024-01-15") interprets as UTC, so we need to parse it as local
+    const [year, month, day] = date.split('-').map(Number);
+    const requestedDate = new Date(year, month - 1, day);
     const dayOfWeek = requestedDate.toLocaleDateString('en-US', { weekday: 'long' });
 
     // Check if salon operates on this day

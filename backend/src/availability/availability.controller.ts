@@ -18,7 +18,15 @@ export class AvailabilityController {
     @Param('salonId') salonId: string,
     @Query('date') dateStr: string,
   ) {
-    const date = dateStr ? new Date(dateStr) : new Date();
+    let date: Date;
+    if (dateStr) {
+      // Parse date string as local date (YYYY-MM-DD format)
+      // new Date("2024-01-15") interprets as UTC, so we need to parse it as local
+      const [year, month, day] = dateStr.split('-').map(Number);
+      date = new Date(year, month - 1, day);
+    } else {
+      date = new Date();
+    }
     return this.availabilityService.getAvailabilityForDate(salonId, date);
   }
 
@@ -48,7 +56,10 @@ export class AvailabilityController {
     @Body() dto: UpdateAvailabilityDto,
     @GetUser() user: any,
   ) {
-    const date = new Date(dto.date);
+    // Parse date string as local date (YYYY-MM-DD format)
+    // new Date("2024-01-15") interprets as UTC, so we need to parse it as local
+    const [year, month, day] = dto.date.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return this.availabilityService.updateAvailability(salonId, date, dto.hours, user.id);
   }
 }

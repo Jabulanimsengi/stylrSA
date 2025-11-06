@@ -10,9 +10,12 @@ export class AvailabilityService {
    * Get availability for a specific salon and date
    */
   async getAvailabilityForDate(salonId: string, date: Date) {
-    // Normalize date to start of day
-    const startOfDay = new Date(date);
-    startOfDay.setUTCHours(0, 0, 0, 0);
+    // Normalize date to start of day in UTC for consistent storage
+    // Extract local date components and create UTC date to ensure same calendar day
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const startOfDay = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
 
     const availability = await this.prisma.serviceProviderAvailability.findMany({
       where: {
@@ -96,9 +99,12 @@ export class AvailabilityService {
       throw new ForbiddenException('You do not own this salon');
     }
 
-    // Normalize date to start of day
-    const startOfDay = new Date(date);
-    startOfDay.setUTCHours(0, 0, 0, 0);
+    // Normalize date to start of day in UTC for consistent storage
+    // Extract date components to avoid timezone issues
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const startOfDay = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
 
     // Use transaction to update all hours at once
     const updates = hours.map((slot) =>
