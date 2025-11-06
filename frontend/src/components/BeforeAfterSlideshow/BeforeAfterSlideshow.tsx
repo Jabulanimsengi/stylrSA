@@ -23,6 +23,7 @@ interface BeforeAfterPhoto {
     name: string;
     city: string;
     province: string;
+    viewCount?: number;
   };
   service?: {
     id: string;
@@ -66,6 +67,7 @@ export default function BeforeAfterSlideshow() {
       name: photo.salon.name,
       city: photo.salon.city,
       province: photo.salon.province,
+      viewCount: photo.salon.viewCount || 0,
       backgroundImage: photo.beforeImageUrl, // Use before image as background
       logo: undefined,
       heroImages: [],
