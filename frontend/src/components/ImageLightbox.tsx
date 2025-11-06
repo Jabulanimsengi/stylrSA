@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './ImageLightbox.module.css';
 import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -12,6 +13,7 @@ interface ImageLightboxProps {
 
 export default function ImageLightbox({ images, initialImageIndex = 0, onClose }: ImageLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialImageIndex);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   const goToPrevious = useCallback(() => {
     setCurrentIndex((prevIndex) =>
@@ -36,7 +38,14 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
   };
 
   useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
+
+  useEffect(() => {
+    if (!portalTarget) return;
+
     // Prevent body scroll when lightbox is open
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,10 +56,10 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
     window.addEventListener('keydown', handleKeyDown);
     
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [goToNext, goToPrevious, onClose]);
+  }, [goToNext, goToPrevious, onClose, portalTarget]);
 
 
   if (!images || images.length === 0) return null;
@@ -62,7 +71,7 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
     }
   }, [initialImageIndex, images.length]);
 
-  return (
+  const lightbox = (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <div className={styles.imageWrapper}>
@@ -90,4 +99,8 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
       </div>
     </div>
   );
+
+  if (!portalTarget) return null;
+
+  return createPortal(lightbox, portalTarget);
 }
