@@ -6,7 +6,8 @@
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  z-index: 99999 !important;
+  z-index: 1000000 !important;
+  overflow: visible !important;
 }
 
 .container {
@@ -44,8 +45,8 @@
   margin: auto;
 }
 
-.closeButton, .navButton {
-  position: absolute !important;
+.closeButton {
+  position: fixed !important;
   background-color: rgba(0, 0, 0, 0.5) !important;
   color: var(--color-text-inverse) !important;
   border: none !important;
@@ -61,7 +62,27 @@
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  z-index: 100001 !important;
+  z-index: 1000002 !important;
+}
+
+.navButton {
+  position: fixed !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  color: var(--color-text-inverse) !important;
+  border: none !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  font-size: 1.5rem !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background-color 0.2s !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 1000002 !important;
 }
 
 .closeButton:hover, .navButton:hover {
@@ -74,6 +95,7 @@
 }
 
 .prevButton {
+  position: fixed !important;
   left: 1rem !important;
   right: auto !important;
   display: flex !important;
@@ -82,7 +104,15 @@
   pointer-events: auto !important;
 }
 
+/* Desktop: Position prev button to the right of the sidebar */
+@media (min-width: 1025px) {
+  .prevButton {
+    left: calc(260px + 1rem) !important; /* Sidebar width (260px) + margin (1rem) */
+  }
+}
+
 .nextButton {
+  position: fixed !important;
   right: 1rem !important;
   left: auto !important;
   display: flex !important;
@@ -111,7 +141,7 @@
   font-weight: 600 !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   letter-spacing: 0.05em !important;
-  z-index: 100002 !important;
+  z-index: 1000003 !important;
   pointer-events: none !important;
 }
 

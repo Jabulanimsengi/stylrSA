@@ -40,9 +40,16 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
     document.body.style.overflow = 'hidden';
     
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') goToPrevious();
-      if (e.key === 'ArrowRight') goToNext();
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (images.length > 1) {
+        // Only allow navigation if there are multiple images
+        if (e.key === 'ArrowLeft') {
+          goToPrevious();
+        } else if (e.key === 'ArrowRight') {
+          goToNext();
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     
@@ -50,7 +57,7 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [goToNext, goToPrevious, onClose]);
+  }, [goToNext, goToPrevious, onClose, images.length]);
 
 
   if (!images || images.length === 0) return null;
@@ -74,20 +81,22 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
           />
         </div>
         
-        <button className={styles.closeButton} onClick={onClose}><FaTimes /></button>
-
+        {/* Image Counter */}
         {images.length > 1 && (
-          <>
-            <button className={`${styles.navButton} ${styles.prevButton}`} onClick={handlePreviousClick} aria-label="Previous image"><FaChevronLeft /></button>
-            <button className={`${styles.navButton} ${styles.nextButton}`} onClick={handleNextClick} aria-label="Next image"><FaChevronRight /></button>
-            
-            {/* Image Counter */}
-            <div className={styles.counter}>
-              {currentIndex + 1} / {images.length}
-            </div>
-          </>
+          <div className={styles.counter}>
+            {currentIndex + 1} / {images.length}
+          </div>
         )}
       </div>
+      
+      <button className={styles.closeButton} onClick={(e) => { e.stopPropagation(); onClose(); }}><FaTimes /></button>
+
+      {images.length > 1 && (
+        <>
+          <button className={`${styles.navButton} ${styles.prevButton}`} onClick={(e) => { e.stopPropagation(); handlePreviousClick(e); }} aria-label="Previous image"><FaChevronLeft /></button>
+          <button className={`${styles.navButton} ${styles.nextButton}`} onClick={(e) => { e.stopPropagation(); handleNextClick(e); }} aria-label="Next image"><FaChevronRight /></button>
+        </>
+      )}
     </div>
   );
 }
