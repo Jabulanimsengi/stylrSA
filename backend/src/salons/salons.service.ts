@@ -302,7 +302,47 @@ export class SalonsService {
     });
   }
 
-  async findOne(id: string, user?: any) {
+  /**
+   * Track salon view
+   * Fire-and-forget operation that should not block responses
+   */
+  async trackView(salonId: string, userId?: string, ipAddress?: string) {
+    try {
+      // Use a transaction to ensure atomicity, but with a timeout to prevent hangs
+      await Promise.race([
+        this.prisma.$transaction(async (tx) => {
+          // Create view record
+          await tx.salonView.create({
+            data: {
+              salonId,
+              userId,
+              ipAddress,
+            },
+          });
+
+          // Increment view count atomically
+          await tx.salon.update({
+            where: { id: salonId },
+            data: {
+              viewCount: {
+                increment: 1,
+              },
+            },
+          });
+        }),
+        // Timeout after 5 seconds to prevent hanging
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('View tracking timeout')), 5000)
+        ),
+      ]);
+    } catch (error) {
+      // Silently fail view tracking to not disrupt user experience
+      // Log error for debugging but don't throw
+      console.error('Failed to track salon view:', error instanceof Error ? error.message : error);
+    }
+  }
+
+  async findOne(id: string, user?: any, ipAddress?: string) {
     const salon = await this.prisma.salon.findUnique({
       where: { id },
       include: {
@@ -344,6 +384,12 @@ export class SalonsService {
     if (!salon) {
       throw new NotFoundException(`Salon with ID ${id} not found`);
     }
+
+    // Track view (fire-and-forget to avoid blocking response)
+    this.trackView(id, user?.id, ipAddress).catch((error) => {
+      // Silently fail - view tracking should not disrupt UX
+      console.error('Failed to track salon view:', error);
+    });
 
     // Attach isFavorited for the salon if user is present
     let salonWithFavorite: any = { ...salon };
@@ -582,7 +628,8 @@ export class SalonsService {
       return {
         ...salon,
         avgRating: Number(avgRating.toFixed(1)),
-        reviewCount
+        reviewCount,
+        viewCount: salon.viewCount || 0
       };
     });
 
@@ -725,7 +772,8 @@ export class SalonsService {
       return {
         ...salon,
         avgRating: Number(avgRating.toFixed(1)),
-        reviewCount
+        reviewCount,
+        viewCount: salon.viewCount || 0
       };
     });
 
@@ -891,6 +939,7 @@ export class SalonsService {
         ...salon,
         avgRating: Number(avgRating.toFixed(1)),
         reviewCount,
+        viewCount: salon.viewCount || 0,
         isFavorited: favoriteSalonIds.has(salon.id)
       };
     });

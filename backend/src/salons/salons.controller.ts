@@ -9,7 +9,8 @@ import {
   Delete,
   UseGuards,
   Query,
-  Put, // Import the Put decorator
+  Put,
+  Req,
 } from '@nestjs/common';
 import { SalonsService } from './salons.service';
 import { CreateSalonDto, UpdateSalonDto, UpdateSalonPlanDto } from './dto';
@@ -91,11 +92,32 @@ export class SalonsController {
     return this.salonsService.findNearby(lat, lon);
   }
 
+  /**
+   * Track salon card impression
+   * POST /api/salons/:id/impression
+   * Fire-and-forget to avoid blocking response when multiple impressions fire simultaneously
+   * Must be defined BEFORE the generic :id route to ensure proper route matching
+   */
+  @Post(':id([0-9a-fA-F-]{36})/impression')
+  @UseGuards(OptionalJwtAuthGuard)
+  trackImpression(@Param('id') id: string, @GetUser() user?: any, @Req() req?: any) {
+    const ipAddress = req?.ip || req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress;
+    // Fire-and-forget: don't await to avoid blocking when multiple featured salons trigger impressions
+    this.salonsService.trackView(id, user?.id, ipAddress).catch((error) => {
+      // Silently fail - impression tracking should not disrupt UX
+      console.error('Failed to track salon impression:', error);
+    });
+    // Return immediately to prevent blocking
+    return { success: true };
+  }
+
   // Constrain :id to UUID to prevent conflicts with static routes like 'featured'
+  // Must be defined AFTER more specific routes like /impression
   @Get(":id([0-9a-fA-F-]{36})")
   @UseGuards(OptionalJwtAuthGuard)
-  findOne(@Param('id') id: string, @GetUser() user?: any) {
-    return this.salonsService.findOne(id, user);
+  findOne(@Param('id') id: string, @GetUser() user?: any, @Req() req?: any) {
+    const ipAddress = req?.ip || req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress;
+    return this.salonsService.findOne(id, user, ipAddress);
   }
 
   @UseGuards(JwtGuard)
