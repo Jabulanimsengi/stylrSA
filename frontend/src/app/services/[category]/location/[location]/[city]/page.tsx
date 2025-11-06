@@ -23,57 +23,83 @@ import { getCategoriesCached } from "@/lib/resourceCache";
 import EmptyState from "@/components/EmptyState/EmptyState";
 import { PROVINCES, getCityInfo } from "@/lib/locationData";
 
-// Category information
-const CATEGORY_INFO: Record<string, { title: string; description: string; content: string }> = {
+// Category information with enhanced SEO keywords
+const CATEGORY_INFO: Record<string, { 
+  title: string; 
+  description: string; 
+  content: string;
+  serviceName: string;
+  keywords: string[];
+}> = {
   'nail-care': {
     title: 'Nail Care',
     description: 'Professional nail services',
-    content: 'Pamper yourself with premium nail care services including manicures, pedicures, gel extensions, acrylics, and intricate nail art designs.'
+    serviceName: 'nail salon',
+    content: 'Pamper yourself with premium nail care services including manicures, pedicures, gel extensions, acrylics, and intricate nail art designs.',
+    keywords: ['nail salon', 'manicure', 'pedicure', 'gel nails', 'nail art', 'acrylic nails', 'nail technician', 'nail studio']
   },
   'massage-body-treatments': {
     title: 'Massage & Body Treatments',
     description: 'Relaxing massage therapy and body treatments',
-    content: 'Experience ultimate relaxation with professional massage and body treatment services including Swedish massage, deep tissue, hot stone therapy, and more.'
+    serviceName: 'massage spa',
+    content: 'Experience ultimate relaxation with professional massage and body treatment services including Swedish massage, deep tissue, hot stone therapy, and more.',
+    keywords: ['massage', 'spa', 'massage therapy', 'body treatment', 'wellness', 'deep tissue massage', 'Swedish massage']
   },
   'skin-care-facials': {
     title: 'Skin Care & Facials',
     description: 'Professional facial treatments and skin care',
-    content: 'Achieve radiant, healthy skin with professional facial and skin care services from certified estheticians.'
+    serviceName: 'spa',
+    content: 'Achieve radiant, healthy skin with professional facial and skin care services from certified estheticians.',
+    keywords: ['facial', 'spa', 'skin care', 'esthetician', 'facial treatment', 'anti-aging facial', 'acne treatment']
   },
   'haircuts-styling': {
     title: 'Haircuts & Styling',
     description: 'Expert hairstylists for cuts and styling',
-    content: 'Discover South Africa\'s premier hair stylists and salons offering expert haircuts and styling services.'
+    serviceName: 'hair salon',
+    content: 'Discover South Africa\'s premier hair stylists and salons offering expert haircuts and styling services.',
+    keywords: ['haircut', 'hair styling', 'hairstylist', 'hair salon', 'hairdresser', 'hair studio', 'blowout']
   },
   'hair-color-treatments': {
     title: 'Hair Coloring & Treatments',
     description: 'Professional hair coloring and treatment services',
-    content: 'Transform your look with professional hair coloring and treatment services from South Africa\'s best salons.'
+    serviceName: 'hair salon',
+    content: 'Transform your look with professional hair coloring and treatment services from South Africa\'s best salons.',
+    keywords: ['hair color', 'balayage', 'highlights', 'hair treatment', 'hair dye', 'ombre', 'colorist']
   },
   'makeup-beauty': {
     title: 'Makeup & Beauty',
     description: 'Professional makeup artists',
-    content: 'Look stunning for any occasion with professional makeup services from South Africa\'s talented makeup artists.'
+    serviceName: 'makeup artist',
+    content: 'Look stunning for any occasion with professional makeup services from South Africa\'s talented makeup artists.',
+    keywords: ['makeup artist', 'beauty services', 'bridal makeup', 'professional makeup', 'event makeup', 'special occasion makeup']
   },
   'waxing-hair-removal': {
     title: 'Waxing & Hair Removal',
     description: 'Professional waxing and hair removal services',
-    content: 'Get smooth, hair-free skin with professional waxing and hair removal services.'
+    serviceName: 'waxing salon',
+    content: 'Get smooth, hair-free skin with professional waxing and hair removal services.',
+    keywords: ['waxing', 'hair removal', 'Brazilian wax', 'wax specialist', 'waxing salon', 'Hollywood wax', 'bikini wax']
   },
   'braiding-weaving': {
     title: 'Braiding & Weaving',
     description: 'Professional braiding and weaving specialists',
-    content: 'Experience beautiful, long-lasting braiding and weaving styles from South Africa\'s most skilled braiders.'
+    serviceName: 'braiding salon',
+    content: 'Experience beautiful, long-lasting braiding and weaving styles from South Africa\'s most skilled braiders.',
+    keywords: ['braiding', 'hair braiding', 'box braids', 'weaving', 'hair extensions', 'knotless braids', 'cornrows']
   },
   'mens-grooming': {
     title: 'Men\'s Grooming',
     description: 'Professional men\'s grooming services',
-    content: 'Elevate your style with premium men\'s grooming services from South Africa\'s finest barbers and stylists.'
+    serviceName: 'barber',
+    content: 'Elevate your style with premium men\'s grooming services from South Africa\'s finest barbers and stylists.',
+    keywords: ['men\'s grooming', 'barber', 'men\'s haircut', 'beard trim', 'barbershop', 'fade haircut', 'hot shave']
   },
   'bridal-services': {
     title: 'Bridal Services',
     description: 'Professional bridal hair and makeup services',
-    content: 'Look absolutely breathtaking on your wedding day with professional bridal beauty services.'
+    serviceName: 'bridal beauty',
+    content: 'Look absolutely breathtaking on your wedding day with professional bridal beauty services.',
+    keywords: ['bridal services', 'wedding hair', 'wedding makeup', 'bridal makeup', 'bridal hair', 'bridal package']
   },
 };
 
@@ -325,16 +351,71 @@ function ServiceLocationContent() {
     toast.success('Booking confirmed!');
   };
 
+  // Get keywords from category info
+  const primaryKeywords = categoryInfo.keywords || [categoryInfo.description];
+  const primaryKeyword = primaryKeywords[0] || categoryInfo.description;
+  const secondaryKeywords = primaryKeywords.slice(1, 4);
+
   return (
     <div className={styles.container}>
       <PageNav />
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
+        {/* Enhanced H1 with primary keyword */}
         <h1 className={styles.title}>
-          {categoryInfo.title} in {cityName}, {provinceName}
+          Best {primaryKeyword} in {cityName}, {provinceName} | Top-Rated {categoryInfo.title} Services
         </h1>
-        <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#666', lineHeight: '1.6' }}>
-          {categoryInfo.content} Find the best {categoryInfo.description.toLowerCase()} in {cityName}, {provinceName} and book appointments near you.
+        
+        {/* Enhanced description with keywords naturally integrated */}
+        <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: '#666', lineHeight: '1.6' }}>
+          {categoryInfo.content} Find the best {categoryInfo.description.toLowerCase()} in {cityName}, {provinceName}. 
+          Book top-rated {primaryKeyword} services, read verified reviews, compare prices, and book instantly. 
+          Professional {secondaryKeywords.join(', ')} services available near you.
         </p>
+
+        {/* SEO-optimized content section with H2/H3 headings */}
+        <div style={{ marginBottom: '2rem', padding: '1.5rem', background: '#f9f9f9', borderRadius: '8px' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 600, color: '#333' }}>
+            Find the Best {categoryInfo.title} Services in {cityName}
+          </h2>
+          <p style={{ fontSize: '1rem', marginBottom: '1rem', color: '#555', lineHeight: '1.7' }}>
+            Looking for professional {primaryKeyword} services in {cityName}, {provinceName}? 
+            Stylr SA connects you with top-rated {categoryInfo.description.toLowerCase()} professionals in your area. 
+            Whether you're searching for {secondaryKeywords[0] || primaryKeyword}, {secondaryKeywords[1] || primaryKeyword}, 
+            or {secondaryKeywords[2] || primaryKeyword} services, we make it easy to find and book the best {categoryInfo.serviceName || categoryInfo.description.toLowerCase()} near you.
+          </p>
+          
+          <h3 style={{ fontSize: '1.25rem', marginTop: '1.5rem', marginBottom: '0.75rem', fontWeight: 600, color: '#444' }}>
+            Why Choose {categoryInfo.title} Services in {cityName}?
+          </h3>
+          <ul style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7', paddingLeft: '1.5rem' }}>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Verified Professionals:</strong> All {categoryInfo.description.toLowerCase()} providers are verified and reviewed by real customers
+            </li>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Easy Booking:</strong> Book {primaryKeyword} appointments instantly online, 24/7
+            </li>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Compare Prices:</strong> See transparent pricing for {categoryInfo.title.toLowerCase()} services in {cityName}
+            </li>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Read Reviews:</strong> Make informed decisions with verified customer reviews
+            </li>
+            <li>
+              <strong>Local Experts:</strong> Find the best {categoryInfo.serviceName || categoryInfo.description.toLowerCase()} professionals in {cityName}, {provinceName}
+            </li>
+          </ul>
+
+          <h3 style={{ fontSize: '1.25rem', marginTop: '1.5rem', marginBottom: '0.75rem', fontWeight: 600, color: '#444' }}>
+            Popular {categoryInfo.title} Services in {cityName}
+          </h3>
+          <p style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7' }}>
+            Our platform features a wide range of {categoryInfo.title.toLowerCase()} services in {cityName}, including 
+            {secondaryKeywords.length > 0 ? ` ${secondaryKeywords.join(', ')},` : ''} and more. 
+            Whether you need {primaryKeyword} for a special occasion or regular maintenance, 
+            you'll find experienced professionals ready to help. Browse our selection of top-rated 
+            {categoryInfo.description.toLowerCase()} in {cityName}, {provinceName} and book your appointment today.
+          </p>
+        </div>
       </div>
 
       {isMobile ? (
