@@ -375,7 +375,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trendz Sections */}
+      {/* Recommended Section - First */}
+      <FeaturedSalons />
+
+      {/* Trendz Sections - Second */}
       {!trendsLoading && Object.keys(trendsData).length > 0 && (
         <>
           {trendsData.HAIRSTYLE && trendsData.HAIRSTYLE.length > 0 && (
@@ -426,18 +429,13 @@ export default function HomePage() {
       {/* Personalized Recommendations for logged-in users */}
       <ForYouRecommendations />
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Recommended</h2>
-        <FeaturedSalons />
-      </section>
-
-      {/* Before & After Photos Slideshow */}
+      {/* Before & After Photos Slideshow - Third */}
       <BeforeAfterSlideshow />
 
       {/* Service Videos Slideshow */}
       <VideoSlideshow />
 
-      {/* Service Categories Section for SEO - Hidden on mobile */}
+      {/* Service Categories Section - Fourth - Hidden on mobile */}
       {!isMobile && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
@@ -472,6 +470,7 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* Featured Services Section - Fifth */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>
         {isLoading && services.length === 0 ? (

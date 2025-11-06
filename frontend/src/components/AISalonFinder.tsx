@@ -197,7 +197,7 @@ export default function AISalonFinder() {
         aria-label="Open AI Assistant"
       >
         <FaRobot className={styles.launcherIcon} />
-        <span className={styles.launcherText}>Find Salons</span>
+        <span className={styles.launcherText}>AI Assistant</span>
       </button>
     );
   }

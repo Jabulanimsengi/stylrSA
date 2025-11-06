@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import styles from './BeforeAfterSlideshow.module.css';
-import ImageLightbox from '@/components/ImageLightbox';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import SalonCard from '@/components/SalonCard';
+import { Salon } from '@/types';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -34,9 +33,6 @@ export default function BeforeAfterSlideshow() {
   const [photos, setPhotos] = useState<BeforeAfterPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -59,10 +55,26 @@ export default function BeforeAfterSlideshow() {
     }
   };
 
-  const handleCardClick = (photo: BeforeAfterPhoto) => {
-    setLightboxImages([photo.beforeImageUrl, photo.afterImageUrl]);
-    setLightboxIndex(0);
-    setLightboxOpen(true);
+  // Transform BeforeAfterPhoto to Salon-like object for SalonCard
+  const transformPhotoToSalon = (photo: BeforeAfterPhoto): Salon & { galleryImages?: any[] } => {
+    return {
+      id: photo.salon.id,
+      name: photo.salon.name,
+      city: photo.salon.city,
+      province: photo.salon.province,
+      backgroundImage: photo.beforeImageUrl, // Use before image as background
+      logo: undefined,
+      heroImages: [],
+      town: '',
+      ownerId: '',
+      createdAt: '',
+      updatedAt: '',
+      // Add gallery images for lightbox (before and after)
+      galleryImages: [
+        { imageUrl: photo.beforeImageUrl },
+        { imageUrl: photo.afterImageUrl }
+      ],
+    } as Salon & { galleryImages?: any[] };
   };
 
 
@@ -115,42 +127,24 @@ export default function BeforeAfterSlideshow() {
                 slidesPerView: 1.15,
               },
               769: {
-                slidesPerView: 5.1,
+                slidesPerView: 4.1,
               },
             }}
           >
-            {photos.map((photo) => (
-              <SwiperSlide key={photo.id}>
-                <div className={styles.card}>
-                  <div 
-                    className={styles.imageWrapper}
-                    onClick={() => handleCardClick(photo)}
-                  >
-                    <div className={styles.beforeAfterBadge}>
-                      <span className={styles.badgeLabel}>Before & After</span>
-                    </div>
-                    <Image
-                      src={photo.beforeImageUrl}
-                      alt={`Before - ${photo.salon.name}`}
-                      fill
-                      sizes="(max-width: 479px) 90vw, (max-width: 767px) 45vw, 20vw"
-                      className={styles.cardImage}
-                    />
-                  </div>
-                  <div className={styles.cardContent}>
-                    <Link href={`/salons/${photo.salon.id}`} className={styles.cardTitle}>
-                    {photo.salon.name}
-                  </Link>
-                    <p className={styles.cardLocation}>
-                      {photo.salon.city}, {photo.salon.province}
-                    </p>
-                    {photo.service && (
-                      <p className={styles.cardMeta}>{photo.service.title}</p>
-                    )}
-                  </div>
-                </div>
-              </SwiperSlide>
-            ))}
+            {photos.map((photo) => {
+              const salonData = transformPhotoToSalon(photo);
+              return (
+                <SwiperSlide key={photo.id}>
+                  <SalonCard
+                    salon={salonData}
+                    showFavorite={false}
+                    showHours={false}
+                    compact={true}
+                    enableLightbox={true}
+                  />
+                </SwiperSlide>
+              );
+            })}
           </Swiper>
 
           {/* Navigation buttons - hidden on mobile */}
@@ -169,20 +163,6 @@ export default function BeforeAfterSlideshow() {
             </>
           )}
 
-          {/* Scroll indicators for mobile */}
-          <div className={styles.scrollIndicators}>
-            <div className={styles.scrollIndicatorLeft}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M15 18l-6-6 6-6"/>
-              </svg>
-            </div>
-            <div className={styles.scrollIndicatorRight}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
-            </div>
-          </div>
-
           {/* Slide counter for mobile */}
           <div className={styles.slideCounter}>
             {activeIndex + 1}/{photos.length}
@@ -190,13 +170,6 @@ export default function BeforeAfterSlideshow() {
         </div>
       </section>
 
-      {lightboxOpen && (
-        <ImageLightbox
-          images={lightboxImages}
-          initialImageIndex={lightboxIndex}
-          onClose={() => setLightboxOpen(false)}
-        />
-      )}
     </>
   );
 }
