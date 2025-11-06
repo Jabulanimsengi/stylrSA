@@ -25,11 +25,31 @@
   color: var(--text-charcoal);
   border-bottom: 3px solid transparent;
   opacity: 0.7;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
+
+.tabButton:hover {
+  opacity: 1;
+  color: var(--primary-plum);
+  background: rgba(245, 25, 87, 0.05);
+}
+
 .activeTab {
   color: var(--primary-plum);
   border-bottom: 3px solid var(--primary-plum);
   opacity: 1;
+}
+
+.activeTab:hover {
+  opacity: 1;
+  color: var(--primary-plum);
+  background: rgba(245, 25, 87, 0.05);
 }
 .list {
   display: flex;

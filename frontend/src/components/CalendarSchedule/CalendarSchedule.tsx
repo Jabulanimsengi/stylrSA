@@ -96,7 +96,11 @@ export default function CalendarSchedule({
           // Override booking availability with custom availability
           if (customAvailability.slots && bookingData.slots) {
             bookingData.slots = bookingData.slots.map((slot: TimeSlot) => {
-              const hour = new Date(slot.time).getHours();
+              // Extract the local hour from the slot time
+              // The slot.time is an ISO string, so we need to get the local hour
+              // to match with the availability hours which are stored as 0-23 in local time
+              const slotDate = new Date(slot.time);
+              const hour = slotDate.getHours();
               const customSlot = customAvailability.slots.find((s: any) => s.hour === hour);
               
               // If provider marked this hour as unavailable, override it

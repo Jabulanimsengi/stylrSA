@@ -2299,6 +2299,12 @@ input:checked + .slider:before {
   border-radius: 0.5rem 0.5rem 0 0;
   transition: all 0.2s ease;
   white-space: nowrap;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: fit-content;
 }
 
 .mainTabButton:hover {
