@@ -84,6 +84,42 @@ const CATEGORY_INFO: Record<string, { title: string; description: string; keywor
     keywords: 'bridal services, wedding hair, wedding makeup, bridal makeup artist, bridal hairstylist, wedding beauty, bridal package, South Africa',
     content: 'Look absolutely breathtaking on your wedding day with professional bridal beauty services. Our experienced bridal specialists offer complete packages including hair styling, makeup application, trials, and on-location services to ensure you look perfect for your special day.'
   },
+  'wig-installations': {
+    title: 'Wig Installation Services | Professional Wig Specialists in SA',
+    description: 'Find professional wig installation and styling services. Book expert wig specialists for lace front wigs, full lace wigs, custom wigs, and wig maintenance across South Africa.',
+    keywords: 'wig installation, wig, wigs, wig specialist, wig stylist, lace front wig, full lace wig, wig fitting, wig customization, wig services, South Africa',
+    content: 'Transform your look with professional wig installation and styling services from South Africa\'s top wig specialists. Whether you need a lace front wig, full lace wig, 360 lace wig, or custom wig, our certified professionals provide expert installation, customization, cutting, coloring, and maintenance services. Find the perfect wig for any occasion with our network of skilled wig specialists.'
+  },
+  'natural-hair-specialists': {
+    title: 'Natural Hair Specialists | Professional Natural Hair Care Services in SA',
+    description: 'Find professional natural hair specialists offering treatments, styling, cuts, and consultations. Book expert natural hair stylists for 4c hair, silk press, wash and go, protective styles, and more across South Africa.',
+    keywords: 'natural hair salon, natural hair specialist, 4c hair specialist, natural hair treatments, silk press, wash and go, twist out, braid out, protective styles, curly cut, deva cut, natural hair consultation, South Africa',
+    content: 'Discover South Africa\'s premier natural hair specialists dedicated to healthy, beautiful natural hair. Our certified stylists specialize in 4c hair and all curl patterns, offering deep conditioning treatments, protein treatments, scalp detox, and hot oil treatments. Whether you need a silk press for a special occasion, a defined wash and go, protective styling with your own hair or extensions, or a professional curly cut, our natural hair specialists help you achieve your hair goals while maintaining optimal hair health. From the big chop to maintaining your natural hair journey, find the perfect specialist for expert guidance and stunning results.'
+  },
+  'lashes-brows': {
+    title: 'Lashes & Brows Services | Professional Lash & Brow Specialists in SA',
+    description: 'Book professional lash extensions and brow services. Find expert technicians for microblading, volume lashes, hybrid lashes, lash lift, brow lamination, and more across South Africa.',
+    keywords: 'lash extensions, microblading, brow specialist, volume lashes, hybrid lashes, lash lift and tint, brow lamination, henna brows, lash bar, brow bar, eyebrow artist, South Africa',
+    content: 'Enhance your natural beauty with professional lash and brow services from South Africa\'s top specialists. Our expert technicians offer classic, volume, and hybrid lash extensions for fuller, longer lashes, plus lash lift and tint for a low-maintenance, curled look. For brows, choose from microblading for semi-permanent definition, ombré or powder brows for a soft, filled appearance, or brow lamination for perfectly styled, fluffy brows. Our brow specialists also offer henna brows, waxing, threading, and shaping services to frame your face beautifully. Whether you want natural enhancement or dramatic transformation, our lash and brow artists use premium products and advanced techniques to deliver stunning, long-lasting results.'
+  },
+  'aesthetics-advanced-skin': {
+    title: 'Aesthetics & Advanced Skin Treatments | Med-Spa Services in SA',
+    description: 'Book advanced skin treatments and aesthetic procedures. Find expert clinics offering microneedling, chemical peels, Botox, fillers, laser hair removal, IV drip therapy, and more across South Africa.',
+    keywords: 'aesthetics clinic, med-spa, microneedling, chemical peel, Botox, dermal fillers, laser hair removal, dermaplaning, IV drip therapy, skin clinic, anti-aging treatments, South Africa',
+    content: 'Experience advanced aesthetic and skin treatments from South Africa\'s premier med-spas and aesthetics clinics. Our certified practitioners offer cutting-edge treatments including microneedling for collagen induction and acne scar reduction, chemical peels for skin renewal, and dermaplaning for smooth, glowing skin. For anti-aging, our clinics provide Botox and dermal fillers for wrinkle reduction and facial volume enhancement. We also offer laser hair removal suitable for all skin types, IV drip therapy for immune support and wellness, and LED light therapy for acne treatment. From non-surgical facelifts to targeted skin concerns, our aesthetics specialists use medical-grade equipment and proven techniques to help you achieve your skin and beauty goals safely and effectively.'
+  },
+  'tattoos-piercings': {
+    title: 'Tattoos & Piercings | Professional Tattoo Artists & Piercing Studios in SA',
+    description: 'Find professional tattoo artists and piercing studios. Book custom tattoos, fine-line tattoos, portrait tattoos, body piercings, and laser tattoo removal across South Africa.',
+    keywords: 'tattoo artist, tattoo studio, custom tattoo, fine-line tattoo, portrait tattoo, body piercing, ear piercing, nose piercing, piercing studio, tattoo removal, South Africa',
+    content: 'Express your individuality with professional tattoo and piercing services from South Africa\'s most skilled artists. Our network includes tattoo specialists in fine-line work, portrait tattoos, custom designs, and various artistic styles. Whether you\'re getting your first tattoo or adding to your collection, our artists provide consultations to bring your vision to life in hygienic, professional studios. For piercings, our certified piercers offer body piercings including ears, nose, navel, and more, using premium titanium and gold jewelry. All studios maintain strict hygiene standards and sterilization protocols. Looking to remove or modify an existing tattoo? Our clinics also offer laser tattoo removal services. Find the perfect artist or piercer to safely and beautifully execute your body art vision.'
+  },
+  'wellness-holistic-spa': {
+    title: 'Wellness & Holistic Spa Services | Complete Wellness Experiences in SA',
+    description: 'Book holistic wellness and spa experiences. Find wellness centres offering massage therapy, reflexology, reiki healing, sauna facilities, flotation therapy, and spa packages across South Africa.',
+    keywords: 'wellness centre, holistic spa, massage therapy, reflexology, reiki healing, energy healing, sauna, steam room, flotation therapy, spa day package, self-care, South Africa',
+    content: 'Nurture your mind, body, and spirit with comprehensive wellness and holistic spa experiences from South Africa\'s premier wellness centres. Our facilities offer a full range of massage therapies including deep tissue, Swedish, hot stone, sports, couples, and prenatal massage to address your specific needs. Experience holistic healing with reflexology, reiki, and energy healing sessions that promote balance and well-being. Many of our wellness centres feature sauna and steam room facilities, infrared saunas, and flotation therapy (sensory deprivation tanks) for deep relaxation and stress relief. We offer complete spa day packages for individuals and couples, combining multiple treatments for the ultimate self-care experience. Whether you need a quick reflexology session or a full day of wellness, our holistic spas provide a sanctuary for rejuvenation, relaxation, and renewal.'
+  },
 };
 
 function ServiceCategoryContent() {
@@ -374,7 +410,7 @@ function ServiceCategoryContent() {
             province: "",
             city: "",
             service: "",
-            category: categoryName,
+            category: categoryName || undefined,
             offersMobile: false,
             sortBy: "",
             openNow: false,
@@ -449,7 +485,7 @@ function ServiceCategoryContent() {
           onClose={handleBookingConfirmationClose}
           onAccept={handleBookingConfirmationAccept}
           salonName={pendingSalon.name || ''}
-          salonLogo={pendingSalon.backgroundImage}
+          salonLogo={pendingSalon.backgroundImage || undefined}
           message={pendingSalon.bookingMessage || ''}
         />
       )}

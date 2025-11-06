@@ -81,6 +81,7 @@ export interface Salon {
   planProofSubmittedAt?: string | null;
   planVerifiedAt?: string | null;
   distance?: number | null; // Distance in km from user (when sorted by proximity)
+  bookingMessage?: string | null; // Optional booking message from salon owner
 }
 
 export interface Service {

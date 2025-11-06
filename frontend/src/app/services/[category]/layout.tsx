@@ -18,6 +18,12 @@ export async function generateStaticParams() {
     { category: 'braiding-weaving' },
     { category: 'mens-grooming' },
     { category: 'bridal-services' },
+    { category: 'wig-installations' },
+    { category: 'natural-hair-specialists' },
+    { category: 'lashes-brows' },
+    { category: 'aesthetics-advanced-skin' },
+    { category: 'tattoos-piercings' },
+    { category: 'wellness-holistic-spa' },
   ];
 }
 
@@ -71,6 +77,36 @@ const CATEGORY_INFO: Record<string, { title: string; description: string; keywor
     title: 'Bridal Beauty Services | Wedding Hair & Makeup in SA',
     description: 'Book professional bridal hair, makeup, and beauty services for your special day. Find experienced bridal specialists offering packages for weddings across South Africa.',
     keywords: 'bridal services, wedding hair, wedding makeup, bridal makeup artist, bridal hairstylist, wedding beauty, bridal package, South Africa',
+  },
+  'wig-installations': {
+    title: 'Wig Installation Services | Professional Wig Specialists in SA',
+    description: 'Find professional wig installation and styling services. Book expert wig specialists for lace front wigs, full lace wigs, custom wigs, and wig maintenance across South Africa.',
+    keywords: 'wig installation, wig, wigs, wig specialist, wig stylist, lace front wig, full lace wig, wig fitting, wig customization, wig services, South Africa',
+  },
+  'natural-hair-specialists': {
+    title: 'Natural Hair Specialists | Professional Natural Hair Care Services in SA',
+    description: 'Find professional natural hair specialists offering treatments, styling, cuts, and consultations. Book expert natural hair stylists for 4c hair, silk press, wash and go, protective styles, and more across South Africa.',
+    keywords: 'natural hair salon, natural hair specialist, 4c hair specialist, natural hair treatments, silk press, wash and go, twist out, braid out, protective styles, curly cut, deva cut, natural hair consultation, South Africa',
+  },
+  'lashes-brows': {
+    title: 'Lashes & Brows Services | Professional Lash & Brow Specialists in SA',
+    description: 'Book professional lash extensions and brow services. Find expert technicians for microblading, volume lashes, hybrid lashes, lash lift, brow lamination, and more across South Africa.',
+    keywords: 'lash extensions, microblading, brow specialist, volume lashes, hybrid lashes, lash lift and tint, brow lamination, henna brows, lash bar, brow bar, eyebrow artist, South Africa',
+  },
+  'aesthetics-advanced-skin': {
+    title: 'Aesthetics & Advanced Skin Treatments | Med-Spa Services in SA',
+    description: 'Book advanced skin treatments and aesthetic procedures. Find expert clinics offering microneedling, chemical peels, Botox, fillers, laser hair removal, IV drip therapy, and more across South Africa.',
+    keywords: 'aesthetics clinic, med-spa, microneedling, chemical peel, Botox, dermal fillers, laser hair removal, dermaplaning, IV drip therapy, skin clinic, anti-aging treatments, South Africa',
+  },
+  'tattoos-piercings': {
+    title: 'Tattoos & Piercings | Professional Tattoo Artists & Piercing Studios in SA',
+    description: 'Find professional tattoo artists and piercing studios. Book custom tattoos, fine-line tattoos, portrait tattoos, body piercings, and laser tattoo removal across South Africa.',
+    keywords: 'tattoo artist, tattoo studio, custom tattoo, fine-line tattoo, portrait tattoo, body piercing, ear piercing, nose piercing, piercing studio, tattoo removal, South Africa',
+  },
+  'wellness-holistic-spa': {
+    title: 'Wellness & Holistic Spa Services | Complete Wellness Experiences in SA',
+    description: 'Book holistic wellness and spa experiences. Find wellness centres offering massage therapy, reflexology, reiki healing, sauna facilities, flotation therapy, and spa packages across South Africa.',
+    keywords: 'wellness centre, holistic spa, massage therapy, reflexology, reiki healing, energy healing, sauna, steam room, flotation therapy, spa day package, self-care, South Africa',
   },
 };
 

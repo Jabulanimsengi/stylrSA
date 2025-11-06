@@ -33,6 +33,12 @@ async function main() {
     'Braiding & Weaving',
     'Men\'s Grooming',
     'Bridal Services',
+    'Wig Installations',
+    'Natural Hair Specialists',
+    'Lashes & Brows',
+    'Aesthetics & Advanced Skin',
+    'Tattoos & Piercings',
+    'Wellness & Holistic Spa',
   ];
 
   for (const categoryName of categories) {

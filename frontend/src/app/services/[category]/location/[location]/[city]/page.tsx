@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import FilterBar, { type FilterValues } from "@/components/FilterBar/FilterBar";
@@ -100,6 +101,13 @@ const CATEGORY_INFO: Record<string, {
     serviceName: 'bridal beauty',
     content: 'Look absolutely breathtaking on your wedding day with professional bridal beauty services.',
     keywords: ['bridal services', 'wedding hair', 'wedding makeup', 'bridal makeup', 'bridal hair', 'bridal package']
+  },
+  'wig-installations': {
+    title: 'Wig Installations',
+    description: 'Professional wig installation and styling services',
+    serviceName: 'wig specialist',
+    content: 'Transform your look with professional wig installation and styling services from South Africa\'s top wig specialists. Whether you need a lace front, full lace, or custom wig, our certified professionals provide expert installation, customization, and maintenance services.',
+    keywords: ['wig installation', 'wig', 'wigs', 'wig specialist', 'wig stylist', 'lace front wig', 'full lace wig', 'wig fitting', 'wig customization']
   },
 };
 
@@ -381,7 +389,8 @@ function ServiceLocationContent() {
             Looking for professional {primaryKeyword} services in {cityName}, {provinceName}? 
             Stylr SA connects you with top-rated {categoryInfo.description.toLowerCase()} professionals in your area. 
             Whether you're searching for {secondaryKeywords[0] || primaryKeyword}, {secondaryKeywords[1] || primaryKeyword}, 
-            or {secondaryKeywords[2] || primaryKeyword} services, we make it easy to find and book the best {categoryInfo.serviceName || categoryInfo.description.toLowerCase()} near you.
+            or {secondaryKeywords[2] || primaryKeyword} services, we make it easy to find and book the best {categoryInfo.serviceName || categoryInfo.description.toLowerCase()} near you. 
+            Explore all <Link href={`/services/${categorySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>{categoryInfo.title.toLowerCase()} services</Link> or browse by <Link href={`/salons/location/${locationSlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>location</Link>.
           </p>
           
           <h3 style={{ fontSize: '1.25rem', marginTop: '1.5rem', marginBottom: '0.75rem', fontWeight: 600, color: '#444' }}>
@@ -413,7 +422,98 @@ function ServiceLocationContent() {
             {secondaryKeywords.length > 0 ? ` ${secondaryKeywords.join(', ')},` : ''} and more. 
             Whether you need {primaryKeyword} for a special occasion or regular maintenance, 
             you'll find experienced professionals ready to help. Browse our selection of top-rated 
-            {categoryInfo.description.toLowerCase()} in {cityName}, {provinceName} and book your appointment today.
+            {categoryInfo.description.toLowerCase()} in <Link href={`/salons/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>{cityName}</Link>, {provinceName} and book your appointment today.
+          </p>
+        </div>
+
+        {/* FAQ Section for SEO */}
+        <div style={{ marginTop: '2rem', marginBottom: '2rem', padding: '1.5rem', background: '#f9f9f9', borderRadius: '8px' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 600, color: '#333' }}>
+            Frequently Asked Questions About {categoryInfo.title} in {cityName}
+          </h2>
+          
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600, color: '#444' }}>
+              What is the average price for {primaryKeyword} in {cityName}?
+            </h3>
+            <p style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7', marginBottom: '1rem' }}>
+              Prices for {primaryKeyword} services in {cityName} vary depending on the salon and specific service. 
+              You can compare prices from multiple {categoryInfo.serviceName} professionals on Stylr SA to find the best value. 
+              Most {categoryInfo.serviceName} professionals in {cityName} offer competitive pricing and transparent rates.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600, color: '#444' }}>
+              How do I find the best {categoryInfo.serviceName} in {cityName}?
+            </h3>
+            <p style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7', marginBottom: '1rem' }}>
+              To find the best {categoryInfo.serviceName} in {cityName}, use Stylr SA to browse verified professionals with real customer reviews. 
+              You can filter by ratings, read verified reviews, view galleries, and compare prices. 
+              All professionals on our platform are verified and reviewed by real customers, ensuring quality service.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600, color: '#444' }}>
+              Do {categoryInfo.serviceName} professionals in {cityName} accept walk-in appointments?
+            </h3>
+            <p style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7', marginBottom: '1rem' }}>
+              Many {categoryInfo.serviceName} professionals in {cityName} accept walk-in appointments, but we recommend booking in advance to secure your preferred time slot. 
+              You can book appointments instantly online 24/7 through Stylr SA. Check individual salon profiles for their walk-in policy and availability.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600, color: '#444' }}>
+              What types of {categoryInfo.title.toLowerCase()} services are available in {cityName}?
+            </h3>
+            <p style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7', marginBottom: '1rem' }}>
+              In {cityName}, you can find a wide range of {categoryInfo.title.toLowerCase()} services including {secondaryKeywords.length > 0 ? secondaryKeywords.slice(0, 3).join(', ') : primaryKeyword}, and more. 
+              Browse our platform to see all available services from top-rated professionals in {cityName}, {provinceName}.
+            </p>
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600, color: '#444' }}>
+              Can I read reviews before booking {primaryKeyword} services in {cityName}?
+            </h3>
+            <p style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7' }}>
+              Yes! All reviews on Stylr SA are verified and come from real customers who have completed appointments. 
+              You can read detailed reviews, see ratings, and view before & after photos to make informed decisions before booking {primaryKeyword} services in {cityName}.
+            </p>
+          </div>
+        </div>
+
+        {/* Related Services Section with Internal Links */}
+        <div style={{ marginTop: '2rem', marginBottom: '2rem', padding: '1.5rem', background: '#f0f7ff', borderRadius: '8px', border: '1px solid #d0e7ff' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 600, color: '#333' }}>
+            Related Services in {cityName}
+          </h2>
+          <p style={{ fontSize: '1rem', color: '#555', lineHeight: '1.7' }}>
+            Looking for other beauty services in {cityName}? Check out our other service categories: 
+            {categorySlug !== 'hair-color-treatments' && (
+              <> <Link href={`/services/hair-color-treatments/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>Hair Coloring & Treatments</Link>,</>
+            )}
+            {categorySlug !== 'nail-care' && (
+              <> <Link href={`/services/nail-care/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>Nail Care</Link>,</>
+            )}
+            {categorySlug !== 'massage-body-treatments' && (
+              <> <Link href={`/services/massage-body-treatments/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>Massage & Body Treatments</Link>,</>
+            )}
+            {categorySlug !== 'skin-care-facials' && (
+              <> <Link href={`/services/skin-care-facials/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>Skin Care & Facials</Link>,</>
+            )}
+            {categorySlug !== 'braiding-weaving' && (
+              <> <Link href={`/services/braiding-weaving/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>Braiding & Weaving</Link>,</>
+            )}
+            {categorySlug !== 'mens-grooming' && (
+              <> <Link href={`/services/mens-grooming/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>Men's Grooming</Link>,</>
+            )}
+            {categorySlug !== 'wig-installations' && (
+              <> <Link href={`/services/wig-installations/location/${locationSlug}/${citySlug}`} style={{ color: '#0066cc', textDecoration: 'underline' }}>Wig Installations</Link>,</>
+            )}
+            {' '}and more. <Link href={`/services`} style={{ color: '#0066cc', textDecoration: 'underline', fontWeight: 600 }}>Browse all services</Link>.
           </p>
         </div>
       </div>
