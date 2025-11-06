@@ -122,6 +122,9 @@ model Salon {
   // Trendz feature
   trendzProfile        SalonTrendzProfile?
   
+  // Custom availability
+  availability         ServiceProviderAvailability[]
+  
   @@index([approvalStatus])
   @@index([city])
   @@index([province])
@@ -136,12 +139,29 @@ model ServiceCategory {
   updatedAt DateTime  @updatedAt
 }
 
+// Service Provider Custom Availability
+model ServiceProviderAvailability {
+  id          String   @id @default(uuid())
+  salonId     String
+  salon       Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  date        DateTime // The specific date (stored as start of day UTC)
+  hour        Int      // Hour of day (0-23) in salon's local time
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([salonId, date, hour])
+  @@index([salonId, date])
+  @@index([date])
+}
+
 model Service {
   id             String         @id @default(uuid())
   title          String
   description    String
   price          Float
   duration       Int
+  pricingType    PricingType?   // Per person or per couple indicator
   images         String[]
   approvalStatus ApprovalStatus @default(PENDING)
   salonId        String
@@ -429,6 +449,11 @@ enum BookingStatus {
   DECLINED
   COMPLETED
   CANCELLED
+}
+
+enum PricingType {
+  PER_PERSON
+  PER_COUPLE
 }
 
 enum ProductOrderStatus {

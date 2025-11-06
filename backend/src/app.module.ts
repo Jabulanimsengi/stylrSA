@@ -33,6 +33,7 @@ import { BeforeAfterModule } from './before-after/before-after.module';
 import { VideosModule } from './videos/videos.module';
 import { TrendsModule } from './trends/trends.module';
 import { BlogsModule } from './blogs/blogs.module';
+import { AvailabilityModule } from './availability/availability.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { BlogsModule } from './blogs/blogs.module';
     VideosModule,
     TrendsModule,
     BlogsModule,
+    AvailabilityModule,
   ],
   controllers: [AppController],
   providers: [

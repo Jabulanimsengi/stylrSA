@@ -6,6 +6,7 @@ import {
   IsArray,
   IsOptional,
   IsUUID,
+  IsEnum,
 } from 'class-validator';
 
 export class CreateServiceDto {
@@ -22,6 +23,10 @@ export class CreateServiceDto {
 
   @IsNumber()
   duration: number;
+
+  @IsEnum(['PER_PERSON', 'PER_COUPLE'])
+  @IsOptional()
+  pricingType?: 'PER_PERSON' | 'PER_COUPLE';
 
   @IsArray()
   @IsString({ each: true })
