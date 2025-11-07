@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import FilterBar, { type FilterValues } from "@/components/FilterBar/FilterBar";
@@ -396,8 +397,13 @@ function ServiceCategoryContent() {
       <PageNav />
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
         <h1 className={styles.title}>{categoryInfo.title.split('|')[0].trim()}</h1>
-        <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#666', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#666', lineHeight: '1.6' }}>
           {categoryInfo.content}
+        </p>
+        <p style={{ fontSize: '1rem', marginBottom: '2rem', color: '#666' }}>
+          <Link href={`/services/${categorySlug}/near-you`} style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
+            Find {categoryInfo.title.split('|')[0].trim().toLowerCase()} near you →
+          </Link>
         </p>
       </div>
 
