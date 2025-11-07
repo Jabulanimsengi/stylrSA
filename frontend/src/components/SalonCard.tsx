@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FaHeart, FaEye } from 'react-icons/fa';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { getImageWithFallback } from '@/lib/placeholders';
 import ImageLightbox from '@/components/ImageLightbox';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { useNavigationLoading } from '@/context/NavigationLoadingContext';
 import { Salon } from '@/types';
 import styles from './SalonCard.module.css';
@@ -31,8 +33,16 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [logoError, setLogoError] = useState(false);
+  const [isCardNavigating, setIsCardNavigating] = useState(false);
   const router = useRouter();
   const { setIsNavigating } = useNavigationLoading();
+  
+  // Reset loading state on unmount or if navigation is cancelled
+  useEffect(() => {
+    return () => {
+      setIsCardNavigating(false);
+    };
+  }, []);
   
   // Track impressions and update view count locally when tracked
   const handleImpressionTracked = useCallback(() => {
@@ -73,8 +83,18 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
       return;
     }
     if (!enableLightbox) {
+      // Immediate visual feedback
+      setIsCardNavigating(true);
+      // Then set global navigation state
       setIsNavigating(true);
+      
+      // Navigate and reset loading state after a timeout as fallback
       router.push(`/salons/${salon.id}`);
+      
+      // Fallback: Reset loading state after 5 seconds if navigation doesn't complete
+      setTimeout(() => {
+        setIsCardNavigating(false);
+      }, 5000);
     }
   };
 
@@ -83,10 +103,15 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
     return (
       <div 
         ref={compact ? impressionRef as any : null}
-        className={`${styles.salonCard} ${compact ? styles.compact : ''}`} 
+        className={`${styles.salonCard} ${compact ? styles.compact : ''} ${isCardNavigating ? styles.navigating : ''}`} 
         onClick={handleCardClick} 
         style={{ cursor: 'pointer' }}
       >
+        {isCardNavigating && (
+          <div className={styles.loadingOverlay}>
+            <LoadingSpinner size="small" color="white" inline />
+          </div>
+        )}
         {showFavorite && onToggleFavorite && (
           <button
             onClick={(e) => {

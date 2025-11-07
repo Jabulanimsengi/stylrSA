@@ -67,17 +67,13 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
         >
           <Image
             src={optimizedSrc}
-            alt={service.title}
+            alt={service.title || 'Service image'}
             className={styles.cardImage}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             unoptimized={!isCloudinarySource}
           />
-          {hasMultipleImages && (
-            <div className={styles.imageCounter}>
-              1/{validImages.length}
-            </div>
-          )}
+          {/* Image counter removed - lightbox has its own counter */}
         </div>
         <div className={styles.cardContent}>
           <h3 className={styles.cardTitle}>{service.title}</h3>

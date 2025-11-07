@@ -63,7 +63,52 @@ export default function MyFavoritesPage() {
     }
   }, [authStatus, router]);
 
-  if (isLoading || authStatus === 'loading') {
+  // Show loading only when authenticated and fetching
+  if (authStatus === 'authenticated' && isLoading) {
+    return (
+      <div className={styles.container}>
+        <PageNav />
+        <h1 className={styles.title}>My Favorite Salons</h1>
+
+        <SkeletonGroup count={8} className={styles.salonGrid}>
+          {() => <SkeletonCard hasImage lines={3} />}
+        </SkeletonGroup>
+      </div>
+    );
+  }
+
+  // Show message for unauthenticated users (while redirect is happening)
+  if (authStatus === 'unauthenticated') {
+    return (
+      <div className={styles.container}>
+        <PageNav />
+        <h1 className={styles.title}>My Favorite Salons</h1>
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '3rem 1rem',
+          maxWidth: '500px',
+          margin: '0 auto'
+        }}>
+          <p style={{ 
+            fontSize: '1.1rem', 
+            marginBottom: '1rem',
+            color: 'var(--color-text-secondary)'
+          }}>
+            🔒 Please sign in to view your favorite salons
+          </p>
+          <p style={{ 
+            fontSize: '0.9rem',
+            color: 'var(--color-text-muted)'
+          }}>
+            Redirecting to login...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading for auth status check
+  if (authStatus === 'loading') {
     return (
       <div className={styles.container}>
         <PageNav />

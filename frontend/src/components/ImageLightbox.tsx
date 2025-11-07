@@ -12,6 +12,8 @@ interface ImageLightboxProps {
 
 export default function ImageLightbox({ images, initialImageIndex = 0, onClose }: ImageLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialImageIndex);
+  const [isLoading, setIsLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   const goToPrevious = useCallback(() => {
     setCurrentIndex((prevIndex) =>
@@ -69,15 +71,49 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
     }
   }, [initialImageIndex, images.length]);
 
+  // Reset loading state when image changes
+  useEffect(() => {
+    setIsLoading(true);
+    setImageError(false);
+  }, [currentIndex]);
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    setIsLoading(false);
+    setImageError(true);
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <div className={styles.imageWrapper}>
+          {isLoading && !imageError && (
+            <div className={styles.loadingSpinner}>
+              <div className={styles.spinner}></div>
+            </div>
+          )}
+          {imageError && (
+            <div className={styles.errorMessage}>
+              Failed to load image
+            </div>
+          )}
           <img
             src={images[currentIndex]}
             alt={`Image ${currentIndex + 1} of ${images.length}`}
             className={styles.image}
-            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '100%', 
+              width: 'auto', 
+              height: 'auto',
+              display: isLoading ? 'none' : 'block'
+            }}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
           />
         </div>
         

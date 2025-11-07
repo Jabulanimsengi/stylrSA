@@ -1,5 +1,22 @@
 import type { Metadata } from 'next';
 
+type Sanitizable = string | null | undefined;
+
+const normalizeText = (value: Sanitizable) => {
+  if (!value) return undefined;
+  return value
+    .replace(/\s+/g, ' ')
+    .replace(/[\u0000-\u001F\u007F<>]/g, '')
+    .trim();
+};
+
+const ensureAbsoluteUrl = (baseUrl: string, url: Sanitizable) => {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  const normalized = url.startsWith('/') ? url : `/${url}`;
+  return `${baseUrl}${normalized}`;
+};
+
 type Props = {
   children: React.ReactNode;
   params: Promise<{ id: string }>;
@@ -75,6 +92,7 @@ export default async function SalonLayout({ children, params }: Props) {
   const { id } = await params;
   const salon = await fetchSalon(id);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
+  const businessId = `${siteUrl}/salons/${id}#localbusiness`;
 
   const breadcrumbSchema = salon ? {
     '@context': 'https://schema.org',
@@ -101,18 +119,97 @@ export default async function SalonLayout({ children, params }: Props) {
     ],
   } : null;
 
+  const reviews: Array<{
+    id: string;
+    rating: number;
+    comment?: string | null;
+    createdAt?: string;
+    author?: { firstName?: string | null; lastName?: string | null } | null;
+  }> = Array.isArray(salon?.reviews) ? salon.reviews : [];
+
+  const reviewCount = typeof salon?.reviewCount === 'number'
+    ? salon.reviewCount
+    : reviews.length;
+
+  const computedAvgRating = (() => {
+    if (typeof salon?.avgRating === 'number' && salon.avgRating > 0) {
+      return salon.avgRating;
+    }
+    if (!reviews.length) return undefined;
+    const total = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+    return total > 0 ? total / reviews.length : undefined;
+  })();
+
+  const aggregateRating = reviewCount > 0 && computedAvgRating
+    ? {
+        '@type': 'AggregateRating',
+        '@id': `${businessId}#aggregateRating`,
+        ratingValue: Number(computedAvgRating.toFixed(1)),
+        reviewCount,
+        bestRating: 5,
+        worstRating: 1,
+        itemReviewed: {
+          '@id': businessId,
+          '@type': 'LocalBusiness',
+          name: salon?.name,
+        },
+      }
+    : undefined;
+
+  const reviewEntities = reviewCount > 0
+    ? reviews
+        .filter((review) => typeof review.rating === 'number' && review.rating > 0)
+        .slice(0, 10)
+        .map((review) => {
+          const authorFirst = normalizeText(review.author?.firstName);
+          const authorLastInitial = normalizeText(review.author?.lastName)?.charAt(0) || '';
+          const authorName = normalizeText(
+            [authorFirst, authorLastInitial ? `${authorLastInitial}.` : undefined]
+              .filter(Boolean)
+              .join(' ')
+          ) || 'Verified Customer';
+
+          const reviewBody = normalizeText(review.comment);
+
+          return {
+            '@type': 'Review',
+            '@id': `${businessId}-review-${review.id}`,
+            datePublished: review.createdAt,
+            ...(reviewBody ? { reviewBody } : {}),
+            itemReviewed: {
+              '@id': businessId,
+              '@type': 'LocalBusiness',
+            },
+            author: {
+              '@type': 'Person',
+              name: authorName,
+            },
+            reviewRating: {
+              '@type': 'Rating',
+              ratingValue: review.rating,
+              bestRating: 5,
+              worstRating: 1,
+            },
+          };
+        })
+    : [];
+
+  const normalizedImages = salon?.heroImages && salon.heroImages.length > 0
+    ? salon.heroImages
+        .map((img: string) => ensureAbsoluteUrl(siteUrl, img))
+        .filter((img): img is string => Boolean(img))
+    : salon?.backgroundImage
+    ? [ensureAbsoluteUrl(siteUrl, salon.backgroundImage)].filter((img): img is string => Boolean(img))
+    : undefined;
+
   const jsonLd = salon
     ? {
         '@context': 'https://schema.org',
         '@type': 'LocalBusiness',
+        '@id': businessId,
         name: salon.name,
         description: salon.description || undefined,
-        image:
-          salon.heroImages && salon.heroImages.length > 0
-            ? salon.heroImages
-            : salon.backgroundImage
-            ? [salon.backgroundImage]
-            : undefined,
+        image: normalizedImages,
         url: `${siteUrl}/salons/${salon.id}`,
         telephone: salon.phoneNumber || undefined,
         email: salon.contactEmail || undefined,
@@ -131,13 +228,8 @@ export default async function SalonLayout({ children, params }: Props) {
                 longitude: salon.longitude,
               }
             : undefined,
-        aggregateRating: salon.avgRating
-          ? {
-              '@type': 'AggregateRating',
-              ratingValue: salon.avgRating,
-              reviewCount: salon.reviews?.length || 0,
-            }
-          : undefined,
+        aggregateRating,
+        review: reviewEntities.length > 0 ? reviewEntities : undefined,
         priceRange: '$$',
       }
     : null;

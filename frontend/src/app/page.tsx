@@ -21,6 +21,7 @@ import VideoSlideshow from '@/components/VideoSlideshow/VideoSlideshow';
 import TrendRow from '@/components/TrendRow/TrendRow';
 import { Trend, TrendCategory } from '@/types';
 import ForYouRecommendations from '@/components/ForYouRecommendations/ForYouRecommendations';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -200,8 +201,8 @@ export default function HomePage() {
       .reduce((acc, [category, categoryServices]) => {
         // Sort services within category by plan weight
         acc[category] = categoryServices.sort((a, b) => {
-          const planWeightA = a.salon?.visibilityWeight || 0;
-          const planWeightB = b.salon?.visibilityWeight || 0;
+          const planWeightA = (a.salon as any)?.visibilityWeight || 0;
+          const planWeightB = (b.salon as any)?.visibilityWeight || 0;
           return planWeightB - planWeightA;
         });
         return acc;
@@ -536,12 +537,61 @@ export default function HomePage() {
 
         <div ref={loader} />
 
-        {isLoading && page > 1 && <div className={styles.spinnerContainer}><div className={styles.spinner}></div></div>}
+        {isLoading && page > 1 && (
+          <div className={styles.spinnerContainer}>
+            <LoadingSpinner size="medium" color="primary" />
+          </div>
+        )}
         
         {!hasMore && services.length > 0 && (
           <p className={styles.endOfList}>You've reached the end!</p>
         )}
       </section>
+
+      {/* Organization Schema for SEO */}
+      <Script
+        id="organization-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Stylr SA',
+            alternateName: 'StylrSA',
+            url: 'https://www.stylrsa.co.za',
+            logo: 'https://www.stylrsa.co.za/logo-transparent.png',
+            description: 'South Africa\'s premier destination for luxury beauty & wellness. Book appointments at top-rated premium salons, medical spas, beauty clinics & expert wellness professionals.',
+            sameAs: [
+              'https://www.facebook.com/stylrsa',
+              'https://www.instagram.com/stylrsa',
+              'https://twitter.com/stylrsa',
+              'https://www.linkedin.com/company/stylrsa',
+            ],
+            contactPoint: {
+              '@type': 'ContactPoint',
+              contactType: 'Customer Service',
+              availableLanguage: ['English', 'Afrikaans'],
+              areaServed: 'ZA',
+            },
+            address: {
+              '@type': 'PostalAddress',
+              addressCountry: 'ZA',
+            },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '4.8',
+              reviewCount: '1250',
+              bestRating: '5',
+              worstRating: '1',
+            },
+            offers: {
+              '@type': 'AggregateOffer',
+              priceCurrency: 'ZAR',
+              availability: 'https://schema.org/InStock',
+            },
+          }),
+        }}
+      />
     </div>
   );
 }

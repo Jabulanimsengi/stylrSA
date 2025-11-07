@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaRobot, FaTimes, FaMinus, FaPaperPlane, FaExpand, FaStar, FaMapMarkerAlt } from 'react-icons/fa';
 import styles from './AISalonFinder.module.css';
-import { parseUserInput, getQuickActions, ChatIntent } from '@/lib/chatIntent';
+import { parseEnhancedInput, EnhancedChatIntent } from '@/lib/aiChatbotEnhanced';
+import { ChatIntent } from '@/lib/chatIntent';
 import { FilterValues } from './FilterBar/FilterBar';
 
 interface Salon {
@@ -33,6 +34,8 @@ export default function AISalonFinder() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -53,15 +56,43 @@ export default function AISalonFinder() {
     }
   }, [isOpen, isMinimized]);
 
+  // Get user location when chatbot opens
+  useEffect(() => {
+    if (isOpen && !userLocation && !locationError) {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+            console.log('📍 User location obtained:', position.coords.latitude, position.coords.longitude);
+          },
+          (error) => {
+            console.warn('Location access denied or unavailable:', error.message);
+            setLocationError(error.message);
+            // Continue without location - chatbot will work without it
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 300000 // Cache for 5 minutes
+          }
+        );
+      }
+    }
+  }, [isOpen, userLocation, locationError]);
+
   // Initial greeting when first opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const welcomeIntent = parseUserInput('hello');
+      const context = userLocation ? { userLocation } : undefined;
+      const welcomeIntent = parseEnhancedInput('hello', context);
       addBotMessage(welcomeIntent);
     }
-  }, [isOpen]);
+  }, [isOpen, userLocation]);
 
-  const addBotMessage = (intent: ChatIntent) => {
+  const addBotMessage = (intent: EnhancedChatIntent | ChatIntent) => {
     const botMessage: Message = {
       id: `bot-${Date.now()}`,
       type: 'bot',
@@ -83,6 +114,18 @@ export default function AISalonFinder() {
     if (filters.priceMax) params.append('priceMax', filters.priceMax);
     if (filters.openNow) params.append('openNow', 'true');
     if (filters.offersMobile) params.append('offersMobile', 'true');
+    
+    // Add location-based filtering if available
+    if (filters.lat !== undefined && filters.lat !== null) {
+      params.append('latitude', filters.lat.toString());
+    }
+    if (filters.lon !== undefined && filters.lon !== null) {
+      params.append('longitude', filters.lon.toString());
+    }
+    if (filters.lat && filters.lon && filters.radius) {
+      params.append('radius', filters.radius.toString());
+      params.append('sortBy', 'distance'); // Sort by distance when location is provided
+    }
 
     try {
       const response = await fetch(`/api/salons/approved?${params.toString()}`);
@@ -97,6 +140,9 @@ export default function AISalonFinder() {
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
+    
+    // Pass user location context to chatbot
+    const context = userLocation ? { userLocation } : undefined;
 
     // Add user message
     const userMessage: Message = {
@@ -112,8 +158,8 @@ export default function AISalonFinder() {
     
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Parse intent
-    const intent = parseUserInput(text);
+    // Parse intent with location context
+    const intent = parseEnhancedInput(text, context);
     
     // Add bot response
     addBotMessage(intent);

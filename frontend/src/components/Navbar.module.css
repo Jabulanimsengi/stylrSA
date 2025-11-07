@@ -530,8 +530,10 @@
   }
 
   .mobileBar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 45;
     height: 64px;
     padding: 0 var(--space-lg);
@@ -541,6 +543,8 @@
     background: var(--nav-surface);
     border-bottom: 1px solid var(--nav-border);
     box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .sidebar {
@@ -548,28 +552,16 @@
     top: 0;
     left: 0;
     height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height for mobile browsers */
     transform: translateX(-110%);
     transition: transform 220ms var(--transition-base), box-shadow 220ms var(--transition-base);
     box-shadow: 0 24px 48px rgba(10, 15, 30, 0.22);
     z-index: 60;
-    /* Re-enable scrolling on mobile where space is limited */
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-primary) transparent;
+    /* Remove overflow from parent, let sidebarContent handle it */
+    overflow: hidden;
   }
 
-  .sidebar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .sidebar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .sidebar::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: 999px;
-  }
+  /* Scrollbar styles moved to sidebarContent */
 
   .sidebarOpen {
     transform: translateX(0);

@@ -40,7 +40,7 @@ export default function CreateSalonPage() {
     Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string,{open:string,close:string, isOpen: boolean}>
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { authStatus } = useAuth();
+  const { authStatus, user } = useAuth();
   const router = useRouter();
 
   const selectedPlanDetails = PLAN_BY_CODE[selectedPlan];
@@ -166,7 +166,18 @@ export default function CreateSalonPage() {
         throw new Error(errorData.message || 'Failed to create salon');
       }
 
-      toast.success('Salon created successfully! It will be reviewed by an admin.');
+      // Enhanced success message
+      toast.success('🎉 Salon profile created successfully!', {
+        autoClose: 5000
+      });
+      
+      // Show next steps
+      setTimeout(() => {
+        toast.info('💡 Next: Add services and set your availability in the dashboard', {
+          autoClose: 7000
+        });
+      }, 1000);
+      
       router.push('/dashboard');
     } catch (error: any) {
       logger.error('Failed to create salon:', error);

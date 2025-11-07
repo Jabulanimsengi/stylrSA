@@ -872,6 +872,11 @@
 
   .app-content {
     margin-left: 0;
+    padding-top: 64px; /* Account for fixed mobile navbar */
+  }
+  
+  .main-content {
+    padding-top: var(--space-lg);
   }
 }
 

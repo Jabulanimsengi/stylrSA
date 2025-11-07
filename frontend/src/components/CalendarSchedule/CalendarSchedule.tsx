@@ -129,6 +129,30 @@ export default function CalendarSchedule({
     fetchAvailability();
   }, [selectedService, selectedDate, salon.id]);
 
+  // Listen for availability updates from AvailabilityManager
+  useEffect(() => {
+    const handleAvailabilityUpdate = (event: any) => {
+      const { salonId: updatedSalonId } = event.detail;
+      
+      // If this salon's availability was updated, refetch
+      if (updatedSalonId === salon.id && selectedService && selectedDate) {
+        console.log('Availability updated, refetching...');
+        // Trigger refetch by updating a dependency
+        setLoading(true);
+        setTimeout(() => {
+          // Force re-render to trigger useEffect above
+          setSelectedDate(new Date(selectedDate));
+        }, 500);
+      }
+    };
+    
+    window.addEventListener('availability-updated', handleAvailabilityUpdate);
+    
+    return () => {
+      window.removeEventListener('availability-updated', handleAvailabilityUpdate);
+    };
+  }, [salon.id, selectedService, selectedDate]);
+
   const handleDateClick = (date: Date) => {
     // Don't allow selection of past dates
     const today = new Date();

@@ -1,13 +1,16 @@
 'use client';
 import { FaHome, FaSearch, FaHeart, FaUser, FaCog } from 'react-icons/fa';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthModal } from '@/context/AuthModalContext';
 import styles from './MobileBottomNav.module.css';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { authStatus, user } = useAuth();
+  const { openModal } = useAuthModal();
   
   // Determine account link based on user role
   const getAccountLink = () => {
@@ -23,13 +26,22 @@ export default function MobileBottomNav() {
   const navItems = [
     { href: '/', icon: FaHome, label: 'Home' },
     { href: '/salons', icon: FaSearch, label: 'Browse' },
-    { href: '/my-favorites', icon: FaHeart, label: 'Favorites' },
+    { href: '/my-favorites', icon: FaHeart, label: 'Favorites', requiresAuth: true },
     { href: accountHref, icon: authStatus === 'authenticated' ? FaCog : FaUser, label: 'Account' },
   ];
   
+  const handleNavClick = (e: React.MouseEvent, item: typeof navItems[0]) => {
+    // If favorites and not authenticated, show auth modal instead
+    if (item.requiresAuth && authStatus !== 'authenticated') {
+      e.preventDefault();
+      openModal('login');
+    }
+  };
+  
   return (
     <nav className={styles.bottomNav}>
-      {navItems.map(({ href, icon: Icon, label }) => {
+      {navItems.map((item) => {
+        const { href, icon: Icon, label } = item;
         const isActive = pathname === href || 
           (label === 'Account' && (
             pathname?.startsWith('/my-profile') ||
@@ -42,6 +54,7 @@ export default function MobileBottomNav() {
             key={href}
             href={href}
             className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+            onClick={(e) => handleNavClick(e, item)}
           >
             <Icon />
             <span>{label}</span>

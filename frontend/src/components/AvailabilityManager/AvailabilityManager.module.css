@@ -322,6 +322,18 @@
   cursor: not-allowed;
 }
 
+.lastSaved {
+  text-align: center;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #a5d6a7;
+}
+
 /* Mobile Responsive */
 @media (max-width: 1024px) {
   .content {

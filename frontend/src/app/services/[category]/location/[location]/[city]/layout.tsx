@@ -442,6 +442,11 @@ export default async function ServiceLocationLayout({ children, params }: Props)
       reviewCount: '1250',
       bestRating: '5',
       worstRating: '1',
+      itemReviewed: {
+        '@type': 'Service',
+        name: `${categoryInfo.name} in ${cityInfo.name}`,
+        description: `${categoryInfo.descriptionBase} in ${cityInfo.name}, ${cityInfo.province}`,
+      },
     },
   };
 
@@ -473,6 +478,16 @@ export default async function ServiceLocationLayout({ children, params }: Props)
       reviewCount: '1250',
       bestRating: '5',
       worstRating: '1',
+      itemReviewed: {
+        '@type': 'LocalBusiness',
+        name: `${categoryInfo.serviceName} in ${cityInfo.name}`,
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: cityInfo.name,
+          addressRegion: cityInfo.province,
+          addressCountry: 'ZA',
+        },
+      },
     },
     hasOfferCatalog: {
       '@type': 'OfferCatalog',

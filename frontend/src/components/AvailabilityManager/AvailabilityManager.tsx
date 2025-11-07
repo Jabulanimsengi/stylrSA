@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import styles from './AvailabilityManager.module.css';
 import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaSave } from 'react-icons/fa';
@@ -21,6 +21,7 @@ export default function AvailabilityManager({ salonId }: AvailabilityManagerProp
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Generate calendar days for the current month
   const getDaysInMonth = () => {
@@ -51,38 +52,38 @@ export default function AvailabilityManager({ salonId }: AvailabilityManagerProp
   };
 
   // Fetch availability for selected date
-  useEffect(() => {
+  const fetchAvailability = useCallback(async () => {
     if (!selectedDate) return;
 
-    const fetchAvailability = async () => {
-      setIsLoading(true);
-      try {
-        const dateStr = selectedDate.toISOString().split('T')[0];
-        const response = await fetch(`/api/availability/${salonId}?date=${dateStr}`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          setHourlyAvailability(data.slots || []);
-        } else {
-          // Initialize with default available slots
-          setHourlyAvailability(
-            Array.from({ length: 24 }, (_, hour) => ({
-              hour,
-              isAvailable: true,
-            }))
-          );
-        }
-        setHasChanges(false);
-      } catch (error) {
-        console.error('Failed to fetch availability:', error);
-        toast.error('Failed to load availability');
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const response = await fetch(`/api/availability/${salonId}?date=${dateStr}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHourlyAvailability(data.slots || []);
+      } else {
+        // Initialize with default available slots
+        setHourlyAvailability(
+          Array.from({ length: 24 }, (_, hour) => ({
+            hour,
+            isAvailable: true,
+          }))
+        );
       }
-    };
-
-    fetchAvailability();
+      setHasChanges(false);
+    } catch (error) {
+      console.error('Failed to fetch availability:', error);
+      toast.error('Failed to load availability');
+    } finally {
+      setIsLoading(false);
+    }
   }, [selectedDate, salonId]);
+
+  useEffect(() => {
+    fetchAvailability();
+  }, [fetchAvailability]);
 
   const handleDateClick = (date: Date) => {
     const today = new Date();
@@ -127,14 +128,36 @@ export default function AvailabilityManager({ salonId }: AvailabilityManagerProp
       });
 
       if (response.ok) {
-        toast.success('Availability updated successfully!');
+        const data = await response.json();
+        const savedCount = data.updated || hourlyAvailability.length;
+        
+        // Show detailed success message
+        toast.success(
+          `✅ Availability updated! ${savedCount} hours saved for ${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.`,
+          { autoClose: 5000 }
+        );
+        
         setHasChanges(false);
+        setLastSaved(new Date());
+        
+        // Refetch to confirm save and update UI
+        await fetchAvailability();
+        
+        // Dispatch event for other components (like CalendarSchedule)
+        window.dispatchEvent(new CustomEvent('availability-updated', {
+          detail: { salonId, date: selectedDate }
+        }));
+      } else if (response.status === 401) {
+        toast.error('🔒 Please log in to update availability');
+      } else if (response.status === 403) {
+        toast.error('⛔ You do not have permission to update this salon');
       } else {
-        throw new Error('Failed to update availability');
+        const errorText = await response.text();
+        toast.error(`❌ Failed to save: ${errorText || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Failed to save availability:', error);
-      toast.error('Failed to save availability. Please try again.');
+      toast.error('Failed to save availability. Please check your connection and try again.');
     } finally {
       setIsSaving(false);
     }
@@ -320,6 +343,12 @@ export default function AvailabilityManager({ salonId }: AvailabilityManagerProp
                         <FaSave />
                         {isSaving ? 'Saving...' : 'Save Changes'}
                       </button>
+                    </div>
+                  )}
+                  
+                  {lastSaved && !hasChanges && (
+                    <div className={styles.lastSaved}>
+                      ✅ Last saved: {lastSaved.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                     </div>
                   )}
                 </>
