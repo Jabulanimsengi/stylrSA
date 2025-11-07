@@ -14,7 +14,7 @@ const buildApiUrl = (base: string | undefined, path: string) => {
   return `${normalizedBase}${normalizedPath}`;
 };
 
-const fetchSalonWithTimeout = async (url: string, timeoutMs = 2500): Promise<Salon | null> => {
+const fetchSalonWithTimeout = async (url: string, timeoutMs = 10000): Promise<Salon | null> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 

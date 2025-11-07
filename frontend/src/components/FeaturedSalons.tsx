@@ -191,6 +191,11 @@ export default function FeaturedSalons() {
           slidesPerView={'auto'}
           style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
           onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
+          allowTouchMove={true}
+          simulateTouch={true}
+          touchRatio={1}
+          threshold={10}
+          longSwipesRatio={0.5}
           breakpoints={{
             320: {
               slidesPerView: 1.15,

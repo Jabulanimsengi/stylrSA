@@ -10,6 +10,23 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  experimental: {
+    // Fix for Next.js 15 compatibility
+    optimizePackageImports: ['@sentry/nextjs'],
+  },
+  // Webpack configuration to handle Sentry Pages Router compatibility
+  webpack: (config, { isServer, dev }) => {
+    // Only apply externals during production build to avoid dev server issues
+    if (isServer && !dev) {
+      // Ignore Sentry's Pages Router files in App Router
+      config.externals = config.externals || [];
+      config.externals.push({
+        '_error': 'commonjs _error',
+        '_document': 'commonjs _document',
+      });
+    }
+    return config;
+  },
   images: {
     remotePatterns: [
       {

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -451,8 +451,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     const type = salon.bookingType;
     if (type === 'MOBILE') return 'Mobile visits available';
     if (type === 'BOTH') return 'On-site & mobile visits';
-    if (type === 'REQUEST') return 'Request-led appointments';
-    return 'On-site appointments';
+    if (type === 'ONSITE') return 'On-site appointments';
+    return 'Request-led appointments';
   })();
   
 
@@ -538,7 +538,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
       {isVideoLightboxOpen && selectedVideo && (
         <VideoLightbox
-          videoUrl={selectedVideo.vimeoUrl}
+          vimeoId={selectedVideo.vimeoUrl}
+          isOpen={isVideoLightboxOpen}
           onClose={closeVideoLightbox}
         />
       )}
@@ -556,7 +557,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         onClose={handleBookingConfirmationClose}
         onAccept={handleBookingConfirmationAccept}
         salonName={salon?.name || ''}
-        salonLogo={salon?.backgroundImage}
+        salonLogo={salon?.backgroundImage || undefined}
         message={salon?.bookingMessage || ''}
       />
 
@@ -567,7 +568,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
             {salon.logo && !logoError ? (
               <div 
                 className={styles.logoWrapper} 
-                onClick={() => openLightbox([salon.logo], 0)}
+                onClick={() => openLightbox([salon.logo || ''], 0)}
                 style={{ cursor: 'pointer' }}
                 title="Click to view full logo"
               >
@@ -853,7 +854,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                   ) : <p>Operating hours not listed.</p>}
                 </Accordion>
                 <Accordion title="Service Type">
-                  <p>{formatBookingType(salon.bookingType)}</p>
+                  <p>{formatBookingType(salon.bookingType || 'ONSITE')}</p>
                   {salon.offersMobile && salon.mobileFee && (
                     <p style={{marginTop: '0.5rem'}}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
                   )}

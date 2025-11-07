@@ -55,7 +55,25 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
   const impressionRef = useSalonImpression(salon.id, compact, handleImpressionTracked); // Track impressions for compact cards
 
   const handleImageClick = (e: React.MouseEvent) => {
-    if (!enableLightbox) return; // Don't handle if lightbox disabled
+    if (!enableLightbox) {
+      // If lightbox is disabled, navigate to salon page
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Show loading state
+      setIsCardNavigating(true);
+      setIsNavigating(true);
+      
+      // Navigate to salon profile
+      router.push(`/salons/${salon.id}`);
+      
+      // Reset loading state after timeout
+      setTimeout(() => {
+        setIsCardNavigating(false);
+        setIsNavigating(false);
+      }, 3000);
+      return;
+    }
     
     e.preventDefault();
     e.stopPropagation();
@@ -82,19 +100,22 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
       return;
     }
+    
     if (!enableLightbox) {
       // Immediate visual feedback
       setIsCardNavigating(true);
       // Then set global navigation state
       setIsNavigating(true);
       
-      // Navigate and reset loading state after a timeout as fallback
+      // Navigate to salon profile
       router.push(`/salons/${salon.id}`);
       
-      // Fallback: Reset loading state after 5 seconds if navigation doesn't complete
+      // Reset loading state after a reasonable timeout
+      // This handles cases where navigation fails or user goes back
       setTimeout(() => {
         setIsCardNavigating(false);
-      }, 5000);
+        setIsNavigating(false);
+      }, 3000);
     }
   };
 
@@ -109,7 +130,7 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
       >
         {isCardNavigating && (
           <div className={styles.loadingOverlay}>
-            <LoadingSpinner size="small" color="white" inline />
+            <LoadingSpinner size="medium" color="white" />
           </div>
         )}
         {showFavorite && onToggleFavorite && (
@@ -125,7 +146,7 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
           </button>
         )}
         <div className={styles.salonLink}>
-          <div className={styles.imageWrapper}>
+          <div className={styles.imageWrapper} onClick={handleImageClick}>
             {salon.isVerified && (
               <div className={styles.verificationOverlay}>
                 <VerificationBadge size="small" overlay={true} />
