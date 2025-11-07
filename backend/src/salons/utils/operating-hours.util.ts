@@ -163,8 +163,21 @@ export function coerceOperatingHoursArray(raw: unknown): OperatingHourEntry[] {
 }
 
 export function normalizeOperatingHours(raw: unknown): OperatingHourEntry[] {
+  // Only use defaults if no data was provided at all
+  if (raw === null || raw === undefined) {
+    return DEFAULT_OPERATING_HOURS;
+  }
+  
   const entries = coerceOperatingHoursArray(raw);
-  return entries.length > 0 ? entries : DEFAULT_OPERATING_HOURS;
+  
+  // If data was provided but parsing failed, return empty array
+  // This prevents silently replacing user data with defaults
+  if (entries.length === 0) {
+    console.warn('Operating hours parsing resulted in empty array. Raw data:', raw);
+    return [];
+  }
+  
+  return entries;
 }
 
 function hhmmToMinutes(hhmm: string): number | null {
