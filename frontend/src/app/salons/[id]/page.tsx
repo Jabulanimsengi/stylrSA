@@ -34,23 +34,42 @@ const fetchSalonWithTimeout = async (url: string, timeoutMs = 10000): Promise<Sa
   }
 };
 
+// --- THIS IS THE FIXED FUNCTION ---
 async function getSalon(id: string): Promise<Salon | null> {
-  const candidates = [
-    `/api/salons/${id}`,
-    ...apiBases.map((base) => buildApiUrl(base, `/api/salons/${id}`)),
-  ];
+  
+  // 1. Determine the ONE correct, absolute base URL for your API.
+  //    This must be an absolute path (e.g., https://www.your-api.com or http://localhost:3001)
+  //    It should be the URL your server can access.
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_PATH;
 
-  const uniqueUrls = Array.from(new Set(candidates));
-
-  for (const url of uniqueUrls) {
-    const salon = await fetchSalonWithTimeout(url);
-    if (salon) {
-      return salon;
-    }
+  // 2. Check if a base URL is even defined. If not, this fetch will fail.
+  if (!baseUrl) {
+    console.error('ERROR: NEXT_PUBLIC_API_URL or NEXT_PUBLIC_BASE_PATH is not set.');
+    return null;
   }
 
-  return null;
+  // 3. Build the single, correct URL.
+  const url = buildApiUrl(baseUrl, `/api/salons/${id}`);
+
+  try {
+    // 4. Fetch from that one URL. 
+    //    We can use a shorter 5-second timeout.
+    //    The long 10-second timeout was a major part of the hang.
+    const salon = await fetchSalonWithTimeout(url, 5000); // 5-second timeout
+    
+    if (!salon) {
+      console.warn(`[getSalon] Salon not found at: ${url}`);
+      return null;
+    }
+
+    return salon;
+
+  } catch (error) {
+    console.error(`[getSalon] Failed to fetch salon ${id} from ${url}`, error);
+    return null;
+  }
 }
+// --- END OF FIXED FUNCTION ---
 
 export default async function SalonProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
