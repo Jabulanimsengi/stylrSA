@@ -60,6 +60,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/services/mens-grooming`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${siteUrl}/services/bridal-services`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${siteUrl}/services/wig-installations`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/natural-hair-specialists`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/lashes-brows`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/aesthetics-advanced-skin`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/tattoos-piercings`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/services/wellness-holistic-spa`, changeFrequency: 'weekly', priority: 0.9 },
   ];
 
   // Location-specific service pages - CRITICAL for local SEO
@@ -77,6 +82,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     'mens-grooming',
     'bridal-services',
     'wig-installations',
+    'natural-hair-specialists',
+    'lashes-brows',
+    'aesthetics-advanced-skin',
+    'tattoos-piercings',
+    'wellness-holistic-spa',
   ];
   
   Object.keys(PROVINCES).forEach(provinceSlug => {
