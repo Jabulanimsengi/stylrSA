@@ -321,84 +321,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const primaryKeyword = categoryInfo.keywordsBase[0] || categoryInfo.serviceName;
   const description = `Book the best ${primaryKeyword} services in ${cityInfo.name}, ${cityInfo.province}. Find top-rated ${categoryInfo.serviceName} professionals, read verified reviews, compare prices, and book instantly. Open now!`;
   
-  // Generate comprehensive keywords using multiple patterns
-  const modifiers = ['best', 'top-rated', 'affordable', 'cheap', 'professional', 'experienced', 'certified', 'licensed', 'luxury', 'premium', 'local', 'recommended', 'popular', 'trending'];
-  const suffixes = ['near me', 'prices', 'cost', 'reviews', 'open now', 'booking', 'appointment', 'online booking', 'same day', 'walk in', 'discount', 'promotion', 'package', 'treatment', 'service', 'salon', 'studio', 'clinic', 'spa', 'shop', 'for men', 'for women', 'for kids', 'quotes', 'specials', 'deals'];
-  
-  const keywordPatterns = [
-    // Pattern 1: [Service] in [Location]
-    ...categoryInfo.keywordsBase.map(k => `${k} in ${cityInfo.name}`),
-    ...categoryInfo.keywordsBase.map(k => `${k} in ${cityInfo.province}`),
-    
-    // Pattern 2: [Service] near me [Location]
-    ...categoryInfo.keywordsBase.map(k => `${k} near me ${cityInfo.name}`),
-    ...categoryInfo.keywordsBase.map(k => `${k} near me ${cityInfo.province}`),
-    
-    // Pattern 3: [Service] [Location]
-    ...categoryInfo.keywordsBase.map(k => `${k} ${cityInfo.name}`),
-    ...categoryInfo.keywordsBase.map(k => `${k} ${cityInfo.province}`),
-    
-    // Pattern 4: [Modifier] [Service] in [Location]
-    ...modifiers.slice(0, 8).flatMap(mod => 
-      categoryInfo.keywordsBase.slice(0, 10).map(k => `${mod} ${k} in ${cityInfo.name}`)
-    ),
-    
-    // Pattern 5: [Service] [Location] [Suffix]
-    ...categoryInfo.keywordsBase.slice(0, 15).flatMap(k =>
-      suffixes.slice(0, 12).map(suffix => `${k} ${cityInfo.name} ${suffix}`)
-    ),
-    
-    // Pattern 6: [Modifier] [Service] [Location] [Suffix] (high-value combinations)
-    ...modifiers.slice(0, 6).flatMap(mod =>
-      categoryInfo.keywordsBase.slice(0, 8).flatMap(k =>
-        suffixes.slice(0, 8).map(suffix => `${mod} ${k} ${cityInfo.name} ${suffix}`)
-      )
-    ),
-    
-    // Pattern 7: [Service] [Location] prices/cost/reviews
-    ...categoryInfo.keywordsBase.slice(0, 10).map(k => `${k} ${cityInfo.name} prices`),
-    ...categoryInfo.keywordsBase.slice(0, 10).map(k => `${k} ${cityInfo.name} cost`),
-    ...categoryInfo.keywordsBase.slice(0, 10).map(k => `${k} ${cityInfo.name} reviews`),
-    ...categoryInfo.keywordsBase.slice(0, 10).map(k => `${k} ${cityInfo.name} booking`),
-    ...categoryInfo.keywordsBase.slice(0, 10).map(k => `${k} ${cityInfo.name} open now`),
-    
-    // Pattern 8: Base service name variations
-    `${categoryInfo.serviceName} ${cityInfo.name}`,
-    `${categoryInfo.serviceName} ${cityInfo.province}`,
-    `${categoryInfo.serviceName} near me ${cityInfo.name}`,
-    `find ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `book ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `find a ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `book a ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `best ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `top-rated ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `affordable ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `professional ${categoryInfo.serviceName} ${cityInfo.name}`,
-    `luxury ${categoryInfo.serviceName} ${cityInfo.name}`,
-    
-    // Pattern 9: City-specific keywords that match category
-    ...cityInfo.keywords.filter(k => 
-      categoryInfo.keywordsBase.some(catK => k.toLowerCase().includes(catK.toLowerCase()))
-    ),
-    
-    // Pattern 10: Additional location variations
-    ...categoryInfo.keywordsBase.slice(0, 10).map(k => `${k} ${cityInfo.name} South Africa`),
-    ...categoryInfo.keywordsBase.slice(0, 10).map(k => `${k} ${cityInfo.province} South Africa`),
-    
-    // Pattern 11: Service-specific long-tail keywords
-    ...categoryInfo.keywordsBase.slice(0, 8).map(k => `where to get ${k} in ${cityInfo.name}`),
-    ...categoryInfo.keywordsBase.slice(0, 8).map(k => `how to find ${k} in ${cityInfo.name}`),
-    ...categoryInfo.keywordsBase.slice(0, 8).map(k => `${k} services ${cityInfo.name}`),
-  ];
-  
-  // Remove duplicates and limit to 200 keywords (increased from 50 for better SEO coverage)
-  const uniqueKeywords = Array.from(new Set(keywordPatterns)).slice(0, 200);
-  const keywords = uniqueKeywords.join(', ');
+  // REMOVED: Meta keywords generation - Google has not used meta keywords for ranking in over a decade
+  // SEO ranking power comes from title, meta description, and on-page content (H1s, text, FAQs)
 
   return {
     title,
     description,
-    keywords,
     alternates: {
       canonical: canonicalUrl,
     },

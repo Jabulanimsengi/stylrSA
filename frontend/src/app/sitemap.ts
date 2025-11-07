@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next';
 import { PROVINCES, getCitiesByProvince } from '@/lib/locationData';
-import { getAllCategorySlugs, getAllProvinceSlugs } from '@/lib/nearYouContent';
 
 // ISR: Revalidate sitemap every hour
 export const revalidate = 3600;
@@ -147,77 +146,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...cityPages,
   ];
 
-  // Service category "near you" pages - HIGH PRIORITY for SEO
-  // These target "near you" searches at category level
-  const serviceCategoryNearYouPages: MetadataRoute.Sitemap = [];
-  const categories = getAllCategorySlugs();
-  categories.forEach(category => {
-    serviceCategoryNearYouPages.push({
-      url: `${siteUrl}/services/${category}/near-you`,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    });
-  });
-
-  // Service province "near you" pages
-  // Province-level pages for each category (16 categories × 9 provinces = 144 pages)
-  const serviceProvinceNearYouPages: MetadataRoute.Sitemap = [];
-  const provinces = getAllProvinceSlugs();
-  categories.forEach(category => {
-    provinces.forEach(province => {
-      serviceProvinceNearYouPages.push({
-        url: `${siteUrl}/services/${category}/near-you/${province}`,
-        changeFrequency: 'weekly',
-        priority: 0.85,
-      });
-    });
-  });
-
-  // Service city "near you" pages
-  // City-level pages for each category (16 categories × 9 provinces × ~50 cities = ~7,200 pages)
-  // Major cities get higher priority and more frequent updates
-  const serviceCityNearYouPages: MetadataRoute.Sitemap = [];
-  const majorCitySlugs = ['johannesburg', 'pretoria', 'sandton', 'soweto', 'cape-town', 'durban'];
-  categories.forEach(category => {
-    provinces.forEach(province => {
-      const cities = getCitiesByProvince(province);
-      cities.forEach((city, index) => {
-        const isMajorCity = index < 4 || majorCitySlugs.includes(city.slug);
-        serviceCityNearYouPages.push({
-          url: `${siteUrl}/services/${category}/near-you/${province}/${city.slug}`,
-          changeFrequency: isMajorCity ? 'weekly' : 'monthly',
-          priority: isMajorCity ? 0.8 : 0.75,
-        });
-      });
-    });
-  });
-
-  // Salon province "near you" pages
-  // Province-level salon pages (9 provinces)
-  const salonProvinceNearYouPages: MetadataRoute.Sitemap = [];
-  provinces.forEach(province => {
-    salonProvinceNearYouPages.push({
-      url: `${siteUrl}/salons/near-you/${province}`,
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    });
-  });
-
-  // Salon city "near you" pages
-  // City-level salon pages (9 provinces × ~50 cities = ~450 pages)
-  // Major cities get higher priority and more frequent updates
-  const salonCityNearYouPages: MetadataRoute.Sitemap = [];
-  provinces.forEach(province => {
-    const cities = getCitiesByProvince(province);
-    cities.forEach((city, index) => {
-      const isMajorCity = index < 4 || majorCitySlugs.includes(city.slug);
-      salonCityNearYouPages.push({
-        url: `${siteUrl}/salons/near-you/${province}/${city.slug}`,
-        changeFrequency: isMajorCity ? 'weekly' : 'monthly',
-        priority: isMajorCity ? 0.8 : 0.75,
-      });
-    });
-  });
+  // REMOVED: All /near-you/ URLs to prevent URL cannibalization
+  // These URLs are now redirected to /location/ equivalents via middleware.ts
+  // This consolidates ranking power and improves SEO performance
 
   try {
     // Fetch dynamic salon pages with ISR caching
@@ -254,24 +185,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     // Combine all sitemap entries
-    // Total pages: ~15,000+ (well under 50,000 URL limit per sitemap)
+    // Total pages: ~8,000+ (reduced from ~15,000+ after removing /near-you/ URLs)
     const allPages: MetadataRoute.Sitemap = [
       ...staticPages, 
       ...serviceCategoryPages, 
       ...serviceLocationPages, 
       ...locationPages,
-      ...serviceCategoryNearYouPages,
-      ...serviceProvinceNearYouPages,
-      ...serviceCityNearYouPages,
-      ...salonProvinceNearYouPages,
-      ...salonCityNearYouPages,
+      // Removed all /near-you/ URLs - they redirect to /location/ equivalents
       ...salonEntries, 
       ...sellerEntries
     ];
 
     // Log sitemap statistics for monitoring
     console.log(`[Sitemap] Generated ${allPages.length} URLs`);
-    console.log(`[Sitemap] Breakdown: ${staticPages.length} static, ${serviceCategoryPages.length} service categories, ${serviceLocationPages.length} service locations, ${locationPages.length} locations, ${serviceCategoryNearYouPages.length} service category near-you, ${serviceProvinceNearYouPages.length} service province near-you, ${serviceCityNearYouPages.length} service city near-you, ${salonProvinceNearYouPages.length} salon province near-you, ${salonCityNearYouPages.length} salon city near-you, ${salonEntries.length} dynamic salons, ${sellerEntries.length} dynamic sellers`);
+    console.log(`[Sitemap] Breakdown: ${staticPages.length} static, ${serviceCategoryPages.length} service categories, ${serviceLocationPages.length} service locations, ${locationPages.length} locations, ${salonEntries.length} dynamic salons, ${sellerEntries.length} dynamic sellers`);
 
     return allPages;
   } catch (error) {
@@ -282,11 +209,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...serviceCategoryPages, 
       ...serviceLocationPages, 
       ...locationPages,
-      ...serviceCategoryNearYouPages,
-      ...serviceProvinceNearYouPages,
-      ...serviceCityNearYouPages,
-      ...salonProvinceNearYouPages,
-      ...salonCityNearYouPages,
+      // Removed all /near-you/ URLs - they redirect to /location/ equivalents
     ];
   }
 }

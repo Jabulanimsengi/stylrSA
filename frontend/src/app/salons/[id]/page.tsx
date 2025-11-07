@@ -19,7 +19,9 @@ const fetchSalonWithTimeout = async (url: string, timeoutMs = 2500): Promise<Sal
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+    // ISR: Revalidate every 10 minutes (600 seconds) for better performance and Core Web Vitals
+    // This serves fast static pages while updating in the background
+    const res = await fetch(url, { next: { revalidate: 600 }, signal: controller.signal });
     if (!res.ok) {
       return null;
     }
