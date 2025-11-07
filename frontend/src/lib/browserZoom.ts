@@ -83,24 +83,25 @@ export function getBrowserInfo(): BrowserInfo {
 
 /**
  * Get the zoom level for a specific browser on desktop
- * Chrome: 80%
- * Internet Explorer: 75%
- * Others: 80%
+ * Reduced zoom levels to ensure site fits properly on screen
+ * Chrome: 75%
+ * Internet Explorer: 70%
+ * Others: 75%
  */
 export function getZoomLevelForBrowser(browser: BrowserType): number {
   switch (browser) {
     case 'chrome':
-      return 80;
-    case 'ie':
       return 75;
+    case 'ie':
+      return 70;
     case 'edge':
       // Edge is Chromium-based, so use Chrome zoom
-      return 80;
+      return 75;
     case 'firefox':
     case 'safari':
     case 'other':
     default:
-      return 80;
+      return 75;
   }
 }
 
@@ -189,8 +190,8 @@ export function removeZoom(): void {
 }
 
 /**
- * Apply default zoom for desktop browsers on login
- * This is the main function to call when user logs in
+ * Apply default zoom for desktop browsers
+ * This ensures the site fits properly on screen for all desktop users
  */
 export function applyDefaultZoomOnLogin(): void {
   if (typeof window === 'undefined') return;
@@ -204,21 +205,21 @@ export function applyDefaultZoomOnLogin(): void {
     return;
   }
 
-  // Check if zoom was already applied (to avoid re-applying on page refresh)
+  // Check if zoom was already applied (to avoid re-applying unnecessarily)
   try {
     const zoomApplied = localStorage.getItem('desktop-zoom-applied');
     const storedBrowser = localStorage.getItem('desktop-zoom-browser');
+    const storedLevel = localStorage.getItem('desktop-zoom-level');
     
-    if (zoomApplied === 'true' && storedBrowser === browserInfo.type) {
-      // Re-apply the stored zoom level if browser matches
-      const storedLevel = localStorage.getItem('desktop-zoom-level');
-      if (storedLevel) {
-        const zoomLevel = parseInt(storedLevel, 10);
-        // Verify the zoom level is still appropriate for this browser
-        const expectedLevel = getZoomLevelForBrowser(browserInfo.type);
-        if (zoomLevel === expectedLevel) {
-          applyZoom(zoomLevel);
-          return;
+    if (zoomApplied === 'true' && storedBrowser === browserInfo.type && storedLevel) {
+      const zoomLevel = parseInt(storedLevel, 10);
+      // Verify the zoom level is still appropriate for this browser
+      const expectedLevel = getZoomLevelForBrowser(browserInfo.type);
+      if (zoomLevel === expectedLevel) {
+        // Verify zoom is actually applied in the DOM
+        const existingStyle = document.getElementById('desktop-zoom-style');
+        if (existingStyle) {
+          return; // Zoom already applied, no need to re-apply
         }
       }
     }
@@ -234,12 +235,11 @@ export function applyDefaultZoomOnLogin(): void {
 }
 
 /**
- * Check if zoom should be applied (desktop + authenticated)
+ * Check if zoom should be applied (desktop only, regardless of auth status)
+ * Updated to apply zoom for all desktop users to ensure proper screen fit
  */
 export function shouldApplyZoom(isAuthenticated: boolean): boolean {
-  if (!isAuthenticated) return false;
-  
   const browserInfo = getBrowserInfo();
-  return browserInfo.isDesktop;
+  return browserInfo.isDesktop; // Apply zoom for all desktop users
 }
 
