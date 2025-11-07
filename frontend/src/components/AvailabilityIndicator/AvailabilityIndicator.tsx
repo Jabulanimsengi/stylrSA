@@ -77,46 +77,104 @@ export default function AvailabilityIndicator({ salon, showNextAvailable = false
     const closeMinutes = parseTime(closeTime);
     const currentMinutes = currentHour * 60 + now.getMinutes();
 
-    const isOpen = currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+    // Handle overnight ranges (e.g., 20:00 - 02:00)
+    // If close time is before open time, it means it spans overnight
+    let isOpen: boolean;
+    if (closeMinutes < openMinutes) {
+      // Overnight range: open from openMinutes until midnight, then from midnight to closeMinutes
+      isOpen = currentMinutes >= openMinutes || currentMinutes < closeMinutes;
+    } else {
+      // Normal range: open from openMinutes to closeMinutes
+      isOpen = currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+    }
 
     // Calculate next available time
     let nextAvailable: string | null = null;
     if (!isOpen) {
-      if (currentMinutes < openMinutes) {
-        // Opens later today
-        const hoursUntilOpen = Math.floor((openMinutes - currentMinutes) / 60);
-        const minutesUntilOpen = (openMinutes - currentMinutes) % 60;
-        if (hoursUntilOpen > 0) {
-          nextAvailable = `Opens in ${hoursUntilOpen}h`;
-        } else if (minutesUntilOpen > 0) {
-          nextAvailable = `Opens in ${minutesUntilOpen}m`;
+      // For overnight ranges, handle differently
+      if (closeMinutes < openMinutes) {
+        // Overnight range: check if we're in the gap between closing and opening
+        if (currentMinutes >= closeMinutes && currentMinutes < openMinutes) {
+          // We're in the gap, opens later today
+          const hoursUntilOpen = Math.floor((openMinutes - currentMinutes) / 60);
+          const minutesUntilOpen = (openMinutes - currentMinutes) % 60;
+          if (hoursUntilOpen > 0) {
+            nextAvailable = `Opens in ${hoursUntilOpen}h`;
+          } else if (minutesUntilOpen > 0) {
+            nextAvailable = `Opens in ${minutesUntilOpen}m`;
+          } else {
+            nextAvailable = `Opens at ${openTime}`;
+          }
         } else {
-          nextAvailable = `Opens at ${openTime}`;
-        }
-      } else {
-        // Closed for today, find next open day
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        for (let i = 1; i <= 7; i++) {
-          const nextDayIndex = (currentDay + i) % 7;
-          const nextDayName = days[nextDayIndex];
-          if (hoursRecord[nextDayName]) {
-            const nextDayHours = hoursRecord[nextDayName].split(' - ')[0];
-            nextAvailable = `Opens ${nextDayName} at ${nextDayHours}`;
-            break;
+          // Closed for today, find next open day
+          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          for (let i = 1; i <= 7; i++) {
+            const nextDayIndex = (currentDay + i) % 7;
+            const nextDayName = days[nextDayIndex];
+            if (hoursRecord[nextDayName]) {
+              const nextDayHours = hoursRecord[nextDayName].split(' - ')[0];
+              nextAvailable = `Opens ${nextDayName} at ${nextDayHours}`;
+              break;
+            }
+          }
+          if (!nextAvailable) {
+            nextAvailable = 'Closed';
           }
         }
-        if (!nextAvailable) {
-          nextAvailable = 'Closed';
+      } else {
+        // Normal range
+        if (currentMinutes < openMinutes) {
+          // Opens later today
+          const hoursUntilOpen = Math.floor((openMinutes - currentMinutes) / 60);
+          const minutesUntilOpen = (openMinutes - currentMinutes) % 60;
+          if (hoursUntilOpen > 0) {
+            nextAvailable = `Opens in ${hoursUntilOpen}h`;
+          } else if (minutesUntilOpen > 0) {
+            nextAvailable = `Opens in ${minutesUntilOpen}m`;
+          } else {
+            nextAvailable = `Opens at ${openTime}`;
+          }
+        } else {
+          // Closed for today, find next open day
+          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          for (let i = 1; i <= 7; i++) {
+            const nextDayIndex = (currentDay + i) % 7;
+            const nextDayName = days[nextDayIndex];
+            if (hoursRecord[nextDayName]) {
+              const nextDayHours = hoursRecord[nextDayName].split(' - ')[0];
+              nextAvailable = `Opens ${nextDayName} at ${nextDayHours}`;
+              break;
+            }
+          }
+          if (!nextAvailable) {
+            nextAvailable = 'Closed';
+          }
         }
       }
     } else {
       // Currently open, show closing time
-      const hoursUntilClose = Math.floor((closeMinutes - currentMinutes) / 60);
-      const minutesUntilClose = (closeMinutes - currentMinutes) % 60;
+      let minutesUntilClose: number;
+      if (closeMinutes < openMinutes) {
+        // Overnight range: calculate time until close (may be next day)
+        if (currentMinutes >= openMinutes) {
+          // We're in the first part (before midnight)
+          minutesUntilClose = (24 * 60 - currentMinutes) + closeMinutes;
+        } else {
+          // We're in the second part (after midnight, before close)
+          minutesUntilClose = closeMinutes - currentMinutes;
+        }
+      } else {
+        // Normal range
+        minutesUntilClose = closeMinutes - currentMinutes;
+      }
+      
+      const hoursUntilClose = Math.floor(minutesUntilClose / 60);
+      const minsUntilClose = minutesUntilClose % 60;
+      
       if (hoursUntilClose > 0) {
-        nextAvailable = `Closes in ${hoursUntilClose}h ${minutesUntilClose}m`;
-      } else if (minutesUntilClose > 0) {
-        nextAvailable = `Closes in ${minutesUntilClose}m`;
+        nextAvailable = `Closes in ${hoursUntilClose}h ${minsUntilClose}m`;
+      } else if (minsUntilClose > 0) {
+        nextAvailable = `Closes in ${minsUntilClose}m`;
       } else {
         nextAvailable = `Closes at ${closeTime}`;
       }
@@ -129,10 +187,11 @@ export default function AvailabilityIndicator({ salon, showNextAvailable = false
     };
   }, [salon, showNextAvailable]);
 
-  // Use salon.isAvailableNow if available, otherwise calculate
-  const isOpen = salon.isAvailableNow ?? availability.isOpen;
+  // Prioritize calculated availability over potentially stale salon.isAvailableNow
+  // Calculate fresh availability since salon.isAvailableNow may be outdated
+  const isOpen = availability.isOpen;
   
-  // Use the correct status based on the final isOpen value
+  // Use the correct status based on the calculated isOpen value
   const displayStatus = isOpen ? 'Open now' : 'Closed';
 
   return (
