@@ -34,6 +34,7 @@ import { VideosModule } from './videos/videos.module';
 import { TrendsModule } from './trends/trends.module';
 import { BlogsModule } from './blogs/blogs.module';
 import { AvailabilityModule } from './availability/availability.module';
+import { SeoModule } from './seo/seo.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { AvailabilityModule } from './availability/availability.module';
     TrendsModule,
     BlogsModule,
     AvailabilityModule,
+    SeoModule,
   ],
   controllers: [AppController],
   providers: [

@@ -687,3 +687,81 @@ model SalonTrendzProfile {
   @@index([isEnabled])
   @@index([isPremium])
 }
+
+// ============================================
+// SEO OPTIMIZATION - NEW MODELS
+// ============================================
+
+model SeoKeyword {
+  id            String         @id @default(uuid())
+  keyword       String         @unique @db.VarChar(255)
+  slug          String         @unique @db.VarChar(255)
+  category      String         @db.VarChar(50)
+  priority      Int            @default(2)
+  searchVolume  Int?           @map("search_volume")
+  difficulty    Int?
+  variations    String[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  cachedPages   SeoPageCache[]
+  
+  @@index([slug])
+  @@index([category])
+  @@index([priority])
+  @@map("seo_keywords")
+}
+
+model SeoLocation {
+  id               String         @id @default(uuid())
+  name             String         @db.VarChar(255)
+  slug             String         @db.VarChar(255)
+  type             String         @db.VarChar(50)
+  province         String         @db.VarChar(100)
+  provinceSlug     String         @map("province_slug") @db.VarChar(100)
+  parentLocationId String?        @map("parent_location_id")
+  parentLocation   SeoLocation?   @relation("LocationHierarchy", fields: [parentLocationId], references: [id])
+  childLocations   SeoLocation[]  @relation("LocationHierarchy")
+  latitude         Decimal?       @db.Decimal(10, 8)
+  longitude        Decimal?       @db.Decimal(11, 8)
+  population       Int?
+  serviceCount     Int            @default(0) @map("service_count")
+  salonCount       Int            @default(0) @map("salon_count")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  cachedPages      SeoPageCache[]
+  
+  @@index([slug])
+  @@index([type])
+  @@index([provinceSlug])
+  @@index([parentLocationId])
+  @@map("seo_locations")
+}
+
+model SeoPageCache {
+  id              String      @id @default(uuid())
+  keywordId       String      @map("keyword_id")
+  keyword         SeoKeyword  @relation(fields: [keywordId], references: [id])
+  locationId      String      @map("location_id")
+  location        SeoLocation @relation(fields: [locationId], references: [id])
+  url             String      @unique @db.VarChar(500)
+  h1              String
+  h2Headings      String[]    @map("h2_headings")
+  h3Headings      String[]    @map("h3_headings")
+  introText       String      @map("intro_text")
+  metaTitle       String      @map("meta_title") @db.VarChar(60)
+  metaDescription String      @map("meta_description") @db.VarChar(160)
+  schemaMarkup    Json?       @map("schema_markup")
+  relatedServices Json?       @map("related_services")
+  nearbyLocations Json?       @map("nearby_locations")
+  serviceCount    Int         @default(0) @map("service_count")
+  salonCount      Int         @default(0) @map("salon_count")
+  avgPrice        Decimal?    @map("avg_price") @db.Decimal(10, 2)
+  lastGenerated   DateTime    @default(now()) @map("last_generated")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  
+  @@index([url])
+  @@index([keywordId])
+  @@index([locationId])
+  @@index([lastGenerated])
+  @@map("seo_page_cache")
+}
