@@ -22,6 +22,7 @@ import TrendRow from '@/components/TrendRow/TrendRow';
 import { Trend, TrendCategory } from '@/types';
 import ForYouRecommendations from '@/components/ForYouRecommendations/ForYouRecommendations';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import { CATEGORY_SLUGS, getCategorySlug, generateCategorySlug } from '@/utils/categorySlug';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Salon hero 1' },
@@ -520,13 +521,17 @@ export default function HomePage() {
         ) : (
           services.length > 0 && Object.keys(groupedServices).length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-              {Object.entries(groupedServices).map(([categoryName, categoryServices]) => (
-                <FeaturedServicesCategoryRow
-                  key={categoryName}
-                  categoryName={categoryName}
-                  services={categoryServices}
-                />
-              ))}
+              {Object.entries(groupedServices).map(([categoryName, categoryServices]) => {
+                const categorySlug = getCategorySlug(categoryName);
+                return (
+                  <FeaturedServicesCategoryRow
+                    key={categoryName}
+                    categoryName={categoryName}
+                    services={categoryServices}
+                    categorySlug={categorySlug}
+                  />
+                );
+              })}
             </div>
           ) : (
             <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>

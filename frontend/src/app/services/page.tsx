@@ -20,6 +20,7 @@ import BookingConfirmationModal from "@/components/BookingConfirmationModal/Book
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthModal } from "@/context/AuthModalContext";
 import EmptyState from "@/components/EmptyState/EmptyState";
+import { getCategoryNameFromSlug } from "@/utils/categorySlug";
 
 const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
 
@@ -44,17 +45,27 @@ function ServicesPageContent() {
   const latestRequestIdRef = useRef(0);
   const isFetchingRef = useRef(false);
 
-  const derivedFilters = useMemo<FilterValues>(() => ({
-    province: params.get("province") ?? "",
-    city: params.get("city") ?? "",
-    service: params.get("service") ?? params.get("q") ?? "",
-    category: params.get("category") ?? "",
-    offersMobile: params.get("offersMobile") === "true",
-    sortBy: params.get("sortBy") ?? "",
-    openNow: params.get("openNow") === "true",
-    priceMin: params.get("priceMin") ?? "",
-    priceMax: params.get("priceMax") ?? "",
-  }), [params]);
+  const derivedFilters = useMemo<FilterValues>(() => {
+    const categoryParam = params.get("category") ?? "";
+    // Convert category slug to category name if it looks like a slug
+    const categoryValue = categoryParam && categoryParam.includes('-') 
+      ? (getCategoryNameFromSlug(categoryParam) ?? categoryParam)
+      : categoryParam;
+    
+    console.log('[ServicesPage] Category param:', categoryParam, '-> Category value:', categoryValue);
+    
+    return {
+      province: params.get("province") ?? "",
+      city: params.get("city") ?? "",
+      service: params.get("service") ?? params.get("q") ?? "",
+      category: categoryValue,
+      offersMobile: params.get("offersMobile") === "true",
+      sortBy: params.get("sortBy") ?? "",
+      openNow: params.get("openNow") === "true",
+      priceMin: params.get("priceMin") ?? "",
+      priceMax: params.get("priceMax") ?? "",
+    };
+  }, [params]);
 
   const [activeFilters, setActiveFilters] = useState<FilterValues>(derivedFilters);
   const activeFiltersKey = useMemo(() => filtersToKey(activeFilters), [activeFilters]);
@@ -241,10 +252,27 @@ function ServicesPageContent() {
     toast.success('Booking confirmed!');
   };
 
+  // Generate page title based on active filters
+  const pageTitle = useMemo(() => {
+    if (activeFilters.category) {
+      return `${activeFilters.category} Services`;
+    }
+    if (activeFilters.service) {
+      return `Search: ${activeFilters.service}`;
+    }
+    if (activeFilters.city && activeFilters.province) {
+      return `Services in ${activeFilters.city}, ${activeFilters.province}`;
+    }
+    if (activeFilters.province) {
+      return `Services in ${activeFilters.province}`;
+    }
+    return 'Services';
+  }, [activeFilters]);
+
   return (
     <div className={styles.container}>
       <PageNav />
-      <h1 className={styles.title}>Services</h1>
+      <h1 className={styles.title}>{pageTitle}</h1>
 
       {isMobile ? (
         <MobileSearch onSearch={handleSearch} />
@@ -324,7 +352,7 @@ function ServicesPageContent() {
           onClose={handleBookingConfirmationClose}
           onAccept={handleBookingConfirmationAccept}
           salonName={pendingSalon.name || ''}
-          salonLogo={pendingSalon.backgroundImage}
+          salonLogo={pendingSalon.backgroundImage || undefined}
           message={pendingSalon.bookingMessage || ''}
         />
       )}

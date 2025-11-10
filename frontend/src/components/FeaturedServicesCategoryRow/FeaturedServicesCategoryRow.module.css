@@ -1,67 +1,205 @@
+/* Task 5.5: Viewport overflow prevention */
 .categorySection {
   margin-bottom: 2.5rem;
   padding: 0 clamp(1rem, 5vw, 2rem);
+  max-width: 100%;
+  overflow: hidden;
+  contain: layout style;
 }
 
+/* Task 5.1: Header flexbox layout with space-between */
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  max-width: 100%;
+}
+
+/* Task 5.1: Category title as clickable link with hover effect */
 .categoryTitle {
-  font-size: 1.1rem; /* Smaller than sectionTitle */
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-text-strong);
-  margin-bottom: 0.75rem; /* Small vertical distance */
+  margin-bottom: 0;
   padding-left: 0;
   text-align: left;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
+.categoryTitle:hover {
+  color: var(--color-primary);
+}
+
+/* Task 5.1: View All button with color transitions */
+.viewAllButton {
+  background: none;
+  border: none;
+  color: var(--muted-teal);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.viewAllButton:hover {
+  color: var(--color-primary);
+}
+
+/* Task 5.5: Carousel container with max-width */
 .carouselContainer {
   position: relative;
+  max-width: 100%;
 }
 
+/* Task 5.3: Enhanced scroll container styles */
 .servicesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;
   max-width: 100%;
   width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
+/* Task 5.3: Hide scrollbar for webkit browsers */
+.servicesGrid::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Task 5.2: Desktop navigation arrows - circular button styles (44px × 44px) */
+.scrollButton.desktop {
+  display: flex;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20; /* Task 5.2: Proper z-index */
+  opacity: 0;
+  transition: all 0.2s ease; /* Task 5.2: Smooth transitions for hover and active states */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+/* Task 5.2: Hover states with primary color background */
+.scrollButton.desktop:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.08);
+  background-color: var(--color-primary-dark);
+}
+
+/* Task 5.2: Active state styling */
+.scrollButton.desktop:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.scrollButton.desktop.left {
+  left: -22px; /* Half of button width for edge positioning */
+}
+
+.scrollButton.desktop.right {
+  right: -22px; /* Half of button width for edge positioning */
+}
+
+/* Task 5.2: Disabled state styling */
+.scrollButton.desktop:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background-color: var(--color-primary);
+}
+
+.scrollButton.desktop:disabled:hover {
+  transform: translateY(-50%);
+  background-color: var(--color-primary);
+}
+
+/* Task 5.4: Hide desktop arrows on mobile (display: none !important) */
+@media (max-width: 768px) {
+  .scrollButton.desktop {
+    display: none !important;
+  }
+}
+
+/* Task 5.4: Mobile-specific styles */
 @media (max-width: 768px) {
   .categorySection {
     margin-bottom: 2rem;
     padding: 0 clamp(1rem, 3vw, 1.5rem);
+    max-width: 100%; /* Task 5.5: Viewport overflow prevention */
+  }
+
+  .categoryHeader {
+    margin-bottom: 0.5rem;
+    max-width: 100%; /* Task 5.5: Viewport overflow prevention */
   }
 
   .categoryTitle {
     font-size: 1rem;
-    margin-bottom: 0.5rem;
     padding-left: 0;
   }
 
+  .viewAllButton {
+    font-size: 13px;
+  }
+
+  /* Task 5.4: Maintain touch scroll behavior, scroll snap, and peek effect */
   .servicesGrid {
     grid-template-columns: unset; /* Disable grid for mobile carousel */
     display: flex;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-    padding: 0; /* Remove extra padding, parent handles it */
+    overflow-y: hidden; /* Task 5.3 */
+    scroll-snap-type: x mandatory; /* Task 5.4: Keep scroll snap functionality */
+    -webkit-overflow-scrolling: touch; /* Task 5.4: Maintain touch scroll behavior */
+    scroll-behavior: smooth; /* Task 5.3 */
+    scrollbar-width: none; /* Task 5.3: Firefox */
+    -ms-overflow-style: none; /* Task 5.3: IE and Edge */
+    padding: 0;
     gap: 1rem;
-    margin-left: -0.5rem; /* Offset for peek effect */
+    margin-left: -0.5rem; /* Task 5.4: Offset for peek effect */
     margin-right: -0.5rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+    max-width: 100%; /* Task 5.5: Viewport overflow prevention */
   }
 
+  /* Task 5.3: Hide scrollbar for webkit browsers */
   .servicesGrid::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
   }
 
+  /* Task 5.4: Preserve peek effect for next card */
   .servicesGrid > * {
     flex-shrink: 0;
     width: calc(80% - 0.5rem); /* One card plus peek */
     scroll-snap-align: start;
   }
 
-  .scrollButton {
+  /* Mobile navigation arrows */
+  .scrollButton.mobile {
     display: flex;
     position: absolute;
     top: 50%;
@@ -76,26 +214,57 @@
     justify-content: center;
     cursor: pointer;
     z-index: 10;
-    opacity: 0.8;
-    transition: opacity 0.2s;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: fadeInMobile 0.3s ease forwards;
   }
 
-  .scrollButton:hover {
+  @keyframes fadeInMobile {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 0.8;
+    }
+  }
+
+  .scrollButton.mobile:hover {
     opacity: 1;
   }
 
-  .scrollButton.left {
+  .scrollButton.mobile.left {
     left: 0.5rem;
   }
 
-  .scrollButton.right {
+  .scrollButton.mobile.right {
     right: 0.5rem;
+  }
+
+  /* Task 6.2: Mobile slide counter */
+  .slideCounter {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 1rem;
+    z-index: 15;
+    pointer-events: none;
+    user-select: none;
   }
 }
 
+/* Task 5.5: Additional viewport overflow prevention for smaller screens */
 @media (max-width: 540px) {
   .categorySection {
     padding: 0 clamp(0.75rem, 3vw, 1rem);
+    max-width: 100%;
   }
 
   .servicesGrid {
@@ -103,12 +272,14 @@
     padding-right: 0.25rem;
     margin-left: -0.25rem;
     margin-right: -0.25rem;
+    max-width: 100%;
   }
 }
 
 @media (max-width: 400px) {
   .categorySection {
     padding: 0 clamp(0.625rem, 2.5vw, 0.875rem);
+    max-width: 100%;
   }
 
   .servicesGrid {
@@ -116,6 +287,7 @@
     padding-right: 0.125rem;
     margin-left: -0.125rem;
     margin-right: -0.125rem;
+    max-width: 100%;
   }
 }
 

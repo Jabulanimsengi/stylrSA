@@ -52,7 +52,10 @@ export default function robots(): MetadataRoute.Robots {
         crawlDelay: 0,
       },
     ],
-    sitemap: `${siteUrl}/sitemap.xml`,
+    sitemap: [
+      `${siteUrl}/sitemap.xml`,
+      `${siteUrl}/sitemap-index.xml`,
+    ],
     host: siteUrl,
   };
 }

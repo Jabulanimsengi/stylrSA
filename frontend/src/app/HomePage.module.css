@@ -1,5 +1,7 @@
 .container {
   color: var(--text-primary);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .fixedSearchBar {
@@ -325,6 +327,7 @@
   margin: 0 auto;
   text-align: left;
   overflow: visible;
+  contain: layout;
 }
 
 .sectionTitle {

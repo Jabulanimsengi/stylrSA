@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viewport Overflow Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f5;
+    }
+    
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    
+    .test-section {
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    .test-section h2 {
+      margin-top: 0;
+      color: #666;
+      font-size: 18px;
+    }
+    
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    
+    .status.pass {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.fail {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .details {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    
+    button {
+      background: #f51957;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background: #d41245;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🔍 Viewport Overflow Prevention Test</h1>
+    <p>This test verifies that the service category rows don't cause horizontal page overflow.</p>
+    
+    <div class="test-section">
+      <h2>Test 1: Document Width Check</h2>
+      <div id="test1-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Test 2: Body Overflow Check</h2>
+      <div id="test2-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Test 3: Viewport Width Consistency</h2>
+      <div id="test3-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Test 4: Scrollbar Detection</h2>
+      <div id="test4-result"></div>
+    </div>
+    
+    <button onclick="runTests()">Run Tests</button>
+  </div>
+
+  <script>
+    function runTests() {
+      // Test 1: Document Width Check
+      const docWidth = document.documentElement.scrollWidth;
+      const viewportWidth = window.innerWidth;
+      const test1Pass = docWidth <= viewportWidth;
+      
+      document.getElementById('test1-result').innerHTML = `
+        <div class="status ${test1Pass ? 'pass' : 'fail'}">
+          ${test1Pass ? '✓ PASS' : '✗ FAIL'}: Document width is ${test1Pass ? 'within' : 'exceeding'} viewport
+        </div>
+        <div class="details">
+          Document Width: ${docWidth}px<br>
+          Viewport Width: ${viewportWidth}px<br>
+          Difference: ${docWidth - viewportWidth}px
+        </div>
+      `;
+      
+      // Test 2: Body Overflow Check
+      const bodyOverflow = window.getComputedStyle(document.body).overflowX;
+      const htmlOverflow = window.getComputedStyle(document.documentElement).overflowX;
+      const test2Pass = bodyOverflow === 'hidden' && htmlOverflow === 'hidden';
+      
+      document.getElementById('test2-result').innerHTML = `
+        <div class="status ${test2Pass ? 'pass' : 'fail'}">
+          ${test2Pass ? '✓ PASS' : '✗ FAIL'}: Overflow-X is ${test2Pass ? 'properly hidden' : 'not hidden'}
+        </div>
+        <div class="details">
+          Body overflow-x: ${bodyOverflow}<br>
+          HTML overflow-x: ${htmlOverflow}
+        </div>
+      `;
+      
+      // Test 3: Viewport Width Consistency
+      const bodyWidth = document.body.scrollWidth;
+      const test3Pass = bodyWidth <= viewportWidth;
+      
+      document.getElementById('test3-result').innerHTML = `
+        <div class="status ${test3Pass ? 'pass' : 'fail'}">
+          ${test3Pass ? '✓ PASS' : '✗ FAIL'}: Body width is ${test3Pass ? 'within' : 'exceeding'} viewport
+        </div>
+        <div class="details">
+          Body Width: ${bodyWidth}px<br>
+          Viewport Width: ${viewportWidth}px<br>
+          Difference: ${bodyWidth - viewportWidth}px
+        </div>
+      `;
+      
+      // Test 4: Scrollbar Detection
+      const hasHorizontalScrollbar = document.documentElement.scrollWidth > document.documentElement.clientWidth;
+      const test4Pass = !hasHorizontalScrollbar;
+      
+      document.getElementById('test4-result').innerHTML = `
+        <div class="status ${test4Pass ? 'pass' : 'fail'}">
+          ${test4Pass ? '✓ PASS' : '✗ FAIL'}: ${test4Pass ? 'No' : 'Has'} horizontal scrollbar detected
+        </div>
+        <div class="details">
+          Scroll Width: ${document.documentElement.scrollWidth}px<br>
+          Client Width: ${document.documentElement.clientWidth}px<br>
+          Has Scrollbar: ${hasHorizontalScrollbar ? 'Yes' : 'No'}
+        </div>
+      `;
+    }
+    
+    // Run tests on load
+    window.addEventListener('load', runTests);
+    
+    // Re-run tests on resize
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(runTests, 250);
+    });
+  </script>
+</body>
+</html>
