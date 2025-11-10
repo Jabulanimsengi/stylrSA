@@ -13,8 +13,8 @@ interface PageProps {
   }>;
 }
 
-// Force dynamic rendering (generate on-demand)
-export const dynamic = 'force-dynamic';
+// Use dynamic rendering with ISR
+export const dynamicParams = true;
 export const revalidate = 3600;
 
 /**
