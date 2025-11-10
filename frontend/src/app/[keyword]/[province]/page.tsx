@@ -18,16 +18,22 @@ export const dynamicParams = true;
 export const revalidate = 3600;
 
 /**
- * Generate static params for top 100 keywords × 9 provinces
+ * Generate static params for top 10 keywords × 3 major provinces only
+ * Other pages will be generated on-demand via ISR
  */
 export async function generateStaticParams() {
-  const keywords = await getTopKeywords(100);
+  const keywords = await getTopKeywords(10);
   const provinces = await getProvinces();
+  
+  // Only pre-generate for major provinces
+  const majorProvinces = provinces.filter(p => 
+    ['gauteng', 'western-cape', 'kwazulu-natal'].includes(p.provinceSlug)
+  );
 
   const params: { keyword: string; province: string }[] = [];
 
   for (const keyword of keywords) {
-    for (const province of provinces) {
+    for (const province of majorProvinces) {
       params.push({
         keyword: keyword.slug,
         province: province.provinceSlug,

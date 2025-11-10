@@ -39,6 +39,7 @@ import CalendarSchedule from '@/components/CalendarSchedule/CalendarSchedule';
 import TrustBadges from '@/components/TrustBadges/TrustBadges';
 import SocialShare from '@/components/SocialShare/SocialShare';
 import VerificationBadge from '@/components/VerificationBadge/VerificationBadge';
+import { generateSalonStructuredData, generateSalonBreadcrumb } from '@/lib/salonSeoHelpers';
 
 type Props = {
   initialSalon: Salon | null;
@@ -504,17 +505,21 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const daysNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const todayLabel = daysNames[new Date().getDay()];
 
+  // Generate structured data for SEO
+  const structuredData = generateSalonStructuredData(salon);
+  const breadcrumbData = generateSalonBreadcrumb(salon);
+
   return (
     <>
       <Head>
-        <title>{`${salon.name} - Stylr SA`}</title>
-        <meta name="description" content={`Find the best beauty services at ${salon.name} in ${salon.city}. Book online today!`} />
-        <meta name="keywords" content={`salon, ${salon.name}, ${salon.city}, beauty, haircut, nails, stylist, hairdresser`} />
-        <meta property="og:title" content={`${salon.name} - Stylr SA`} />
-        <meta property="og:description" content={`Find the best beauty services at ${salon.name} in ${salon.city}. Book online today!`} />
-        <meta property="og:image" content={salon.backgroundImage || '/logo-transparent.png'} />
-        <meta property="og:url" content={`https://thesalonhub.com/salons/${salon.id}`} />
-        <meta name="twitter:card" content="summary_large_image" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+        />
       </Head>
 
       {selectedService && (
@@ -538,6 +543,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
       {isVideoLightboxOpen && selectedVideo && (
         <VideoLightbox
+          videoUrl={selectedVideo.vimeoUrl}
           vimeoId={selectedVideo.vimeoUrl}
           isOpen={isVideoLightboxOpen}
           onClose={closeVideoLightbox}

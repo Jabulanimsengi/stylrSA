@@ -16,10 +16,11 @@ interface PageProps {
 export const revalidate = 3600;
 
 /**
- * Generate static params for top 100 keywords
+ * Generate static params for top 20 keywords only
+ * Other pages will be generated on-demand via ISR
  */
 export async function generateStaticParams() {
-  const keywords = await getTopKeywords(100);
+  const keywords = await getTopKeywords(20);
 
   return keywords.map((keyword) => ({
     keyword: keyword.slug,
