@@ -69,8 +69,30 @@ export interface SEOPageData {
 @Injectable()
 export class SEOPageGeneratorService {
   private readonly logger = new Logger(SEOPageGeneratorService.name);
+  private readonly cache = new Map<string, { data: SEOPageData; expiry: number }>();
+  private readonly MEMORY_CACHE_TTL = 3600000; // 1 hour in memory only
 
   constructor(private prisma: PrismaService) {}
+
+  private getCacheKey(keyword: SeoKeyword, location: SeoLocation): string {
+    return `${keyword.id}:${location.id}`;
+  }
+
+  private getCached(key: string): SEOPageData | null {
+    const cached = this.cache.get(key);
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+    this.cache.delete(key);
+    return null;
+  }
+
+  private setCache(key: string, data: SEOPageData): void {
+    this.cache.set(key, {
+      data,
+      expiry: Date.now() + this.MEMORY_CACHE_TTL,
+    });
+  }
 
   /**
    * Generate H1 heading with format: "Find {keyword} in {city}, {province} | Book Online"

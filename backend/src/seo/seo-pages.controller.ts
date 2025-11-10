@@ -16,97 +16,91 @@ export class SeoPagesController {
   ) {}
 
   /**
-   * Get SEO page data by URL - generates on-demand if not cached
+   * Get SEO page data by URL - generates on-demand
+   * NO DATABASE CACHING - Uses in-memory cache only
    */
   @Get('by-url')
   async getPageByUrl(@Query('url') url: string) {
-    if (!url) {
-      throw new NotFoundException('URL parameter is required');
-    }
+    try {
+      // Validate input
+      if (!url || typeof url !== 'string') {
+        throw new Error('URL parameter is required');
+      }
 
-    // Check cache first
-    let cachedPage = await this.prisma.seoPageCache.findUnique({
-      where: { url },
-      include: {
-        keyword: true,
-        location: true,
-      },
-    });
+      if (url.length > 500) {
+        throw new Error('URL is too long');
+      }
 
-    if (cachedPage) {
-      this.logger.log(`Cache hit for URL: ${url}`);
-      return cachedPage;
-    }
+      // Normalize URL
+      const normalizedUrl = url.toLowerCase().trim();
 
-    // Parse URL to extract keyword and location slugs
-    this.logger.log(`Cache miss for URL: ${url}, generating on-demand...`);
-    const urlParts = url.split('/').filter(Boolean);
-    
-    if (urlParts.length < 2) {
-      throw new NotFoundException(`Invalid URL format: ${url}`);
-    }
+      // Validate URL format: /keyword/province or /keyword/province/city or /keyword/province/city/suburb
+      const urlRegex = /^\/([a-z0-9-]+)(\/[a-z0-9-]+){1,3}$/;
+      if (!urlRegex.test(normalizedUrl)) {
+        throw new Error(`Invalid URL format: ${url}`);
+      }
 
-    const [keywordSlug, provinceSlug, citySlug, suburbSlug] = urlParts;
+      // Parse URL to extract keyword and location slugs
+      this.logger.debug(`Generating on-demand for: ${normalizedUrl}`);
+      const urlParts = normalizedUrl.split('/').filter(Boolean);
 
-    // Find keyword
-    const keyword = await this.prisma.seoKeyword.findUnique({
-      where: { slug: keywordSlug },
-    });
+      const [keywordSlug, provinceSlug, citySlug, suburbSlug] = urlParts;
 
-    if (!keyword) {
-      throw new NotFoundException(`Keyword not found: ${keywordSlug}`);
-    }
+      if (!keywordSlug || !provinceSlug) {
+        throw new Error(`Invalid URL structure: ${url}`);
+      }
 
-    // Find location (most specific available)
-    let location;
-    if (suburbSlug) {
-      location = await this.prisma.seoLocation.findFirst({
-        where: { slug: suburbSlug, type: 'SUBURB', provinceSlug },
+      // Find keyword
+      const keyword = await this.prisma.seoKeyword.findUnique({
+        where: { slug: keywordSlug },
       });
-    } else if (citySlug) {
-      location = await this.prisma.seoLocation.findFirst({
-        where: { slug: citySlug, type: { in: ['CITY', 'TOWN'] }, provinceSlug },
-      });
-    } else {
-      location = await this.prisma.seoLocation.findFirst({
-        where: { slug: provinceSlug, type: 'PROVINCE' },
-      });
+
+      if (!keyword) {
+        throw new Error(`Keyword not found: ${keywordSlug}`);
+      }
+
+      // Find location (most specific available)
+      let location;
+      if (suburbSlug) {
+        location = await this.prisma.seoLocation.findFirst({
+          where: {
+            slug: suburbSlug,
+            type: 'SUBURB',
+            provinceSlug,
+          },
+        });
+      } else if (citySlug) {
+        location = await this.prisma.seoLocation.findFirst({
+          where: {
+            slug: citySlug,
+            type: { in: ['CITY', 'TOWN'] },
+            provinceSlug,
+          },
+        });
+      } else {
+        location = await this.prisma.seoLocation.findFirst({
+          where: {
+            slug: provinceSlug,
+            type: 'PROVINCE',
+          },
+        });
+      }
+
+      if (!location) {
+        throw new Error(`Location not found for URL: ${url}`);
+      }
+
+      // Generate page data (uses in-memory cache)
+      const pageData = await this.pageGenerator.generatePageData(keyword, location);
+
+      this.logger.debug(`Generated page for URL: ${normalizedUrl}`);
+      
+      // Return generated data directly - NO DATABASE CACHING
+      return pageData;
+    } catch (error) {
+      this.logger.error(`Error generating page for ${url}:`, error.message);
+      throw new Error(`Failed to generate SEO page: ${error.message}`);
     }
-
-    if (!location) {
-      throw new NotFoundException(`Location not found for URL: ${url}`);
-    }
-
-    // Generate page data
-    const pageData = await this.pageGenerator.generatePageData(keyword, location);
-
-    // Cache the generated page
-    cachedPage = await this.prisma.seoPageCache.create({
-      data: {
-        keywordId: keyword.id,
-        locationId: location.id,
-        url: pageData.url,
-        h1: pageData.h1,
-        h2Headings: pageData.h2Headings,
-        h3Headings: pageData.h3Headings,
-        introText: pageData.introText,
-        metaTitle: pageData.metaTitle,
-        metaDescription: pageData.metaDescription,
-        schemaMarkup: pageData.breadcrumbs as any,
-        relatedServices: pageData.relatedServices as any,
-        nearbyLocations: pageData.nearbyLocations as any,
-        serviceCount: pageData.serviceCount,
-        salonCount: pageData.salonCount,
-        avgPrice: pageData.avgPrice,
-      },
-      include: {
-        keyword: true,
-        location: true,
-      },
-    });
-
-    this.logger.log(`Generated and cached page for URL: ${url}`);
-    return cachedPage;
   }
 
   /**

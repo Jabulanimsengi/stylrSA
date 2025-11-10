@@ -19,7 +19,7 @@ export class SitemapService {
 
   /**
    * Generate sitemap index XML
-   * Lists all paginated sitemaps
+   * Lists all paginated sitemaps including static pages, salons, services, and SEO pages
    */
   async generateSitemapIndex(): Promise<string> {
     this.logger.log('Generating sitemap index');
@@ -39,9 +39,34 @@ export class SitemapService {
     xml +=
       '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
+    // Add static pages sitemap
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${this.BASE_URL}/sitemap-static.xml</loc>\n`;
+    xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+
+    // Add salons sitemap
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${this.BASE_URL}/sitemap-salons.xml</loc>\n`;
+    xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+
+    // Add services sitemap
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${this.BASE_URL}/sitemap-services.xml</loc>\n`;
+    xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+
+    // Add trends sitemap
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${this.BASE_URL}/sitemap-trends.xml</loc>\n`;
+    xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+
+    // Add SEO pages sitemaps
     for (let i = 0; i < totalSitemaps; i++) {
       xml += '  <sitemap>\n';
-      xml += `    <loc>${this.BASE_URL}/sitemap-${i}.xml</loc>\n`;
+      xml += `    <loc>${this.BASE_URL}/sitemap-seo-${i}.xml</loc>\n`;
       xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
       xml += '  </sitemap>\n';
     }
@@ -52,18 +77,133 @@ export class SitemapService {
   }
 
   /**
-   * Generate a paginated sitemap XML
+   * Generate a paginated sitemap XML for SEO pages
    * @param segment - The sitemap segment number (0, 1, 2, etc.)
    */
   async generateSitemap(segment: number): Promise<string> {
-    this.logger.log(`Generating sitemap segment ${segment}`);
+    this.logger.log(`Generating SEO sitemap segment ${segment}`);
 
     const skip = segment * this.URLS_PER_SITEMAP;
     const urls = await this.getAllSEOUrls(skip, this.URLS_PER_SITEMAP);
 
     this.logger.log(`Retrieved ${urls.length} URLs for segment ${segment}`);
 
-    // Build sitemap XML
+    return this.buildSitemapXml(urls);
+  }
+
+  /**
+   * Generate static pages sitemap
+   */
+  async generateStaticSitemap(): Promise<string> {
+    this.logger.log('Generating static pages sitemap');
+
+    const now = new Date().toISOString();
+    const staticPages: SitemapUrl[] = [
+      { loc: '/', lastmod: now, changefreq: 'daily', priority: '1.0' },
+      { loc: '/about', lastmod: now, changefreq: 'monthly', priority: '0.8' },
+      { loc: '/contact', lastmod: now, changefreq: 'monthly', priority: '0.8' },
+      { loc: '/salons', lastmod: now, changefreq: 'daily', priority: '0.9' },
+      { loc: '/services', lastmod: now, changefreq: 'daily', priority: '0.9' },
+      { loc: '/trends', lastmod: now, changefreq: 'daily', priority: '0.8' },
+      { loc: '/blog', lastmod: now, changefreq: 'weekly', priority: '0.7' },
+      { loc: '/privacy', lastmod: now, changefreq: 'monthly', priority: '0.5' },
+      { loc: '/terms', lastmod: now, changefreq: 'monthly', priority: '0.5' },
+    ];
+
+    return this.buildSitemapXml(staticPages);
+  }
+
+  /**
+   * Generate salons sitemap
+   */
+  async generateSalonsSitemap(): Promise<string> {
+    this.logger.log('Generating salons sitemap');
+
+    const salons = await this.prisma.salon.findMany({
+      where: { approvalStatus: 'APPROVED' },
+      select: {
+        id: true,
+        updatedAt: true,
+        avgRating: true,
+      },
+      orderBy: [{ avgRating: 'desc' }, { updatedAt: 'desc' }],
+      take: 10000, // Limit to prevent huge sitemaps
+    });
+
+    const urls: SitemapUrl[] = salons.map((salon) => ({
+      loc: `/salons/${salon.id}`,
+      lastmod: salon.updatedAt.toISOString(),
+      changefreq: 'weekly',
+      priority: this.calculateSalonPriority(salon),
+    }));
+
+    this.logger.log(`Generated ${urls.length} salon URLs`);
+    return this.buildSitemapXml(urls);
+  }
+
+  /**
+   * Generate services sitemap
+   */
+  async generateServicesSitemap(): Promise<string> {
+    this.logger.log('Generating services sitemap');
+
+    const services = await this.prisma.service.findMany({
+      where: { 
+        salon: { 
+          approvalStatus: 'APPROVED' 
+        },
+        approvalStatus: 'APPROVED'
+      },
+      select: {
+        id: true,
+        updatedAt: true,
+        salonId: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 10000,
+    });
+
+    const urls: SitemapUrl[] = services.map((service) => ({
+      loc: `/salons/${service.salonId}?service=${service.id}`,
+      lastmod: service.updatedAt.toISOString(),
+      changefreq: 'weekly',
+      priority: '0.6',
+    }));
+
+    this.logger.log(`Generated ${urls.length} service URLs`);
+    return this.buildSitemapXml(urls);
+  }
+
+  /**
+   * Generate trends sitemap
+   */
+  async generateTrendsSitemap(): Promise<string> {
+    this.logger.log('Generating trends sitemap');
+
+    const trends = await this.prisma.trend.findMany({
+      select: {
+        id: true,
+        updatedAt: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 5000,
+    });
+
+    const urls: SitemapUrl[] = trends.map((trend) => ({
+      loc: `/trends/${trend.id}`,
+      lastmod: trend.updatedAt.toISOString(),
+      changefreq: 'weekly',
+      priority: '0.7',
+    }));
+
+    this.logger.log(`Generated ${urls.length} trend URLs`);
+    return this.buildSitemapXml(urls);
+  }
+
+  /**
+   * Build sitemap XML from URLs
+   */
+  private buildSitemapXml(urls: SitemapUrl[]): string {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
@@ -77,8 +217,27 @@ export class SitemapService {
     }
 
     xml += '</urlset>';
-
     return xml;
+  }
+
+  /**
+   * Calculate priority for salon based on rating
+   */
+  private calculateSalonPriority(salon: {
+    avgRating: number | null;
+  }): string {
+    let priority = 0.6; // Base priority
+
+    // Boost based on rating
+    if (salon.avgRating && salon.avgRating >= 4.5) {
+      priority += 0.3;
+    } else if (salon.avgRating && salon.avgRating >= 4.0) {
+      priority += 0.2;
+    } else if (salon.avgRating && salon.avgRating >= 3.5) {
+      priority += 0.1;
+    }
+
+    return Math.min(priority, 1.0).toFixed(2);
   }
 
   /**
