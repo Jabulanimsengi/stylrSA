@@ -157,7 +157,7 @@ export class SeoPagesController {
   @Get('locations/:id')
   async getLocationById(@Param('id') id: string) {
     const location = await this.prisma.seoLocation.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id },
     });
 
     if (!location) {
