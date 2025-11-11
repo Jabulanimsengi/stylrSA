@@ -620,52 +620,57 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
     // Build location filter based on location type
     const locationFilter: any = {};
     
-    if (location.type === 'PROVINCE') {
-      locationFilter.province = location.name;
-    } else if (location.type === 'CITY' || location.type === 'TOWN') {
-      locationFilter.city = location.name;
-      locationFilter.province = location.province;
-    } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
-      locationFilter.town = location.name;
-      locationFilter.province = location.province;
-    }
+    try {
+      if (location.type === 'PROVINCE') {
+        locationFilter.province = location.name;
+      } else if (location.type === 'CITY' || location.type === 'TOWN') {
+        locationFilter.city = location.name;
+        locationFilter.province = location.province;
+      } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
+        locationFilter.town = location.name;
+        locationFilter.province = location.province;
+      }
 
-    // Fetch services with salon information
-    const services = await this.prisma.service.findMany({
-      where: {
-        approvalStatus: 'APPROVED',
-        salon: {
+      // Fetch services with salon information
+      const services = await this.prisma.service.findMany({
+        where: {
           approvalStatus: 'APPROVED',
-          ...locationFilter,
-        },
-      },
-      include: {
-        salon: {
-          select: {
-            id: true,
-            name: true,
-            city: true,
-            province: true,
-            avgRating: true,
-            visibilityWeight: true,
+          salon: {
+            approvalStatus: 'APPROVED',
+            ...locationFilter,
           },
         },
-        category: {
-          select: {
-            name: true,
+        include: {
+          salon: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+              province: true,
+              avgRating: true,
+              visibilityWeight: true,
+            },
+          },
+          category: {
+            select: {
+              name: true,
+            },
           },
         },
-      },
-      orderBy: [
-        { salon: { visibilityWeight: 'desc' } },
-        { salon: { avgRating: 'desc' } },
-        { createdAt: 'desc' },
-      ],
-      take: limit,
-    });
+        orderBy: [
+          { salon: { visibilityWeight: 'desc' } },
+          { salon: { avgRating: 'desc' } },
+          { createdAt: 'desc' },
+        ],
+        take: limit,
+      });
 
-    this.logger.debug(`Found ${services.length} services`);
-    return services;
+      this.logger.debug(`Found ${services.length} services`);
+      return services;
+    } catch (error) {
+      this.logger.error(`Error fetching services: ${error.message}`);
+      return [];
+    }
   }
 
   /**
@@ -674,55 +679,60 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
   async fetchSalons(location: SeoLocation, limit: number = 20): Promise<any[]> {
     this.logger.debug(`Fetching salons in ${location.name}`);
 
-    // Build location filter based on location type
-    const locationFilter: any = {};
-    
-    if (location.type === 'PROVINCE') {
-      locationFilter.province = location.name;
-    } else if (location.type === 'CITY' || location.type === 'TOWN') {
-      locationFilter.city = location.name;
-      locationFilter.province = location.province;
-    } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
-      locationFilter.town = location.name;
-      locationFilter.province = location.province;
-    }
+    try {
+      // Build location filter based on location type
+      const locationFilter: any = {};
+      
+      if (location.type === 'PROVINCE') {
+        locationFilter.province = location.name;
+      } else if (location.type === 'CITY' || location.type === 'TOWN') {
+        locationFilter.city = location.name;
+        locationFilter.province = location.province;
+      } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
+        locationFilter.town = location.name;
+        locationFilter.province = location.province;
+      }
 
-    const salons = await this.prisma.salon.findMany({
-      where: {
-        approvalStatus: 'APPROVED',
-        ...locationFilter,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        city: true,
-        province: true,
-        town: true,
-        avgRating: true,
-        visibilityWeight: true,
-        logo: true,
-        heroImages: true,
-        _count: {
-          select: {
-            services: {
-              where: {
-                approvalStatus: 'APPROVED',
+      const salons = await this.prisma.salon.findMany({
+        where: {
+          approvalStatus: 'APPROVED',
+          ...locationFilter,
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          city: true,
+          province: true,
+          town: true,
+          avgRating: true,
+          visibilityWeight: true,
+          logo: true,
+          heroImages: true,
+          _count: {
+            select: {
+              services: {
+                where: {
+                  approvalStatus: 'APPROVED',
+                },
               },
             },
           },
         },
-      },
-      orderBy: [
-        { visibilityWeight: 'desc' },
-        { avgRating: 'desc' },
-        { createdAt: 'desc' },
-      ],
-      take: limit,
-    });
+        orderBy: [
+          { visibilityWeight: 'desc' },
+          { avgRating: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        take: limit,
+      });
 
-    this.logger.debug(`Found ${salons.length} salons`);
-    return salons;
+      this.logger.debug(`Found ${salons.length} salons`);
+      return salons;
+    } catch (error) {
+      this.logger.error(`Error fetching salons: ${error.message}`);
+      return [];
+    }
   }
 
   /**
@@ -732,55 +742,65 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
     keyword: SeoKeyword,
     location: SeoLocation,
   ): Promise<number> {
-    const locationFilter: any = {};
-    
-    if (location.type === 'PROVINCE') {
-      locationFilter.province = location.name;
-    } else if (location.type === 'CITY' || location.type === 'TOWN') {
-      locationFilter.city = location.name;
-      locationFilter.province = location.province;
-    } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
-      locationFilter.town = location.name;
-      locationFilter.province = location.province;
-    }
+    try {
+      const locationFilter: any = {};
+      
+      if (location.type === 'PROVINCE') {
+        locationFilter.province = location.name;
+      } else if (location.type === 'CITY' || location.type === 'TOWN') {
+        locationFilter.city = location.name;
+        locationFilter.province = location.province;
+      } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
+        locationFilter.town = location.name;
+        locationFilter.province = location.province;
+      }
 
-    const count = await this.prisma.service.count({
-      where: {
-        approvalStatus: 'APPROVED',
-        salon: {
+      const count = await this.prisma.service.count({
+        where: {
           approvalStatus: 'APPROVED',
-          ...locationFilter,
+          salon: {
+            approvalStatus: 'APPROVED',
+            ...locationFilter,
+          },
         },
-      },
-    });
+      });
 
-    return count;
+      return count;
+    } catch (error) {
+      this.logger.error(`Error counting services: ${error.message}`);
+      return 0;
+    }
   }
 
   /**
    * Get salon count for location
    */
   async getSalonCount(location: SeoLocation): Promise<number> {
-    const locationFilter: any = {};
-    
-    if (location.type === 'PROVINCE') {
-      locationFilter.province = location.name;
-    } else if (location.type === 'CITY' || location.type === 'TOWN') {
-      locationFilter.city = location.name;
-      locationFilter.province = location.province;
-    } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
-      locationFilter.town = location.name;
-      locationFilter.province = location.province;
+    try {
+      const locationFilter: any = {};
+      
+      if (location.type === 'PROVINCE') {
+        locationFilter.province = location.name;
+      } else if (location.type === 'CITY' || location.type === 'TOWN') {
+        locationFilter.city = location.name;
+        locationFilter.province = location.province;
+      } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
+        locationFilter.town = location.name;
+        locationFilter.province = location.province;
+      }
+
+      const count = await this.prisma.salon.count({
+        where: {
+          approvalStatus: 'APPROVED',
+          ...locationFilter,
+        },
+      });
+
+      return count;
+    } catch (error) {
+      this.logger.error(`Error counting salons: ${error.message}`);
+      return 0;
     }
-
-    const count = await this.prisma.salon.count({
-      where: {
-        approvalStatus: 'APPROVED',
-        ...locationFilter,
-      },
-    });
-
-    return count;
   }
 
   /**
@@ -790,32 +810,37 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
     keyword: SeoKeyword,
     location: SeoLocation,
   ): Promise<number | undefined> {
-    const locationFilter: any = {};
-    
-    if (location.type === 'PROVINCE') {
-      locationFilter.province = location.name;
-    } else if (location.type === 'CITY' || location.type === 'TOWN') {
-      locationFilter.city = location.name;
-      locationFilter.province = location.province;
-    } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
-      locationFilter.town = location.name;
-      locationFilter.province = location.province;
-    }
+    try {
+      const locationFilter: any = {};
+      
+      if (location.type === 'PROVINCE') {
+        locationFilter.province = location.name;
+      } else if (location.type === 'CITY' || location.type === 'TOWN') {
+        locationFilter.city = location.name;
+        locationFilter.province = location.province;
+      } else if (location.type === 'SUBURB' || location.type === 'TOWNSHIP') {
+        locationFilter.town = location.name;
+        locationFilter.province = location.province;
+      }
 
-    const result = await this.prisma.service.aggregate({
-      where: {
-        approvalStatus: 'APPROVED',
-        salon: {
+      const result = await this.prisma.service.aggregate({
+        where: {
           approvalStatus: 'APPROVED',
-          ...locationFilter,
+          salon: {
+            approvalStatus: 'APPROVED',
+            ...locationFilter,
+          },
         },
-      },
-      _avg: {
-        price: true,
-      },
-    });
+        _avg: {
+          price: true,
+        },
+      });
 
-    return result._avg.price || undefined;
+      return result._avg.price || undefined;
+    } catch (error) {
+      this.logger.error(`Error calculating avg price: ${error.message}`);
+      return undefined;
+    }
   }
 
   /**
@@ -854,49 +879,84 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
       `Generating page data for ${keyword.keyword} in ${location.name}`,
     );
 
-    // Get counts and stats
-    const serviceCount = await this.getServiceCount(keyword, location);
-    const salonCount = await this.getSalonCount(location);
-    const avgPrice = await this.getAvgPrice(keyword, location);
+    try {
+      // Get counts and stats with fallbacks
+      let serviceCount = 0;
+      let salonCount = 0;
+      let avgPrice: number | undefined;
 
-    // Generate content
-    const h1 = this.generateH1(keyword, location);
-    const h2Headings = this.generateH2Headings(keyword, location, serviceCount);
-    const h3Headings = this.generateH3Headings(keyword, location);
-    const metaTitle = this.generateMetaTitle(keyword, location);
-    const metaDescription = this.generateMetaDescription(keyword, location, serviceCount);
-    const introText = this.generateIntroText(keyword, location, serviceCount, salonCount, avgPrice);
+      try {
+        serviceCount = await this.getServiceCount(keyword, location);
+      } catch (error) {
+        this.logger.warn(`Failed to get service count: ${error.message}`);
+      }
 
-    // Generate links
-    const relatedServices = await this.generateRelatedServices(keyword, location);
-    const nearbyLocations = await this.generateNearbyLocations(keyword, location);
+      try {
+        salonCount = await this.getSalonCount(location);
+      } catch (error) {
+        this.logger.warn(`Failed to get salon count: ${error.message}`);
+      }
 
-    // Generate breadcrumbs
-    const breadcrumbs = this.generateBreadcrumbs(keyword, location);
+      try {
+        avgPrice = await this.getAvgPrice(keyword, location);
+      } catch (error) {
+        this.logger.warn(`Failed to get avg price: ${error.message}`);
+      }
 
-    // Build URL
-    const url = this.buildUrl(keyword.slug, location);
+      // Generate content
+      const h1 = this.generateH1(keyword, location);
+      const h2Headings = this.generateH2Headings(keyword, location, serviceCount);
+      const h3Headings = this.generateH3Headings(keyword, location);
+      const metaTitle = this.generateMetaTitle(keyword, location);
+      const metaDescription = this.generateMetaDescription(keyword, location, serviceCount);
+      const introText = this.generateIntroText(keyword, location, serviceCount, salonCount, avgPrice);
 
-    const pageData: SEOPageData = {
-      keyword,
-      location,
-      url,
-      h1,
-      h2Headings,
-      h3Headings,
-      introText,
-      metaTitle,
-      metaDescription,
-      breadcrumbs,
-      relatedServices,
-      nearbyLocations,
-      serviceCount,
-      salonCount,
-      avgPrice,
-    };
+      // Generate links with fallbacks
+      let relatedServices: RelatedLink[] = [];
+      let nearbyLocations: RelatedLink[] = [];
 
-    this.logger.debug(`Generated page data for ${url}`);
-    return pageData;
+      try {
+        relatedServices = await this.generateRelatedServices(keyword, location);
+      } catch (error) {
+        this.logger.warn(`Failed to generate related services: ${error.message}`);
+      }
+
+      try {
+        nearbyLocations = await this.generateNearbyLocations(keyword, location);
+      } catch (error) {
+        this.logger.warn(`Failed to generate nearby locations: ${error.message}`);
+      }
+
+      // Generate breadcrumbs
+      const breadcrumbs = this.generateBreadcrumbs(keyword, location);
+
+      // Build URL
+      const url = this.buildUrl(keyword.slug, location);
+
+      const pageData: SEOPageData = {
+        keyword,
+        location,
+        url,
+        h1,
+        h2Headings,
+        h3Headings,
+        introText,
+        metaTitle,
+        metaDescription,
+        breadcrumbs,
+        relatedServices,
+        nearbyLocations,
+        serviceCount,
+        salonCount,
+        avgPrice,
+      };
+
+      this.logger.debug(`Generated page data for ${url}`);
+      return pageData;
+    } catch (error) {
+      this.logger.error(`Failed to generate page data: ${error.message}`);
+      throw error;
+    }
   }
 
   /**
