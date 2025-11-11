@@ -20,9 +20,12 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "generate:seo-pages": "ts-node scripts/generate-seo-pages.ts",
-    "import:seo-keywords": "ts-node scripts/import-seo-keywords.ts",
-    "import:seo-locations": "ts-node scripts/import-seo-locations.ts"
+    "seo:setup": "ts-node scripts/setup-seo-database.ts",
+    "seo:generate": "ts-node scripts/generate-seo-pages.ts",
+    "seo:import-keywords": "ts-node scripts/import-seo-keywords.ts",
+    "seo:import-locations": "ts-node scripts/import-seo-locations.ts",
+    "seo:test": "ts-node scripts/test-seo-data.ts",
+    "seo:clear-cache": "ts-node scripts/clear-seo-cache.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
