@@ -207,13 +207,23 @@ export class SitemapService {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
-    for (const url of urls) {
+    // If no URLs, add at least the homepage to avoid empty sitemap error
+    if (urls.length === 0) {
       xml += '  <url>\n';
-      xml += `    <loc>${this.BASE_URL}${url.loc}</loc>\n`;
-      xml += `    <lastmod>${url.lastmod}</lastmod>\n`;
-      xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
-      xml += `    <priority>${url.priority}</priority>\n`;
+      xml += `    <loc>${this.BASE_URL}/</loc>\n`;
+      xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>1.0</priority>\n`;
       xml += '  </url>\n';
+    } else {
+      for (const url of urls) {
+        xml += '  <url>\n';
+        xml += `    <loc>${this.BASE_URL}${url.loc}</loc>\n`;
+        xml += `    <lastmod>${url.lastmod}</lastmod>\n`;
+        xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
+        xml += `    <priority>${url.priority}</priority>\n`;
+        xml += '  </url>\n';
+      }
     }
 
     xml += '</urlset>';
