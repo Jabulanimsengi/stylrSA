@@ -5,9 +5,10 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_ORIGIN ||
                     'http://localhost:5000';
 
 /**
- * Alternative sitemap segment route
- * Supports: /sitemap-0.xml, /sitemap-1.xml, /sitemap-2.xml, etc.
- * Mirrors sitemap-seo-[segment] for redundancy
+ * Consolidated sitemap segment route
+ * Handles:
+ * - /sitemap-seo-0.xml (segment = 'seo-0')
+ * - /sitemap-0.xml (segment = '0')
  */
 export async function GET(
   request: Request,
@@ -15,9 +16,15 @@ export async function GET(
 ) {
   try {
     const { segment } = await params;
+    let backendSegment = segment;
+
+    // Handle 'seo-' prefix (e.g. from sitemap-seo-0.xml)
+    if (segment.startsWith('seo-')) {
+      backendSegment = segment.replace('seo-', '');
+    }
 
     // Validate segment is a number
-    if (!segment || !/^\d+$/.test(segment)) {
+    if (!backendSegment || !/^\d+$/.test(backendSegment)) {
       const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </urlset>`;
@@ -28,7 +35,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `${BACKEND_URL}/seo/sitemap-seo-${segment}`,
+      `${BACKEND_URL}/seo/sitemap-seo-${backendSegment}`,
       { next: { revalidate: 3600 } }
     );
 
