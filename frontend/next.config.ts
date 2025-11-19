@@ -73,6 +73,17 @@ const nextConfig: NextConfig = {
         { source: "/api/auth/status", destination: `${apiOrigin}/api/auth/status` },
         { source: "/api/auth/logout", destination: `${apiOrigin}/api/auth/logout` },
       ],
+      // ADDED: Rewrite rules for dynamic sitemaps
+      afterFiles: [
+        {
+          source: '/sitemap-seo-:segment.xml',
+          destination: '/sitemap-seo/:segment',
+        },
+        {
+          source: '/sitemap-:segment.xml',
+          destination: '/sitemap/:segment',
+        },
+      ],
       fallback: [
         {
           source: "/socket.io/:path*",
