@@ -15,7 +15,16 @@ export class SitemapService {
   private readonly BASE_URL =
     process.env.FRONTEND_URL || 'https://www.stylrsa.co.za';
 
-  constructor(private prisma: PrismaService) {}
+  // Cache for locations to avoid DB hits on every request
+  private locationsCache: any[] | null = null;
+  private lastLocationsFetch = 0;
+  private readonly LOCATIONS_CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
+  // Cache for generated sitemaps
+  private sitemapCache = new Map<number, { xml: string; timestamp: number }>();
+  private readonly SITEMAP_CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Generate sitemap index XML
@@ -81,6 +90,13 @@ export class SitemapService {
    * @param segment - The sitemap segment number (0, 1, 2, etc.)
    */
   async generateSitemap(segment: number): Promise<string> {
+    // Check cache first
+    const cached = this.sitemapCache.get(segment);
+    if (cached && Date.now() - cached.timestamp < this.SITEMAP_CACHE_TTL) {
+      this.logger.log(`Serving cached sitemap for segment ${segment}`);
+      return cached.xml;
+    }
+
     this.logger.log(`Generating SEO sitemap segment ${segment}`);
 
     const skip = segment * this.URLS_PER_SITEMAP;
@@ -88,7 +104,12 @@ export class SitemapService {
 
     this.logger.log(`Retrieved ${urls.length} URLs for segment ${segment}`);
 
-    return this.buildSitemapXml(urls);
+    const xml = this.buildSitemapXml(urls);
+
+    // Cache the result
+    this.sitemapCache.set(segment, { xml, timestamp: Date.now() });
+
+    return xml;
   }
 
   /**
@@ -148,11 +169,11 @@ export class SitemapService {
     this.logger.log('Generating services sitemap');
 
     const services = await this.prisma.service.findMany({
-      where: { 
-        salon: { 
-          approvalStatus: 'APPROVED' 
+      where: {
+        salon: {
+          approvalStatus: 'APPROVED',
         },
-        approvalStatus: 'APPROVED'
+        approvalStatus: 'APPROVED',
       },
       select: {
         id: true,
@@ -251,13 +272,18 @@ export class SitemapService {
   }
 
   /**
-   * Get all SEO URLs with OPTIMIZED pagination
-   * Calculates specific keywords needed instead of generating all combinations
+   * Get cached locations
    */
-  async getAllSEOUrls(skip: number, limit: number): Promise<SitemapUrl[]> {
-    // 1. Fetch all locations to calculate pagination
-    // Locations are cached in many DBs or small enough to fetch quickly
-    const locations = await this.prisma.seoLocation.findMany({
+  private async getLocations(): Promise<any[]> {
+    if (
+      this.locationsCache &&
+      Date.now() - this.lastLocationsFetch < this.LOCATIONS_CACHE_TTL
+    ) {
+      return this.locationsCache;
+    }
+
+    this.logger.log('Fetching locations from DB for sitemap generation');
+    this.locationsCache = await this.prisma.seoLocation.findMany({
       orderBy: [{ population: 'desc' }, { name: 'asc' }],
       select: {
         slug: true,
@@ -266,6 +292,18 @@ export class SitemapService {
         population: true,
       },
     });
+    this.lastLocationsFetch = Date.now();
+    return this.locationsCache || [];
+  }
+
+  /**
+   * Get all SEO URLs with OPTIMIZED pagination
+   * Calculates specific keywords needed instead of generating all combinations
+   */
+  async getAllSEOUrls(skip: number, limit: number): Promise<SitemapUrl[]> {
+    // 1. Fetch all locations to calculate pagination
+    // Use cached locations to improve performance
+    const locations = await this.getLocations();
 
     const locationCount = locations.length;
     if (locationCount === 0) return [];
@@ -273,7 +311,7 @@ export class SitemapService {
     // 2. Calculate which keywords correspond to the requested skip/limit
     // We skip entire blocks of (1 keyword * all locations)
     const keywordSkip = Math.floor(skip / locationCount);
-    
+
     // Calculate how many keywords we need to fetch to cover the limit
     // Plus 1 to handle starting in the middle of a keyword's location list
     const keywordTake = Math.ceil(limit / locationCount) + 1;
@@ -291,7 +329,7 @@ export class SitemapService {
 
     const urls: SitemapUrl[] = [];
     const now = new Date().toISOString();
-    
+
     // 3. Calculate the starting offset within the first keyword
     // (e.g., if we skipped 2.5 keywords, we start at index 50% of 3rd keyword)
     let locationIndex = skip % locationCount;
@@ -302,7 +340,7 @@ export class SitemapService {
         if (urls.length >= limit) break;
 
         const location = locations[i];
-        
+
         // Build URL based on location type
         let url: string;
         if (location.type === 'PROVINCE') {
@@ -318,10 +356,10 @@ export class SitemapService {
           priority: this.calculatePriority(keyword, location),
         });
       }
-      
+
       // Reset location index for subsequent keywords (they always start at 0)
       locationIndex = 0;
-      
+
       if (urls.length >= limit) break;
     }
 
