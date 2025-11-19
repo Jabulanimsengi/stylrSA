@@ -251,20 +251,12 @@ export class SitemapService {
   }
 
   /**
-   * Get all SEO URLs with pagination
-   * Generates URLs from all keyword × location combinations
+   * Get all SEO URLs with OPTIMIZED pagination
+   * Calculates specific keywords needed instead of generating all combinations
    */
   async getAllSEOUrls(skip: number, limit: number): Promise<SitemapUrl[]> {
-    // Get keywords and locations separately, then combine them
-    const keywords = await this.prisma.seoKeyword.findMany({
-      orderBy: [{ priority: 'asc' }, { searchVolume: 'desc' }],
-      select: {
-        slug: true,
-        priority: true,
-        searchVolume: true,
-      },
-    });
-
+    // 1. Fetch all locations to calculate pagination
+    // Locations are cached in many DBs or small enough to fetch quickly
     const locations = await this.prisma.seoLocation.findMany({
       orderBy: [{ population: 'desc' }, { name: 'asc' }],
       select: {
@@ -275,12 +267,42 @@ export class SitemapService {
       },
     });
 
-    // Generate all combinations
-    const allUrls: SitemapUrl[] = [];
+    const locationCount = locations.length;
+    if (locationCount === 0) return [];
+
+    // 2. Calculate which keywords correspond to the requested skip/limit
+    // We skip entire blocks of (1 keyword * all locations)
+    const keywordSkip = Math.floor(skip / locationCount);
+    
+    // Calculate how many keywords we need to fetch to cover the limit
+    // Plus 1 to handle starting in the middle of a keyword's location list
+    const keywordTake = Math.ceil(limit / locationCount) + 1;
+
+    const keywords = await this.prisma.seoKeyword.findMany({
+      orderBy: [{ priority: 'asc' }, { searchVolume: 'desc' }],
+      select: {
+        slug: true,
+        priority: true,
+        searchVolume: true,
+      },
+      skip: keywordSkip,
+      take: keywordTake,
+    });
+
+    const urls: SitemapUrl[] = [];
     const now = new Date().toISOString();
+    
+    // 3. Calculate the starting offset within the first keyword
+    // (e.g., if we skipped 2.5 keywords, we start at index 50% of 3rd keyword)
+    let locationIndex = skip % locationCount;
 
     for (const keyword of keywords) {
-      for (const location of locations) {
+      // Iterate through locations for this keyword
+      for (let i = locationIndex; i < locations.length; i++) {
+        if (urls.length >= limit) break;
+
+        const location = locations[i];
+        
         // Build URL based on location type
         let url: string;
         if (location.type === 'PROVINCE') {
@@ -289,17 +311,21 @@ export class SitemapService {
           url = `/${keyword.slug}/${location.provinceSlug}/${location.slug}`;
         }
 
-        allUrls.push({
+        urls.push({
           loc: url,
           lastmod: now,
           changefreq: this.calculateChangeFreq(keyword, location),
           priority: this.calculatePriority(keyword, location),
         });
       }
+      
+      // Reset location index for subsequent keywords (they always start at 0)
+      locationIndex = 0;
+      
+      if (urls.length >= limit) break;
     }
 
-    // Apply pagination
-    return allUrls.slice(skip, skip + limit);
+    return urls;
   }
 
   /**
