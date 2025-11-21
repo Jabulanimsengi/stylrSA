@@ -7,9 +7,9 @@ type Props = {
 };
 
 // Category information for SEO - Expanded with comprehensive keywords
-const CATEGORY_INFO: Record<string, { 
-  name: string; 
-  serviceName: string; 
+const CATEGORY_INFO: Record<string, {
+  name: string;
+  serviceName: string;
   descriptionBase: string;
   keywordsBase: string[];
 }> = {
@@ -270,9 +270,9 @@ const CATEGORY_INFO: Record<string, {
 // Generate static params for all combinations
 export async function generateStaticParams() {
   const params: Array<{ category: string; location: string; city: string }> = [];
-  
+
   const categories = Object.keys(CATEGORY_INFO);
-  
+
   Object.keys(PROVINCES).forEach(provinceSlug => {
     const province = PROVINCES[provinceSlug];
     province.cities.forEach(city => {
@@ -285,16 +285,16 @@ export async function generateStaticParams() {
       });
     });
   });
-  
+
   return params;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category, location, city } = await params;
-  
+
   const categoryInfo = CATEGORY_INFO[category];
   const cityInfo = getCityInfo(location, city);
-  
+
   if (!categoryInfo || !cityInfo) {
     return {
       title: 'Services | Stylr SA',
@@ -313,14 +313,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `Top ${categoryInfo.serviceName} ${cityInfo.name} | Professional ${categoryInfo.name} Near Me`,
     `Find the Best ${categoryInfo.serviceName} in ${cityInfo.name} | ${categoryInfo.name} Services`,
   ];
-  
+
   // Use first variation (can be rotated for A/B testing)
   const title = titleVariations[0];
 
   // Enhanced meta description with compelling copy and CTA
   const primaryKeyword = categoryInfo.keywordsBase[0] || categoryInfo.serviceName;
   const description = `Book the best ${primaryKeyword} services in ${cityInfo.name}, ${cityInfo.province}. Find top-rated ${categoryInfo.serviceName} professionals, read verified reviews, compare prices, and book instantly. Open now!`;
-  
+
   // REMOVED: Meta keywords generation - Google has not used meta keywords for ranking in over a decade
   // SEO ranking power comes from title, meta description, and on-page content (H1s, text, FAQs)
 
@@ -399,7 +399,7 @@ export default async function ServiceLocationLayout({ children, params }: Props)
   // Enhanced Service schema with more keyword variations
   const canonicalUrl = `${siteUrl}/services/${category}/location/${location}/${city}`;
   const primaryKeywords = categoryInfo.keywordsBase.slice(0, 5).join(', ');
-  
+
   const serviceSchema = {
     '@context': 'https://schema.org',
     '@type': 'Service',
@@ -442,11 +442,6 @@ export default async function ServiceLocationLayout({ children, params }: Props)
       reviewCount: '1250',
       bestRating: '5',
       worstRating: '1',
-      itemReviewed: {
-        '@type': 'Service',
-        name: `${categoryInfo.name} in ${cityInfo.name}`,
-        description: `${categoryInfo.descriptionBase} in ${cityInfo.name}, ${cityInfo.province}`,
-      },
     },
   };
 
@@ -478,16 +473,6 @@ export default async function ServiceLocationLayout({ children, params }: Props)
       reviewCount: '1250',
       bestRating: '5',
       worstRating: '1',
-      itemReviewed: {
-        '@type': 'LocalBusiness',
-        name: `${categoryInfo.serviceName} in ${cityInfo.name}`,
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: cityInfo.name,
-          addressRegion: cityInfo.province,
-          addressCountry: 'ZA',
-        },
-      },
     },
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
