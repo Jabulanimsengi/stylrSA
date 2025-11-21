@@ -10,28 +10,28 @@ export default function ToasterClient() {
   const { user } = useAuth();
   const mountedRef = useRef(true);
   const hasCleanedUp = useRef(false);
-  
+
   useEffect(() => {
     mountedRef.current = true;
-    
+
     // Clean up any orphaned toast containers on first mount
     if (!hasCleanedUp.current) {
       cleanupToastContainers();
       hasCleanedUp.current = true;
     }
-    
+
     return () => {
       mountedRef.current = false;
     };
   }, []);
-  
+
   // Force re-mount when user changes to prevent DOM cleanup issues
   const containerKey = user?.id || 'anonymous';
-  
+
   if (!mountedRef.current) {
     return null;
   }
-  
+
   return (
     <ToastContainer
       key={containerKey}
@@ -46,8 +46,8 @@ export default function ToasterClient() {
       pauseOnFocusLoss
       pauseOnHover
       closeButton={(props) => <ToastCloseButton {...props} />}
+      style={{ zIndex: 99999 }}
       limit={3}
-      enableMultiContainer={false}
       containerId="main-toast-container"
       stacked
     />
