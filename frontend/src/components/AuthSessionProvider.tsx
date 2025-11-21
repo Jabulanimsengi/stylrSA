@@ -16,14 +16,14 @@ function AttachBackendCookie() {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ token: backendJwt }),
-    }).catch(() => {});
+    }).catch(() => { });
   }, [session, status]);
   return null;
 }
 
 export default function AuthSessionProvider({ children }: { children: ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false}>
       <AttachBackendCookie />
       {children}
     </SessionProvider>

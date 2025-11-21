@@ -27,13 +27,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const verifyUser = useCallback(async () => {
     if (verifyingRef.current) return;
-    
+
     // Skip verification if user just logged in - trust the login response
     // Check BEFORE setting verifyingRef to avoid clearing the flag prematurely
     if (justLoggedInRef.current) {
       return;
     }
-    
+
     verifyingRef.current = true;
 
     try {
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           await fetch('/api/auth/attach', {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
               'Cache-Control': 'no-cache, no-store, must-revalidate',
               'Pragma': 'no-cache'
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Primary: cookie-based status check with cache-busting
-      let res = await fetch('/api/auth/status', { 
+      let res = await fetch('/api/auth/status', {
         credentials: 'include',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!res.ok && sessionStatus === 'authenticated' && backendJwt) {
         res = await fetch('/api/auth/status', {
           credentials: 'include',
-          headers: { 
+          headers: {
             Authorization: `Bearer ${backendJwt}`,
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache'
@@ -83,20 +83,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const data = await res.json();
         setUser(data.user);
         setAuthStatus('authenticated');
-      } else {
-        // Not authenticated, but this is not an error - just set status
+      } else if (res.status === 401) {
+        // Explicit 401: backend says session is invalid - log out
+        console.log('[AuthContext] Session invalid (401), logging out');
         setAuthStatus('unauthenticated');
         setUser(null);
+      } else {
+        // Other HTTP errors (500, 503, etc.): keep current session, log warning
+        console.warn('[AuthContext] Verification failed with status', res.status, '- keeping current session');
+        // Don't change auth status - keep user logged in
       }
     } catch (error) {
-      // Any error during verification means user is not authenticated
-      // This includes 401 responses (logged out), network errors, or parsing errors
-      console.error('[AuthContext] verifyUser error:', error);
-      
-      // Always clear auth state on error to ensure logout works correctly
-      // The backend returns 401 when user is logged out or session is invalid
-      setAuthStatus('unauthenticated');
-      setUser(null);
+      // Network errors, timeouts, parsing errors: keep current session
+      console.warn('[AuthContext] verifyUser network error:', error, '- keeping current session');
+
+      // Don't log out on network errors - this prevents logout during:
+      // - Tab switching when browser pauses requests
+      // - Temporary network disconnections
+      // - Server restarts or maintenance
+      // Users will only be logged out on explicit 401 responses
     } finally {
       verifyingRef.current = false;
     }
@@ -116,7 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Mark that we just logged in so verifyUser doesn't run
     // This flag persists until logout or page refresh
     justLoggedInRef.current = true;
-    
+
     // Clear the flag after a short delay to allow normal verification on next page load
     // But keep it long enough to prevent immediate re-verification from sessionStatus changes
     setTimeout(() => {
@@ -129,26 +134,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAuthStatus('unauthenticated');
     attachedRef.current = null;
     justLoggedInRef.current = false;
-    
+
     // Clear user-specific data from storage
     try {
       if (typeof window !== 'undefined') {
         // Clear all sessionStorage (user-specific)
         sessionStorage.clear();
-        
+
         // Selectively clear localStorage - keep theme and cookie consent
         const keysToKeep = ['theme', 'cookieConsent', 'pwa-install-dismissed'];
         const keepData: Record<string, string> = {};
-        
+
         // Save data we want to keep
         keysToKeep.forEach(key => {
           const value = localStorage.getItem(key);
           if (value) keepData[key] = value;
         });
-        
+
         // Clear everything
         localStorage.clear();
-        
+
         // Restore saved data
         Object.entries(keepData).forEach(([key, value]) => {
           localStorage.setItem(key, value);
