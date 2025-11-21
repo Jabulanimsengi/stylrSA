@@ -13,7 +13,7 @@ export class SeoPagesController {
     private pageGenerator: SEOPageGeneratorService,
     private keywordService: KeywordService,
     private locationService: LocationService,
-  ) {}
+  ) { }
 
   /**
    * Get SEO page data by URL - generates on-demand
@@ -65,7 +65,7 @@ export class SeoPagesController {
         location = await this.prisma.seoLocation.findFirst({
           where: {
             slug: suburbSlug,
-            type: 'SUBURB',
+            type: { in: ['SUBURB', 'TOWNSHIP'] },
             provinceSlug,
           },
         });
@@ -73,7 +73,7 @@ export class SeoPagesController {
         location = await this.prisma.seoLocation.findFirst({
           where: {
             slug: citySlug,
-            type: { in: ['CITY', 'TOWN'] },
+            type: { in: ['CITY', 'TOWN', 'SUBURB', 'TOWNSHIP'] },
             provinceSlug,
           },
         });
@@ -94,7 +94,7 @@ export class SeoPagesController {
       const pageData = await this.pageGenerator.generatePageData(keyword, location);
 
       this.logger.debug(`Generated page for URL: ${normalizedUrl}`);
-      
+
       // Return generated data directly - NO DATABASE CACHING
       return pageData;
     } catch (error) {
