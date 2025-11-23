@@ -46,7 +46,7 @@ export default function ToasterClient() {
       pauseOnFocusLoss
       pauseOnHover
       closeButton={(props) => <ToastCloseButton {...props} />}
-      style={{ zIndex: 99999 }}
+      style={{ zIndex: 1000010 }}
       limit={3}
       containerId="main-toast-container"
       stacked
