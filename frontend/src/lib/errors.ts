@@ -18,7 +18,7 @@ function isNetworkError(err: unknown): boolean {
     if (error.name === 'TypeError' && error.message?.includes('fetch')) return true;
     if (error.message?.toLowerCase().includes('network')) return true;
     if (error.message?.toLowerCase().includes('failed to fetch')) return true;
-    if (!error.statusCode && error.message) return true; // No status = likely network issue
+    // if (!error.statusCode && error.message) return true; // Too broad - catches standard JS errors
   }
   return false;
 }
@@ -30,7 +30,7 @@ function isOnline(): boolean {
 export function toFriendlyMessage(err: unknown, fallback?: string): string {
   try {
     if (!err) return fallback || DEFAULT_MESSAGE;
-    
+
     // Check for network issues first
     if (isNetworkError(err)) {
       if (!isOnline()) {
@@ -38,10 +38,10 @@ export function toFriendlyMessage(err: unknown, fallback?: string): string {
       }
       return 'Connection issue detected. We\'re retrying automatically...';
     }
-    
+
     if (typeof err === 'string') return err;
     if (err instanceof Error) return err.message || (fallback || DEFAULT_MESSAGE);
-    
+
     const e = err as ApiError;
     if (e.userMessage) return e.userMessage;
     if (e.message) {

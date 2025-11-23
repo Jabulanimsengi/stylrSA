@@ -40,7 +40,7 @@ export class SalonsService {
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
     private eventsGateway: EventsGateway,
-  ) {}
+  ) { }
 
   /**
    * Validate that image URL is from trusted source (Cloudinary)
@@ -48,18 +48,18 @@ export class SalonsService {
    */
   private validateImageUrl(url: string | null | undefined, fieldName: string): void {
     if (!url) return; // null/undefined is OK
-    
+
     const cloudinaryDomain = process.env.CLOUDINARY_CLOUD_NAME;
     if (!cloudinaryDomain) {
       // If Cloudinary not configured, accept any URL (backward compatibility)
       return;
     }
-    
+
     try {
       const urlObj = new URL(url);
-      const isCloudinary = urlObj.hostname.includes('cloudinary.com') || 
-                          urlObj.hostname.includes('res.cloudinary.com');
-      
+      const isCloudinary = urlObj.hostname.includes('cloudinary.com') ||
+        urlObj.hostname.includes('res.cloudinary.com');
+
       if (!isCloudinary) {
         throw new BadRequestException(
           `Invalid ${fieldName} URL. Only Cloudinary URLs are allowed for security reasons.`
@@ -92,8 +92,13 @@ export class SalonsService {
 
   async create(userId: string, dto: CreateSalonDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || user.role !== 'SALON_OWNER') {
-      throw new ForbiddenException('You are not authorized to create a salon');
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+    if (user.role !== 'SALON_OWNER') {
+      throw new ForbiddenException(
+        `You are not authorized to create a salon. Your account role is '${user.role}'. Please contact support if you believe this is an error.`
+      );
     }
 
     const requestedPlan = (dto as any).planCode as PlanCode | undefined;
@@ -106,7 +111,7 @@ export class SalonsService {
     const paymentReferenceRaw = (dto as any).paymentReference;
     const paymentReference =
       typeof paymentReferenceRaw === 'string' &&
-      paymentReferenceRaw.trim().length > 0
+        paymentReferenceRaw.trim().length > 0
         ? paymentReferenceRaw.trim()
         : dto.name.trim();
     const planPaymentStatus: PlanPaymentStatus = requestedPlan === 'FREE'
@@ -121,8 +126,8 @@ export class SalonsService {
 
     const normalizedOperatingDays = Array.isArray((dto as any).operatingDays)
       ? (dto as any).operatingDays.filter(
-          (day: any) => typeof day === 'string' && day.trim().length > 0,
-        )
+        (day: any) => typeof day === 'string' && day.trim().length > 0,
+      )
       : normalizedOperatingHours.map((oh) => oh.day);
 
     const data: any = {
@@ -155,36 +160,44 @@ export class SalonsService {
       planVerifiedAt: requestedPlan === 'FREE' ? new Date() : null,
     };
 
+    console.log('SalonsService.create called for user:', userId);
+    console.log('Payload:', JSON.stringify(dto, null, 2));
+
     let salon;
     try {
+      console.log('Attempting to create salon in DB...');
       salon = await this.prisma.salon.create({ data });
+      console.log('Salon created successfully:', salon.id);
     } catch (err: any) {
-      // Log the actual Prisma error for debugging in development
-      // eslint-disable-next-line no-console
       console.error(
         'Salon create failed:',
         err?.message || err,
         err?.meta || '',
       );
-      throw err; // Let global filter map to friendly message
+      throw err;
     }
 
-    const admins = await this.prisma.user.findMany({
-      where: { role: 'ADMIN' },
-      select: { id: true },
-    });
+    try {
+      const admins = await this.prisma.user.findMany({
+        where: { role: 'ADMIN' },
+        select: { id: true },
+      });
 
-    for (const admin of admins) {
-      const notification = await this.notificationsService.create(
-        admin.id,
-        `New salon "${salon.name}" created by ${user.firstName || 'a user'} is pending approval.`,
-        { link: '/admin?tab=salons' },
-      );
-      this.eventsGateway.sendNotificationToUser(
-        admin.id,
-        'newNotification',
-        notification,
-      );
+      for (const admin of admins) {
+        const notification = await this.notificationsService.create(
+          admin.id,
+          `New salon "${salon.name}" created by ${user.firstName || 'a user'} is pending approval.`,
+          { link: '/admin?tab=salons' },
+        );
+        this.eventsGateway.sendNotificationToUser(
+          admin.id,
+          'newNotification',
+          notification,
+        );
+      }
+    } catch (notifyErr) {
+      console.error('Failed to send notifications after salon creation:', notifyErr);
+      // Do not fail the request if notifications fail
     }
 
     return salon;
@@ -286,7 +299,7 @@ export class SalonsService {
     if (typeof dto.paymentReference !== 'undefined') {
       const trimmed =
         typeof dto.paymentReference === 'string' &&
-        dto.paymentReference.trim().length > 0
+          dto.paymentReference.trim().length > 0
           ? dto.paymentReference.trim()
           : salon.name.trim();
       data.planPaymentReference = trimmed;
@@ -331,7 +344,7 @@ export class SalonsService {
           });
         }),
         // Timeout after 5 seconds to prevent hanging
-        new Promise((_, reject) => 
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('View tracking timeout')), 5000)
         ),
       ]);
@@ -394,7 +407,7 @@ export class SalonsService {
     // Attach isFavorited for the salon if user is present
     let salonWithFavorite: any = { ...salon };
     const userId: string | null = user?.id ?? null;
-    
+
     if (userId) {
       // Check if this salon is favorited by the user
       const favorite = await this.prisma.favorite.findUnique({
@@ -406,7 +419,7 @@ export class SalonsService {
         },
       });
       salonWithFavorite.isFavorited = !!favorite;
-      
+
       // Attach isLikedByCurrentUser for returned services if they exist
       if (Array.isArray(salonWithFavorite.services) && salonWithFavorite.services.length > 0) {
         const svcIds = salonWithFavorite.services.map((s: any) => s.id);
@@ -424,7 +437,7 @@ export class SalonsService {
       // No user logged in, set isFavorited to false
       salonWithFavorite.isFavorited = false;
     }
-    
+
     return salonWithFavorite;
   }
 
@@ -460,26 +473,26 @@ export class SalonsService {
       | 'logo'
       | 'heroImages'
     )[] = [
-      'name',
-      'description',
-      'backgroundImage',
-      'logo',
-      'heroImages',
-      'province',
-      'city',
-      'town',
-      'address',
-      'latitude',
-      'longitude',
-      'contactEmail',
-      'phoneNumber',
-      'whatsapp',
-      'website',
-      'bookingType',
-      'offersMobile',
-      'mobileFee',
-      'operatingHours',
-    ];
+        'name',
+        'description',
+        'backgroundImage',
+        'logo',
+        'heroImages',
+        'province',
+        'city',
+        'town',
+        'address',
+        'latitude',
+        'longitude',
+        'contactEmail',
+        'phoneNumber',
+        'whatsapp',
+        'website',
+        'bookingType',
+        'offersMobile',
+        'mobileFee',
+        'operatingHours',
+      ];
 
     const updateData: any = {};
     for (const key of allowedFields) {
@@ -597,8 +610,8 @@ export class SalonsService {
       orderBy = { avgRating: 'desc' };
 
     // Fetch base list with review aggregation
-    let salons = await this.prisma.salon.findMany({ 
-      where, 
+    let salons = await this.prisma.salon.findMany({
+      where,
       orderBy,
       include: {
         _count: {
@@ -619,10 +632,10 @@ export class SalonsService {
     salons = salons.map((s: any) => {
       const approvedReviews = s.reviews || [];
       const reviewCount = approvedReviews.length;
-      const avgRating = reviewCount > 0 
+      const avgRating = reviewCount > 0
         ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
         : 0;
-      
+
       // Remove the reviews array to keep response lean, keep only aggregated data
       const { reviews, _count, ...salon } = s;
       return {
@@ -670,7 +683,7 @@ export class SalonsService {
       const userLat = Number(lat);
       const userLon = Number(lon);
       const maxRadius = radius ? Number(radius) : null;
-      
+
       salons = salons
         .map((s) => {
           if (s.latitude == null || s.longitude == null)
@@ -680,9 +693,9 @@ export class SalonsService {
           const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.cos(toRad(userLat)) *
-              Math.cos(toRad(s.latitude)) *
-              Math.sin(dLon / 2) *
-              Math.sin(dLon / 2);
+            Math.cos(toRad(s.latitude)) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           const d = R * c;
           return { ...s, __dist: d };
@@ -695,9 +708,9 @@ export class SalonsService {
           return true;
         })
         .sort((a: any, b: any) => a.__dist - b.__dist)
-        .map(({ __dist, ...rest }: any) => ({ 
-          ...rest, 
-          distance: __dist !== Number.POSITIVE_INFINITY ? __dist : null 
+        .map(({ __dist, ...rest }: any) => ({
+          ...rest,
+          distance: __dist !== Number.POSITIVE_INFINITY ? __dist : null
         }));
     }
 
@@ -763,10 +776,10 @@ export class SalonsService {
     salons = salons.map((s: any) => {
       const approvedReviews = s.reviews || [];
       const reviewCount = approvedReviews.length;
-      const avgRating = reviewCount > 0 
+      const avgRating = reviewCount > 0
         ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
         : 0;
-      
+
       // Remove the reviews array to keep response lean, keep only aggregated data
       const { reviews, ...salon } = s;
       return {
@@ -930,10 +943,10 @@ export class SalonsService {
     recommendedSalons = recommendedSalons.map((s: any) => {
       const approvedReviews = s.reviews || [];
       const reviewCount = approvedReviews.length;
-      const avgRating = reviewCount > 0 
+      const avgRating = reviewCount > 0
         ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
         : 0;
-      
+
       const { reviews, ...salon } = s;
       return {
         ...salon,
@@ -1007,7 +1020,7 @@ export class SalonsService {
 
     return this.prisma.salon.update({
       where: { id: salon.id },
-      data: { 
+      data: {
         bookingMessage: bookingMessage || null, // Set to null if empty string
       },
     });

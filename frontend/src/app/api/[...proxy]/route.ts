@@ -23,12 +23,12 @@ export async function DELETE(request: NextRequest) {
 }
 
 async function proxyToBackend(request: NextRequest) {
-  const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
-  
+  const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || 'http://127.0.0.1:5000';
+
   // Get the full path including query params
   const url = new URL(request.url);
   const backendUrl = `${apiOrigin}${url.pathname}${url.search}`;
-  
+
   try {
     // Forward the request to the backend
     const response = await fetch(backendUrl, {
@@ -39,8 +39,8 @@ async function proxyToBackend(request: NextRequest) {
         'x-middleware-prefetch': '',
         'x-middleware-subrequest': '',
       },
-      body: request.method !== 'GET' && request.method !== 'HEAD' 
-        ? await request.text() 
+      body: request.method !== 'GET' && request.method !== 'HEAD'
+        ? await request.text()
         : undefined,
       // Don't cache API responses
       cache: 'no-store',
@@ -48,17 +48,26 @@ async function proxyToBackend(request: NextRequest) {
 
     // Forward the response back to the client
     const data = await response.text();
-    
+
+    // Build headers object, including Set-Cookie if present
+    const responseHeaders: HeadersInit = {
+      'Content-Type': response.headers.get('Content-Type') || 'application/json',
+    };
+
+    // Forward CORS headers if present
+    if (response.headers.get('Access-Control-Allow-Origin')) {
+      responseHeaders['Access-Control-Allow-Origin'] = response.headers.get('Access-Control-Allow-Origin')!;
+    }
+
+    // CRITICAL: Forward Set-Cookie header for authentication
+    if (response.headers.get('Set-Cookie')) {
+      responseHeaders['Set-Cookie'] = response.headers.get('Set-Cookie')!;
+    }
+
     return new NextResponse(data, {
       status: response.status,
       statusText: response.statusText,
-      headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
-        // Forward CORS headers if present
-        ...(response.headers.get('Access-Control-Allow-Origin') && {
-          'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin')!,
-        }),
-      },
+      headers: responseHeaders,
     });
   } catch (error) {
     console.error('Proxy error:', error);

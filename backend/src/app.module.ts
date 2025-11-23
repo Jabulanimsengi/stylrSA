@@ -26,7 +26,6 @@ import { LocationsModule } from './locations/locations.module';
 import { CategoriesModule } from './categories/categories.module'; // Import the new module
 import { ProductOrdersModule } from './product-orders/product-orders.module';
 import { SellersModule } from './sellers/sellers.module';
-import { MongoModule } from './mongo/mongo.module';
 import { MailModule } from './mail/mail.module';
 import { CsrfModule } from './common/csrf/csrf.module';
 import { BeforeAfterModule } from './before-after/before-after.module';
@@ -79,7 +78,6 @@ import { SeoModule } from './seo/seo.module';
     CategoriesModule, // Add the new module here
     ProductOrdersModule,
     SellersModule,
-    MongoModule,
     MailModule,
     CsrfModule,
     BeforeAfterModule,
@@ -97,4 +95,4 @@ import { SeoModule } from './seo/seo.module';
     // Auth endpoints have their own specific throttle limits
   ],
 })
-export class AppModule {}
+export class AppModule { }

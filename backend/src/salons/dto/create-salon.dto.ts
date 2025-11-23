@@ -63,7 +63,8 @@ export class CreateSalonDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber('ZA') // Example: Validates for South Africa
+  // Relaxed validation: accepts various SA phone formats
+  // +27 XX XXX XXXX, 0XX XXX XXXX, etc.
   phone: string;
 
   @IsString()
@@ -116,7 +117,7 @@ export class CreateSalonDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['INSTANT', 'REQUEST'])
+  @IsIn(['ONSITE', 'MOBILE', 'BOTH'])
   bookingType?: string;
 
   @IsString()

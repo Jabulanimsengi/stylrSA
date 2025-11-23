@@ -22,7 +22,7 @@ export default function CreateSalonPage() {
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [description, setDescription] = useState('');
-  const [bookingType, setBookingType] = useState<'ONSITE'|'MOBILE'|'BOTH'>('ONSITE');
+  const [bookingType, setBookingType] = useState<'ONSITE' | 'MOBILE' | 'BOTH'>('ONSITE');
   const [mobileFee, setMobileFee] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<PlanCode>('STARTER');
   const [hasSentProof, setHasSentProof] = useState(false);
@@ -35,9 +35,9 @@ export default function CreateSalonPage() {
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
   const [fieldsLocked, setFieldsLocked] = useState(false);
-  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  const [hours, setHours] = useState<Record<string,{open:string,close:string, isOpen: boolean}>>(
-    Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string,{open:string,close:string, isOpen: boolean}>
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const [hours, setHours] = useState<Record<string, { open: string, close: string, isOpen: boolean }>>(
+    Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string, { open: string, close: string, isOpen: boolean }>
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { authStatus, user } = useAuth();
@@ -50,7 +50,7 @@ export default function CreateSalonPage() {
     accountHolder: 'J Msengi',
     whatsapp: '0787770524',
   };
- 
+
   // Fetch locations data from API
   useEffect(() => {
     const fetchLocations = async () => {
@@ -99,8 +99,10 @@ export default function CreateSalonPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log('handleSubmit called');
     setIsSubmitting(true);
     try {
+      console.log('Validating form...');
       // Client-side guardrails to match backend constraints
       if (town.length > 100) throw new Error('Town must be 100 characters or fewer.');
       if (city.length > 100) throw new Error('City must be 100 characters or fewer.');
@@ -108,7 +110,8 @@ export default function CreateSalonPage() {
       if (name.length > 100) throw new Error('Name must be 100 characters or fewer.');
       if (description.length > 500) throw new Error('Description must be 500 characters or fewer.');
       if (address.length > 255) throw new Error('Address must be 255 characters or fewer.');
-      
+
+      console.log('Checking location:', { latitude, longitude });
       // Require coordinates for proximity-based search
       if (!latitude || !longitude) {
         throw new Error('Please use "Find on Map" to set your salon location. This helps customers find you nearby.');
@@ -153,6 +156,7 @@ export default function CreateSalonPage() {
         payload.paymentReference = effectiveReference;
       }
 
+      console.log('Sending payload:', payload);
       const response = await fetch(`/api/salons`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -160,28 +164,39 @@ export default function CreateSalonPage() {
         body: JSON.stringify(payload),
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
         // Try to parse the error response as JSON, but have a fallback.
         const errorData = await response.json().catch(() => ({ message: 'Failed to create salon due to a server error.' }));
-        throw new Error(errorData.message || 'Failed to create salon');
+        console.error('Error data:', errorData);
+        const error: any = new Error(errorData.message || 'Failed to create salon');
+        error.statusCode = response.status;
+        error.userMessage = errorData.userMessage; // Pass through user-friendly message if available
+        throw error;
       }
 
       // Enhanced success message
       toast.success('🎉 Salon profile created successfully!', {
         autoClose: 5000
       });
-      
+
       // Show next steps
       setTimeout(() => {
         toast.info('💡 Next: Add services and set your availability in the dashboard', {
           autoClose: 7000
         });
       }, 1000);
-      
+
+      console.log('Redirecting to dashboard...');
       router.push('/dashboard');
     } catch (error: any) {
+      console.error('Failed to create salon:', error);
       logger.error('Failed to create salon:', error);
-      toast.error(toFriendlyMessage(error, 'Failed to create salon. Please try again.'));
+      const friendlyMsg = toFriendlyMessage(error, 'Failed to create salon. Please try again.');
+      toast.error(friendlyMsg);
+      // Fallback alert if toast is missed
+      alert(`Error: ${friendlyMsg}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -296,15 +311,15 @@ export default function CreateSalonPage() {
                   fetch(`https://nominatim.openstreetmap.org/search?q=${q}, South Africa&format=json&limit=5&addressdetails=1`, {
                     headers: { 'User-Agent': 'HairProsDirectory' }
                   })
-                  .then(r => r.json())
-                  .then(data => {
-                    setAddrSuggestions(data || []);
-                    setShowAddrSuggestions(true);
-                  })
-                  .catch(() => {
-                    setAddrSuggestions([]);
-                    setShowAddrSuggestions(false);
-                  });
+                    .then(r => r.json())
+                    .then(data => {
+                      setAddrSuggestions(data || []);
+                      setShowAddrSuggestions(true);
+                    })
+                    .catch(() => {
+                      setAddrSuggestions([]);
+                      setShowAddrSuggestions(false);
+                    });
                 } else {
                   setAddrSuggestions([]);
                   setShowAddrSuggestions(false);
@@ -327,10 +342,10 @@ export default function CreateSalonPage() {
                 zIndex: 10,
               }}>
                 {addrSuggestions.map((s) => (
-                  <li 
-                    key={s.place_id} 
-                    style={{ 
-                      padding: '8px 12px', 
+                  <li
+                    key={s.place_id}
+                    style={{
+                      padding: '8px 12px',
                       cursor: 'pointer',
                       borderBottom: '1px solid var(--color-border)',
                     }}
@@ -342,46 +357,46 @@ export default function CreateSalonPage() {
                       setLongitude(parseFloat(s.lon));
                       setAddrQuery(s.display_name);
                       setShowAddrSuggestions(false);
-                      
+
                       // Extract and auto-populate location fields from address details
                       if (s.address) {
                         const addr = s.address;
-                        
+
                         // Extract province/state
                         const provinceValue = addr.state || addr.province || '';
                         if (provinceValue) {
                           // Try to match with SA provinces
-                          const matchedProvince = SA_PROVINCES.find(p => 
-                            provinceValue.toLowerCase().includes(p.toLowerCase()) || 
+                          const matchedProvince = SA_PROVINCES.find(p =>
+                            provinceValue.toLowerCase().includes(p.toLowerCase()) ||
                             p.toLowerCase().includes(provinceValue.toLowerCase())
                           );
                           if (matchedProvince) {
                             setProvince(matchedProvince);
                           }
                         }
-                        
+
                         // Extract city
                         const cityValue = addr.city || addr.town || addr.municipality || addr.county || '';
                         if (cityValue) {
                           setCity(cityValue);
                         }
-                        
+
                         // Extract town/suburb
                         const townValue = addr.suburb || addr.neighbourhood || addr.village || '';
                         if (townValue) {
                           setTown(townValue);
                         }
-                        
+
                         // Extract postal code
                         const postalValue = addr.postcode || '';
                         if (postalValue) {
                           setPostalCode(postalValue);
                         }
-                        
+
                         // Lock the fields after auto-population
                         setFieldsLocked(true);
                       }
-                      
+
                       toast.success('Location set successfully! 📍 Fields auto-populated.');
                     }}
                   >
@@ -492,7 +507,7 @@ export default function CreateSalonPage() {
                   height="100%"
                   style={{ border: 0 }}
                   loading="lazy"
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${longitude-0.01},${latitude-0.01},${longitude+0.01},${latitude+0.01}&layer=mapnik&marker=${latitude},${longitude}`}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.01},${latitude - 0.01},${longitude + 0.01},${latitude + 0.01}&layer=mapnik&marker=${latitude},${longitude}`}
                   title="Salon Location Map"
                 />
               </div>
@@ -559,32 +574,32 @@ export default function CreateSalonPage() {
           )}
           <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
             <label>Operating Hours</label>
-            <div style={{display:'grid',gap:'0.5rem'}}>
-              <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
-                <span style={{minWidth:100,fontWeight:600}}>Apply to all</span>
-                <input type="time" value={hours['Monday'].open} onChange={(e)=>{
-                  const v=e.target.value; setHours(prev=>{ const next={...prev}; days.forEach(d=>next[d]={...next[d],open:v}); return next;});
-                }} className={styles.input} style={{maxWidth:160}} />
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <span style={{ minWidth: 100, fontWeight: 600 }}>Apply to all</span>
+                <input type="time" value={hours['Monday'].open} onChange={(e) => {
+                  const v = e.target.value; setHours(prev => { const next = { ...prev }; days.forEach(d => next[d] = { ...next[d], open: v }); return next; });
+                }} className={styles.input} style={{ maxWidth: 160 }} />
                 <span>to</span>
-                <input type="time" value={hours['Monday'].close} onChange={(e)=>{
-                  const v=e.target.value; setHours(prev=>{ const next={...prev}; days.forEach(d=>next[d]={...next[d],close:v}); return next;});
-                }} className={styles.input} style={{maxWidth:160}} />
+                <input type="time" value={hours['Monday'].close} onChange={(e) => {
+                  const v = e.target.value; setHours(prev => { const next = { ...prev }; days.forEach(d => next[d] = { ...next[d], close: v }); return next; });
+                }} className={styles.input} style={{ maxWidth: 160 }} />
                 <input type="checkbox" checked={Object.values(hours).every(h => h.isOpen)} onChange={(e) => {
                   const isOpen = e.target.checked;
                   setHours(prev => {
-                    const next = {...prev};
-                    days.forEach(d => next[d] = {...next[d], isOpen});
+                    const next = { ...prev };
+                    days.forEach(d => next[d] = { ...next[d], isOpen });
                     return next;
                   });
                 }} />
               </div>
-              {days.map(d=> (
-                <div key={d} style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
-                  <input type="checkbox" checked={hours[d].isOpen} onChange={(e) => setHours(prev => ({...prev, [d]: {...prev[d], isOpen: e.target.checked}}))} />
-                  <span style={{minWidth:100}}>{d}</span>
-                  <input type="time" value={hours[d].open} disabled={!hours[d].isOpen} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],open:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
+              {days.map(d => (
+                <div key={d} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input type="checkbox" checked={hours[d].isOpen} onChange={(e) => setHours(prev => ({ ...prev, [d]: { ...prev[d], isOpen: e.target.checked } }))} />
+                  <span style={{ minWidth: 100 }}>{d}</span>
+                  <input type="time" value={hours[d].open} disabled={!hours[d].isOpen} onChange={(e) => setHours(prev => ({ ...prev, [d]: { ...prev[d], open: e.target.value } }))} className={styles.input} style={{ maxWidth: 160 }} />
                   <span>to</span>
-                  <input type="time" value={hours[d].close} disabled={!hours[d].isOpen} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],close:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
+                  <input type="time" value={hours[d].close} disabled={!hours[d].isOpen} onChange={(e) => setHours(prev => ({ ...prev, [d]: { ...prev[d], close: e.target.value } }))} className={styles.input} style={{ maxWidth: 160 }} />
                 </div>
               ))}
             </div>

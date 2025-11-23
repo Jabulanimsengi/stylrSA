@@ -64,7 +64,7 @@ const nextConfig: NextConfig = {
     unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === 'true',
   },
   async rewrites() {
-    const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:5000";
+    const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://127.0.0.1:5000";
     return {
       beforeFiles: [
         // Proxy credential REST endpoints to backend while keeping NextAuth handled locally
