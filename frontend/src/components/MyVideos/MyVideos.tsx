@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import styles from './MyVideos.module.css';
 import { toast } from 'react-toastify';
+import OptimizedImage from '@/components/OptimizedImage/OptimizedImage';
 
 interface ServiceVideo {
   id: string;
@@ -125,10 +126,20 @@ export default function MyVideos() {
               <div className={styles.videoWrapper}>
                 {video.thumbnailUrl ? (
                   <div className={styles.thumbnail}>
-                    <img src={video.thumbnailUrl} alt="Video thumbnail" className={styles.thumbnailImage} />
-                    <a 
-                      href={video.videoUrl} 
-                      target="_blank" 
+                    <OptimizedImage
+                      src={video.thumbnailUrl}
+                      alt="Video thumbnail"
+                      className={styles.thumbnailImage}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 300px"
+                      seoContext={{
+                        salonName: video.salon.name,
+                        serviceName: video.service?.title
+                      }}
+                    />
+                    <a
+                      href={video.videoUrl}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className={styles.playButton}
                     >

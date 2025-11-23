@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Head from 'next/head';
 import Image from 'next/image';
 import { transformCloudinary } from '@/utils/cloudinary';
 import {
@@ -39,11 +38,12 @@ import CalendarSchedule from '@/components/CalendarSchedule/CalendarSchedule';
 import TrustBadges from '@/components/TrustBadges/TrustBadges';
 import SocialShare from '@/components/SocialShare/SocialShare';
 import VerificationBadge from '@/components/VerificationBadge/VerificationBadge';
-import { generateSalonStructuredData, generateSalonBreadcrumb } from '@/lib/salonSeoHelpers';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 type Props = {
   initialSalon: Salon | null;
   salonId: string;
+  breadcrumbItems?: { label: string; href?: string }[];
 };
 
 const INITIAL_SERVICES_BATCH = 12;
@@ -52,7 +52,7 @@ const INITIAL_REVIEWS_BATCH = 4;
 const REVIEWS_BATCH_SIZE = 4;
 const EMPTY_REVIEWS: Review[] = [];
 
-export default function SalonProfileClient({ initialSalon, salonId }: Props) {
+export default function SalonProfileClient({ initialSalon, salonId, breadcrumbItems }: Props) {
   const router = useRouter();
   const { authStatus, user } = useAuth();
   const { openModal } = useAuthModal();
@@ -181,7 +181,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
             'Cache-Control': 'no-cache',
           },
         });
-        
+
         if (res.ok) {
           const data = await res.json();
           const promoMap = new Map();
@@ -309,7 +309,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   const handlePromotionBookNow = () => {
     // Called when user clicks "Book Now" in promotion details modal
     if (!selectedPromotion?.service) return;
-    
+
     if (salon?.bookingMessage) {
       // Show confirmation modal
       setPendingBookingService(selectedPromotion.service);
@@ -404,10 +404,10 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
 
   const orderedOperatingDays = useMemo(() => {
     if (!hoursRecord) return [] as string[];
-    const order = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     return order.filter((d) => d in hoursRecord);
   }, [hoursRecord]);
-  
+
   const visibleServices = useMemo(() => services.slice(0, visibleServicesCount), [services, visibleServicesCount]);
   const visibleReviews = useMemo(() => reviews.slice(0, visibleReviewsCount), [reviews, visibleReviewsCount]);
 
@@ -444,7 +444,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
   }, [visibleReviewsCount, reviews.length]);
 
   if (isLoading) return <SalonProfileSkeleton />;
-  if (!salon) return <div style={{textAlign: 'center', padding: '2rem'}}>Salon not found.</div>;
+  if (!salon) return <div style={{ textAlign: 'center', padding: '2rem' }}>Salon not found.</div>;
 
   // hero section removed; using compact info board instead
   const availabilityLabel = salon.isAvailableNow ? 'Open now' : 'Currently closed';
@@ -455,7 +455,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     if (type === 'ONSITE') return 'On-site appointments';
     return 'Request-led appointments';
   })();
-  
+
 
   const galleryImageUrls = galleryImages.map(img => img.imageUrl);
   const addressText = (() => {
@@ -502,26 +502,11 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
     const bbox = `${lon - d},${lat - d},${lon + d},${lat + d}`;
     return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
   })();
-  const daysNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayLabel = daysNames[new Date().getDay()];
-
-  // Generate structured data for SEO
-  const structuredData = generateSalonStructuredData(salon);
-  const breadcrumbData = generateSalonBreadcrumb(salon);
 
   return (
     <>
-      <Head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
-        />
-      </Head>
-
       {selectedService && (
         <BookingModal
           salon={salon}
@@ -572,8 +557,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         <div className={styles.stickyHeaderContent}>
           <div className={styles.headerLeftSection}>
             {salon.logo && !logoError ? (
-              <div 
-                className={styles.logoWrapper} 
+              <div
+                className={styles.logoWrapper}
                 onClick={() => openLightbox([salon.logo || ''], 0)}
                 style={{ cursor: 'pointer' }}
                 title="Click to view full logo"
@@ -622,6 +607,10 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
         </div>
 
         <div className={styles.container}>
+          {breadcrumbItems && breadcrumbItems.length > 0 && (
+            <Breadcrumbs items={breadcrumbItems} />
+          )}
+
           <div className={styles.infoBoard}>
             <div className={styles.infoGrid}>
               <div className={`${styles.infoCard} ${styles.infoLocation}`}>
@@ -707,7 +696,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
               {(galleryImages.length > 0 || beforeAfterPhotos.length > 0 || salonVideos.length > 0) && (
                 <section id="gallery-section">
                   <h2 className={styles.sectionTitle}>Gallery</h2>
-                  
+
                   {galleryImages.length > 0 && (
                     <>
                       <h3 className={styles.subsectionTitle}>Photos</h3>
@@ -732,8 +721,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       <h3 className={styles.subsectionTitle}>Before & After Transformations</h3>
                       <div className={styles.galleryGrid}>
                         {beforeAfterPhotos.map((photo) => (
-                          <div 
-                            key={photo.id} 
+                          <div
+                            key={photo.id}
                             className={styles.galleryItem}
                             onClick={() => openLightbox([photo.beforeImageUrl, photo.afterImageUrl], 0)}
                             style={{ position: 'relative' }}
@@ -769,8 +758,8 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       <h3 className={styles.subsectionTitle}>Videos</h3>
                       <div className={styles.galleryGrid}>
                         {salonVideos.map((video) => (
-                          <div 
-                            key={video.id} 
+                          <div
+                            key={video.id}
                             className={styles.galleryItem}
                             onClick={() => openVideoLightbox(video)}
                             style={{ position: 'relative', cursor: 'pointer' }}
@@ -806,7 +795,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                   )}
                 </section>
               )}
-              
+
               {/* Calendar Schedule Section */}
               {services.length > 0 && (
                 <CalendarSchedule
@@ -828,9 +817,9 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <h2 className={styles.sectionTitle}>Services</h2>
                 <div className={styles.servicesGrid}>
                   {visibleServices.map((service) => (
-                    <ServiceCard 
-                      key={service.id} 
-                      service={service} 
+                    <ServiceCard
+                      key={service.id}
+                      service={service}
                       onBook={handleBookClick}
                       onImageClick={openLightbox}
                       promotion={promotionsMap.get(service.id)}
@@ -862,7 +851,7 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                 <Accordion title="Service Type">
                   <p>{formatBookingType(salon.bookingType || 'ONSITE')}</p>
                   {salon.offersMobile && salon.mobileFee && (
-                    <p style={{marginTop: '0.5rem'}}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
+                    <p style={{ marginTop: '0.5rem' }}>Mobile service fee: <strong>R{salon.mobileFee.toFixed(2)}</strong></p>
                   )}
                 </Accordion>
                 <Accordion title="Location & Contact">
@@ -887,28 +876,28 @@ export default function SalonProfileClient({ initialSalon, salonId }: Props) {
                       )}
                     </>
                   ) : (
-                  <p className={styles.loginPrompt}>
-                    <button
-                      type="button"
-                      className={styles.loginPromptButton}
-                      onClick={() => openModal('login')}
-                    >
-                      Log in
-                    </button>{' '}
-                    to view detailed contact information and map.
-                  </p>
+                    <p className={styles.loginPrompt}>
+                      <button
+                        type="button"
+                        className={styles.loginPromptButton}
+                        onClick={() => openModal('login')}
+                      >
+                        Log in
+                      </button>{' '}
+                      to view detailed contact information and map.
+                    </p>
                   )}
                 </Accordion>
                 <Accordion title={`Reviews (${salon.reviews?.length || 0})`}>
                   {reviews.length > 0 ? (
                     <div>
                       {visibleReviews.map(review => (
-                        <div key={review.id} style={{borderBottom: '1px dotted var(--color-border)', paddingBottom: '1rem', marginBottom: '1rem'}}>
-                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <div key={review.id} style={{ borderBottom: '1px dotted var(--color-border)', paddingBottom: '1rem', marginBottom: '1rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <strong>{review.author.firstName} {review.author.lastName.charAt(0)}.</strong>
-                            <span style={{color: 'var(--accent-gold)'}}>{'Γÿà'.repeat(review.rating)}{'Γÿå'.repeat(5 - review.rating)}</span>
+                            <span style={{ color: 'var(--accent-gold)' }}>{'Γÿà'.repeat(review.rating)}{'Γÿå'.repeat(5 - review.rating)}</span>
                           </div>
-                          <p style={{fontStyle: 'italic', marginTop: '0.5rem'}}>&quot;{sanitizeText(review.comment)}&quot;</p>
+                          <p style={{ fontStyle: 'italic', marginTop: '0.5rem' }}>&quot;{sanitizeText(review.comment)}&quot;</p>
                         </div>
                       ))}
                       {visibleReviewsCount < reviews.length && (

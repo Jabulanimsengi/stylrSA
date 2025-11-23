@@ -6,6 +6,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import VideoLightbox from '@/components/VideoLightbox/VideoLightbox';
+import OptimizedImage from '@/components/OptimizedImage/OptimizedImage';
 import styles from './VideoSlideshow.module.css';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -134,22 +135,29 @@ export default function VideoSlideshow() {
                       <span className={styles.badgeLabel}>Video</span>
                     </div>
                     {video.thumbnailUrl ? (
-                      <img
+                      <OptimizedImage
                         src={video.thumbnailUrl}
                         alt={video.caption || `Video by ${video.salon.name}`}
                         className={styles.videoThumbnail}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 20vw, 200px"
+                        seoContext={{
+                          salonName: video.salon.name,
+                          city: video.salon.city,
+                          serviceName: video.service?.title
+                        }}
                       />
                     ) : (
                       <div className={styles.videoPlaceholder}>
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="white" opacity="0.9">
-                          <path d="M8 5v14l11-7z"/>
+                          <path d="M8 5v14l11-7z" />
                         </svg>
                       </div>
                     )}
                     <div className={styles.playOverlay}>
                       <svg width="64" height="64" viewBox="0 0 24 24" fill="white">
-                        <circle cx="12" cy="12" r="10" fill="rgba(245, 25, 87, 0.9)"/>
-                        <path d="M10 8l6 4-6 4V8z" fill="white"/>
+                        <circle cx="12" cy="12" r="10" fill="rgba(245, 25, 87, 0.9)" />
+                        <path d="M10 8l6 4-6 4V8z" fill="white" />
                       </svg>
                     </div>
                     <div className={styles.duration}>{video.duration}s</div>
@@ -176,12 +184,12 @@ export default function VideoSlideshow() {
           <>
             <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18l-6-6 6-6"/>
+                <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
             <button ref={nextRef} className={styles.nextButton} aria-label="Next">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 18l6-6-6-6"/>
+                <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
           </>
@@ -191,12 +199,12 @@ export default function VideoSlideshow() {
         <div className={styles.scrollIndicators}>
           <div className={styles.scrollIndicatorLeft}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <path d="M15 18l-6-6 6-6"/>
+              <path d="M15 18l-6-6 6-6" />
             </svg>
           </div>
           <div className={styles.scrollIndicatorRight}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <path d="M9 18l6-6-6-6"/>
+              <path d="M9 18l6-6-6-6" />
             </svg>
           </div>
         </div>

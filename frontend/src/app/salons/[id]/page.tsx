@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import type { Salon } from '@/types';
 import SalonProfileClient from './SalonProfileClient';
+import { generateSalonStructuredData, generateSalonBreadcrumb } from '@/lib/salonSeoHelpers';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
@@ -42,7 +44,7 @@ async function getSalon(id: string): Promise<Salon | null> {
 
   try {
     const salon = await fetchSalonWithTimeout(url, 5000);
-    
+
     if (!salon) {
       console.warn(`[getSalon] Salon not found at: ${url}`);
       return null;
@@ -74,7 +76,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   // Build dynamic title and description
   const title = `${salon.name} - ${salon.city || 'South Africa'} | Stylr SA`;
-  const description = salon.description 
+  const description = salon.description
     ? `${salon.description.substring(0, 155)}...`
     : `Book appointments at ${salon.name} in ${salon.city || 'South Africa'}. Professional salon services with easy online booking.`;
 
@@ -119,5 +121,42 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function SalonProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const salon = await getSalon(id);
-  return <SalonProfileClient initialSalon={salon} salonId={id} />;
+
+  if (!salon) {
+    return <SalonProfileClient initialSalon={null} salonId={id} />;
+  }
+
+  const structuredData = generateSalonStructuredData(salon);
+  const breadcrumbData = generateSalonBreadcrumb(salon);
+
+  // Create UI breadcrumbs
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Salons', href: '/salons' },
+    ...(salon.city ? [{ label: salon.city, href: `/salons?city=${encodeURIComponent(salon.city)}` }] : []),
+    ...(salon.town && salon.town !== salon.city ? [{ label: salon.town, href: `/salons?town=${encodeURIComponent(salon.town)}` }] : []),
+    { label: salon.name }
+  ];
+
+  return (
+    <>
+      <Script
+        id="salon-structured-data"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        strategy="beforeInteractive"
+      />
+      <Script
+        id="salon-breadcrumb-data"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+        strategy="beforeInteractive"
+      />
+      <SalonProfileClient
+        initialSalon={salon}
+        salonId={id}
+        breadcrumbItems={breadcrumbItems}
+      />
+    </>
+  );
 }

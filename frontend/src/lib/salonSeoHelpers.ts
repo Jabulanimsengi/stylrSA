@@ -127,18 +127,29 @@ export function generateSalonBreadcrumb(salon: Salon): object {
     },
   ];
 
+  let currentPosition = 3;
+
   if (salon.city) {
     items.push({
       '@type': 'ListItem',
-      position: 3,
+      position: currentPosition++,
       name: salon.city,
       item: `${siteUrl}/salons?city=${encodeURIComponent(salon.city)}`,
     });
   }
 
+  if (salon.town && salon.town !== salon.city) {
+    items.push({
+      '@type': 'ListItem',
+      position: currentPosition++,
+      name: salon.town,
+      item: `${siteUrl}/salons?town=${encodeURIComponent(salon.town)}`,
+    });
+  }
+
   items.push({
     '@type': 'ListItem',
-    position: items.length + 1,
+    position: currentPosition,
     name: salon.name,
     item: `${siteUrl}/salons/${salon.id}`,
   });
