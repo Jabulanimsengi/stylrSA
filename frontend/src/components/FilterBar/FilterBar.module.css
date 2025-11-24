@@ -58,10 +58,17 @@
   position: relative;
 }
 
+/* Default label style (Dark for general pages) */
 .filterGroup label {
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--color-text-strong, #1f2937);
+  text-shadow: none;
+}
+
+/* Override for Homepage (White text on dark background) */
+.homeFilterBar .filterGroup label {
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
@@ -160,10 +167,17 @@
   gap: 0.5rem;
 }
 
+/* Default checkbox label style (Dark) */
 .checkboxGroup label {
+  color: var(--color-text-strong, #1f2937);
+  text-shadow: none;
+  font-weight: 500;
+}
+
+/* Override for Homepage checkbox labels */
+.homeFilterBar .checkboxGroup label {
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  font-weight: 500;
 }
 
 .weekendGroup {
@@ -292,16 +306,9 @@
 }
 
 .iconSuccess {
-  color: var(--color-secondary, #3ab7a5);
+  color: #10b981;
 }
 
 .iconWarning {
-  color: var(--color-warning, #ff9800);
-}
-
-@media (max-width: 768px) {
-  .locationStatus {
-    padding: 0.5rem 0.625rem;
-    font-size: 0.8rem;
-  }
+  color: #f59e0b;
 }
