@@ -1,8 +1,13 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 /**
  * Get aggregate rating for service category in a specific location
  * Only returns data if there are at least 5 approved reviews (Google's minimum recommendation)
  * 
- * This function calls the backend API route to fetch aggregate rating data.
+ * This function queries the database directly.
+ * It is intended for use in Server Components.
  */
 export async function getServiceLocationAggregateRating(
     category: string,
@@ -10,29 +15,76 @@ export async function getServiceLocationAggregateRating(
     province: string
 ): Promise<{ averageRating: number; totalReviews: number } | null> {
     try {
-        const params = new URLSearchParams({
-            category,
-            city,
-            province,
-        });
-
-        const response = await fetch(`/api/aggregate-rating?${params.toString()}`);
-
-        if (!response.ok) {
-            // 404 means no data found or less than 5 reviews
-            if (response.status === 404) {
-                return null;
-            }
-            // Log other errors
-            console.error('[getServiceLocationAggregateRating] API Error:', response.status);
+        // Skip database queries during build if explicitly requested
+        // This prevents build failures when database is unreachable
+        if (process.env.SKIP_DB_QUERIES_ON_BUILD === 'true') {
+            console.log('[getServiceLocationAggregateRating] Skipping DB query during build');
             return null;
         }
 
-        const data: { averageRating: number; totalReviews: number } | null = await response.json();
+        // Find all salons with services in this category and location
+        const salons = await prisma.salon.findMany({
+            where: {
+                city: {
+                    equals: city,
+                    mode: 'insensitive',
+                },
+                province: {
+                    equals: province,
+                    mode: 'insensitive',
+                },
+                approvalStatus: 'APPROVED',
+                services: {
+                    some: {
+                        category: {
+                            name: {
+                                contains: category,
+                                mode: 'insensitive',
+                            },
+                        },
+                        approvalStatus: 'APPROVED',
+                    },
+                },
+            },
+            select: {
+                id: true,
+            },
+        });
 
-        return data;
+        if (salons.length === 0) {
+            return null;
+        }
+
+        const salonIds = salons.map((s) => s.id);
+
+        // Get approved reviews for these salons
+        const reviews = await prisma.review.findMany({
+            where: {
+                salonId: {
+                    in: salonIds,
+                },
+                approvalStatus: 'APPROVED',
+            },
+            select: {
+                rating: true,
+            },
+        });
+
+        // Google recommends minimum 5 reviews for aggregate rating
+        if (reviews.length < 5) {
+            return null;
+        }
+
+        // Calculate aggregate
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = totalRating / reviews.length;
+
+        return {
+            averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+            totalReviews: reviews.length,
+        };
     } catch (error) {
-        console.error('[getServiceLocationAggregateRating] Fetch Error:', error);
+        console.error('[getServiceLocationAggregateRating] DB Error:', error);
         return null;
     }
 }
