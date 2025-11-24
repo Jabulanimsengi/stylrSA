@@ -23,7 +23,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 async function proxyToBackend(request: NextRequest) {
-  const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || 'http://127.0.0.1:5000';
+  const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || 'http://127.0.0.1:3000';
 
   // Get the full path including query params
   const url = new URL(request.url);

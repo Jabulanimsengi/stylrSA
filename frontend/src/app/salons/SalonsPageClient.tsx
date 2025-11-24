@@ -75,7 +75,7 @@ export default function SalonsPageClient() {
     const [initialFilters] = useState<SalonPageFilters>(getInitialFilters);
 
     const fetchSalons = useCallback(async (
-        filters: FilterValues & { q?: string; lat?: number | string | null; lon?: number | string | null }
+        filters: Partial<FilterValues> & { q?: string; lat?: number | string | null; lon?: number | string | null }
     ) => {
         setIsLoading(true);
         const query = new URLSearchParams();

@@ -11,31 +11,31 @@
   left: 0;
   right: 0;
   z-index: 40;
-  background: var(--color-surface, #ffffff);
-  padding: 0.65rem 0.75rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  z-index: 0;
+  overflow: hidden;
 }
 
 .hero {
   position: relative;
-  width: 100%;
+  /* Make hero full width by counteracting parent padding */
+  width: calc(100% + 2 * var(--space-lg));
+  margin: 0 calc(-1 * var(--space-lg)) clamp(2.5rem, 6vw, 4rem) calc(-1 * var(--space-lg));
   min-height: clamp(520px, 75vh, 760px);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: clamp(0px, 1vw, 32px);
-  margin: 0 auto clamp(2.5rem, 6vw, 4rem);
+  border-radius: 0;
   color: var(--hero-text-color);
   isolation: isolate;
 }
 
-.heroMedia {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
+@media (min-width: 1024px) {
+  .hero {
+    width: calc(100% + 2 * var(--space-xl));
+    margin-left: calc(-1 * var(--space-xl));
+    margin-right: calc(-1 * var(--space-xl));
+  }
 }
 
 .heroImage {
@@ -61,23 +61,50 @@
   z-index: 1;
 }
 
+/* MODIFIED: Desktop Layout */
 .heroContent {
   position: relative;
   z-index: 2;
-  width: min(960px, 100%);
+  width: min(1280px, 100%);
+  /* Increased width */
   padding: clamp(2rem, 4vw, 3.5rem) clamp(1.25rem, 4vw, 3.5rem);
   display: flex;
-  flex-direction: column;
-  gap: clamp(1.5rem, 3vw, 2.75rem);
-  text-align: center;
+  flex-direction: row;
+  /* Row for desktop */
+  justify-content: space-between;
+  /* Spacing */
+  gap: clamp(2rem, 5vw, 4rem);
+  text-align: left;
+  /* Left align */
   align-items: center;
+}
+
+/* NEW: Left Column */
+.heroLeft {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Left align items */
+  gap: clamp(1.5rem, 3vw, 2.75rem);
+  max-width: 650px;
+}
+
+/* NEW: Right Column */
+.heroRight {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  justify-content: center;
 }
 
 .heroCopy {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  align-items: center;
+  align-items: flex-start;
+  /* Left align */
 }
 
 .heroBadge {
@@ -95,23 +122,27 @@
 }
 
 .heroTitle {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 700;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  /* Larger */
+  font-weight: 800;
   line-height: 1.1;
-  max-width: 20ch;
-  margin: 0 auto;
+  margin: 0;
+  /* Remove auto margin */
   text-shadow: 0 18px 40px rgba(10, 12, 32, 0.45);
   color: var(--hero-text-color);
+  text-align: left;
 }
 
 .heroSubtitle {
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
   line-height: 1.6;
-  max-width: 50ch;
-  margin: 0 auto;
+  max-width: 54ch;
+  margin: 0;
+  /* Remove auto margin */
   color: var(--hero-subtitle-color);
   opacity: 0.95;
   text-shadow: 0 10px 30px rgba(5, 7, 18, 0.32);
+  text-align: left;
 }
 
 /* Social Proof Stats */
@@ -162,15 +193,15 @@
     padding: 0.875rem 1rem;
     margin: 1.25rem 0;
   }
-  
+
   .statValue {
     font-size: 1.25rem;
   }
-  
+
   .statLabel {
     font-size: 0.7rem;
   }
-  
+
   .statDivider {
     height: 30px;
   }
@@ -187,9 +218,10 @@
 
 .heroActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
+  /* Left align */
 }
 
 .heroActions :global(.btn) {
@@ -315,6 +347,7 @@
   from {
     width: 0%;
   }
+
   to {
     width: 100%;
   }
@@ -371,6 +404,7 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -387,14 +421,14 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 50%, rgba(245, 25, 87, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(58, 183, 165, 0.03) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
 
-.section > * {
+.section>* {
   position: relative;
   z-index: 1;
 }
@@ -421,34 +455,47 @@
 
   .container {
     padding-top: 115px;
-    padding-bottom: 80px; /* Space for bottom nav */
+    padding-bottom: 80px;
+    /* Space for bottom nav */
   }
 
+  /* MODIFIED: Mobile Layout Stacking */
   .heroContent {
+    flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 1.5rem; /* Reduced gap for mobile */
+    gap: 2rem;
     padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .heroLeft {
+    align-items: center;
+    text-align: center;
+    width: 100%;
   }
 
   .heroCopy {
     align-items: center;
-    gap: 0.875rem; /* Tighter spacing */
+    text-align: center;
+    gap: 1rem;
   }
 
   .heroTitle {
-    max-width: 95%; /* Better mobile width */
+    max-width: 95%;
     margin: 0 auto;
+    text-align: center;
   }
 
   .heroSubtitle {
     margin-inline: auto;
-    max-width: 90%; /* Slightly wider on mobile */
-    line-height: 1.5; /* Better readability */
+    max-width: 90%;
+    line-height: 1.5;
+    text-align: center;
   }
 
   .heroActions {
-    display: none; /* Hidden on mobile */
+    display: none;
+    /* Hidden on mobile */
   }
 
   .heroStats {
@@ -491,7 +538,8 @@
 @media (max-width: 540px) {
   .container {
     padding-top: 105px;
-    padding-bottom: 75px; /* Adjusted for bottom nav */
+    padding-bottom: 75px;
+    /* Adjusted for bottom nav */
   }
 
   .fixedSearchBar {
@@ -506,7 +554,8 @@
 
   .heroContent {
     padding: 1.25rem 0.85rem;
-    gap: 1.125rem; /* Slightly increased for better spacing */
+    gap: 1.125rem;
+    /* Slightly increased for better spacing */
   }
 
   .heroTitle {

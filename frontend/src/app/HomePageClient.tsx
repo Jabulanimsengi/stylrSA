@@ -22,6 +22,7 @@ import TrendRow from '@/components/TrendRow/TrendRow';
 import ForYouRecommendations from '@/components/ForYouRecommendations/ForYouRecommendations';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { getCategorySlug } from '@/utils/categorySlug';
+import TypingAnimation from '@/components/TypingAnimation/TypingAnimation';
 
 const HERO_SLIDES = [
   { src: '/image_01.png', alt: 'Professional hair styling and beauty services at South African salons' },
@@ -34,6 +35,15 @@ const HERO_SLIDES = [
 ];
 
 const SLIDE_INTERVAL = 6000;
+
+const TYPING_WORDS = [
+  'Luxury Beauty',
+  'Wellness',
+  'Premium Salons',
+  'Spa Experiences',
+  'Expert Stylists',
+  'Beauty Treatments',
+];
 
 const getMobileSlides = () => {
   return HERO_SLIDES.slice(0, 4);
@@ -48,11 +58,11 @@ interface HomePageClientProps {
   initialTotalPages: number;
 }
 
-export default function HomePageClient({ 
-  initialServices, 
+export default function HomePageClient({
+  initialServices,
   initialTrends,
   initialHasMore,
-  initialTotalPages 
+  initialTotalPages
 }: HomePageClientProps) {
   const router = useRouter();
   const { openModal } = useAuthModal();
@@ -62,7 +72,7 @@ export default function HomePageClient({
   const [isLoading, setIsLoading] = useState(false);
   const loader = useRef(null);
   const [trendsData, setTrendsData] = useState<Record<TrendCategory, Trend[]>>(initialTrends);
-  
+
   const observer = useRef<IntersectionObserver | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const socket = useSocket();
@@ -78,13 +88,13 @@ export default function HomePageClient({
       const res = await fetch(`/api/services/approved?page=${pageNum}&pageSize=24`);
       if (res.ok) {
         const data: { services: ServiceWithSalon[], currentPage: number, totalPages: number } = await res.json();
-        
+
         setServices(prev => {
           const allServices = [...prev, ...data.services];
           const uniqueServicesMap = new Map(allServices.map(item => [item.id, item]));
           return Array.from(uniqueServicesMap.values());
         });
-        
+
         setHasMore(data.currentPage < data.totalPages);
         setPage(data.currentPage + 1);
       } else {
@@ -100,20 +110,20 @@ export default function HomePageClient({
 
   const groupedServices = useMemo(() => {
     const grouped: Record<string, ServiceWithSalon[]> = {};
-    
+
     services.forEach((service) => {
-      const categoryName = 
-        (service as any).category?.name || 
-        (service as any).categoryName || 
-        service.category || 
+      const categoryName =
+        (service as any).category?.name ||
+        (service as any).categoryName ||
+        service.category ||
         'Other Services';
-      
+
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
       }
       grouped[categoryName].push(service);
     });
-    
+
     const sorted = Object.entries(grouped)
       .sort(([, aServices], [, bServices]) => bServices.length - aServices.length)
       .reduce((acc, [category, categoryServices]) => {
@@ -124,7 +134,7 @@ export default function HomePageClient({
         });
         return acc;
       }, {} as Record<string, ServiceWithSalon[]>);
-    
+
     return sorted;
   }, [services]);
 
@@ -153,7 +163,7 @@ export default function HomePageClient({
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const target = entries[0];
     if (target.isIntersecting && !isLoading && hasMore) {
-        fetchServices(page);
+      fetchServices(page);
     }
   }, [isLoading, hasMore, page, fetchServices]);
 
@@ -192,11 +202,11 @@ export default function HomePageClient({
       }
     });
     const queryString = query.toString();
-    
+
     const hasServiceQuery = filters.service && filters.service.trim().length > 0;
     const hasCategoryQuery = filters.category && filters.category.trim().length > 0;
     const shouldSearchServices = hasServiceQuery || hasCategoryQuery;
-    
+
     const targetPath = shouldSearchServices ? '/services' : '/salons';
     router.push(`${targetPath}${queryString ? `?${queryString}` : ''}`);
   };
@@ -225,54 +235,62 @@ export default function HomePageClient({
           <div className={styles.heroGradient} />
         </div>
         <div className={styles.heroContent}>
-          <div className={styles.heroCopy}>
-            <h1 className={styles.heroTitle} id="hero-title">South Africa's Premier Destination for Luxury Beauty &amp; Wellness</h1>
-            <p className={styles.heroSubtitle} aria-describedby="hero-title">Experience excellence with South Africa's most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Elevate your beauty journey with the finest service providers in one exclusive platform.</p>
+          <div className={styles.heroLeft}>
+            <div className={styles.heroBadge}>No. 1 Beauty Platform</div>
+            <div className={styles.heroCopy}>
+              <h1 className={styles.heroTitle} id="hero-title">
+                South Africa's Premier Destination for <TypingAnimation words={TYPING_WORDS} />
+              </h1>
+              <p className={styles.heroSubtitle} aria-describedby="hero-title">Experience excellence with South Africa's most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Elevate your beauty journey with the finest service providers in one exclusive platform.</p>
+            </div>
+
+            {!isMobile && (
+              <div className={styles.heroActions}>
+                <Link href="/salons" className="btn btn-primary">
+                  Explore Premium Salons
+                </Link>
+                <Link href="/services" className="btn btn-primary">
+                  Browse Luxury Services
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => openModal('register')}
+                >
+                  Join as Premium Partner
+                </button>
+              </div>
+            )}
+
+            <div className={styles.heroStats}>
+              <div className={styles.stat}>
+                <strong className={styles.statValue}>500+</strong>
+                <span className={styles.statLabel}>Premium Partners</span>
+              </div>
+              <div className={styles.statDivider} />
+              <div className={styles.stat}>
+                <strong className={styles.statValue}>50,000+</strong>
+                <span className={styles.statLabel}>Exclusive Bookings</span>
+              </div>
+              <div className={styles.statDivider} />
+              <div className={styles.stat}>
+                <strong className={styles.statValue}>4.9★</strong>
+                <span className={styles.statLabel}>Elite Service Rating</span>
+              </div>
+            </div>
           </div>
-          
-          <div className={styles.heroStats}>
-            <div className={styles.stat}>
-              <strong className={styles.statValue}>500+</strong>
-              <span className={styles.statLabel}>Premium Partners</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.stat}>
-              <strong className={styles.statValue}>50,000+</strong>
-              <span className={styles.statLabel}>Exclusive Bookings</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.stat}>
-              <strong className={styles.statValue}>4.9★</strong>
-              <span className={styles.statLabel}>Elite Service Rating</span>
-            </div>
-          </div>
-          
+
           {!isMobile && (
-            <div className={styles.filterContainer}>
-              <FilterBar onSearch={handleSearch} isHomePage={true} />
-            </div>
-          )}
-          {!isMobile && (
-            <div className={styles.heroActions}>
-              <Link href="/salons" className="btn btn-primary">
-                Explore Premium Salons
-              </Link>
-              <Link href="/services" className="btn btn-primary">
-                Browse Luxury Services
-              </Link>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => openModal('register')}
-              >
-                Join as Premium Partner
-              </button>
+            <div className={styles.heroRight}>
+              <div className={styles.filterContainer}>
+                <FilterBar onSearch={handleSearch} isHomePage={true} orientation="vertical" />
+              </div>
             </div>
           )}
         </div>
 
         <div className={styles.progressBar}>
-          <div 
+          <div
             className={styles.progressFill}
             key={currentSlide}
           />
@@ -337,33 +355,33 @@ export default function HomePageClient({
       {!isMobile && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
-          <div 
-            className={styles.categoryGrid} 
-            style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+          <div
+            className={styles.categoryGrid}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: '1.5rem',
               marginBottom: '3rem'
             }}
           >
-          <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Braiding & Weaving
-          </Link>
-          <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Nail Care
-          </Link>
-          <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Makeup & Beauty
-          </Link>
-          <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Haircuts & Styling
-          </Link>
-          <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Massage & Spa
-          </Link>
-          <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Men's Grooming
-          </Link>
+            <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Braiding & Weaving
+            </Link>
+            <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Nail Care
+            </Link>
+            <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Makeup & Beauty
+            </Link>
+            <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Haircuts & Styling
+            </Link>
+            <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Massage & Spa
+            </Link>
+            <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Men's Grooming
+            </Link>
           </div>
         </section>
       )}
@@ -397,7 +415,7 @@ export default function HomePageClient({
             <LoadingSpinner size="medium" color="primary" />
           </div>
         )}
-        
+
         {!hasMore && services.length > 0 && (
           <p className={styles.endOfList}>You've reached the end!</p>
         )}

@@ -54,9 +54,18 @@
 
 @media (max-width: 768px) {
   .pageNav {
-    display: none; /* Hide on mobile - replaced by MobileNavIcons */
+    display: none;
+    /* Hide on mobile - replaced by MobileNavIcons */
   }
+
   .navButton {
+    display: none;
+  }
+}
+
+/* Hide on desktop since TopNav provides navigation */
+@media (min-width: 1024px) {
+  .pageNav {
     display: none;
   }
 }

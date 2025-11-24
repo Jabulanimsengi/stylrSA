@@ -14,13 +14,22 @@
   overflow: hidden;
 }
 
+/* Hide sidebar on desktop as we now use TopNav */
+@media (min-width: 1024px) {
+  .sidebar {
+    display: none;
+  }
+}
+
 .sidebarContent {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  height: 100%; /* Explicitly take full height of parent */
-  padding: var(--space-xl) var(--space-lg); /* Moved padding here from parent */
+  height: 100%;
+  /* Explicitly take full height of parent */
+  padding: var(--space-xl) var(--space-lg);
+  /* Moved padding here from parent */
   gap: var(--space-lg);
   overflow-y: auto;
   overflow-x: hidden;
@@ -150,7 +159,8 @@
 }
 
 .companyMenuOpen {
-  max-height: 500px; /* Adjust based on content */
+  max-height: 500px;
+  /* Adjust based on content */
   opacity: 1;
   transition: max-height 0.3s ease-in, opacity 0.3s ease-in;
 }
@@ -197,7 +207,9 @@
 }
 
 /* Ensure label text on nav buttons remains bold like links */
-.navButton .navLabel { font-weight: 700; }
+.navButton .navLabel {
+  font-weight: 700;
+}
 
 .navItem:hover,
 .navItem:focus-visible {
@@ -293,7 +305,8 @@
 .sidebarFooter {
   display: grid;
   gap: var(--space-sm);
-  margin-top: auto; /* Push footer to bottom when content doesn't fill viewport */
+  margin-top: auto;
+  /* Push footer to bottom when content doesn't fill viewport */
 }
 
 .footerActions {
@@ -552,7 +565,8 @@
     top: 0;
     left: 0;
     height: 100vh;
-    height: 100dvh; /* Use dynamic viewport height for mobile browsers */
+    height: 100dvh;
+    /* Use dynamic viewport height for mobile browsers */
     transform: translateX(-110%);
     transition: transform 220ms var(--transition-base), box-shadow 220ms var(--transition-base);
     box-shadow: 0 24px 48px rgba(10, 15, 30, 0.22);
@@ -596,20 +610,25 @@
     max-height: 65vh;
     z-index: 999;
   }
+
   .notificationsHeader {
     font-size: 0.7rem;
   }
+
   .notificationsFilterButton {
     padding: 0.4rem 0.75rem;
     font-size: 0.7rem;
   }
+
   .notificationItem {
     padding: 0.625rem;
     font-size: 0.85rem;
   }
+
   .notificationMeta {
     font-size: 0.65rem;
   }
+
   .notificationsFooterButton {
     padding: 0.55rem;
     font-size: 0.85rem;

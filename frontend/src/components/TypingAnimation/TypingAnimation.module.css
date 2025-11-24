@@ -1,0 +1,35 @@
+.typingText {
+    display: inline-block;
+    color: #fff !important;
+    font-weight: inherit;
+    position: relative;
+    min-width: 2ch;
+}
+
+.cursor {
+    display: inline-block;
+    margin-left: 2px;
+    animation: blink 1s infinite;
+    color: var(--color-primary);
+    font-weight: 400;
+}
+
+@keyframes blink {
+
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Ensure smooth transitions */
+.typingText::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { PROVINCES, getCityInfo } from '@/lib/locationData';
+import { getServiceLocationAggregateRating } from '@/lib/serviceAggregateRating';
 
 type Props = {
   children: React.ReactNode;
@@ -364,6 +365,13 @@ export default async function ServiceLocationLayout({ children, params }: Props)
     return <>{children}</>;
   }
 
+  // Fetch real aggregate rating data from database
+  const aggregateData = await getServiceLocationAggregateRating(
+    categoryInfo.name,
+    cityInfo.name,
+    cityInfo.province
+  );
+
   // Breadcrumb schema
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -436,13 +444,16 @@ export default async function ServiceLocationLayout({ children, params }: Props)
       availability: 'https://schema.org/InStock',
       priceCurrency: 'ZAR',
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '1250',
-      bestRating: '5',
-      worstRating: '1',
-    },
+    // Only include aggregateRating if we have real review data (minimum 5 reviews)
+    ...(aggregateData && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: aggregateData.averageRating.toFixed(1),
+        reviewCount: aggregateData.totalReviews.toString(),
+        bestRating: '5',
+        worstRating: '1',
+      },
+    }),
   };
 
   // Enhanced LocalBusiness schema for better local SEO
@@ -467,13 +478,16 @@ export default async function ServiceLocationLayout({ children, params }: Props)
         },
       },
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '1250',
-      bestRating: '5',
-      worstRating: '1',
-    },
+    // Only include aggregateRating if we have real review data (minimum 5 reviews)
+    ...(aggregateData && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: aggregateData.averageRating.toFixed(1),
+        reviewCount: aggregateData.totalReviews.toString(),
+        bestRating: '5',
+        worstRating: '1',
+      },
+    }),
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: `${categoryInfo.name} Services`,

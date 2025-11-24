@@ -9,6 +9,7 @@ import { AuthModalProvider } from '@/context/AuthModalContext';
 import { AuthProvider } from '@/context/AuthContext'; // Import the new provider
 import { ThemeProvider } from '@/context/ThemeContext';
 import { NavigationLoadingProvider } from '@/context/NavigationLoadingContext';
+import TopNav from '@/components/TopNav';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
     // Premium Brand keywords
     'Stylr SA', 'stylrsa', 'stylrsa.co.za', 'premium beauty platform South Africa', 'luxury salon booking',
     // Premium Services
-    'premium salon', 'luxury spa', 'medical spa', 'beauty clinic', 'top nail technician', 
+    'premium salon', 'luxury spa', 'medical spa', 'beauty clinic', 'top nail technician',
     'exclusive beauty services', 'high-end salon', 'luxury wellness', 'elite beauty professionals',
     'premium braiding salon', 'luxury nail salon', 'top makeup artist', 'premium barber',
     // Quality indicators
@@ -133,28 +134,29 @@ export default function RootLayout({
                         <AuthModalHandler />
                       </Suspense>
                       <div className="app-shell">
-                      <Navbar />
-                      <MobileNavIcons />
-                      <div className="app-content">
-                        <main className="main-content" id="main-content">{children}</main>
-                        <Footer />
+                        <TopNav />
+                        <Navbar />
+                        <MobileNavIcons />
+                        <div className="app-content">
+                          <main className="main-content" id="main-content">{children}</main>
+                          <Footer />
+                        </div>
+                        <MobileBottomNav />
                       </div>
-                      <MobileBottomNav />
-                    </div>
-                    <ClientChatWidget />
-                    <ClientAISalonFinder />
-                    <BackToTop />
-                    <Suspense fallback={null}>
-                      <ToasterClient />
-                    </Suspense>
-                    <CookieBanner />
-                    <ZoomHandler />
-                    <Suspense fallback={null}>
-                      <Analytics />
-                    </Suspense>
-                    <VercelAnalytics />
-                    <SpeedInsights />
-                    <PWAInstallPrompt />
+                      <ClientChatWidget />
+                      <ClientAISalonFinder />
+                      <BackToTop />
+                      <Suspense fallback={null}>
+                        <ToasterClient />
+                      </Suspense>
+                      <CookieBanner />
+                      <ZoomHandler />
+                      <Suspense fallback={null}>
+                        <Analytics />
+                      </Suspense>
+                      <VercelAnalytics />
+                      <SpeedInsights />
+                      <PWAInstallPrompt />
                     </NavigationLoadingProvider>
                   </AuthModalProvider>
                 </SocketProvider>

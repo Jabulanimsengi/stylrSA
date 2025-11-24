@@ -22,8 +22,7 @@ export interface FilterValues {
   priceMax: string;
   lat?: number | string | null;
   lon?: number | string | null;
-  radius: number;
-  radius?: number | null; // Radius filter in km
+  radius?: number | null;
 }
 
 type LocationsByProvince = Record<string, string[]>;
@@ -48,6 +47,7 @@ interface FilterBarProps {
   autoSearch?: boolean;
   showSearchButton?: boolean;
   isSearching?: boolean;
+  orientation?: 'horizontal' | 'vertical';
 }
 
 export default function FilterBar({
@@ -57,6 +57,7 @@ export default function FilterBar({
   autoSearch,
   showSearchButton = isHomePage,
   isSearching = false,
+  orientation = 'horizontal',
 }: FilterBarProps) {
   const [locations, setLocations] = useState<LocationsByProvince>({});
   const [province, setProvince] = useState(initialFilters.province || '');
@@ -79,8 +80,7 @@ export default function FilterBar({
   const router = useRouter();
   const enableAutoSearch = autoSearch ?? !isHomePage;
   const lastEmittedFiltersRef = useRef<string>('');
-  
-  // Use geolocation hook
+
   const { coordinates, locationName, isLoading: isGeoLoading, isReverseGeocoding, error: geoError, requestLocation } = useGeolocation();
 
   const initialProvince = initialFilters.province ?? '';
@@ -114,6 +114,7 @@ export default function FilterBar({
       }
 
       if (locationsResult.status === 'fulfilled' && locationsResult.value && typeof locationsResult.value === 'object') {
+        console.log('FETCHED locations:', locationsResult.value);
         setLocations(locationsResult.value);
       } else if (locationsResult.status === 'rejected') {
         console.debug('Locations load failed:', toFriendlyMessage(locationsResult.reason));
@@ -163,7 +164,6 @@ export default function FilterBar({
     onSearch(filters);
   }, [onSearch]);
 
-  // Track if we've processed coordinates to prevent infinite loops
   const coordinatesProcessedRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -175,35 +175,27 @@ export default function FilterBar({
       triggerSearch(nextFilters);
     }, 300);
     return () => clearTimeout(handler);
-    // Intentionally excluding buildFilters to avoid re-triggering when only coordinates change
-    // The coordinates effect below handles location-based searches
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [province, city, serviceSearch, category, offersMobile, sortBy, openNow, priceMin, priceMax, radius, enableAutoSearch]);
 
-  // Trigger search when coordinates become available (only once per coordinate set)
   useEffect(() => {
     if (!coordinates || !enableAutoSearch) {
       return;
     }
-    
+
     const coordKey = `${coordinates.latitude},${coordinates.longitude}`;
-    // Prevent re-triggering for the same coordinates
     if (coordinatesProcessedRef.current === coordKey) {
       return;
     }
-    
+
     coordinatesProcessedRef.current = coordKey;
     const filters = buildFilters();
-    
-    // Auto-enable distance sorting when location is available
+
     if (!filters.sortBy) {
       filters.sortBy = 'distance';
       setSortBy('distance');
     }
-    
+
     triggerSearch(filters, true);
-    // Only depend on coordinates identity, not the function references
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coordinates, enableAutoSearch]);
 
   const handleSearchClick = () => {
@@ -216,8 +208,7 @@ export default function FilterBar({
       alert('Geolocation is not supported by your browser.');
       return;
     }
-    
-    // Track usage analytics
+
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'geolocation_requested', {
         event_category: 'user_interaction',
@@ -225,7 +216,7 @@ export default function FilterBar({
         page_location: window.location.pathname
       });
     }
-    
+
     requestLocation();
   };
 
@@ -307,7 +298,7 @@ export default function FilterBar({
 
   const handleQuickFilter = (filterType: 'openNow' | 'nearMe' | 'topRated' | 'mobile') => {
     const filters = buildFilters();
-    
+
     switch (filterType) {
       case 'openNow':
         filters.openNow = !openNow;
@@ -315,7 +306,7 @@ export default function FilterBar({
         break;
       case 'nearMe':
         handleFindNearby();
-        return; // Early return as handleFindNearby handles the search
+        return;
       case 'topRated':
         filters.sortBy = 'top_rated';
         setSortBy('top_rated');
@@ -325,13 +316,14 @@ export default function FilterBar({
         setOffersMobile(!offersMobile);
         break;
     }
-    
+
     triggerSearch(filters, true);
   };
 
+  console.log('RENDER - locations state:', locations, 'keys:', Object.keys(locations));
+
   return (
     <>
-      {/* Quick Filters */}
       <div className={styles.quickFilters}>
         <button
           type="button"
@@ -364,232 +356,230 @@ export default function FilterBar({
       </div>
 
       <div
-        className={`${styles.filterBar} ${
-          isHomePage ? styles.homeFilterBar : ''
-        }`}
+        className={`${styles.filterBar} ${isHomePage ? styles.homeFilterBar : ''
+          } ${orientation === 'vertical' ? styles.vertical : ''}`}
       >
-      <div className={styles.filterGroup}>
-        <label htmlFor="province">Province</label>
-        <select
-          id="province"
-          value={province}
-          onChange={(e) => {
-            setProvince(e.target.value);
-            setCity('');
-          }}
-          className={styles.filterSelect}
-        >
-          <option value="">All Provinces</option>
-          {Object.keys(locations).map((prov) => (
-            <option key={prov} value={prov}>
-              {prov}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className={styles.filterGroup}>
-        <label htmlFor="city">Town/City</label>
-        <select
-          id="city"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          className={styles.filterSelect}
-          disabled={!province}
-        >
-          <option value="">All Cities</option>
-          {province &&
-            locations[province]?.map((c: string, index: number) => (
-              <option key={`${c}-${index}`} value={c}>
-                {c}
-              </option>
-            ))}
-        </select>
-      </div>
-      <div className={styles.filterGroup}>
-        <label htmlFor="service">Service</label>
-        <input
-          id="service"
-          type="text"
-          placeholder="e.g., Braids, Nails"
-          value={serviceSearch}
-          onChange={(e) => {
-            const val = e.target.value;
-            setServiceSearch(val);
-            if (val.trim().length <= 1) {
-              setServiceSuggestions([]);
-              setShowSuggestions(false);
-            }
-          }}
-          className={styles.filterInput}
-          onFocus={() => {
-            if (serviceSuggestions.length > 0) setShowSuggestions(true);
-          }}
-          onBlur={() => {
-            setTimeout(() => setShowSuggestions(false), 120);
-          }}
-        />
-        {showSuggestions && (
-          <ul className={styles.suggestionsList}>
-            <li className={styles.suggestionsHeader}>
-              <button type="button" className={styles.dismissButton} onClick={() => setShowSuggestions(false)}>×</button>
-            </li>
-            {isServiceLoading && (
-              <li className={`${styles.suggestionItem} ${styles.suggestionLoading}`}>Searching…</li>
-            )}
-            {!isServiceLoading && serviceSuggestions.length === 0 && (
-              <li className={`${styles.suggestionItem} ${styles.suggestionEmpty}`}>No matches found</li>
-            )}
-            {!isServiceLoading &&
-              serviceSuggestions.map((s) => (
-              <li
-                key={s.id}
-                className={styles.suggestionItem}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  const base = buildFilters();
-                  const next = { ...base, service: s.title };
-                  setServiceSearch(s.title);
-                  setShowSuggestions(false);
-                  triggerSearch(next, true);
-                }}
-              >
-                <span className={styles.suggestionTitle}>{s.title}</span>
-                {s.salon && <span className={styles.suggestionMeta}>{s.salon}</span>}
-              </li>
-              ))}
-          </ul>
-        )}
-      </div>
-      <div className={styles.filterGroup}>
-        <label htmlFor="category">Category</label>
-        <select
-          id="category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className={styles.filterSelect}
-        >
-          <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.name}>{cat.name}</option>
-          ))}
-        </select>
-      </div>
-      <div className={styles.filterGroup}>
-        <label htmlFor="sortBy">Sort By</label>
-        <select
-          id="sortBy"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className={styles.filterSelect}
-        >
-          <option value="">Default</option>
-          <option value="top_rated">Top Rated</option>
-          <option value="distance">Nearest</option>
-          <option value="price">Lowest Price</option>
-        </select>
-      </div>
-      {coordinates && (
         <div className={styles.filterGroup}>
-          <label htmlFor="radius">Within</label>
+          <label htmlFor="province">Province</label>
           <select
-            id="radius"
-            value={radius ?? ''}
-            onChange={(e) => setRadius(e.target.value ? Number(e.target.value) : null)}
+            id="province"
+            value={province}
+            onChange={(e) => {
+              setProvince(e.target.value);
+              setCity('');
+            }}
             className={styles.filterSelect}
           >
-            <option value="">Any distance</option>
-            <option value="5">5 km</option>
-            <option value="10">10 km</option>
-            <option value="25">25 km</option>
-            <option value="50">50 km</option>
-            <option value="100">100 km</option>
+            <option value="">All Provinces</option>
+            {Object.keys(locations).map((prov) => (
+              <option key={prov} value={prov}>
+                {prov}
+              </option>
+            ))}
           </select>
         </div>
-      )}
-      <div className={styles.checkboxGroup}>
-        <input
-          id="openNow"
-          type="checkbox"
-          checked={openNow}
-          onChange={(e) => setOpenNow(e.target.checked)}
-        />
-        <label htmlFor="openNow">Open now</label>
-      </div>
-      <div className={styles.checkboxGroup}>
-        <input
-          id="offersMobile"
-          type="checkbox"
-          checked={offersMobile}
-          onChange={(e) => setOffersMobile(e.target.checked)}
-        />
-        <label htmlFor="offersMobile">Offers Mobile Services</label>
-      </div>
-      <div className={styles.filterGroup}>
-        <label>Price Range (R)</label>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input
-            type="number"
-            placeholder="Min"
-            value={priceMin}
-            onChange={(e) => setPriceMin(e.target.value)}
-            className={styles.filterInput}
-            min={0}
-          />
-          <input
-            type="number"
-            placeholder="Max"
-            value={priceMax}
-            onChange={(e) => setPriceMax(e.target.value)}
-            className={styles.filterInput}
-            min={0}
-          />
+        <div className={styles.filterGroup}>
+          <label htmlFor="city">Town/City</label>
+          <select
+            id="city"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className={styles.filterSelect}
+            disabled={!province}
+          >
+            <option value="">All Cities</option>
+            {province &&
+              locations[province]?.map((c: string, index: number) => (
+                <option key={`${c}-${index}`} value={c}>
+                  {c}
+                </option>
+              ))}
+          </select>
         </div>
-      </div>
-      <button
-        onClick={handleFindNearby}
-        disabled={isGeoLoading}
-        className={styles.geoButton}
-      >
-        {isGeoLoading ? 'Finding...' : '📍 Near Me'}
-      </button>
-      
-      {/* Location Status Indicator */}
-      {(isGeoLoading || coordinates || geoError) && (
-        <div className={styles.locationStatus}>
-          {isGeoLoading && !coordinates && (
-            <>
-              <FaSpinner className={styles.spinner} />
-              <span>Detecting location...</span>
-            </>
-          )}
-          {coordinates && !isGeoLoading && (
-            <>
-              <FaMapMarkerAlt className={styles.iconSuccess} />
-              <span>
-                {isReverseGeocoding ? (
-                  'Getting location name...'
-                ) : locationName?.city ? (
-                  `Near ${locationName.city}${locationName.province ? `, ${locationName.province}` : ''}`
-                ) : (
-                  'Showing nearby results'
-                )}
-              </span>
-            </>
-          )}
-          {geoError && !coordinates && (
-            <>
-              <FaExclamationTriangle className={styles.iconWarning} />
-              <span>Using default location</span>
-            </>
+        <div className={styles.filterGroup}>
+          <label htmlFor="service">Service</label>
+          <input
+            id="service"
+            type="text"
+            placeholder="e.g., Braids, Nails"
+            value={serviceSearch}
+            onChange={(e) => {
+              const val = e.target.value;
+              setServiceSearch(val);
+              if (val.trim().length <= 1) {
+                setServiceSuggestions([]);
+                setShowSuggestions(false);
+              }
+            }}
+            className={styles.filterInput}
+            onFocus={() => {
+              if (serviceSuggestions.length > 0) setShowSuggestions(true);
+            }}
+            onBlur={() => {
+              setTimeout(() => setShowSuggestions(false), 120);
+            }}
+          />
+          {showSuggestions && (
+            <ul className={styles.suggestionsList}>
+              <li className={styles.suggestionsHeader}>
+                <button type="button" className={styles.dismissButton} onClick={() => setShowSuggestions(false)}>×</button>
+              </li>
+              {isServiceLoading && (
+                <li className={`${styles.suggestionItem} ${styles.suggestionLoading}`}>Searching…</li>
+              )}
+              {!isServiceLoading && serviceSuggestions.length === 0 && (
+                <li className={`${styles.suggestionItem} ${styles.suggestionEmpty}`}>No matches found</li>
+              )}
+              {!isServiceLoading &&
+                serviceSuggestions.map((s) => (
+                  <li
+                    key={s.id}
+                    className={styles.suggestionItem}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      const base = buildFilters();
+                      const next = { ...base, service: s.title };
+                      setServiceSearch(s.title);
+                      setShowSuggestions(false);
+                      triggerSearch(next, true);
+                    }}
+                  >
+                    <span className={styles.suggestionTitle}>{s.title}</span>
+                    {s.salon && <span className={styles.suggestionMeta}>{s.salon}</span>}
+                  </li>
+                ))}
+            </ul>
           )}
         </div>
-      )}
-      
-      {showSearchButton && (
-        <button onClick={handleSearchClick} className={styles.searchButton} disabled={isSearching}>
-          {isSearching ? 'Searching…' : 'Search'}
+        <div className={styles.filterGroup}>
+          <label htmlFor="category">Category</label>
+          <select
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.filterGroup}>
+          <label htmlFor="sortBy">Sort By</label>
+          <select
+            id="sortBy"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">Default</option>
+            <option value="top_rated">Top Rated</option>
+            <option value="distance">Nearest</option>
+            <option value="price">Lowest Price</option>
+          </select>
+        </div>
+        {coordinates && (
+          <div className={styles.filterGroup}>
+            <label htmlFor="radius">Within</label>
+            <select
+              id="radius"
+              value={radius ?? ''}
+              onChange={(e) => setRadius(e.target.value ? Number(e.target.value) : null)}
+              className={styles.filterSelect}
+            >
+              <option value="">Any distance</option>
+              <option value="5">5 km</option>
+              <option value="10">10 km</option>
+              <option value="25">25 km</option>
+              <option value="50">50 km</option>
+              <option value="100">100 km</option>
+            </select>
+          </div>
+        )}
+        <div className={styles.checkboxGroup}>
+          <input
+            id="openNow"
+            type="checkbox"
+            checked={openNow}
+            onChange={(e) => setOpenNow(e.target.checked)}
+          />
+          <label htmlFor="openNow">Open now</label>
+        </div>
+        <div className={styles.checkboxGroup}>
+          <input
+            id="offersMobile"
+            type="checkbox"
+            checked={offersMobile}
+            onChange={(e) => setOffersMobile(e.target.checked)}
+          />
+          <label htmlFor="offersMobile">Offers Mobile Services</label>
+        </div>
+        <div className={styles.filterGroup}>
+          <label>Price Range (R)</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="number"
+              placeholder="Min"
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value)}
+              className={styles.filterInput}
+              min={0}
+            />
+            <input
+              type="number"
+              placeholder="Max"
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value)}
+              className={styles.filterInput}
+              min={0}
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleFindNearby}
+          disabled={isGeoLoading}
+          className={styles.geoButton}
+        >
+          {isGeoLoading ? 'Finding...' : '📍 Near Me'}
         </button>
-      )}
+
+        {(isGeoLoading || coordinates || geoError) && (
+          <div className={styles.locationStatus}>
+            {isGeoLoading && !coordinates && (
+              <>
+                <FaSpinner className={styles.spinner} />
+                <span>Detecting location...</span>
+              </>
+            )}
+            {coordinates && !isGeoLoading && (
+              <>
+                <FaMapMarkerAlt className={styles.iconSuccess} />
+                <span>
+                  {isReverseGeocoding ? (
+                    'Getting location name...'
+                  ) : locationName?.city ? (
+                    `Near ${locationName.city}${locationName.province ? `, ${locationName.province}` : ''}`
+                  ) : (
+                    'Showing nearby results'
+                  )}
+                </span>
+              </>
+            )}
+            {geoError && !coordinates && (
+              <>
+                <FaExclamationTriangle className={styles.iconWarning} />
+                <span>Using default location</span>
+              </>
+            )}
+          </div>
+        )}
+
+        {showSearchButton && (
+          <button onClick={handleSearchClick} className={styles.searchButton} disabled={isSearching}>
+            {isSearching ? 'Searching…' : 'Search'}
+          </button>
+        )}
       </div>
     </>
   );
