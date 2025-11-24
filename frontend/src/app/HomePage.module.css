@@ -11,8 +11,9 @@
   left: 0;
   right: 0;
   z-index: 40;
-  z-index: 0;
-  overflow: hidden;
+  background: var(--color-background);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .hero {
@@ -454,9 +455,16 @@
   }
 
   .container {
-    padding-top: 115px;
+    padding-top: 0;
     padding-bottom: 80px;
     /* Space for bottom nav */
+  }
+  
+  .hero {
+    margin-top: 130px;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   /* MODIFIED: Mobile Layout Stacking */
@@ -537,7 +545,7 @@
 
 @media (max-width: 540px) {
   .container {
-    padding-top: 105px;
+    padding-top: 0;
     padding-bottom: 75px;
     /* Adjusted for bottom nav */
   }
@@ -549,7 +557,11 @@
 
   .hero {
     min-height: clamp(300px, 55vh, 420px);
+    margin-top: 115px;
     margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .heroContent {
@@ -606,13 +618,17 @@
 
 @media (max-width: 400px) {
   .container {
-    padding-top: 100px;
+    padding-top: 0;
     padding-bottom: 70px;
   }
 
   .hero {
     min-height: clamp(280px, 50vh, 400px);
+    margin-top: 110px;
     margin-bottom: 1.5rem;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .heroContent {
