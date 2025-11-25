@@ -425,24 +425,16 @@ export default async function ServiceLocationLayout({ children, params }: Props)
     areaServed: {
       '@type': 'City',
       name: cityInfo.name,
-      containedIn: {
-        '@type': 'State',
-        name: cityInfo.province,
-        containedIn: {
-          '@type': 'Country',
-          name: 'South Africa',
-        },
-      },
+      address: {
+        '@type': 'PostalAddress',
+        addressRegion: cityInfo.province,
+        addressCountry: 'ZA'
+      }
     },
     availableChannel: {
       '@type': 'ServiceChannel',
       serviceUrl: canonicalUrl,
-      serviceName: `${categoryInfo.serviceName} in ${cityInfo.name}`,
-    },
-    offers: {
-      '@type': 'Offer',
-      availability: 'https://schema.org/InStock',
-      priceCurrency: 'ZAR',
+      name: `${categoryInfo.serviceName} in ${cityInfo.name}`,
     },
     // Only include aggregateRating if we have real review data (minimum 5 reviews)
     ...(aggregateData && {
@@ -469,14 +461,11 @@ export default async function ServiceLocationLayout({ children, params }: Props)
     areaServed: {
       '@type': 'City',
       name: cityInfo.name,
-      containedIn: {
-        '@type': 'State',
-        name: cityInfo.province,
-        containedIn: {
-          '@type': 'Country',
-          name: 'South Africa',
-        },
-      },
+      address: {
+        '@type': 'PostalAddress',
+        addressRegion: cityInfo.province,
+        addressCountry: 'ZA'
+      }
     },
     // Only include aggregateRating if we have real review data (minimum 5 reviews)
     ...(aggregateData && {
