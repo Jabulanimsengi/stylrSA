@@ -48,7 +48,6 @@ export default function ToasterClient() {
       closeButton={(props) => <ToastCloseButton {...props} />}
       style={{ zIndex: 1000010 }}
       limit={3}
-      containerId="main-toast-container"
       stacked
     />
   );

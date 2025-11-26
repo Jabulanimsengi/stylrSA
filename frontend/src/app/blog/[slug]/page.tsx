@@ -360,7 +360,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  const allArticles = Object.values(articles);
+  const allArticles = Object.entries(articles).map(([slug, data]) => ({ slug, ...data }));
   const relatedArticles = allArticles
     .filter(a => a.category === article.category && a.title !== article.title)
     .slice(0, 3);
@@ -371,14 +371,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <div className={styles.breadcrumb}>
           <Link href="/blog">← Back to Blog</Link>
         </div>
-        
+
         <div className={styles.articleMeta}>
           <span className={`${styles.category} ${styles[article.category.replace(/[^a-z]+/g, '-')]}`}>
             {article.category}
           </span>
           <span className={styles.readTime}>{article.readTime}</span>
         </div>
-        
+
         <h1 className={styles.articleTitle}>{article.title}</h1>
         <p className={styles.articleDescription}>{article.description}</p>
       </div>
@@ -400,7 +400,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <div className={styles.relatedGrid}>
             {relatedArticles.map((related) => (
               <article key={related.title} className={styles.relatedCard}>
-                <Link href={`/blog/${getSlugFromTitle(related.title)}`} className={styles.cardLink}>
+                <Link href={`/blog/${related.slug}`} className={styles.cardLink}>
                   <div className={styles.ribbonContent}>
                     <h3 className={styles.ribbonTitle}>{related.title}</h3>
                     <p className={styles.ribbonDescription}>{related.description}</p>
@@ -431,10 +431,4 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   );
 }
 
-// Helper function to generate slugs from titles
-function getSlugFromTitle(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
+

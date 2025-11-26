@@ -11,6 +11,7 @@ import PageNav from '@/components/PageNav';
 import { toast } from 'react-toastify';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import EmptyState from '@/components/EmptyState/EmptyState';
 
 const DEFAULT_FILTERS: ProductFilterValues = {
   search: '',
@@ -103,6 +104,14 @@ export default function ProductsPage() {
         <SkeletonGroup count={8} className={styles.grid}>
           {() => <SkeletonCard hasImage lines={3} />}
         </SkeletonGroup>
+      ) : products.length === 0 ? (
+        <div className={styles.emptyStateWrapper}>
+          <EmptyState
+            variant="no-results"
+            title="No Products Found"
+            description="We couldn't find any products matching your filters. Try adjusting your search or filters."
+          />
+        </div>
       ) : (
         <div className={styles.grid}>
           {products.map((product) => (
