@@ -1,11 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="152" height="152" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  <rect width="152" height="152" rx="22.8" fill="url(#grad)"/>
-  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="60.800000000000004" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">S</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="152" height="152" viewBox="0 0 152 152">
+  <rect width="152" height="152" fill="#000000"/>
+  <text x="76" y="108" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="#FFFFFF" text-anchor="middle">S</text>
 </svg>
