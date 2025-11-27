@@ -81,8 +81,27 @@ export function generateCategoryMetadata(params: CategoryMetadataParams): Metada
     const title = `${titleParts.join(' ')} | Stylr SA`;
     const description = `${descriptionParts.join(' ')}. Book appointments online with verified professionals. Compare prices, reviews, and availability.`;
 
-    // Add general keywords
-    keywords.push('book salon appointment', 'beauty services South Africa', 'Stylr SA');
+    // Add general and high-intent keywords
+    keywords.push(
+        'book salon appointment',
+        'beauty services South Africa',
+        'Stylr SA',
+        'walk in salons',
+        'salon prices',
+        'affordable salons',
+        'best salons near me',
+        'cheap hair salon'
+    );
+
+    // Add specific intent keywords based on context
+    if (city || province) {
+        const loc = city || province;
+        keywords.push(
+            `walk in salon ${loc}`,
+            `salon prices ${loc}`,
+            `best hair salon ${loc} reviews`
+        );
+    }
 
     // Build canonical URL
     let canonicalUrl = `${siteUrl}/salons`;
