@@ -647,6 +647,7 @@ enum UserRole {
   SALON_OWNER
   ADMIN
   PRODUCT_SELLER
+  CANDIDATE
 }
 
 enum ApprovalStatus {
