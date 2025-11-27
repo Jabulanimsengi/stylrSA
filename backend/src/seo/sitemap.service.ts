@@ -72,6 +72,12 @@ export class SitemapService {
     xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
     xml += '  </sitemap>\n';
 
+    // Add jobs sitemap
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${this.BASE_URL}/sitemap-jobs.xml</loc>\n`;
+    xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+
     // Add SEO pages sitemaps
     for (let i = 0; i < totalSitemaps; i++) {
       xml += '  <sitemap>\n';
@@ -126,7 +132,12 @@ export class SitemapService {
       { loc: '/salons', lastmod: now, changefreq: 'daily', priority: '0.9' },
       { loc: '/services', lastmod: now, changefreq: 'daily', priority: '0.9' },
       { loc: '/trends', lastmod: now, changefreq: 'daily', priority: '0.8' },
+      { loc: '/products', lastmod: now, changefreq: 'daily', priority: '0.8' },
       { loc: '/blog', lastmod: now, changefreq: 'weekly', priority: '0.7' },
+      { loc: '/jobs', lastmod: now, changefreq: 'daily', priority: '0.8' },
+      { loc: '/candidates', lastmod: now, changefreq: 'daily', priority: '0.8' },
+      { loc: '/employers', lastmod: now, changefreq: 'weekly', priority: '0.7' },
+      { loc: '/careers', lastmod: now, changefreq: 'weekly', priority: '0.7' },
       { loc: '/privacy', lastmod: now, changefreq: 'monthly', priority: '0.5' },
       { loc: '/terms', lastmod: now, changefreq: 'monthly', priority: '0.5' },
     ];

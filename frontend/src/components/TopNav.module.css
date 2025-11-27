@@ -148,6 +148,8 @@
     display: flex;
     align-items: center;
     gap: var(--space-md);
+    min-width: 200px; /* Prevent CLS when auth state changes */
+    justify-content: flex-end;
 }
 
 .iconButton {

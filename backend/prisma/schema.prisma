@@ -1,74 +1,65 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
 model User {
-  id                   String          @id @default(uuid())
-  email                String          @unique
-  password             String
-  firstName            String
-  lastName             String
-  role                 UserRole        @default(CLIENT)
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  salons               Salon[]
-  products             Product[] // Relation to products
-  productOrders        ProductOrder[] @relation("BuyerOrders")
-  salesOrders          ProductOrder[] @relation("SellerOrders")
-  bookings             Booking[]
-  reviews              Review[]
-  favorites            Favorite[]
-  serviceLikes         ServiceLike[]
-  sentMessages         Message[]       @relation("SentMessages")
-  conversations1       Conversation[]  @relation("User1Conversations")
-  conversations2       Conversation[]  @relation("User2Conversations")
-  notifications        Notification[]
-  blogs                Blog[]
-  resetPasswordToken   String?
-  resetPasswordExpires DateTime?
-  oauthAccounts        OAuthAccount[]
-
-  // Email verification
-  emailVerified        Boolean         @default(false)
-  verificationToken    String?         @unique
-  verificationExpires  DateTime?
-
-  // Account security
-  failedLoginAttempts  Int             @default(0)
-  accountLockedUntil   DateTime?
-  lastLoginAt          DateTime?
-
-  // 2FA/MFA (for admin accounts)
-  twoFactorEnabled     Boolean         @default(false)
-  twoFactorSecret      String?
-  twoFactorBackupCodes String[]        @default([])
-
-  // Product seller plan fields (used when role = PRODUCT_SELLER)
-  sellerPlanCode        PlanCode?
-  sellerVisibilityWeight Int?         @default(1)
-  sellerMaxListings      Int?         @default(2)
-  sellerFeaturedUntil    DateTime?
-  sellerPlanPriceCents   Int?
-  sellerPlanPaymentStatus PlanPaymentStatus @default(PENDING_SELECTION)
+  id                         String            @id @default(uuid())
+  email                      String            @unique
+  password                   String
+  firstName                  String
+  lastName                   String
+  role                       UserRole          @default(CLIENT)
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  resetPasswordToken         String?
+  resetPasswordExpires       DateTime?
+  emailVerified              Boolean           @default(false)
+  verificationToken          String?           @unique
+  verificationExpires        DateTime?
+  failedLoginAttempts        Int               @default(0)
+  accountLockedUntil         DateTime?
+  lastLoginAt                DateTime?
+  twoFactorEnabled           Boolean           @default(false)
+  twoFactorSecret            String?
+  twoFactorBackupCodes       String[]          @default([])
+  sellerPlanCode             PlanCode?
+  sellerVisibilityWeight     Int?              @default(1)
+  sellerMaxListings          Int?              @default(2)
+  sellerFeaturedUntil        DateTime?
+  sellerPlanPriceCents       Int?
+  sellerPlanPaymentStatus    PlanPaymentStatus @default(PENDING_SELECTION)
   sellerPlanPaymentReference String?
   sellerPlanProofSubmittedAt DateTime?
-  sellerPlanVerifiedAt   DateTime?
+  sellerPlanVerifiedAt       DateTime?
+  blogs                      Blog[]
+  bookings                   Booking[]
+  conversations1             Conversation[]    @relation("User1Conversations")
+  conversations2             Conversation[]    @relation("User2Conversations")
+  favorites                  Favorite[]
+  sentMessages               Message[]         @relation("SentMessages")
+  notifications              Notification[]
+  oauthAccounts              OAuthAccount[]
+  products                   Product[]
+  productOrders              ProductOrder[]    @relation("BuyerOrders")
+  salesOrders                ProductOrder[]    @relation("SellerOrders")
+  reviews                    Review[]
+  salons                     Salon?
+  serviceLikes               ServiceLike[]
+  candidate                  Candidate?
 
   @@index([email])
   @@index([verificationToken])
 }
 
 model Salon {
-  id                   String         @id @default(uuid())
+  id                   String                        @id @default(uuid())
   name                 String
   description          String?
   backgroundImage      String?
@@ -84,146 +75,137 @@ model Salon {
   phoneNumber          String?
   whatsapp             String?
   website              String?
-  bookingType          BookingType    @default(ONSITE)
-  offersMobile         Boolean        @default(false)
+  bookingType          BookingType                   @default(ONSITE)
+  offersMobile         Boolean                       @default(false)
   mobileFee            Float?
-  isAvailableNow       Boolean        @default(false)
+  isAvailableNow       Boolean                       @default(false)
   operatingHours       Json?
   operatingDays        String[]
   bookingMessage       String?
-  approvalStatus       ApprovalStatus @default(PENDING)
-  isVerified           Boolean        @default(false)
-  avgRating            Float          @default(0)
-  viewCount            Int            @default(0)
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  ownerId              String         @unique
-  owner                User           @relation(fields: [ownerId], references: [id])
-  services             Service[]
-  bookings             Booking[]
-  reviews              Review[]
-  favorites            Favorite[]
-  gallery              GalleryImage[]
-  beforeAfterPhotos    BeforeAfterPhoto[]
-  serviceVideos        ServiceVideo[]
-  views                SalonView[]
-
-  // Plan & visibility controls
-  planCode             PlanCode?      @default(STARTER)
-  visibilityWeight     Int            @default(1)
-  maxListings          Int            @default(2)
+  approvalStatus       ApprovalStatus                @default(PENDING)
+  isVerified           Boolean                       @default(false)
+  avgRating            Float                         @default(0)
+  viewCount            Int                           @default(0)
+  createdAt            DateTime                      @default(now())
+  updatedAt            DateTime                      @updatedAt
+  ownerId              String                        @unique
+  planCode             PlanCode?                     @default(STARTER)
+  visibilityWeight     Int                           @default(1)
+  maxListings          Int                           @default(2)
   featuredUntil        DateTime?
   planPriceCents       Int?
-  planPaymentStatus    PlanPaymentStatus @default(PENDING_SELECTION)
+  planPaymentStatus    PlanPaymentStatus             @default(PENDING_SELECTION)
   planPaymentReference String?
   planProofSubmittedAt DateTime?
   planVerifiedAt       DateTime?
-  
-  // Trendz feature
+  beforeAfterPhotos    BeforeAfterPhoto[]
+  bookings             Booking[]
+  favorites            Favorite[]
+  gallery              GalleryImage[]
+  reviews              Review[]
+  owner                User                          @relation(fields: [ownerId], references: [id])
   trendzProfile        SalonTrendzProfile?
-  
-  // Custom availability
+  views                SalonView[]
+  services             Service[]
   availability         ServiceProviderAvailability[]
-  
+  serviceVideos        ServiceVideo[]
+
   @@index([approvalStatus])
   @@index([city])
   @@index([province])
 }
 
-// New Model for Service Categories
 model ServiceCategory {
   id        String    @id @default(uuid())
   name      String    @unique
-  services  Service[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  services  Service[]
 }
 
-// Service Provider Custom Availability
 model ServiceProviderAvailability {
   id          String   @id @default(uuid())
   salonId     String
-  salon       Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  date        DateTime // The specific date (stored as start of day UTC)
-  hour        Int      // Hour of day (0-23) in salon's local time
+  date        DateTime
+  hour        Int
   isAvailable Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+  salon       Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
   @@unique([salonId, date, hour])
   @@index([salonId, date])
   @@index([date])
 }
 
 model Service {
-  id             String         @id @default(uuid())
-  title          String
-  description    String
-  price          Float
-  duration       Int
-  pricingType    PricingType?   // Per person or per couple indicator
-  images         String[]
-  approvalStatus ApprovalStatus @default(PENDING)
-  salonId        String
-  salon          Salon          @relation(fields: [salonId], references: [id])
-  
-  // FIX: Made the relation optional to handle existing data
-  categoryId     String?
-  category       ServiceCategory? @relation(fields: [categoryId], references: [id])
-
-  bookings          Booking[]
-  likes             ServiceLike[]
-  likeCount         Int               @default(0)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  promotions        Promotion[]       // Relation to promotions
+  id                String             @id @default(uuid())
+  title             String
+  description       String
+  price             Float
+  duration          Int
+  pricingType       PricingType?
+  images            String[]
+  approvalStatus    ApprovalStatus     @default(PENDING)
+  salonId           String
+  categoryId        String?
+  likeCount         Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   beforeAfterPhotos BeforeAfterPhoto[]
+  bookings          Booking[]
+  promotions        Promotion[]
+  category          ServiceCategory?   @relation(fields: [categoryId], references: [id])
+  salon             Salon              @relation(fields: [salonId], references: [id])
+  likes             ServiceLike[]
   serviceVideos     ServiceVideo[]
+
   @@index([salonId])
   @@index([approvalStatus])
 }
 
 model Review {
-  id                     String         @id @default(uuid())
-  rating                 Int
-  comment                String
-  salonOwnerResponse     String?
-  salonOwnerRespondedAt  DateTime?
-  approvalStatus         ApprovalStatus @default(PENDING)
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
-  userId                 String
-  author                 User           @relation(fields: [userId], references: [id])
-  salonId                String
-  salon                  Salon          @relation(fields: [salonId], references: [id])
-  bookingId              String         @unique
-  booking                Booking        @relation(fields: [bookingId], references: [id])
+  id                    String         @id @default(uuid())
+  rating                Int
+  comment               String
+  salonOwnerResponse    String?
+  salonOwnerRespondedAt DateTime?
+  approvalStatus        ApprovalStatus @default(PENDING)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  userId                String
+  salonId               String
+  bookingId             String         @unique
+  booking               Booking        @relation(fields: [bookingId], references: [id])
+  salon                 Salon          @relation(fields: [salonId], references: [id])
+  author                User           @relation(fields: [userId], references: [id])
+
   @@index([salonId])
 }
 
 model Booking {
-  id          String        @id @default(uuid())
-  bookingTime DateTime
-  isMobile    Boolean
-  totalCost   Float
-  status      BookingStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  userId      String
-  user        User          @relation(fields: [userId], references: [id])
-  salonId     String
-  salon       Salon         @relation(fields: [salonId], references: [id])
-  serviceId   String
-  service     Service       @relation(fields: [serviceId], references: [id])
-  clientPhone String?
-  review      Review?
+  id             String        @id @default(uuid())
+  bookingTime    DateTime
+  isMobile       Boolean
+  totalCost      Float
+  status         BookingStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  userId         String
+  salonId        String
+  serviceId      String
+  clientPhone    String?
   referralSource String?
+  salon          Salon         @relation(fields: [salonId], references: [id])
+  service        Service       @relation(fields: [serviceId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
+  review         Review?
+
   @@index([userId])
   @@index([salonId])
   @@index([serviceId])
 }
 
-// New Model for Products
 model Product {
   id             String         @id @default(uuid())
   name           String
@@ -238,11 +220,10 @@ model Product {
   updatedAt      DateTime       @updatedAt
   sellerId       String
   seller         User           @relation(fields: [sellerId], references: [id])
-  promotions     Promotion[]
   orders         ProductOrder[]
+  promotions     Promotion[]
 }
 
-// New Model for Promotions
 model Promotion {
   id                 String         @id @default(uuid())
   description        String?
@@ -256,18 +237,12 @@ model Promotion {
   approvedAt         DateTime?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
-  
-  // Service relation
   serviceId          String?
-  service            Service?       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
-  // Product relation  
   productId          String?
-  product            Product?       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  // Salon relation (to track who created the promotion)
   salonId            String?
-  
+  product            Product?       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  service            Service?       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
   @@index([approvalStatus])
   @@index([salonId])
   @@index([serviceId])
@@ -279,11 +254,11 @@ model Conversation {
   id        String    @id @default(uuid())
   user1Id   String
   user2Id   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   user1     User      @relation("User1Conversations", fields: [user1Id], references: [id])
   user2     User      @relation("User2Conversations", fields: [user2Id], references: [id])
   messages  Message[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
 
   @@unique([user1Id, user2Id])
   @@index([user1Id])
@@ -298,9 +273,10 @@ model Message {
   readAt         DateTime?
   createdAt      DateTime     @default(now())
   conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
   senderId       String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
   sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+
   @@index([conversationId])
   @@index([senderId])
 }
@@ -311,28 +287,30 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   bookingId String?
   link      String?
+  user      User     @relation(fields: [userId], references: [id])
+
   @@index([userId])
 }
 
 model ProductOrder {
-  id            String              @id @default(uuid())
-  productId     String
-  product       Product             @relation(fields: [productId], references: [id])
-  buyerId       String
-  buyer         User                @relation("BuyerOrders", fields: [buyerId], references: [id])
-  sellerId      String
-  seller        User                @relation("SellerOrders", fields: [sellerId], references: [id])
-  quantity      Int
-  totalPrice    Float
-  status        ProductOrderStatus  @default(PENDING)
+  id             String             @id @default(uuid())
+  productId      String
+  buyerId        String
+  sellerId       String
+  quantity       Int
+  totalPrice     Float
+  status         ProductOrderStatus @default(PENDING)
   deliveryMethod String?
-  contactPhone  String?
-  notes         String?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  contactPhone   String?
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  buyer          User               @relation("BuyerOrders", fields: [buyerId], references: [id])
+  product        Product            @relation(fields: [productId], references: [id])
+  seller         User               @relation("SellerOrders", fields: [sellerId], references: [id])
+
   @@index([buyerId])
   @@index([sellerId])
   @@index([productId])
@@ -342,8 +320,8 @@ model Favorite {
   userId    String
   salonId   String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
   salon     Salon    @relation(fields: [salonId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, salonId])
   @@index([salonId])
@@ -353,8 +331,8 @@ model ServiceLike {
   userId    String
   serviceId String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
   service   Service  @relation(fields: [serviceId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, serviceId])
   @@index([serviceId])
@@ -365,12 +343,12 @@ model GalleryImage {
   imageUrl  String
   caption   String?
   salonId   String
-  salon     Salon    @relation(fields: [salonId], references: [id])
   createdAt DateTime @default(now())
+  salon     Salon    @relation(fields: [salonId], references: [id])
+
   @@index([salonId])
 }
 
-// Before/After Photos Model
 model BeforeAfterPhoto {
   id              String         @id @default(uuid())
   beforeImageUrl  String
@@ -379,44 +357,39 @@ model BeforeAfterPhoto {
   approvalStatus  ApprovalStatus @default(PENDING)
   approvedBy      String?
   approvedAt      DateTime?
-  rejectionReason String?        // Reason for rejection
+  rejectionReason String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-  
-  // Relations
   salonId         String
-  salon           Salon          @relation(fields: [salonId], references: [id], onDelete: Cascade)
   serviceId       String?
-  service         Service?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  
+  salon           Salon          @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  service         Service?       @relation(fields: [serviceId], references: [id])
+
   @@index([salonId])
   @@index([serviceId])
   @@index([approvalStatus])
   @@index([createdAt])
 }
 
-// Service Videos Model (TikTok-style short videos)
 model ServiceVideo {
   id              String         @id @default(uuid())
-  videoUrl        String         // Vimeo video URL
-  vimeoId         String         @unique // Vimeo video ID for API operations
-  thumbnailUrl    String?        // Video thumbnail
-  duration        Int            // Duration in seconds (max 60)
+  videoUrl        String
+  vimeoId         String         @unique
+  thumbnailUrl    String?
+  duration        Int
   caption         String?
   approvalStatus  ApprovalStatus @default(PENDING)
   approvedBy      String?
   approvedAt      DateTime?
-  rejectionReason String?        // Reason for rejection
+  rejectionReason String?
   views           Int            @default(0)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-  
-  // Relations
   salonId         String
-  salon           Salon          @relation(fields: [salonId], references: [id], onDelete: Cascade)
   serviceId       String?
-  service         Service?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  
+  salon           Salon          @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  service         Service?       @relation(fields: [serviceId], references: [id])
+
   @@index([salonId])
   @@index([serviceId])
   @@index([approvalStatus])
@@ -424,11 +397,256 @@ model ServiceVideo {
   @@index([views])
 }
 
+model OAuthAccount {
+  id                String   @id @default(uuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Plan {
+  id               String   @id @default(uuid())
+  code             PlanCode @unique
+  name             String
+  priceCents       Int
+  visibilityWeight Int
+  maxListings      Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model DeletedSalonArchive {
+  id         String    @id @default(uuid())
+  salonId    String
+  ownerId    String
+  salon      Json
+  services   Json
+  reason     String?
+  deletedBy  String?
+  deletedAt  DateTime  @default(now())
+  restoredAt DateTime?
+
+  @@index([deletedAt])
+}
+
+model DeletedSellerArchive {
+  id         String    @id @default(uuid())
+  sellerId   String
+  seller     Json
+  products   Json
+  reason     String?
+  deletedBy  String?
+  deletedAt  DateTime  @default(now())
+  restoredAt DateTime?
+
+  @@index([deletedAt])
+}
+
+model AdminActionLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}
+
+model Trend {
+  id                       String        @id @default(uuid())
+  title                    String
+  description              String
+  images                   String[]
+  category                 TrendCategory
+  ageGroups                AgeGroup[]
+  styleName                String?
+  tags                     String[]      @default([])
+  isActive                 Boolean       @default(true)
+  priority                 Int           @default(0)
+  viewCount                Int           @default(0)
+  likeCount                Int           @default(0)
+  shareCount               Int           @default(0)
+  clickThroughCount        Int           @default(0)
+  relatedServiceCategories String[]      @default([])
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+  createdBy                String
+  likes                    TrendLike[]
+  views                    TrendView[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model TrendLike {
+  id        String   @id @default(uuid())
+  userId    String
+  trendId   String
+  createdAt DateTime @default(now())
+  trend     Trend    @relation(fields: [trendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trendId])
+  @@index([userId])
+  @@index([trendId])
+}
+
+model TrendView {
+  id        String   @id @default(uuid())
+  trendId   String
+  userId    String?
+  ipAddress String?
+  viewedAt  DateTime @default(now())
+  trend     Trend    @relation(fields: [trendId], references: [id], onDelete: Cascade)
+
+  @@index([trendId])
+  @@index([userId])
+  @@index([viewedAt])
+}
+
+model SalonView {
+  id        String   @id @default(uuid())
+  salonId   String
+  userId    String?
+  ipAddress String?
+  viewedAt  DateTime @default(now())
+  salon     Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  @@index([salonId])
+  @@index([userId])
+  @@index([viewedAt])
+}
+
+model Blog {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  description String
+  content     Json
+  category    String
+  featured    Boolean   @default(false)
+  published   Boolean   @default(false)
+  readTime    String?
+  authorId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+  author      User      @relation(fields: [authorId], references: [id])
+
+  @@index([published])
+  @@index([featured])
+  @@index([category])
+  @@index([slug])
+  @@index([createdAt])
+}
+
+model SalonTrendzProfile {
+  id           String          @id @default(uuid())
+  salonId      String          @unique
+  isEnabled    Boolean         @default(false)
+  categories   TrendCategory[] @default([])
+  isPremium    Boolean         @default(false)
+  premiumUntil DateTime?
+  impressions  Int             @default(0)
+  clicks       Int             @default(0)
+  bookings     Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  salon        Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  @@index([isEnabled])
+  @@index([isPremium])
+}
+
+model SeoKeyword {
+  id           String         @id @default(uuid())
+  keyword      String         @unique @db.VarChar(255)
+  slug         String         @unique @db.VarChar(255)
+  category     String         @db.VarChar(50)
+  priority     Int            @default(2)
+  searchVolume Int?           @map("search_volume")
+  difficulty   Int?
+  variations   String[]
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  cachedPages  SeoPageCache[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([priority])
+  @@map("seo_keywords")
+}
+
+model SeoLocation {
+  id               String         @id @default(uuid())
+  name             String         @db.VarChar(255)
+  slug             String         @db.VarChar(255)
+  type             String         @db.VarChar(50)
+  province         String         @db.VarChar(100)
+  provinceSlug     String         @map("province_slug") @db.VarChar(100)
+  parentLocationId String?        @map("parent_location_id")
+  latitude         Decimal?       @db.Decimal(10, 8)
+  longitude        Decimal?       @db.Decimal(11, 8)
+  population       Int?
+  serviceCount     Int            @default(0) @map("service_count")
+  salonCount       Int            @default(0) @map("salon_count")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  parentLocation   SeoLocation?   @relation("LocationHierarchy", fields: [parentLocationId], references: [id])
+  childLocations   SeoLocation[]  @relation("LocationHierarchy")
+  cachedPages      SeoPageCache[]
+
+  @@index([slug])
+  @@index([type])
+  @@index([provinceSlug])
+  @@index([parentLocationId])
+  @@map("seo_locations")
+}
+
+model SeoPageCache {
+  id              String      @id @default(uuid())
+  keywordId       String      @map("keyword_id")
+  locationId      String      @map("location_id")
+  url             String      @unique @db.VarChar(500)
+  h1              String
+  h2Headings      String[]    @map("h2_headings")
+  h3Headings      String[]    @map("h3_headings")
+  introText       String      @map("intro_text")
+  metaTitle       String      @map("meta_title") @db.VarChar(60)
+  metaDescription String      @map("meta_description") @db.VarChar(160)
+  schemaMarkup    Json?       @map("schema_markup")
+  relatedServices Json?       @map("related_services")
+  nearbyLocations Json?       @map("nearby_locations")
+  serviceCount    Int         @default(0) @map("service_count")
+  salonCount      Int         @default(0) @map("salon_count")
+  avgPrice        Decimal?    @map("avg_price") @db.Decimal(10, 2)
+  lastGenerated   DateTime    @default(now()) @map("last_generated")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  keyword         SeoKeyword  @relation(fields: [keywordId], references: [id])
+  location        SeoLocation @relation(fields: [locationId], references: [id])
+
+  @@index([url])
+  @@index([keywordId])
+  @@index([locationId])
+  @@index([lastGenerated])
+  @@map("seo_page_cache")
+}
+
 enum UserRole {
   CLIENT
   SALON_OWNER
   ADMIN
-  PRODUCT_SELLER // New role
+  PRODUCT_SELLER
 }
 
 enum ApprovalStatus {
@@ -464,30 +682,6 @@ enum ProductOrderStatus {
   CANCELLED
 }
 
-// Social login linkage
-model OAuthAccount {
-  id                 String   @id @default(uuid())
-  userId             String
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider           String
-  providerAccountId  String
-  createdAt          DateTime @default(now())
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-}
-
-// Subscription plans (seeded)
-model Plan {
-  id               String   @id @default(uuid())
-  code             PlanCode @unique
-  name             String
-  priceCents       Int
-  visibilityWeight Int
-  maxListings      Int
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-}
-
 enum PlanCode {
   FREE
   STARTER
@@ -503,51 +697,6 @@ enum PlanPaymentStatus {
   PROOF_SUBMITTED
   VERIFIED
 }
-
-// Archive for deleted provider profiles to enable restoration
-model DeletedSalonArchive {
-  id         String   @id @default(uuid())
-  salonId    String
-  ownerId    String
-  salon      Json
-  services   Json
-  reason     String?
-  deletedBy  String?
-  deletedAt  DateTime @default(now())
-  restoredAt DateTime?
-  @@index([deletedAt])
-}
-
-// Archive for deleted product seller profiles to enable restoration
-model DeletedSellerArchive {
-  id         String   @id @default(uuid())
-  sellerId   String
-  seller     Json
-  products   Json
-  reason     String?
-  deletedBy  String?
-  deletedAt  DateTime @default(now())
-  restoredAt DateTime?
-  @@index([deletedAt])
-}
-
-// Admin activity/audit log
-model AdminActionLog {
-  id         String   @id @default(uuid())
-  adminId    String
-  action     String
-  targetType String
-  targetId   String
-  reason     String?
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  @@index([createdAt])
-  @@index([targetType, targetId])
-}
-
-// ============================================
-// TRENDZ FEATURE - NEW MODELS
-// ============================================
 
 enum TrendCategory {
   HAIRSTYLE
@@ -571,197 +720,48 @@ enum AgeGroup {
   ALL_AGES
 }
 
-model Trend {
-  id              String          @id @default(uuid())
-  title           String
-  description     String
-  images          String[]
-  category        TrendCategory
-  ageGroups       AgeGroup[]
-  styleName       String?
-  tags            String[]        @default([])
+model Candidate {
+  id                  String              @id @default(uuid())
+  userId              String              @unique
+  user                User                @relation(fields: [userId], references: [id])
+  profession          CandidateProfession
+  province            String
+  city                String
+  willingToTravel     Boolean             @default(false)
+  preferredLocations  String[]
+  yearsExperience     Int
+  qualifications      String[]
+  previousWorkplaces  String[]
+  portfolio           String[]
+  availableDays       String[]
+  availableTimes      String?
+  urgentBookings      Boolean             @default(false)
+  weekendsHolidays    Boolean             @default(false)
+  specializations     String[]
+  techniques          String[]
+  questionnaireAnswers Json?
   
-  isActive        Boolean         @default(true)
-  priority        Int             @default(0)
-  
-  viewCount       Int             @default(0)
-  likeCount       Int             @default(0)
-  shareCount      Int             @default(0)
-  clickThroughCount Int           @default(0)
-  
-  likes           TrendLike[]
-  views           TrendView[]
-  
-  relatedServiceCategories String[] @default([])
-  
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  createdBy       String
-  
-  @@index([category])
-  @@index([isActive])
-  @@index([priority])
-  @@index([createdAt])
+  // Privacy
+  showFirstName       Boolean             @default(true)
+  showLastName        Boolean             @default(false)
+  showEmail           Boolean             @default(false)
+  showPhone           Boolean             @default(false)
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 }
 
-model TrendLike {
-  id        String   @id @default(uuid())
-  userId    String
-  trendId   String
-  trend     Trend    @relation(fields: [trendId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  
-  @@unique([userId, trendId])
-  @@index([userId])
-  @@index([trendId])
-}
-
-model TrendView {
-  id        String   @id @default(uuid())
-  trendId   String
-  trend     Trend    @relation(fields: [trendId], references: [id], onDelete: Cascade)
-  userId    String?
-  ipAddress String?
-  viewedAt  DateTime @default(now())
-  
-  @@index([trendId])
-  @@index([userId])
-  @@index([viewedAt])
-}
-
-model SalonView {
-  id        String   @id @default(uuid())
-  salonId   String
-  salon     Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  userId    String?
-  ipAddress String?
-  viewedAt  DateTime @default(now())
-  
-  @@index([salonId])
-  @@index([userId])
-  @@index([viewedAt])
-}
-
-// Blog Post Model
-model Blog {
-  id          String   @id @default(uuid())
-  title       String
-  slug        String   @unique
-  description String
-  content     Json     // Array of sections with heading and content
-  category    String
-  featured    Boolean  @default(false)
-  published   Boolean  @default(false)
-  readTime    String?  // e.g., "8 min read"
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  publishedAt DateTime?
-  
-  @@index([published])
-  @@index([featured])
-  @@index([category])
-  @@index([slug])
-  @@index([createdAt])
-}
-
-model SalonTrendzProfile {
-  id              String          @id @default(uuid())
-  salonId         String          @unique
-  salon           Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  
-  isEnabled       Boolean         @default(false)
-  categories      TrendCategory[] @default([])
-  
-  isPremium       Boolean         @default(false)
-  premiumUntil    DateTime?
-  
-  impressions     Int             @default(0)
-  clicks          Int             @default(0)
-  bookings        Int             @default(0)
-  
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  
-  @@index([isEnabled])
-  @@index([isPremium])
-}
-
-// ============================================
-// SEO OPTIMIZATION - NEW MODELS
-// ============================================
-
-model SeoKeyword {
-  id            String         @id @default(uuid())
-  keyword       String         @unique @db.VarChar(255)
-  slug          String         @unique @db.VarChar(255)
-  category      String         @db.VarChar(50)
-  priority      Int            @default(2)
-  searchVolume  Int?           @map("search_volume")
-  difficulty    Int?
-  variations    String[]
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  cachedPages   SeoPageCache[]
-  
-  @@index([slug])
-  @@index([category])
-  @@index([priority])
-  @@map("seo_keywords")
-}
-
-model SeoLocation {
-  id               String         @id @default(uuid())
-  name             String         @db.VarChar(255)
-  slug             String         @db.VarChar(255)
-  type             String         @db.VarChar(50)
-  province         String         @db.VarChar(100)
-  provinceSlug     String         @map("province_slug") @db.VarChar(100)
-  parentLocationId String?        @map("parent_location_id")
-  parentLocation   SeoLocation?   @relation("LocationHierarchy", fields: [parentLocationId], references: [id])
-  childLocations   SeoLocation[]  @relation("LocationHierarchy")
-  latitude         Decimal?       @db.Decimal(10, 8)
-  longitude        Decimal?       @db.Decimal(11, 8)
-  population       Int?
-  serviceCount     Int            @default(0) @map("service_count")
-  salonCount       Int            @default(0) @map("salon_count")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
-  cachedPages      SeoPageCache[]
-  
-  @@index([slug])
-  @@index([type])
-  @@index([provinceSlug])
-  @@index([parentLocationId])
-  @@map("seo_locations")
-}
-
-model SeoPageCache {
-  id              String      @id @default(uuid())
-  keywordId       String      @map("keyword_id")
-  keyword         SeoKeyword  @relation(fields: [keywordId], references: [id])
-  locationId      String      @map("location_id")
-  location        SeoLocation @relation(fields: [locationId], references: [id])
-  url             String      @unique @db.VarChar(500)
-  h1              String
-  h2Headings      String[]    @map("h2_headings")
-  h3Headings      String[]    @map("h3_headings")
-  introText       String      @map("intro_text")
-  metaTitle       String      @map("meta_title") @db.VarChar(60)
-  metaDescription String      @map("meta_description") @db.VarChar(160)
-  schemaMarkup    Json?       @map("schema_markup")
-  relatedServices Json?       @map("related_services")
-  nearbyLocations Json?       @map("nearby_locations")
-  serviceCount    Int         @default(0) @map("service_count")
-  salonCount      Int         @default(0) @map("salon_count")
-  avgPrice        Decimal?    @map("avg_price") @db.Decimal(10, 2)
-  lastGenerated   DateTime    @default(now()) @map("last_generated")
-  createdAt       DateTime    @default(now()) @map("created_at")
-  
-  @@index([url])
-  @@index([keywordId])
-  @@index([locationId])
-  @@index([lastGenerated])
-  @@map("seo_page_cache")
+enum CandidateProfession {
+  HAIRDRESSER
+  NAIL_TECH
+  MASSAGE_THERAPIST
+  MAKEUP_ARTIST
+  BARBER
+  ESTHETICIAN
+  LASH_TECH
+  BROW_ARTIST
+  SPA_THERAPIST
+  SALON_MANAGER
+  RECEPTIONIST
+  BEAUTY_THERAPIST
 }

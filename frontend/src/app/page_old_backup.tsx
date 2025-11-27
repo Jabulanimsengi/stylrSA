@@ -25,13 +25,13 @@ import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { CATEGORY_SLUGS, getCategorySlug, generateCategorySlug } from '@/utils/categorySlug';
 
 const HERO_SLIDES = [
-  { src: '/image_01.png', alt: 'Professional hair styling and beauty services at South African salons' },
-  { src: '/image_02.png', alt: 'Expert hairdresser creating beautiful hairstyles' },
-  { src: '/image_03.png', alt: 'Modern salon interior with professional beauty equipment' },
-  { src: '/image_04.png', alt: 'Hair coloring and treatment services by certified stylists' },
-  { src: '/image_05.png', alt: 'Nail care and manicure services at premium salons' },
-  { src: '/image_06.png', alt: 'Makeup application and beauty consultation services' },
-  { src: '/image_07.png', alt: 'Hair braiding and African hairstyle specialists' },
+  { src: '/image_01.jpg', alt: 'Professional hair styling and beauty services at South African salons' },
+  { src: '/image_02.jpg', alt: 'Expert hairdresser creating beautiful hairstyles' },
+  { src: '/image_03.jpg', alt: 'Modern salon interior with professional beauty equipment' },
+  { src: '/image_04.jpg', alt: 'Hair coloring and treatment services by certified stylists' },
+  { src: '/image_05.jpg', alt: 'Nail care and manicure services at premium salons' },
+  { src: '/image_06.jpg', alt: 'Makeup application and beauty consultation services' },
+  { src: '/image_07.jpg', alt: 'Hair braiding and African hairstyle specialists' },
 ];
 
 const SLIDE_INTERVAL = 6000;
@@ -53,7 +53,7 @@ export default function HomePage() {
   const loader = useRef(null);
   const [trendsData, setTrendsData] = useState<Record<TrendCategory, Trend[]>>({} as Record<TrendCategory, Trend[]>);
   const [trendsLoading, setTrendsLoading] = useState(true);
-  
+
   const observer = useRef<IntersectionObserver | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const socket = useSocket();
@@ -63,7 +63,7 @@ export default function HomePage() {
 
   // Comprehensive Schema.org markup for homepage SEO and brand recognition
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
-  
+
   // Organization Schema - Critical for brand recognition
   const organizationSchema = {
     '@context': 'https://schema.org',
@@ -158,13 +158,13 @@ export default function HomePage() {
       if (res.ok) {
         // FIX: Explicitly typing the 'data' object from the API response
         const data: { services: ServiceWithSalon[], currentPage: number, totalPages: number } = await res.json();
-        
+
         setServices(prev => {
           const allServices = pageNum === 1 ? data.services : [...prev, ...data.services];
           const uniqueServicesMap = new Map(allServices.map(item => [item.id, item]));
           return Array.from(uniqueServicesMap.values());
         });
-        
+
         setHasMore(data.currentPage < data.totalPages);
         setPage(data.currentPage + 1);
       } else {
@@ -181,21 +181,21 @@ export default function HomePage() {
   // Group services by category
   const groupedServices = useMemo(() => {
     const grouped: Record<string, ServiceWithSalon[]> = {};
-    
+
     services.forEach((service) => {
       // Try multiple ways to get category name
-      const categoryName = 
-        (service as any).category?.name || 
-        (service as any).categoryName || 
-        service.category || 
+      const categoryName =
+        (service as any).category?.name ||
+        (service as any).categoryName ||
+        service.category ||
         'Other Services';
-      
+
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
       }
       grouped[categoryName].push(service);
     });
-    
+
     // Sort categories by service count (descending) and maintain plan-based sorting within categories
     const sorted = Object.entries(grouped)
       .sort(([, aServices], [, bServices]) => bServices.length - aServices.length)
@@ -208,12 +208,12 @@ export default function HomePage() {
         });
         return acc;
       }, {} as Record<string, ServiceWithSalon[]>);
-    
+
     // Debug: Log grouped services
     if (Object.keys(sorted).length > 0) {
       console.log('Grouped services by category:', Object.keys(sorted).map(cat => `${cat}: ${sorted[cat].length} services`));
     }
-    
+
     return sorted;
   }, [services]);
 
@@ -228,7 +228,7 @@ export default function HomePage() {
         const res = await fetch('/api/trends');
         if (res.ok) {
           const data = await res.json();
-          
+
           // Sort each category's trends by view count (descending - most views first)
           const sortedData: Record<TrendCategory, Trend[]> = {} as Record<TrendCategory, Trend[]>;
           Object.keys(data).forEach((category) => {
@@ -236,7 +236,7 @@ export default function HomePage() {
             const trends = data[categoryKey] as Trend[];
             sortedData[categoryKey] = trends.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
           });
-          
+
           setTrendsData(sortedData);
         }
       } catch (error) {
@@ -275,7 +275,7 @@ export default function HomePage() {
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const target = entries[0];
     if (target.isIntersecting && !isLoading && hasMore) {
-        fetchServices(page);
+      fetchServices(page);
     }
   }, [isLoading, hasMore, page, fetchServices]);
 
@@ -315,14 +315,14 @@ export default function HomePage() {
       }
     });
     const queryString = query.toString();
-    
+
     // Route to /services if:
     // 1. User typed a service name, OR
     // 2. User selected a category
     const hasServiceQuery = filters.service && filters.service.trim().length > 0;
     const hasCategoryQuery = filters.category && filters.category.trim().length > 0;
     const shouldSearchServices = hasServiceQuery || hasCategoryQuery;
-    
+
     const targetPath = shouldSearchServices ? '/services' : '/salons';
     console.log('[HomePage] Routing to:', targetPath, 'with query:', queryString);
     router.push(`${targetPath}${queryString ? `?${queryString}` : ''}`);
@@ -365,7 +365,7 @@ export default function HomePage() {
             <h1 className={styles.heroTitle} id="hero-title">South Africa's Premier Destination for Luxury Beauty &amp; Wellness</h1>
             <p className={styles.heroSubtitle} aria-describedby="hero-title">Experience excellence with South Africa's most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Elevate your beauty journey with the finest service providers in one exclusive platform.</p>
           </div>
-          
+
           {/* Premium Social Proof Stats */}
           <div className={styles.heroStats}>
             <div className={styles.stat}>
@@ -383,7 +383,7 @@ export default function HomePage() {
               <span className={styles.statLabel}>Elite Service Rating</span>
             </div>
           </div>
-          
+
           {!isMobile && (
             <div className={styles.filterContainer}>
               <FilterBar onSearch={handleSearch} isHomePage={true} />
@@ -410,7 +410,7 @@ export default function HomePage() {
 
         {/* Progress bar */}
         <div className={styles.progressBar}>
-          <div 
+          <div
             className={styles.progressFill}
             key={currentSlide}
           />
@@ -481,33 +481,33 @@ export default function HomePage() {
       {!isMobile && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
-          <div 
-            className={styles.categoryGrid} 
-            style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+          <div
+            className={styles.categoryGrid}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: '1.5rem',
               marginBottom: '3rem'
             }}
           >
-          <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Braiding & Weaving
-          </Link>
-          <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Nail Care
-          </Link>
-          <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Makeup & Beauty
-          </Link>
-          <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Haircuts & Styling
-          </Link>
-          <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Massage & Spa
-          </Link>
-          <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
-            Men's Grooming
-          </Link>
+            <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Braiding & Weaving
+            </Link>
+            <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Nail Care
+            </Link>
+            <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Makeup & Beauty
+            </Link>
+            <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Haircuts & Styling
+            </Link>
+            <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Massage & Spa
+            </Link>
+            <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
+              Men's Grooming
+            </Link>
           </div>
         </section>
       )}
@@ -547,7 +547,7 @@ export default function HomePage() {
             <LoadingSpinner size="medium" color="primary" />
           </div>
         )}
-        
+
         {!hasMore && services.length > 0 && (
           <p className={styles.endOfList}>You've reached the end!</p>
         )}

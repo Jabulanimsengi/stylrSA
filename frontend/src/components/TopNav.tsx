@@ -353,6 +353,8 @@ export default function TopNav() {
                             </div>
                         </li>
 
+
+
                         <li className={styles.navItem}>
                             <Link href="/about" className={styles.navButton}>
                                 About Us
@@ -371,6 +373,11 @@ export default function TopNav() {
                         <li className={styles.navItem}>
                             <Link href="/contact" className={styles.navButton}>
                                 Contact
+                            </Link>
+                        </li>
+                        <li className={styles.navItem}>
+                            <Link href="/candidates" className={styles.navButton}>
+                                Find Talent
                             </Link>
                         </li>
                     </ul>

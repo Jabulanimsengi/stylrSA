@@ -25,7 +25,7 @@ export class PrismaService extends BasePrismaClient implements OnModuleInit {
   // Index signature to avoid TS errors if Prisma Client types are out of date
   // and to permit access to dynamic model properties and raw helpers.
   [key: string]: any;
-  
+
   constructor() {
     super({
       datasources: {
@@ -35,20 +35,14 @@ export class PrismaService extends BasePrismaClient implements OnModuleInit {
       },
       log: ['warn', 'error'],
       // Limit connection pool in production to reduce memory usage
-      ...(process.env.NODE_ENV === 'production' && {
-        __internal: {
-          engine: {
-            connection_limit: 3, // Limit to 3 connections (reduced from default 10)
-          },
-        },
-      }),
+
     });
   }
-  
+
   async onModuleInit() {
     await this.$connect();
   }
-  
+
   async onModuleDestroy() {
     await this.$disconnect();
   }

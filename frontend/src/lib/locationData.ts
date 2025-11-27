@@ -46,7 +46,7 @@ export const PROVINCES: Record<string, ProvinceInfo> = {
         description: 'Explore top salons and beauty professionals in Pretoria. Book appointments at the best hair salons, nail salons, spas, and barbershops in Tshwane.',
         keywords: ['hair salon near me Pretoria', 'nail salon near me Pretoria', 'spa near me Pretoria', 'beauty salon Pretoria', 'Tshwane salons'],
       },
-      
+
       // Soweto & Townships
       {
         slug: 'soweto',
@@ -104,7 +104,7 @@ export const PROVINCES: Record<string, ProvinceInfo> = {
         description: 'Find salons in Diepsloot. Book at local hair salons, nail studios, and barbershops.',
         keywords: ['hair salon near me Diepsloot', 'beauty salon Diepsloot', 'barbershop Diepsloot'],
       },
-      
+
       // Northern Suburbs
       {
         slug: 'fourways',
@@ -141,7 +141,7 @@ export const PROVINCES: Record<string, ProvinceInfo> = {
         description: 'Find salons in Krugersdorp. Book at local hair salons, nail studios, and barbershops in the West Rand.',
         keywords: ['hair salon near me Krugersdorp', 'nail salon Krugersdorp', 'beauty salon Krugersdorp'],
       },
-      
+
       // East Rand
       {
         slug: 'benoni',
@@ -192,7 +192,7 @@ export const PROVINCES: Record<string, ProvinceInfo> = {
         description: 'Find salons in Kempton Park. Book at hair salons, nail studios, and barbershops.',
         keywords: ['hair salon near me Kempton Park', 'nail salon Kempton Park', 'beauty salon Kempton Park'],
       },
-      
+
       // Vaal Triangle
       {
         slug: 'vanderbijlpark',
@@ -208,7 +208,7 @@ export const PROVINCES: Record<string, ProvinceInfo> = {
         description: 'Discover salons in Vereeniging. Book at hair salons, nail studios, and barbershops in the Vaal.',
         keywords: ['hair salon near me Vereeniging', 'nail salon Vereeniging', 'beauty salon Vereeniging'],
       },
-      
+
       // Tshwane/Pretoria Areas
       {
         slug: 'centurion',
@@ -238,7 +238,7 @@ export const PROVINCES: Record<string, ProvinceInfo> = {
         description: 'Discover salons in Soshanguve. Book at local hair salons and barbershops.',
         keywords: ['hair salon near me Soshanguve', 'beauty salon Soshanguve', 'barbershop Soshanguve'],
       },
-      
+
       // Upmarket Areas
       {
         slug: 'rosebank',
@@ -323,6 +323,138 @@ export const PROVINCES: Record<string, ProvinceInfo> = {
       },
     ],
   },
+  'eastern-cape': {
+    slug: 'eastern-cape',
+    name: 'Eastern Cape',
+    description: 'Find top salons and beauty professionals in the Eastern Cape. Book appointments in Gqeberha (Port Elizabeth), East London, and surrounding areas.',
+    keywords: ['Eastern Cape salons', 'Port Elizabeth hair salon', 'East London beauty salon', 'Gqeberha spa'],
+    cities: [
+      {
+        slug: 'gqeberha',
+        name: 'Gqeberha (Port Elizabeth)',
+        province: 'Eastern Cape',
+        description: 'Discover salons in Gqeberha. Book at top hair salons, nail studios, and spas in the Friendly City.',
+        keywords: ['hair salon Gqeberha', 'Port Elizabeth beauty salon', 'nail salon PE', 'spa Gqeberha'],
+      },
+      {
+        slug: 'east-london',
+        name: 'East London',
+        province: 'Eastern Cape',
+        description: 'Find quality salons in East London. Book at trusted hair salons, nail studios, and beauty centers.',
+        keywords: ['hair salon East London', 'nail salon East London', 'beauty salon East London'],
+      },
+    ],
+  },
+  'free-state': {
+    slug: 'free-state',
+    name: 'Free State',
+    description: 'Discover salons and beauty services in the Free State. Book appointments in Bloemfontein, Welkom, and Sasolburg.',
+    keywords: ['Free State salons', 'Bloemfontein hair salon', 'Welkom beauty salon', 'Free State spa'],
+    cities: [
+      {
+        slug: 'bloemfontein',
+        name: 'Bloemfontein',
+        province: 'Free State',
+        description: 'Find top salons in Bloemfontein. Book at hair salons, nail studios, and spas in the City of Roses.',
+        keywords: ['hair salon Bloemfontein', 'nail salon Bloemfontein', 'beauty salon Bloemfontein', 'spa Bloemfontein'],
+      },
+      {
+        slug: 'welkom',
+        name: 'Welkom',
+        province: 'Free State',
+        description: 'Discover salons in Welkom. Book at local hair salons, nail studios, and barbershops.',
+        keywords: ['hair salon Welkom', 'nail salon Welkom', 'beauty salon Welkom'],
+      },
+    ],
+  },
+  'limpopo': {
+    slug: 'limpopo',
+    name: 'Limpopo',
+    description: 'Find beauty professionals in Limpopo. Book appointments in Polokwane, Tzaneen, and Thohoyandou.',
+    keywords: ['Limpopo salons', 'Polokwane hair salon', 'Limpopo beauty', 'Polokwane spa'],
+    cities: [
+      {
+        slug: 'polokwane',
+        name: 'Polokwane',
+        province: 'Limpopo',
+        description: 'Discover salons in Polokwane. Book at top hair salons, nail studios, and beauty centers.',
+        keywords: ['hair salon Polokwane', 'nail salon Polokwane', 'beauty salon Polokwane'],
+      },
+      {
+        slug: 'tzaneen',
+        name: 'Tzaneen',
+        province: 'Limpopo',
+        description: 'Find salons in Tzaneen. Book at local hair salons and beauty professionals.',
+        keywords: ['hair salon Tzaneen', 'beauty salon Tzaneen'],
+      },
+    ],
+  },
+  'mpumalanga': {
+    slug: 'mpumalanga',
+    name: 'Mpumalanga',
+    description: 'Discover beauty services in Mpumalanga. Book appointments in Mbombela (Nelspruit), Witbank, and surrounding areas.',
+    keywords: ['Mpumalanga salons', 'Nelspruit hair salon', 'Mbombela beauty salon', 'Witbank spa'],
+    cities: [
+      {
+        slug: 'mbombela',
+        name: 'Mbombela (Nelspruit)',
+        province: 'Mpumalanga',
+        description: 'Find top salons in Mbombela. Book at hair salons, nail studios, and spas in the Lowveld.',
+        keywords: ['hair salon Nelspruit', 'beauty salon Mbombela', 'nail salon Nelspruit'],
+      },
+      {
+        slug: 'witbank',
+        name: 'Witbank (Emalahleni)',
+        province: 'Mpumalanga',
+        description: 'Discover salons in Witbank. Book at local hair salons and beauty professionals.',
+        keywords: ['hair salon Witbank', 'nail salon Witbank', 'beauty salon Emalahleni'],
+      },
+    ],
+  },
+  'north-west': {
+    slug: 'north-west',
+    name: 'North West',
+    description: 'Find salons and beauty professionals in North West. Book appointments in Rustenburg, Potchefstroom, and Klerksdorp.',
+    keywords: ['North West salons', 'Rustenburg hair salon', 'Potchefstroom beauty salon', 'North West spa'],
+    cities: [
+      {
+        slug: 'rustenburg',
+        name: 'Rustenburg',
+        province: 'North West',
+        description: 'Find top salons in Rustenburg. Book at hair salons, nail studios, and spas in the Platinum City.',
+        keywords: ['hair salon Rustenburg', 'nail salon Rustenburg', 'beauty salon Rustenburg'],
+      },
+      {
+        slug: 'potchefstroom',
+        name: 'Potchefstroom',
+        province: 'North West',
+        description: 'Discover salons in Potchefstroom. Book at local hair salons and beauty centers.',
+        keywords: ['hair salon Potchefstroom', 'nail salon Potchefstroom', 'beauty salon Potchefstroom'],
+      },
+    ],
+  },
+  'northern-cape': {
+    slug: 'northern-cape',
+    name: 'Northern Cape',
+    description: 'Discover beauty services in the Northern Cape. Book appointments in Kimberley, Upington, and surrounding areas.',
+    keywords: ['Northern Cape salons', 'Kimberley hair salon', 'Upington beauty salon', 'Northern Cape spa'],
+    cities: [
+      {
+        slug: 'kimberley',
+        name: 'Kimberley',
+        province: 'Northern Cape',
+        description: 'Find top salons in Kimberley. Book at hair salons, nail studios, and spas in the Diamond City.',
+        keywords: ['hair salon Kimberley', 'nail salon Kimberley', 'beauty salon Kimberley'],
+      },
+      {
+        slug: 'upington',
+        name: 'Upington',
+        province: 'Northern Cape',
+        description: 'Discover salons in Upington. Book at local hair salons and beauty professionals.',
+        keywords: ['hair salon Upington', 'beauty salon Upington'],
+      },
+    ],
+  },
 };
 
 // Helper function to get all cities across all provinces
@@ -339,7 +471,7 @@ export function getCitiesByProvince(provinceSlug: string): CityInfo[] {
 export function getCityInfo(provinceSlug: string, citySlug: string): CityInfo | null {
   const province = PROVINCES[provinceSlug];
   if (!province) return null;
-  
+
   return province.cities.find(city => city.slug === citySlug) || null;
 }
 

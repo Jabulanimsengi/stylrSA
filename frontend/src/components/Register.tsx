@@ -81,7 +81,9 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
         ? '/create-salon'
         : role === 'PRODUCT_SELLER'
           ? '/product-dashboard'
-          : '/salons';
+          : role === 'CANDIDATE'
+            ? '/create-candidate-profile'
+            : '/salons';
       // Redirect to Google OAuth
       void signIn('google', { callbackUrl });
     }
@@ -132,6 +134,10 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
             <input type="radio" id="roleSeller" name="role" value="PRODUCT_SELLER" checked={role === 'PRODUCT_SELLER'} onChange={(e) => setRole(e.target.value)} />
             <label htmlFor="roleSeller">I'm a Product Seller</label>
           </div>
+          <div className={styles.roleOption}>
+            <input type="radio" id="roleCandidate" name="role" value="CANDIDATE" checked={role === 'CANDIDATE'} onChange={(e) => setRole(e.target.value)} />
+            <label htmlFor="roleCandidate">I'm a Job Seeker</label>
+          </div>
         </div>
 
         {error && <p className={styles.errorMessage}>{error}</p>}
@@ -145,7 +151,7 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
       <div className={styles.oauthSection}>
         <div className={styles.oauthDivider}>or</div>
         <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem', textAlign: 'center' }}>
-          Selected role: <strong>{role === 'CLIENT' ? 'Client' : role === 'SALON_OWNER' ? 'Service Provider' : 'Product Seller'}</strong>
+          Selected role: <strong>{role === 'CLIENT' ? 'Client' : role === 'SALON_OWNER' ? 'Service Provider' : role === 'PRODUCT_SELLER' ? 'Product Seller' : 'Job Seeker'}</strong>
         </p>
         <button
           type="button"

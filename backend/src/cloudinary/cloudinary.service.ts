@@ -13,29 +13,29 @@ export class CloudinaryService {
     });
   }
 
-  getSignature(params?: Record<string, any>): { signature: string; timestamp: number; [key: string]: any } {
+  getSignature(params?: Record<string, any>): { signature: string; timestamp: number;[key: string]: any } {
     const timestamp = Math.round(new Date().getTime() / 1000);
-    
+
     // Build parameters object - include any params passed from frontend
     const paramsToSign: Record<string, any> = {
       timestamp: timestamp,
       ...params, // Include folder, public_id, etc. if provided
     };
-    
+
     // Remove undefined values and empty strings
     Object.keys(paramsToSign).forEach(key => {
       if (paramsToSign[key] === undefined || paramsToSign[key] === '') {
         delete paramsToSign[key];
       }
     });
-    
+
     const signature = cloudinary.utils.api_sign_request(
       paramsToSign,
       process.env.CLOUDINARY_API_SECRET as string,
     );
-    
-    return { 
-      timestamp, 
+
+    return {
+      timestamp,
       signature,
       ...paramsToSign // Return the params so frontend knows what was signed
     };
@@ -70,6 +70,24 @@ export class CloudinaryService {
           transformation: [
             { quality: 'auto', fetch_format: 'auto' }
           ]
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result as UploadApiResponse);
+        }
+      );
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
+  }
+
+  async uploadFile(file: Express.Multer.File, folder: string = 'candidate-cvs'): Promise<UploadApiResponse> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: 'auto', // Allows PDFs, docs, etc.
+          use_filename: true,
+          unique_filename: true,
         },
         (error, result) => {
           if (error) return reject(error);

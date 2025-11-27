@@ -25,13 +25,13 @@ import { getCategorySlug } from '@/utils/categorySlug';
 import TypingAnimation from '@/components/TypingAnimation/TypingAnimation';
 
 const HERO_SLIDES = [
-  { src: '/image_01.png', alt: 'Professional hair styling and beauty services at South African salons' },
-  { src: '/image_02.png', alt: 'Expert hairdresser creating beautiful hairstyles' },
-  { src: '/image_03.png', alt: 'Modern salon interior with professional beauty equipment' },
-  { src: '/image_04.png', alt: 'Hair coloring and treatment services by certified stylists' },
-  { src: '/image_05.png', alt: 'Nail care and manicure services at premium salons' },
-  { src: '/image_06.png', alt: 'Makeup application and beauty consultation services' },
-  { src: '/image_07.png', alt: 'Hair braiding and African hairstyle specialists' },
+  { src: '/image_01.jpg', alt: 'Professional hair styling and beauty services at South African salons' },
+  { src: '/image_02.jpg', alt: 'Expert hairdresser creating beautiful hairstyles' },
+  { src: '/image_03.jpg', alt: 'Modern salon interior with professional beauty equipment' },
+  { src: '/image_04.jpg', alt: 'Hair coloring and treatment services by certified stylists' },
+  { src: '/image_05.jpg', alt: 'Nail care and manicure services at premium salons' },
+  { src: '/image_06.jpg', alt: 'Makeup application and beauty consultation services' },
+  { src: '/image_07.jpg', alt: 'Hair braiding and African hairstyle specialists' },
 ];
 
 const SLIDE_INTERVAL = 6000;

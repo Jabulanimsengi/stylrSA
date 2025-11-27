@@ -129,18 +129,18 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       // Clear NextAuth session (Google/OAuth)
-      try { await signOut({ redirect: false }); } catch {}
+      try { await signOut({ redirect: false }); } catch { }
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
-      
+
       // Clear all cached data
       clearNotificationsCache();
       setNotifications([]);
       setUnreadCountState(0);
       setNextCursor(null);
-      
+
       // Logout will handle clearing storage
       logout();
       toast.success('You have been logged out successfully.');
@@ -305,7 +305,7 @@ export default function Navbar() {
         updateNotificationsCache(updatedItems, nextUnread, nextCursor, user?.id);
       }
       setIsNotificationsOpen(false);
-      
+
       // Handle chat notifications by opening the ChatWidget directly
       if (notification.link?.startsWith('/chat/')) {
         const conversationId = notification.link.replace('/chat/', '');
@@ -381,6 +381,7 @@ export default function Navbar() {
       { href: '/salons', label: 'Salons', icon: FaCut },
       { href: '/services', label: 'Services', icon: FaMagic },
       { href: '/products', label: 'Products', icon: FaBoxOpen },
+      { href: '/candidates', label: 'Find Talent', icon: FaUser },
       { href: '/promotions', label: 'Promotions', icon: FaMagic },
     ],
     [],
@@ -392,6 +393,7 @@ export default function Navbar() {
       { href: '/prices', label: 'Pricing', icon: FaDollarSign },
       { href: '/how-it-works', label: 'How It Works', icon: FaQuestionCircle },
       { href: '/contact', label: 'Contact', icon: FaEnvelope },
+      { href: '/blog', label: 'Blog', icon: FaEnvelope },
     ],
     [],
   );
@@ -434,7 +436,7 @@ export default function Navbar() {
     routes.forEach((route) => {
       const maybePromise = router.prefetch(route);
       if (maybePromise && typeof maybePromise.then === 'function') {
-        maybePromise.catch(() => {});
+        maybePromise.catch(() => { });
       }
     });
     setHasPrefetchedRoutes(true);
@@ -559,16 +561,16 @@ export default function Navbar() {
   const notificationsPanel = isNotificationsOpen && (
     isDesktop
       ? createPortal(
-          <div ref={notificationsPortalRef} className={`${styles.notificationsPanel} ${styles.notificationsPortalPanel}`}>
-            {panelBody}
-          </div>,
-          document.body,
-        )
+        <div ref={notificationsPortalRef} className={`${styles.notificationsPanel} ${styles.notificationsPortalPanel}`}>
+          {panelBody}
+        </div>,
+        document.body,
+      )
       : (
-          <div ref={notificationsRef} className={styles.notificationsPanel}>
-            {panelBody}
-          </div>
-        )
+        <div ref={notificationsRef} className={styles.notificationsPanel}>
+          {panelBody}
+        </div>
+      )
   );
 
   const messagesButton = (
@@ -726,7 +728,7 @@ export default function Navbar() {
                 {isCompanyMenuOpen ? <FaChevronUp /> : <FaChevronDown />}
               </span>
             </button>
-            
+
             <div className={`${styles.companyMenu} ${isCompanyMenuOpen ? styles.companyMenuOpen : ''}`}>
               <ul className={styles.navList}>
                 {companyLinks.map(renderNavLink)}

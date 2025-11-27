@@ -34,6 +34,7 @@ import { TrendsModule } from './trends/trends.module';
 import { BlogsModule } from './blogs/blogs.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { SeoModule } from './seo/seo.module';
+import { CandidatesModule } from './candidates/candidates.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { SeoModule } from './seo/seo.module';
     BlogsModule,
     AvailabilityModule,
     SeoModule,
+    CandidatesModule,
   ],
   controllers: [AppController],
   providers: [
