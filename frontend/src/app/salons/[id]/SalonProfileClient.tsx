@@ -20,6 +20,7 @@ import BookingModal from '@/components/BookingModal';
 import styles from './SalonProfile.module.css';
 import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
+import SimpleServiceList from '@/components/SimpleServiceList/SimpleServiceList';
 import { toast } from 'react-toastify';
 import { useSocket } from '@/context/SocketContext';
 import ImageLightbox from '@/components/ImageLightbox';
@@ -408,7 +409,9 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
     return order.filter((d) => d in hoursRecord);
   }, [hoursRecord]);
 
-  const visibleServices = useMemo(() => services.slice(0, visibleServicesCount), [services, visibleServicesCount]);
+  const visibleServices = useMemo(() => {
+    return services.filter(s => s.images && s.images.length > 0).slice(0, visibleServicesCount);
+  }, [services, visibleServicesCount]);
   const visibleReviews = useMemo(() => reviews.slice(0, visibleReviewsCount), [reviews, visibleReviewsCount]);
 
   useEffect(() => {
@@ -831,6 +834,10 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                     <div ref={serviceLoadRef} className={styles.lazySentinel} aria-hidden="true" />
                   )}
                 </div>
+                <SimpleServiceList
+                  services={services}
+                  onBook={handleBookClick}
+                />
               </section>
 
               <section>

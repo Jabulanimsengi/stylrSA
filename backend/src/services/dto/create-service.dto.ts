@@ -31,13 +31,13 @@ export class CreateServiceDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  images: string[];
+  images?: string[];
 
   @IsString()
   @IsNotEmpty()
   salonId: string;
 
-  @IsUUID() // Use IsUUID to validate that it's a valid UUID
-  @IsOptional() // Make categoryId optional to match the database schema
-  categoryId?: string; // Add the new categoryId property
+  @IsUUID()
+  @IsOptional()
+  categoryId?: string;
 }

@@ -19,6 +19,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './Dashboard.module.css';
 import ServiceFormModal from '@/components/ServiceFormModal';
+import SimpleServiceFormModal from '@/components/SimpleServiceFormModal';
 import EditSalonModal from '@/components/EditSalonModal';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'react-toastify';
@@ -77,6 +78,7 @@ function DashboardPageContent() {
   const [isPlanUpdating, setIsPlanUpdating] = useState(false);
 
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [isSimpleServiceModalOpen, setIsSimpleServiceModalOpen] = useState(false);
   const [isEditSalonModalOpen, setIsEditSalonModalOpen] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -85,7 +87,7 @@ function DashboardPageContent() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'service' | 'product' | 'promotion' | 'gallery' } | null>(null);
-  
+
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
   const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'before-after' | 'videos' | 'booking-settings' | 'availability'>('bookings');
   const [selectedServiceForPromo, setSelectedServiceForPromo] = useState<Service | null>(null);
@@ -94,7 +96,7 @@ function DashboardPageContent() {
   const [isSavingMessage, setIsSavingMessage] = useState(false);
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [bookingToComplete, setBookingToComplete] = useState<string | null>(null);
-  
+
   // Operating hours state
   const [operatingHours, setOperatingHours] = useState<OperatingHours>(initializeOperatingHours());
   const [isEditingHours, setIsEditingHours] = useState(false);
@@ -103,8 +105,8 @@ function DashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const socket = useSocket();
-  
-  const { authStatus, user } = useAuth(); 
+
+  const { authStatus, user } = useAuth();
 
   const ownerId = user?.role === 'ADMIN' ? searchParams.get('ownerId') : user?.id;
 
@@ -113,7 +115,7 @@ function DashboardPageContent() {
       if (!ownerId) return;
       setIsPlanUpdating(true);
       try {
-        const res = await fetch(`/api/salons/mine/plan?ownerId=${ownerId}` , {
+        const res = await fetch(`/api/salons/mine/plan?ownerId=${ownerId}`, {
           method: 'PATCH',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -154,7 +156,7 @@ function DashboardPageContent() {
       if (salonRes.status === 401) { router.push('/'); return; }
       if (salonRes.status === 404) { setSalon(null); setIsLoading(false); return; }
       if (!salonRes.ok) throw new Error('Could not fetch salon data.');
-      
+
       // Parse JSON with proper error handling
       let salonData;
       try {
@@ -173,18 +175,18 @@ function DashboardPageContent() {
         setIsLoading(false);
         return;
       }
-      
+
       // If no salon exists (backend returns null), stop here and show welcome screen
       if (!salonData) {
         setSalon(null);
         setIsLoading(false);
         return;
       }
-      
+
       setSalon(salonData);
       setBookingMessage(salonData.bookingMessage || '');
       setIsEditingMessage(!salonData.bookingMessage); // If no message, start in edit mode
-      
+
       // Initialize operating hours
       if (salonData.operatingHours && Array.isArray(salonData.operatingHours)) {
         const hoursObj: OperatingHours = initializeOperatingHours();
@@ -270,7 +272,7 @@ function DashboardPageContent() {
     socket.on('visibility:updated', handler);
     return () => { socket.off('visibility:updated', handler); };
   }, [socket, salon?.id, fetchDashboardData]);
-  
+
   const handleServiceSaved = (savedService: Service) => {
     if (editingService) {
       setServices(services.map(s => s.id === savedService.id ? savedService : s));
@@ -279,16 +281,16 @@ function DashboardPageContent() {
     }
     closeServiceModal();
   };
-  
+
   const handleProductAdded = (addedProduct: Product) => {
     if (selectedProduct) {
-        setProducts(products.map(p => p.id === addedProduct.id ? addedProduct : p));
+      setProducts(products.map(p => p.id === addedProduct.id ? addedProduct : p));
     } else {
-        setProducts([...products, addedProduct]);
+      setProducts([...products, addedProduct]);
     }
     setIsProductModalOpen(false);
   };
-  
+
   const handlePromotionAdded = (addedPromotion: Promotion) => {
     setPromotions({ ...promotions, active: [...promotions.active, addedPromotion] });
     setIsPromotionModalOpen(false);
@@ -308,29 +310,29 @@ function DashboardPageContent() {
   const handleDeleteClick = (id: string, type: 'service' | 'product' | 'promotion' | 'gallery') => {
     setItemToDelete({ id, type });
   };
-  
+
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     const { id, type } = itemToDelete;
     try {
-        const url = type === 'gallery' ? `/api/gallery/${id}` : `/api/${type}s/${id}`;
-        await apiFetch(url, { method: 'DELETE' });
+      const url = type === 'gallery' ? `/api/gallery/${id}` : `/api/${type}s/${id}`;
+      await apiFetch(url, { method: 'DELETE' });
 
-        if (type === 'service') setServices(services.filter(s => s.id !== id));
-        else if (type === 'product') setProducts(products.filter(p => p.id !== id));
-        else if (type === 'promotion') {
-          setPromotions({
-            active: promotions.active.filter(p => p.id !== id),
-            expired: promotions.expired.filter(p => p.id !== id),
-          });
-        }
-        else if (type === 'gallery') setGalleryImages(galleryImages.filter(g => g.id !== id));
+      if (type === 'service') setServices(services.filter(s => s.id !== id));
+      else if (type === 'product') setProducts(products.filter(p => p.id !== id));
+      else if (type === 'promotion') {
+        setPromotions({
+          active: promotions.active.filter(p => p.id !== id),
+          expired: promotions.expired.filter(p => p.id !== id),
+        });
+      }
+      else if (type === 'gallery') setGalleryImages(galleryImages.filter(g => g.id !== id));
 
-        toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`);
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`);
     } catch (err: any) {
-        toast.error(toFriendlyMessage(err, 'Deletion failed'));
+      toast.error(toFriendlyMessage(err, 'Deletion failed'));
     } finally {
-        setItemToDelete(null);
+      setItemToDelete(null);
     }
   };
 
@@ -342,7 +344,7 @@ function DashboardPageContent() {
     });
     setSalon(updatedSalon);
     setIsEditSalonModalOpen(false);
-    
+
     // Force a refetch after a short delay to ensure database has committed
     setTimeout(() => {
       refetchSalon();
@@ -353,11 +355,11 @@ function DashboardPageContent() {
     if (!ownerId) return;
     try {
       const timestamp = Date.now();
-      const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}&_t=${timestamp}`, { 
-        credentials: 'include', 
-        cache: 'no-store' as any 
+      const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}&_t=${timestamp}`, {
+        credentials: 'include',
+        cache: 'no-store' as any
       });
-      
+
       if (salonRes.ok) {
         const salonData = await salonRes.json();
         if (salonData) {
@@ -427,7 +429,7 @@ function DashboardPageContent() {
           operatingDays: operatingDays,
         }),
       });
-      
+
       setSalon(updated);
       setIsEditingHours(false);
       toast.success('Operating hours saved successfully! Your availability calendar will now show these hours.');
@@ -437,7 +439,7 @@ function DashboardPageContent() {
       setIsSavingHours(false);
     }
   };
-  
+
   const handleBookingStatusUpdate = async (bookingId: string, status: 'CONFIRMED' | 'DECLINED' | 'COMPLETED' | 'CANCELLED') => {
     try {
       await apiFetch(`/api/bookings/${bookingId}/status`, {
@@ -452,9 +454,18 @@ function DashboardPageContent() {
   };
 
   const openServiceModalToAdd = () => { setEditingService(null); setIsServiceModalOpen(true); };
-  const openServiceModalToEdit = (service: Service) => { setEditingService(service); setIsServiceModalOpen(true); };
+  const openSimpleServiceModalToAdd = () => { setEditingService(null); setIsSimpleServiceModalOpen(true); };
+  const openServiceModalToEdit = (service: Service) => {
+    setEditingService(service);
+    if (!service.images || service.images.length === 0) {
+      setIsSimpleServiceModalOpen(true);
+    } else {
+      setIsServiceModalOpen(true);
+    }
+  };
   const closeServiceModal = () => { setIsServiceModalOpen(false); setEditingService(null); };
-  
+  const closeSimpleServiceModal = () => { setIsSimpleServiceModalOpen(false); setEditingService(null); };
+
   const openProductModal = (product: Product | null = null) => {
     setSelectedProduct(product);
     setIsProductModalOpen(true);
@@ -503,7 +514,7 @@ function DashboardPageContent() {
               <Skeleton variant="button" style={{ width: 140 }} />
             </div>
           </div>
-          <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', marginTop: 8}}>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: 8 }}>
             {Array.from({ length: 4 }).map((_, idx) => (
               <Skeleton key={idx} variant="text" style={{ width: '18%', minWidth: 120, height: 20 }} />
             ))}
@@ -535,7 +546,7 @@ function DashboardPageContent() {
       </div>
     );
   }
-  
+
   if (user?.role === 'ADMIN' && !ownerId) {
     return (
       <div className={styles.welcomeContainer}>
@@ -550,16 +561,16 @@ function DashboardPageContent() {
 
   if (!salon) {
     return (
-        <div className={styles.welcomeContainer}>
-          <div className={styles.welcomeCard}>
-            <h2>Welcome, Service Provider!</h2>
-            <p>Create your salon profile to start adding services and accepting bookings.</p>
-            <Link href="/create-salon" className="btn btn-primary">Create Your Salon Profile</Link>
-          </div>
+      <div className={styles.welcomeContainer}>
+        <div className={styles.welcomeCard}>
+          <h2>Welcome, Service Provider!</h2>
+          <p>Create your salon profile to start adding services and accepting bookings.</p>
+          <Link href="/create-salon" className="btn btn-primary">Create Your Salon Profile</Link>
         </div>
+      </div>
     );
   }
-  
+
   const pendingBookings = bookings.filter(b => b.status === 'PENDING');
   const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED');
   const pastBookings = bookings.filter(b => ['COMPLETED', 'DECLINED', 'CANCELLED'].includes(b.status));
@@ -596,15 +607,15 @@ function DashboardPageContent() {
     if (list.length === 0) return <p>No bookings in this category.</p>;
     return list.map(booking => {
       const bookingDate = new Date(booking.bookingTime);
-      const formattedDate = bookingDate.toLocaleDateString('en-ZA', { 
-        weekday: 'short', 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      const formattedDate = bookingDate.toLocaleDateString('en-ZA', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       });
-      const formattedTime = bookingDate.toLocaleTimeString('en-ZA', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      const formattedTime = bookingDate.toLocaleTimeString('en-ZA', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
 
       return (
@@ -620,7 +631,7 @@ function DashboardPageContent() {
               {booking.status}
             </span>
           </div>
-          
+
           <div className={styles.bookingDetails}>
             <div className={styles.bookingDetailItem}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -651,8 +662,8 @@ function DashboardPageContent() {
           <div className={styles.bookingActions}>
             {booking.status === 'PENDING' && (
               <>
-                <button 
-                  onClick={() => handleBookingStatusUpdate(booking.id, 'CONFIRMED')} 
+                <button
+                  onClick={() => handleBookingStatusUpdate(booking.id, 'CONFIRMED')}
                   className={styles.confirmButton}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -660,8 +671,8 @@ function DashboardPageContent() {
                   </svg>
                   Accept
                 </button>
-                <button 
-                  onClick={() => handleBookingStatusUpdate(booking.id, 'DECLINED')} 
+                <button
+                  onClick={() => handleBookingStatusUpdate(booking.id, 'DECLINED')}
                   className={styles.declineButton}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -672,10 +683,10 @@ function DashboardPageContent() {
                 </button>
               </>
             )}
-            
+
             {booking.status === 'CONFIRMED' && (
-              <button 
-                onClick={() => handleMarkAsCompleted(booking.id)} 
+              <button
+                onClick={() => handleMarkAsCompleted(booking.id)}
                 className={styles.completeButton}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -702,47 +713,55 @@ function DashboardPageContent() {
   return (
     <>
       {isServiceModalOpen && salon && (
-        <ServiceFormModal 
-          salonId={salon.id} 
-          onClose={closeServiceModal} 
-          onServiceSaved={handleServiceSaved} 
-          service={editingService} 
+        <ServiceFormModal
+          salonId={salon.id}
+          onClose={closeServiceModal}
+          onServiceSaved={handleServiceSaved}
+          service={editingService}
+        />
+      )}
+      {isSimpleServiceModalOpen && salon && (
+        <SimpleServiceFormModal
+          salonId={salon.id}
+          onClose={closeSimpleServiceModal}
+          onServiceAddedOrUpdated={handleServiceSaved}
+          serviceToEdit={editingService}
         />
       )}
       {isEditSalonModalOpen && salon && (
-        <EditSalonModal 
-          salon={salon} 
-          onClose={() => setIsEditSalonModalOpen(false)} 
-          onSalonUpdate={handleSalonUpdate} 
+        <EditSalonModal
+          salon={salon}
+          onClose={() => setIsEditSalonModalOpen(false)}
+          onSalonUpdate={handleSalonUpdate}
         />
       )}
       {isGalleryModalOpen && salon && (
-        <GalleryUploadModal 
-          salonId={salon.id} 
-          onClose={() => setIsGalleryModalOpen(false)} 
+        <GalleryUploadModal
+          salonId={salon.id}
+          onClose={() => setIsGalleryModalOpen(false)}
           onImageAdded={(newImage) => setGalleryImages(prev => [newImage, ...prev])}
         />
       )}
       {isPromotionModalOpen && salon && (
-        <PromotionModal 
+        <PromotionModal
           salonId={salon.id}
-          onClose={() => setIsPromotionModalOpen(false)} 
+          onClose={() => setIsPromotionModalOpen(false)}
           onPromotionAdded={handlePromotionAdded}
         />
       )}
       {isProductModalOpen && salon && (
-        <ProductFormModal 
+        <ProductFormModal
           salonId={salon.id}
-          onClose={() => setIsProductModalOpen(false)} 
-          onProductAdded={handleProductAdded} 
-          initialData={selectedProduct} 
+          onClose={() => setIsProductModalOpen(false)}
+          onProductAdded={handleProductAdded}
+          initialData={selectedProduct}
         />
       )}
       {itemToDelete && <ConfirmationModal onConfirm={confirmDelete} onCancel={() => setItemToDelete(null)} message={`Are you sure you want to delete this ${itemToDelete.type}?`} />}
       {bookingToComplete && (
-        <ConfirmationModal 
-          onConfirm={confirmMarkAsCompleted} 
-          onCancel={() => setBookingToComplete(null)} 
+        <ConfirmationModal
+          onConfirm={confirmMarkAsCompleted}
+          onCancel={() => setBookingToComplete(null)}
           message="Is this service completed?"
           confirmText="Mark as Completed"
           details={[
@@ -763,75 +782,75 @@ function DashboardPageContent() {
           onSuccess={handlePromoCreated}
         />
       )}
-      
+
       <div className={styles.container}>
         <PageNav />
         <h1 className={styles.title}>{user?.role === 'ADMIN' ? `${salon.name}'s Dashboard` : 'My Dashboard'}</h1>
-        
+
         <header className={styles.header}>
-            <div className={styles.headerTop}>
-              <p className={styles.salonName}>{salon.name}</p>
-              <div className={styles.headerActions}>
+          <div className={styles.headerTop}>
+            <p className={styles.salonName}>{salon.name}</p>
+            <div className={styles.headerActions}>
               <button onClick={toggleAvailability} className="btn btn-ghost">
                 {salon.isAvailableNow ? 'Set Unavailable' : 'Set Available Now'}
               </button>
-                <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">View Public Profile</Link>
-                <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary"><FaEdit /> Edit Profile</button>
+              <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">View Public Profile</Link>
+              <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary"><FaEdit /> Edit Profile</button>
+            </div>
+          </div>
+          <div className={styles.planSummary}>
+            <div className={styles.planSummaryRow}>
+              <span><strong>Package:</strong> {planDetails.name}</span>
+              <span><strong>Amount due:</strong> {planDetails.price}</span>
+              <span><strong>Visibility weight:</strong> {salon.visibilityWeight ?? planDetails.visibilityWeight}</span>
+              <span><strong>Max listings:</strong> {salon.maxListings ?? planDetails.maxListings}</span>
+              <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString('en-ZA') : '—'}</span>
+            </div>
+            <div className={styles.planStatusRow}>
+              <span className={`${styles.planStatusBadge} ${styles[`planStatus_${planStatus.toLowerCase()}`]}`}>
+                {PLAN_PAYMENT_LABELS[planStatus]}
+              </span>
+              {planStatus === 'PROOF_SUBMITTED' && proofSubmittedAt && (
+                <span>Proof submitted: {proofSubmittedAt}</span>
+              )}
+              {planStatus === 'VERIFIED' && planVerifiedAt && (
+                <span>Verified on: {planVerifiedAt}</span>
+              )}
+            </div>
+            <div className={styles.planNotice}>
+              <p>
+                Pay <strong>{planDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>). Use <strong>{planReference}</strong> as the payment reference and WhatsApp proof to <strong>{BANK_DETAILS.whatsapp}</strong> as soon as you pay.
+              </p>
+              <div className={styles.planActions}>
+                <button type="button" className={styles.copyButton} onClick={handleCopyReference}>Copy reference</button>
+                <Link href="/prices" className={`${styles.planLink} btn btn-ghost`}>View packages</Link>
+                {planStatus !== 'VERIFIED' && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handlePlanProofUpdate(true)}
+                    disabled={isPlanUpdating || planStatus === 'PROOF_SUBMITTED'}
+                  >
+                    {isPlanUpdating
+                      ? 'Saving...'
+                      : planStatus === 'PROOF_SUBMITTED'
+                        ? 'Proof submitted'
+                        : 'I have sent proof'}
+                  </button>
+                )}
+                {planStatus === 'PROOF_SUBMITTED' && (
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => handlePlanProofUpdate(false)}
+                    disabled={isPlanUpdating}
+                  >
+                    {isPlanUpdating ? 'Saving...' : 'Mark as awaiting proof'}
+                  </button>
+                )}
               </div>
             </div>
-            <div className={styles.planSummary}>
-              <div className={styles.planSummaryRow}>
-                <span><strong>Package:</strong> {planDetails.name}</span>
-                <span><strong>Amount due:</strong> {planDetails.price}</span>
-                <span><strong>Visibility weight:</strong> {salon.visibilityWeight ?? planDetails.visibilityWeight}</span>
-                <span><strong>Max listings:</strong> {salon.maxListings ?? planDetails.maxListings}</span>
-                <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString('en-ZA') : '—'}</span>
-              </div>
-              <div className={styles.planStatusRow}>
-                <span className={`${styles.planStatusBadge} ${styles[`planStatus_${planStatus.toLowerCase()}`]}`}>
-                  {PLAN_PAYMENT_LABELS[planStatus]}
-                </span>
-                {planStatus === 'PROOF_SUBMITTED' && proofSubmittedAt && (
-                  <span>Proof submitted: {proofSubmittedAt}</span>
-                )}
-                {planStatus === 'VERIFIED' && planVerifiedAt && (
-                  <span>Verified on: {planVerifiedAt}</span>
-                )}
-              </div>
-              <div className={styles.planNotice}>
-                <p>
-                  Pay <strong>{planDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>). Use <strong>{planReference}</strong> as the payment reference and WhatsApp proof to <strong>{BANK_DETAILS.whatsapp}</strong> as soon as you pay.
-                </p>
-                <div className={styles.planActions}>
-                  <button type="button" className={styles.copyButton} onClick={handleCopyReference}>Copy reference</button>
-                  <Link href="/prices" className={`${styles.planLink} btn btn-ghost`}>View packages</Link>
-                  {planStatus !== 'VERIFIED' && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => handlePlanProofUpdate(true)}
-                      disabled={isPlanUpdating || planStatus === 'PROOF_SUBMITTED'}
-                    >
-                      {isPlanUpdating
-                        ? 'Saving...'
-                        : planStatus === 'PROOF_SUBMITTED'
-                          ? 'Proof submitted'
-                          : 'I have sent proof'}
-                    </button>
-                  )}
-                  {planStatus === 'PROOF_SUBMITTED' && (
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => handlePlanProofUpdate(false)}
-                      disabled={isPlanUpdating}
-                    >
-                      {isPlanUpdating ? 'Saving...' : 'Mark as awaiting proof'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+          </div>
         </header>
 
         <div className={styles.mainTabs}>
@@ -896,333 +915,478 @@ function DashboardPageContent() {
         {activeMainTab === 'bookings' && (
           <div className={styles.contentGrid}>
             <div className={styles.contentCard}>
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>Manage Bookings</h3>
-            </div>
-            <div className={styles.tabs}>
-              <button onClick={() => setActiveBookingTab('pending')} className={`${styles.tabButton} ${activeBookingTab === 'pending' ? styles.activeTab : ''}`}>Pending ({pendingBookings.length})</button>
-              <button onClick={() => setActiveBookingTab('confirmed')} className={`${styles.tabButton} ${activeBookingTab === 'confirmed' ? styles.activeTab : ''}`}>Confirmed ({confirmedBookings.length})</button>
-              <button onClick={() => setActiveBookingTab('past')} className={`${styles.tabButton} ${activeBookingTab === 'past' ? styles.activeTab : ''}`}>Past ({pastBookings.length})</button>
-            </div>
-            <div className={styles.list}>
-              {activeBookingTab === 'pending' && renderBookingsList(pendingBookings)}
-              {activeBookingTab === 'confirmed' && renderBookingsList(confirmedBookings)}
-              {activeBookingTab === 'past' && renderBookingsList(pastBookings)}
-            </div>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>Manage Bookings</h3>
+              </div>
+              <div className={styles.tabs}>
+                <button onClick={() => setActiveBookingTab('pending')} className={`${styles.tabButton} ${activeBookingTab === 'pending' ? styles.activeTab : ''}`}>Pending ({pendingBookings.length})</button>
+                <button onClick={() => setActiveBookingTab('confirmed')} className={`${styles.tabButton} ${activeBookingTab === 'confirmed' ? styles.activeTab : ''}`}>Confirmed ({confirmedBookings.length})</button>
+                <button onClick={() => setActiveBookingTab('past')} className={`${styles.tabButton} ${activeBookingTab === 'past' ? styles.activeTab : ''}`}>Past ({pastBookings.length})</button>
+              </div>
+              <div className={styles.list}>
+                {activeBookingTab === 'pending' && renderBookingsList(pendingBookings)}
+                {activeBookingTab === 'confirmed' && renderBookingsList(confirmedBookings)}
+                {activeBookingTab === 'past' && renderBookingsList(pastBookings)}
+              </div>
             </div>
           </div>
         )}
-
         {activeMainTab === 'services' && (
           <div className={styles.contentGrid}>
             <div className={styles.contentCard}>
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>Your Services</h3>
-              <button onClick={openServiceModalToAdd} className="btn btn-primary">+ Add Service</button>
-            </div>
-            <div className={styles.list}>
-              {services.length > 0 ? services.map((service) => {
-                const hasPromotion = promotions.active.some((p: any) => p.serviceId === service.id);
-                return (
-                  <div key={service.id} className={styles.listItem}>
-                    <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
-                    <div className={styles.actions}>
-                      <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>{service.approvalStatus}</span>
-                      {service.approvalStatus === 'APPROVED' && !hasPromotion && (
-                        <button
-                          onClick={() => openCreatePromoModal(service)}
-                          className={styles.promoButton}
-                          title="Create promotion"
-                        >
-                          % Promo
-                        </button>
-                      )}
-                      <button onClick={() => openServiceModalToEdit(service)} className={styles.editButton}><FaEdit /></button>
-                      <button onClick={() => handleDeleteClick(service.id, 'service')} className={styles.deleteButton}><FaTrash /></button>
-                    </div>
-                  </div>
-                );
-              }) : <p>You haven't added any services yet.</p>}
-            </div>
-            </div>
-          </div>
-        )}
-
-        {activeMainTab === 'promotions' && (
-          <div className={styles.contentGrid}>
-            <div className={styles.contentCard}>
               <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>Active Promotions</h3>
+                <h3 className={styles.cardTitle}>Your Services</h3>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={openSimpleServiceModalToAdd} className="btn btn-secondary" style={{ fontSize: '0.9rem' }}>+ Simple List</button>
+                  <button onClick={openServiceModalToAdd} className="btn btn-primary">+ Add Service</button>
+                </div>
               </div>
               <div className={styles.list}>
-                {promotions.active.length > 0 ? promotions.active.map((promo: any) => {
-                  const item = promo.service || promo.product;
-                  const itemName = promo.service ? item?.title : item?.name;
-                  const statusClass = promo.approvalStatus === 'APPROVED' ? 'approved' : promo.approvalStatus === 'REJECTED' ? 'rejected' : 'pending';
-                  const endDate = new Date(promo.endDate);
-                  const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                  
+                {services.length > 0 ? services.map((service) => {
+                  const hasPromotion = promotions.active.some((p: any) => p.serviceId === service.id);
                   return (
-                    <div key={promo.id} className={styles.listItem}>
-                      <div>
-                        <p><strong>{itemName}</strong></p>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                          <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>R{promo.originalPrice.toFixed(2)}</span>
-                          {' → '}
-                          <span style={{ color: '#10b981', fontWeight: 600 }}>R{promo.promotionalPrice.toFixed(2)}</span>
-                          {' '}
-                          <span style={{ color: 'var(--color-primary)' }}>({promo.discountPercentage}% off)</span>
-                        </p>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                          {daysLeft > 0 ? `${daysLeft} day${daysLeft > 1 ? 's' : ''} left` : 'Expired'}
-                        </p>
-                      </div>
+                    <div key={service.id} className={styles.listItem}>
+                      <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
                       <div className={styles.actions}>
-                        <span className={`${styles.statusBadge} ${getStatusClass(promo.approvalStatus as ApprovalStatus)}`}>
-                          {promo.approvalStatus}
-                        </span>
-                        <button onClick={() => handleDeleteClick(promo.id, 'promotion')} className={styles.deleteButton}>
-                          <FaTrash />
-                        </button>
+                        <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>{service.approvalStatus}</span>
+                        {service.approvalStatus === 'APPROVED' && !hasPromotion && (
+                          <button
+                            onClick={() => openCreatePromoModal(service)}
+                            className={styles.promoButton}
+                            title="Create promotion"
+                          >
+                            % Promo
+                          </button>
+                        )}
+                        <button onClick={() => openServiceModalToEdit(service)} className={styles.editButton}><FaEdit /></button>
+                        <button onClick={() => handleDeleteClick(service.id, 'service')} className={styles.deleteButton}><FaTrash /></button>
                       </div>
                     </div>
                   );
-                }) : <p>No active promotions. Create one from the Services tab!</p>}
+                }) : <p>You haven't added any services yet.</p>}
               </div>
             </div>
+          </div>
+        )}
 
-            <div className={styles.contentCard}>
-              <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>Expired Promotions</h3>
-              </div>
-              <div className={styles.list}>
-                {promotions.expired.length > 0 ? promotions.expired.map((promo: any) => {
-                  const item = promo.service || promo.product;
-                  const itemName = promo.service ? item?.title : item?.name;
-                  
-                  return (
-                    <div key={promo.id} className={styles.listItem}>
-                      <div>
-                        <p><strong>{itemName}</strong></p>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                          Was {promo.discountPercentage}% off
-                        </p>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                          Ended: {new Date(promo.endDate).toLocaleDateString()}
-                        </p>
+        {
+          activeMainTab === 'promotions' && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard}>
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.cardTitle}>Active Promotions</h3>
+                </div>
+                <div className={styles.list}>
+                  {promotions.active.length > 0 ? promotions.active.map((promo: any) => {
+                    const item = promo.service || promo.product;
+                    const itemName = promo.service ? item?.title : item?.name;
+                    const statusClass = promo.approvalStatus === 'APPROVED' ? 'approved' : promo.approvalStatus === 'REJECTED' ? 'rejected' : 'pending';
+                    const endDate = new Date(promo.endDate);
+                    const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+                    return (
+                      <div key={promo.id} className={styles.listItem}>
+                        <div>
+                          <p><strong>{itemName}</strong></p>
+                          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                            <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>R{promo.originalPrice.toFixed(2)}</span>
+                            {' → '}
+                            <span style={{ color: '#10b981', fontWeight: 600 }}>R{promo.promotionalPrice.toFixed(2)}</span>
+                            {' '}
+                            <span style={{ color: 'var(--color-primary)' }}>({promo.discountPercentage}% off)</span>
+                          </p>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                            {daysLeft > 0 ? `${daysLeft} day${daysLeft > 1 ? 's' : ''} left` : 'Expired'}
+                          </p>
+                        </div>
+                        <div className={styles.actions}>
+                          <span className={`${styles.statusBadge} ${getStatusClass(promo.approvalStatus as ApprovalStatus)}`}>
+                            {promo.approvalStatus}
+                          </span>
+                          <button onClick={() => handleDeleteClick(promo.id, 'promotion')} className={styles.deleteButton}>
+                            <FaTrash />
+                          </button>
+                        </div>
                       </div>
+                    );
+                  }) : <p>No active promotions. Create one from the Services tab!</p>}
+                </div>
+              </div>
+
+              <div className={styles.contentCard}>
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.cardTitle}>Expired Promotions</h3>
+                </div>
+                <div className={styles.list}>
+                  {promotions.expired.length > 0 ? promotions.expired.map((promo: any) => {
+                    const item = promo.service || promo.product;
+                    const itemName = promo.service ? item?.title : item?.name;
+
+                    return (
+                      <div key={promo.id} className={styles.listItem}>
+                        <div>
+                          <p><strong>{itemName}</strong></p>
+                          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                            Was {promo.discountPercentage}% off
+                          </p>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                            Ended: {new Date(promo.endDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }) : <p>No expired promotions.</p>}
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          activeMainTab === 'gallery' && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard}>
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.cardTitle}>Manage Gallery</h3>
+                  <button onClick={() => setIsGalleryModalOpen(true)} className="btn btn-primary"><FaCamera /> Add Image</button>
+                </div>
+                <div className={styles.galleryGrid}>
+                  {galleryImages.length > 0 ? galleryImages.map((image) => (
+                    <div key={image.id} className={styles.galleryItem}>
+                      <Image
+                        src={image.imageUrl}
+                        alt={image.caption || 'Gallery image'}
+                        className={styles.galleryItemImage}
+                        fill
+                        sizes="(max-width: 768px) 33vw, 160px"
+                      />
+                      <button onClick={() => handleDeleteClick(image.id, 'gallery')} className={styles.deleteButton}><FaTrash /></button>
                     </div>
-                  );
-                }) : <p>No expired promotions.</p>}
+                  )) : <p>Your gallery is empty.</p>}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        }
 
-        {activeMainTab === 'gallery' && (
-          <div className={styles.contentGrid}>
-            <div className={styles.contentCard}>
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>Manage Gallery</h3>
-              <button onClick={() => setIsGalleryModalOpen(true)} className="btn btn-primary"><FaCamera /> Add Image</button>
-            </div>
-            <div className={styles.galleryGrid}>
-              {galleryImages.length > 0 ? galleryImages.map((image) => (
-                <div key={image.id} className={styles.galleryItem}>
-                  <Image
-                    src={image.imageUrl}
-                    alt={image.caption || 'Gallery image'}
-                    className={styles.galleryItemImage}
-                    fill
-                    sizes="(max-width: 768px) 33vw, 160px"
-                  />
-                  <button onClick={() => handleDeleteClick(image.id, 'gallery')} className={styles.deleteButton}><FaTrash /></button>
-                </div>
-              )) : <p>Your gallery is empty.</p>}
-            </div>
-            </div>
-          </div>
-        )}
-
-        {activeMainTab === 'before-after' && salon && (
-          <div className={styles.contentGrid}>
-            <div className={styles.contentCard}>
-              <BeforeAfterUpload 
-                salonId={salon.id}
-                services={services}
-                onUploadComplete={fetchDashboardData}
-              />
-            </div>
-            <div className={styles.contentCard} style={{ marginTop: '2rem' }}>
-              <MyBeforeAfter />
-            </div>
-          </div>
-        )}
-
-        {activeMainTab === 'videos' && salon && (
-          <div className={styles.contentGrid}>
-            <div className={styles.contentCard}>
-              <VideoUpload 
-                salonId={salon.id}
-                services={services}
-                planCode={salon.planCode}
-                onUploadComplete={fetchDashboardData}
-              />
-            </div>
-            <div className={styles.contentCard} style={{ marginTop: '2rem' }}>
-              <MyVideos />
-            </div>
-          </div>
-        )}
-
-        {activeMainTab === 'booking-settings' && (
-          <div className={styles.contentGrid}>
-            <div className={styles.contentCard}>
-              <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>Booking Settings</h3>
+        {
+          activeMainTab === 'before-after' && salon && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard}>
+                <BeforeAfterUpload
+                  salonId={salon.id}
+                  services={services}
+                  onUploadComplete={fetchDashboardData}
+                />
               </div>
-              <div style={{ padding: '1.5rem' }}>
-                <div className={styles.infoBox} style={{ marginBottom: '1.5rem' }}>
-                  <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    <strong>Custom Booking Message</strong>
-                    <br />
-                    Set a message that customers will see before booking. This is perfect for communicating important information such as:
-                  </p>
-                  <ul style={{ marginTop: '0.75rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
-                    <li>Booking fees and payment details</li>
-                    <li>Preparation requirements (e.g., "Please arrive 10 minutes early")</li>
-                    <li>What to bring (e.g., "Bring photo ID for first visit")</li>
-                    <li>Cancellation policies</li>
-                  </ul>
-                </div>
+              <div className={styles.contentCard} style={{ marginTop: '2rem' }}>
+                <MyBeforeAfter />
+              </div>
+            </div>
+          )
+        }
 
-                <div>
-                  {!isEditingMessage && bookingMessage ? (
-                    // VIEW MODE: Show saved message with Edit button
+        {
+          activeMainTab === 'videos' && salon && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard}>
+                <VideoUpload
+                  salonId={salon.id}
+                  services={services}
+                  planCode={salon.planCode}
+                  onUploadComplete={fetchDashboardData}
+                />
+              </div>
+              <div className={styles.contentCard} style={{ marginTop: '2rem' }}>
+                <MyVideos />
+              </div>
+            </div>
+          )
+        }
+
+        {
+          activeMainTab === 'booking-settings' && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard}>
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.cardTitle}>Booking Settings</h3>
+                </div>
+                <div style={{ padding: '1.5rem' }}>
+                  <div className={styles.infoBox} style={{ marginBottom: '1.5rem' }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.6' }}>
+                      <strong>Custom Booking Message</strong>
+                      <br />
+                      Set a message that customers will see before booking. This is perfect for communicating important information such as:
+                    </p>
+                    <ul style={{ marginTop: '0.75rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                      <li>Booking fees and payment details</li>
+                      <li>Preparation requirements (e.g., "Please arrive 10 minutes early")</li>
+                      <li>What to bring (e.g., "Bring photo ID for first visit")</li>
+                      <li>Cancellation policies</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    {!isEditingMessage && bookingMessage ? (
+                      // VIEW MODE: Show saved message with Edit button
+                      <>
+                        <label style={{
+                          display: 'block',
+                          marginBottom: '0.5rem',
+                          fontWeight: 600,
+                          color: 'var(--color-text-strong)'
+                        }}>
+                          Your Booking Message
+                        </label>
+                        <div style={{
+                          width: '100%',
+                          padding: '1rem',
+                          border: '2px solid #10b981',
+                          borderRadius: '8px',
+                          fontSize: '0.95rem',
+                          backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                          color: 'var(--color-text)',
+                          lineHeight: '1.6',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          minHeight: '100px',
+                        }}>
+                          {bookingMessage}
+                        </div>
+                        <p style={{
+                          marginTop: '0.5rem',
+                          fontSize: '0.875rem',
+                          color: '#10b981',
+                          fontWeight: 500,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Message saved successfully! Customers will see this before booking.
+                        </p>
+
+                        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+                          <button
+                            onClick={() => setIsEditingMessage(true)}
+                            className="btn btn-primary"
+                          >
+                            <FaEdit style={{ marginRight: '0.5rem' }} />
+                            Edit Message
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      // EDIT MODE: Show textarea with Save/Clear buttons
+                      <>
+                        <label htmlFor="bookingMessage" style={{
+                          display: 'block',
+                          marginBottom: '0.5rem',
+                          fontWeight: 600,
+                          color: 'var(--color-text-strong)'
+                        }}>
+                          Your Message ({bookingMessage.length}/200 characters)
+                        </label>
+                        <textarea
+                          id="bookingMessage"
+                          value={bookingMessage}
+                          onChange={(e) => {
+                            if (e.target.value.length <= 200) {
+                              setBookingMessage(e.target.value);
+                            }
+                          }}
+                          placeholder="e.g., Please arrive 10 minutes early. Booking fee: R50 (non-refundable). Bank details: FNB, Acc: 1234567890"
+                          rows={5}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '2px solid var(--color-border)',
+                            borderRadius: '8px',
+                            fontSize: '0.95rem',
+                            fontFamily: 'inherit',
+                            resize: 'vertical',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                          }}
+                        />
+                        <p style={{
+                          marginTop: '0.5rem',
+                          fontSize: '0.875rem',
+                          color: 'var(--color-text-muted)'
+                        }}>
+                          {bookingMessage.length === 0 && 'No message set. Customers will be able to book directly without seeing a confirmation message.'}
+                          {bookingMessage.length > 0 && bookingMessage.length < 200 && `${200 - bookingMessage.length} characters remaining`}
+                          {bookingMessage.length === 200 && 'Maximum length reached'}
+                        </p>
+
+                        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+                          <button
+                            onClick={saveBookingMessage}
+                            disabled={isSavingMessage}
+                            className="btn btn-primary"
+                            style={{ minWidth: '150px' }}
+                          >
+                            {isSavingMessage ? 'Saving...' : 'Save Message'}
+                          </button>
+                          {bookingMessage && (
+                            <button
+                              onClick={() => setBookingMessage('')}
+                              className="btn btn-secondary"
+                            >
+                              Clear
+                            </button>
+                          )}
+                          {!isEditingMessage && (
+                            <button
+                              onClick={() => {
+                                setIsEditingMessage(false);
+                                setBookingMessage(salon?.bookingMessage || '');
+                              }}
+                              className="btn btn-secondary"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Operating Hours Section */}
+              <div className={styles.contentCard} style={{ marginTop: '1.5rem' }}>
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.cardTitle}>Operating Hours</h3>
+                </div>
+                <div style={{ padding: '1.5rem' }}>
+                  <div className={styles.infoBox} style={{ marginBottom: '1.5rem' }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.6' }}>
+                      <strong>Set Your Availability</strong>
+                      <br />
+                      Configure the days and hours your salon is open. This determines when customers can book appointments through the availability calendar. Time slots will only be shown during your operating hours.
+                    </p>
+                  </div>
+
+                  {!isEditingHours && salon?.operatingHours && Array.isArray(salon.operatingHours) && salon.operatingHours.length > 0 ? (
+                    // VIEW MODE: Show current operating hours
                     <>
-                      <label style={{ 
-                        display: 'block',
-                        marginBottom: '0.5rem',
-                        fontWeight: 600,
-                        color: 'var(--color-text-strong)'
-                      }}>
-                        Your Booking Message
-                      </label>
                       <div style={{
-                        width: '100%',
-                        padding: '1rem',
+                        background: 'var(--color-surface-elevated)',
                         border: '2px solid #10b981',
                         borderRadius: '8px',
-                        fontSize: '0.95rem',
-                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                        color: 'var(--color-text)',
-                        lineHeight: '1.6',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
-                        minHeight: '100px',
+                        padding: '1.5rem',
                       }}>
-                        {bookingMessage}
+                        <div style={{
+                          display: 'grid',
+                          gap: '0.75rem',
+                        }}>
+                          {salon.operatingDays?.map((day: string) => {
+                            const schedule = salon.operatingHours.find((h: any) => h.day === day);
+                            return (
+                              <div key={day} style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '0.75rem',
+                                background: 'var(--color-surface)',
+                                borderRadius: '6px',
+                                border: '1px solid var(--color-border)',
+                              }}>
+                                <span style={{ fontWeight: 600, color: 'var(--color-text-strong)' }}>
+                                  {day}
+                                </span>
+                                <span style={{ color: 'var(--color-text-muted)' }}>
+                                  {schedule ? `${schedule.open} - ${schedule.close}` : 'Closed'}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <p style={{ 
-                        marginTop: '0.5rem', 
-                        fontSize: '0.875rem', 
+
+                      <p style={{
+                        marginTop: '1rem',
+                        fontSize: '0.875rem',
                         color: '#10b981',
                         fontWeight: 500,
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.5rem'
                       }}>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
                           strokeLinejoin="round"
                         >
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        Message saved successfully! Customers will see this before booking.
+                        Operating hours configured! Customers can now see available time slots based on these hours.
                       </p>
 
                       <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
                         <button
-                          onClick={() => setIsEditingMessage(true)}
+                          onClick={() => setIsEditingHours(true)}
                           className="btn btn-primary"
                         >
                           <FaEdit style={{ marginRight: '0.5rem' }} />
-                          Edit Message
+                          Edit Hours
                         </button>
                       </div>
                     </>
                   ) : (
-                    // EDIT MODE: Show textarea with Save/Clear buttons
+                    // EDIT MODE: Show OperatingHoursInput component
                     <>
-                      <label htmlFor="bookingMessage" style={{ 
-                        display: 'block',
-                        marginBottom: '0.5rem',
-                        fontWeight: 600,
-                        color: 'var(--color-text-strong)'
-                      }}>
-                        Your Message ({bookingMessage.length}/200 characters)
-                      </label>
-                      <textarea
-                        id="bookingMessage"
-                        value={bookingMessage}
-                        onChange={(e) => {
-                          if (e.target.value.length <= 200) {
-                            setBookingMessage(e.target.value);
-                          }
-                        }}
-                        placeholder="e.g., Please arrive 10 minutes early. Booking fee: R50 (non-refundable). Bank details: FNB, Acc: 1234567890"
-                        rows={5}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          border: '2px solid var(--color-border)',
-                          borderRadius: '8px',
-                          fontSize: '0.95rem',
-                          fontFamily: 'inherit',
-                          resize: 'vertical',
-                          backgroundColor: 'var(--color-surface)',
-                          color: 'var(--color-text)',
-                        }}
+                      <OperatingHoursInput
+                        hours={operatingHours}
+                        onChange={setOperatingHours}
                       />
-                      <p style={{ 
-                        marginTop: '0.5rem', 
-                        fontSize: '0.875rem', 
-                        color: 'var(--color-text-muted)' 
-                      }}>
-                        {bookingMessage.length === 0 && 'No message set. Customers will be able to book directly without seeing a confirmation message.'}
-                        {bookingMessage.length > 0 && bookingMessage.length < 200 && `${200 - bookingMessage.length} characters remaining`}
-                        {bookingMessage.length === 200 && 'Maximum length reached'}
-                      </p>
 
                       <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
                         <button
-                          onClick={saveBookingMessage}
-                          disabled={isSavingMessage}
+                          onClick={saveOperatingHours}
+                          disabled={isSavingHours}
                           className="btn btn-primary"
                           style={{ minWidth: '150px' }}
                         >
-                          {isSavingMessage ? 'Saving...' : 'Save Message'}
+                          {isSavingHours ? 'Saving...' : 'Save Hours'}
                         </button>
-                        {bookingMessage && (
-                          <button
-                            onClick={() => setBookingMessage('')}
-                            className="btn btn-secondary"
-                          >
-                            Clear
-                          </button>
-                        )}
-                        {!isEditingMessage && (
+                        {salon?.operatingHours && Array.isArray(salon.operatingHours) && salon.operatingHours.length > 0 && (
                           <button
                             onClick={() => {
-                              setIsEditingMessage(false);
-                              setBookingMessage(salon?.bookingMessage || '');
+                              setIsEditingHours(false);
+                              // Reset to saved hours
+                              if (salon.operatingHours && Array.isArray(salon.operatingHours)) {
+                                const hoursObj: OperatingHours = initializeOperatingHours();
+                                salon.operatingHours.forEach((schedule: any) => {
+                                  if (schedule.day && schedule.open && schedule.close) {
+                                    hoursObj[schedule.day] = {
+                                      open: schedule.open,
+                                      close: schedule.close,
+                                      isOpen: true,
+                                    };
+                                  }
+                                });
+                                setOperatingHours(hoursObj);
+                              }
                             }}
                             className="btn btn-secondary"
                           >
@@ -1230,170 +1394,39 @@ function DashboardPageContent() {
                           </button>
                         )}
                       </div>
+
+                      {(!salon?.operatingHours || salon.operatingHours.length === 0) && (
+                        <div style={{
+                          marginTop: '1rem',
+                          padding: '1rem',
+                          background: 'rgba(245, 25, 87, 0.08)',
+                          border: '1px solid rgba(245, 25, 87, 0.2)',
+                          borderRadius: '8px',
+                        }}>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-error-text)' }}>
+                            <strong>⚠️ No operating hours set!</strong><br />
+                            Customers won't be able to see available booking times until you configure your operating hours. Please set your schedule above and click Save Hours.
+                          </p>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
               </div>
             </div>
+          )
+        }
 
-            {/* Operating Hours Section */}
-            <div className={styles.contentCard} style={{ marginTop: '1.5rem' }}>
-              <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>Operating Hours</h3>
-              </div>
-              <div style={{ padding: '1.5rem' }}>
-                <div className={styles.infoBox} style={{ marginBottom: '1.5rem' }}>
-                  <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    <strong>Set Your Availability</strong>
-                    <br />
-                    Configure the days and hours your salon is open. This determines when customers can book appointments through the availability calendar. Time slots will only be shown during your operating hours.
-                  </p>
-                </div>
-
-                {!isEditingHours && salon?.operatingHours && Array.isArray(salon.operatingHours) && salon.operatingHours.length > 0 ? (
-                  // VIEW MODE: Show current operating hours
-                  <>
-                    <div style={{
-                      background: 'var(--color-surface-elevated)',
-                      border: '2px solid #10b981',
-                      borderRadius: '8px',
-                      padding: '1.5rem',
-                    }}>
-                      <div style={{
-                        display: 'grid',
-                        gap: '0.75rem',
-                      }}>
-                        {salon.operatingDays?.map((day: string) => {
-                          const schedule = salon.operatingHours.find((h: any) => h.day === day);
-                          return (
-                            <div key={day} style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '0.75rem',
-                              background: 'var(--color-surface)',
-                              borderRadius: '6px',
-                              border: '1px solid var(--color-border)',
-                            }}>
-                              <span style={{ fontWeight: 600, color: 'var(--color-text-strong)' }}>
-                                {day}
-                              </span>
-                              <span style={{ color: 'var(--color-text-muted)' }}>
-                                {schedule ? `${schedule.open} - ${schedule.close}` : 'Closed'}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <p style={{ 
-                      marginTop: '1rem', 
-                      fontSize: '0.875rem', 
-                      color: '#10b981',
-                      fontWeight: 500,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="16" 
-                        height="16" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      Operating hours configured! Customers can now see available time slots based on these hours.
-                    </p>
-
-                    <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
-                      <button
-                        onClick={() => setIsEditingHours(true)}
-                        className="btn btn-primary"
-                      >
-                        <FaEdit style={{ marginRight: '0.5rem' }} />
-                        Edit Hours
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  // EDIT MODE: Show OperatingHoursInput component
-                  <>
-                    <OperatingHoursInput
-                      hours={operatingHours}
-                      onChange={setOperatingHours}
-                    />
-
-                    <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
-                      <button
-                        onClick={saveOperatingHours}
-                        disabled={isSavingHours}
-                        className="btn btn-primary"
-                        style={{ minWidth: '150px' }}
-                      >
-                        {isSavingHours ? 'Saving...' : 'Save Hours'}
-                      </button>
-                      {salon?.operatingHours && Array.isArray(salon.operatingHours) && salon.operatingHours.length > 0 && (
-                        <button
-                          onClick={() => {
-                            setIsEditingHours(false);
-                            // Reset to saved hours
-                            if (salon.operatingHours && Array.isArray(salon.operatingHours)) {
-                              const hoursObj: OperatingHours = initializeOperatingHours();
-                              salon.operatingHours.forEach((schedule: any) => {
-                                if (schedule.day && schedule.open && schedule.close) {
-                                  hoursObj[schedule.day] = {
-                                    open: schedule.open,
-                                    close: schedule.close,
-                                    isOpen: true,
-                                  };
-                                }
-                              });
-                              setOperatingHours(hoursObj);
-                            }
-                          }}
-                          className="btn btn-secondary"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-
-                    {(!salon?.operatingHours || salon.operatingHours.length === 0) && (
-                      <div style={{
-                        marginTop: '1rem',
-                        padding: '1rem',
-                        background: 'rgba(245, 25, 87, 0.08)',
-                        border: '1px solid rgba(245, 25, 87, 0.2)',
-                        borderRadius: '8px',
-                      }}>
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-error-text)' }}>
-                          <strong>⚠️ No operating hours set!</strong><br />
-                          Customers won't be able to see available booking times until you configure your operating hours. Please set your schedule above and click Save Hours.
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
+        {
+          activeMainTab === 'availability' && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard} style={{ gridColumn: '1 / -1' }}>
+                <AvailabilityManager salonId={salon.id} />
               </div>
             </div>
-          </div>
-        )}
-
-        {activeMainTab === 'availability' && (
-          <div className={styles.contentGrid}>
-            <div className={styles.contentCard} style={{ gridColumn: '1 / -1' }}>
-              <AvailabilityManager salonId={salon.id} />
-            </div>
-          </div>
-        )}
-      </div>
+          )
+        }
+      </div >
     </>
   );
 }

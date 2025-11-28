@@ -16,7 +16,7 @@ export class ServicesService {
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
     private eventsGateway: EventsGateway,
-  ) {}
+  ) { }
 
   async create(user: any, dto: CreateServiceDto) {
     const salon = await this.prisma.salon.findUnique({
@@ -48,6 +48,7 @@ export class ServicesService {
     // Handle empty string categoryId by converting to undefined
     const createData = {
       ...dto,
+      images: dto.images || [],
       categoryId:
         dto.categoryId && dto.categoryId.trim() !== ''
           ? dto.categoryId
@@ -314,7 +315,7 @@ export class ServicesService {
     if (sortBy === 'latest') orderBy = { createdAt: 'desc' };
 
     console.log('[ServicesService] Prisma where clause:', JSON.stringify(where, null, 2));
-    
+
     const items = await this.prisma.service.findMany({
       where,
       include: {
