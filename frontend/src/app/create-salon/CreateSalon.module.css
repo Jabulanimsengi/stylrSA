@@ -202,8 +202,68 @@
 
 .buttonContainer {
   display: flex;
-  justify-content: flex-end;
-  padding-top: 0.25rem;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 1rem;
+}
+
+.buttonContainer .btn-primary {
+  align-self: flex-end;
+}
+
+.draftActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.saveDraftButton {
+  padding: 0.6rem 1.25rem;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-strong);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveDraftButton:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.saveDraftButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clearDraftButton {
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearDraftButton:hover {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-text);
+  color: var(--color-error-text);
+}
+
+.lastSaved {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 /* Operating Hours Styles */

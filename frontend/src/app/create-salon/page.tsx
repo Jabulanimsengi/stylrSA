@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, useEffect, useRef } from 'react';
+import { useState, FormEvent, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import styles from './CreateSalon.module.css';
@@ -10,6 +10,32 @@ import PageNav from '@/components/PageNav';
 import { APP_PLANS, PLAN_BY_CODE, PlanCode } from '@/constants/plans';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+
+const DRAFT_STORAGE_KEY = 'salon-draft';
+
+interface SalonDraft {
+  name: string;
+  address: string;
+  city: string;
+  province: string;
+  town: string;
+  postalCode: string;
+  phone: string;
+  email: string;
+  website: string;
+  description: string;
+  bookingType: 'ONSITE' | 'MOBILE' | 'BOTH';
+  mobileFee: string;
+  selectedPlan: PlanCode;
+  hasSentProof: boolean;
+  paymentReference: string;
+  latitude: number | null;
+  longitude: number | null;
+  addrQuery: string;
+  fieldsLocked: boolean;
+  hours: Record<string, { open: string; close: string; isOpen: boolean }>;
+  savedAt: string;
+}
 
 export default function CreateSalonPage() {
   const [name, setName] = useState('');
@@ -35,6 +61,9 @@ export default function CreateSalonPage() {
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
   const [fieldsLocked, setFieldsLocked] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const suggestionsRef = useRef<HTMLUListElement>(null);
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const [hours, setHours] = useState<Record<string, { open: string, close: string, isOpen: boolean }>>(
@@ -51,6 +80,104 @@ export default function CreateSalonPage() {
     accountHolder: 'J Msengi',
     whatsapp: '0787770524',
   };
+
+  // Save draft to localStorage
+  const saveDraft = useCallback(() => {
+    setIsSaving(true);
+    try {
+      const draft: SalonDraft = {
+        name,
+        address,
+        city,
+        province,
+        town,
+        postalCode,
+        phone,
+        email,
+        website,
+        description,
+        bookingType,
+        mobileFee,
+        selectedPlan,
+        hasSentProof,
+        paymentReference,
+        latitude,
+        longitude,
+        addrQuery,
+        fieldsLocked,
+        hours,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+      setLastSaved(new Date().toLocaleTimeString());
+      setHasDraft(true);
+      toast.success('Draft saved! You can continue later.', { autoClose: 2000 });
+    } catch (error) {
+      toast.error('Failed to save draft');
+      logger.error('Failed to save draft:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [name, address, city, province, town, postalCode, phone, email, website, description, bookingType, mobileFee, selectedPlan, hasSentProof, paymentReference, latitude, longitude, addrQuery, fieldsLocked, hours]);
+
+  // Load draft from localStorage
+  const loadDraft = useCallback((draft: SalonDraft) => {
+    setName(draft.name || '');
+    setAddress(draft.address || '');
+    setCity(draft.city || '');
+    setProvince(draft.province || '');
+    setTown(draft.town || '');
+    setPostalCode(draft.postalCode || '');
+    setPhone(draft.phone || '');
+    // Don't override email if user is logged in
+    if (!user?.email) {
+      setEmail(draft.email || '');
+    }
+    setWebsite(draft.website || '');
+    setDescription(draft.description || '');
+    setBookingType(draft.bookingType || 'ONSITE');
+    setMobileFee(draft.mobileFee || '');
+    setSelectedPlan(draft.selectedPlan || 'STARTER');
+    setHasSentProof(draft.hasSentProof || false);
+    setPaymentReference(draft.paymentReference || '');
+    setLatitude(draft.latitude);
+    setLongitude(draft.longitude);
+    setAddrQuery(draft.addrQuery || '');
+    setFieldsLocked(draft.fieldsLocked || false);
+    if (draft.hours) {
+      setHours(draft.hours);
+    }
+    if (draft.savedAt) {
+      setLastSaved(new Date(draft.savedAt).toLocaleString());
+    }
+  }, [user?.email]);
+
+  // Clear draft from localStorage
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    setHasDraft(false);
+    setLastSaved(null);
+    toast.info('Draft cleared');
+  }, []);
+
+  // Check for existing draft on mount
+  useEffect(() => {
+    try {
+      const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (savedDraft) {
+        const draft: SalonDraft = JSON.parse(savedDraft);
+        setHasDraft(true);
+        // Show prompt to restore draft
+        const savedDate = draft.savedAt ? new Date(draft.savedAt).toLocaleString() : 'unknown time';
+        if (window.confirm(`You have a saved draft from ${savedDate}. Would you like to restore it?`)) {
+          loadDraft(draft);
+          toast.success('Draft restored!');
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to load draft:', error);
+    }
+  }, [loadDraft]);
 
   // Fetch locations data from API
   useEffect(() => {
@@ -628,6 +755,30 @@ export default function CreateSalonPage() {
             </div>
           </div>
           <div className={styles.buttonContainer}>
+            <div className={styles.draftActions}>
+              <button 
+                type="button" 
+                onClick={saveDraft}
+                disabled={isSaving}
+                className={styles.saveDraftButton}
+              >
+                {isSaving ? 'Saving...' : '💾 Save Draft'}
+              </button>
+              {hasDraft && (
+                <button 
+                  type="button" 
+                  onClick={clearDraft}
+                  className={styles.clearDraftButton}
+                >
+                  🗑️ Clear Draft
+                </button>
+              )}
+              {lastSaved && (
+                <span className={styles.lastSaved}>
+                  Last saved: {lastSaved}
+                </span>
+              )}
+            </div>
             <button type="submit" disabled={isSubmitting} className="btn btn-primary">
               {isSubmitting ? 'Creating...' : 'Create Salon'}
             </button>
