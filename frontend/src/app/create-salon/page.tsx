@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import styles from './CreateSalon.module.css';
@@ -35,6 +35,7 @@ export default function CreateSalonPage() {
   const [addrSuggestions, setAddrSuggestions] = useState<any[]>([]);
   const [showAddrSuggestions, setShowAddrSuggestions] = useState(false);
   const [fieldsLocked, setFieldsLocked] = useState(false);
+  const suggestionsRef = useRef<HTMLUListElement>(null);
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const [hours, setHours] = useState<Record<string, { open: string, close: string, isOpen: boolean }>>(
     Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string, { open: string, close: string, isOpen: boolean }>
@@ -79,6 +80,24 @@ export default function CreateSalonPage() {
       setAvailableCities([]);
     }
   }, [province, locationsData, city]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        // Small delay to allow click on suggestion to register
+        setTimeout(() => setShowAddrSuggestions(false), 200);
+      }
+    };
+
+    if (showAddrSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAddrSuggestions]);
 
   useEffect(() => {
     // Don't redirect if still loading auth status
@@ -329,18 +348,22 @@ export default function CreateSalonPage() {
               className={styles.input}
             />
             {showAddrSuggestions && addrSuggestions.length > 0 && (
-              <ul style={{
-                listStyle: 'none',
-                margin: '4px 0 0 0',
-                padding: 0,
-                border: '1px solid var(--color-border)',
-                borderRadius: 8,
-                backgroundColor: 'var(--color-bg)',
-                maxHeight: 200,
-                overflowY: 'auto',
-                position: 'relative',
-                zIndex: 10,
-              }}>
+              <ul 
+                ref={suggestionsRef}
+                style={{
+                  listStyle: 'none',
+                  margin: '4px 0 0 0',
+                  padding: 0,
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 8,
+                  backgroundColor: 'var(--color-surface-elevated, var(--color-bg))',
+                  maxHeight: 250,
+                  overflowY: 'auto',
+                  position: 'absolute',
+                  zIndex: 100,
+                  width: '100%',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                }}>
                 {addrSuggestions.map((s) => (
                   <li
                     key={s.place_id}
@@ -381,8 +404,8 @@ export default function CreateSalonPage() {
                           setCity(cityValue);
                         }
 
-                        // Extract town/suburb
-                        const townValue = addr.suburb || addr.neighbourhood || addr.village || '';
+                        // Extract town/suburb - fallback to city if not available
+                        const townValue = addr.suburb || addr.neighbourhood || addr.village || addr.city || addr.town || addr.municipality || '';
                         if (townValue) {
                           setTown(townValue);
                         }

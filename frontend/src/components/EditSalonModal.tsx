@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef } from 'react';
 import Image from 'next/image';
 import { Salon } from '@/types';
 import styles from './EditSalonModal.module.css';
@@ -57,6 +57,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [locationsData, setLocationsData] = useState<Record<string, string[]>>({});
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [fieldsLocked, setFieldsLocked] = useState(false);
+  const suggestionsRef = useRef<HTMLUListElement>(null);
 
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const [hours, setHours] = useState<Record<string, { open: string; close: string; isOpen: boolean }>>(
@@ -158,6 +159,24 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       setAvailableCities([]);
     }
   }, [formData.province, locationsData]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        // Small delay to allow click on suggestion to register
+        setTimeout(() => setShowAddrSuggestions(false), 150);
+      }
+    };
+
+    if (showAddrSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAddrSuggestions]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -632,8 +651,9 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                   className={styles.input}
                 />
                 {showAddrSuggestions && addrSuggestions.length > 0 && (
-                  <ul style={{ position: 'absolute', zIndex: 10, background: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 6, marginTop: 4, width: 'min(520px, 95vw)', listStyle: 'none', padding: 0 }}
-                      onMouseLeave={() => setShowAddrSuggestions(false)}>
+                  <ul 
+                    ref={suggestionsRef}
+                    style={{ position: 'absolute', zIndex: 10, background: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 6, marginTop: 4, width: 'min(520px, 95vw)', listStyle: 'none', padding: 0, maxHeight: '300px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                     {addrSuggestions.map((s: any) => (
                       <li key={s.place_id} style={{ padding: '8px 10px', cursor: 'pointer' }}
                           onClick={() => {
@@ -661,8 +681,14 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                               
                               // Extract city
                               const cityValue = addr.city || addr.town || addr.municipality || addr.county || '';
-                              if (cityValue) {
-                                setFormData((prev: any) => ({ ...prev, city: cityValue, town: cityValue }));
+                              // Extract town/suburb - fallback to city if not available
+                              const townValue = addr.suburb || addr.neighbourhood || addr.village || cityValue || '';
+                              if (cityValue || townValue) {
+                                setFormData((prev: any) => ({ 
+                                  ...prev, 
+                                  city: cityValue || townValue, 
+                                  town: townValue || cityValue 
+                                }));
                               }
                               
                               // Lock the fields after auto-population
