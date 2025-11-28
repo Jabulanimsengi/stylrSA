@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import styles from './TypingAnimation.module.css';
 
 interface TypingAnimationProps {
@@ -20,6 +20,13 @@ export default function TypingAnimation({
     const [currentText, setCurrentText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+
+    // Find the longest word to reserve space and prevent layout shift
+    const longestWord = useMemo(() => {
+        return words.reduce((longest, word) => 
+            word.length > longest.length ? word : longest, ''
+        );
+    }, [words]);
 
     useEffect(() => {
         if (words.length === 0) return;
@@ -71,9 +78,16 @@ export default function TypingAnimation({
     ]);
 
     return (
-        <span className={styles.typingText}>
-            {currentText}
-            <span className={styles.cursor}>|</span>
+        <span className={styles.typingContainer}>
+            {/* Invisible placeholder to reserve space for longest word */}
+            <span className={styles.placeholder} aria-hidden="true">
+                {longestWord}
+            </span>
+            {/* Visible typing text positioned on top */}
+            <span className={styles.typingText}>
+                {currentText}
+                <span className={styles.cursor}>|</span>
+            </span>
         </span>
     );
 }

@@ -1,9 +1,26 @@
+/* Container holds both placeholder and visible text */
+.typingContainer {
+    display: inline-block;
+    position: relative;
+    vertical-align: baseline;
+}
+
+/* Invisible placeholder reserves space for longest word */
+.placeholder {
+    visibility: hidden;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* Visible typing text positioned absolutely on top of placeholder */
 .typingText {
+    position: absolute;
+    left: 0;
+    top: 0;
     display: inline-block;
     color: #fff !important;
     font-weight: inherit;
-    position: relative;
-    min-width: 2ch;
+    white-space: nowrap;
 }
 
 .cursor {
@@ -15,7 +32,6 @@
 }
 
 @keyframes blink {
-
     0%,
     49% {
         opacity: 1;
@@ -25,11 +41,4 @@
     100% {
         opacity: 0;
     }
-}
-
-/* Ensure smooth transitions */
-.typingText::after {
-    content: '';
-    display: inline-block;
-    width: 0;
 }

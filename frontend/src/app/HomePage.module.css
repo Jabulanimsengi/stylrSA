@@ -20,8 +20,8 @@
   position: relative;
   /* Make hero full width by counteracting parent padding */
   width: calc(100% + 2 * var(--space-lg));
-  margin: 0 calc(-1 * var(--space-lg)) clamp(2.5rem, 6vw, 4rem) calc(-1 * var(--space-lg));
-  min-height: clamp(520px, 75vh, 760px);
+  margin: 0 calc(-1 * var(--space-lg)) clamp(1rem, 3vw, 1.5rem) calc(-1 * var(--space-lg));
+  min-height: clamp(280px, 38vh, 360px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,14 +45,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0;
-  transform: scale(1.08);
-  transition: opacity 0.8s ease, transform 1.2s ease;
-}
-
-.heroImageActive {
-  opacity: 1;
-  transform: scale(1);
 }
 
 .heroGradient {
@@ -62,297 +54,146 @@
   z-index: 1;
 }
 
-/* MODIFIED: Desktop Layout */
+/* Clean, minimal hero layout */
 .heroContent {
   position: relative;
   z-index: 2;
-  width: min(1280px, 100%);
-  /* Increased width */
-  padding: clamp(2rem, 4vw, 3.5rem) clamp(1.25rem, 4vw, 3.5rem);
-  display: flex;
-  flex-direction: row;
-  /* Row for desktop */
-  justify-content: space-between;
-  /* Spacing */
-  gap: clamp(2rem, 5vw, 4rem);
-  text-align: left;
-  /* Left align */
-  align-items: center;
-}
-
-/* NEW: Left Column */
-.heroLeft {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  /* Left align items */
-  gap: clamp(1.5rem, 3vw, 2.75rem);
-  max-width: 650px;
-}
-
-/* NEW: Right Column */
-.heroRight {
-  flex: 0 0 auto;
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  justify-content: center;
-}
-
-.heroCopy {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  align-items: flex-start;
-  /* Left align */
-}
-
-.heroBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0.95rem;
-  background: var(--hero-badge-bg);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--hero-text-color);
-}
-
-.heroTitle {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  /* Larger */
-  font-weight: 800;
-  line-height: 1.1;
-  margin: 0;
-  /* Remove auto margin */
-  text-shadow: 0 18px 40px rgba(10, 12, 32, 0.45);
-  color: var(--hero-text-color);
-  text-align: left;
-}
-
-.heroSubtitle {
-  font-size: clamp(1.125rem, 2vw, 1.25rem);
-  line-height: 1.6;
-  max-width: 54ch;
-  margin: 0;
-  /* Remove auto margin */
-  color: var(--hero-subtitle-color);
-  opacity: 0.95;
-  text-shadow: 0 10px 30px rgba(5, 7, 18, 0.32);
-  text-align: left;
-}
-
-/* Social Proof Stats */
-.heroStats {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(1rem, 3vw, 2rem);
-  margin: 1.5rem 0;
-  padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.stat {
+  width: min(800px, 100%);
+  padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 3vw, 2rem);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-}
-
-.statValue {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 700;
-  color: white;
-  line-height: 1;
-}
-
-.statLabel {
-  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
+  gap: clamp(1rem, 2vw, 1.5rem);
   text-align: center;
 }
 
-.statDivider {
-  width: 1px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.3);
+.heroTitle {
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  color: var(--hero-text-color);
+  text-align: center;
 }
 
-@media (max-width: 768px) {
-  .heroStats {
-    gap: 1rem;
-    padding: 0.875rem 1rem;
-    margin: 1.25rem 0;
-  }
-
-  .statValue {
-    font-size: 1.25rem;
-  }
-
-  .statLabel {
-    font-size: 0.7rem;
-  }
-
-  .statDivider {
-    height: 30px;
-  }
-}
-
-.filterContainer {
-  width: min(100%, 62rem);
-  padding: clamp(1rem, 2vw, 1.5rem);
-  border-radius: 1.25rem;
-  background: var(--hero-filter-bg);
-  box-shadow: 0 26px 64px rgba(8, 9, 24, 0.35);
-  backdrop-filter: blur(6px);
-}
-
-.heroActions {
+/* Hero Search Container */
+.heroSearchContainer {
+  width: 100%;
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  /* Left align */
-}
-
-.heroActions :global(.btn) {
-  min-width: 9rem;
-  font-weight: 600;
-}
-
-@media (max-width: 768px) {
-  .heroActions {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    width: 100%;
-    justify-content: flex-start;
-    padding: 0 1rem;
-  }
-
-  .heroActions::-webkit-scrollbar {
-    display: none;
-  }
-
-  .heroActions :global(.btn) {
-    flex: 0 0 auto;
-    min-width: calc(45% - 0.375rem);
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    scroll-snap-align: start;
-  }
-}
-
-/* Ensure hero buttons have white text by default and invert on hover */
-.heroActions :global(a.btn.btn-primary),
-.heroActions :global(button.btn.btn-primary) {
-  color: var(--color-text-inverse) !important;
-  background-image: linear-gradient(135deg, var(--color-primary) 0%, #ff3d75 100%) !important;
-}
-
-.heroActions :global(a.btn.btn-primary:hover),
-.heroActions :global(button.btn.btn-primary:hover) {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  color: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 12px 24px rgba(255, 255, 255, 0.3) !important;
-}
-
-/* Dark mode support for hero buttons */
-[data-theme='dark'] .heroActions :global(a.btn.btn-primary:hover),
-[data-theme='dark'] .heroActions :global(button.btn.btn-primary:hover) {
-  background-color: var(--color-surface-elevated) !important;
-  color: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 12px 24px rgba(255, 92, 136, 0.2) !important;
-}
-
-/* Active states for hero buttons */
-.heroActions :global(a.btn.btn-primary:active),
-.heroActions :global(button.btn.btn-primary:active) {
-  background-color: #f8f8f8 !important;
-  background-image: none !important;
-  color: var(--color-primary-strong) !important;
-  border-color: var(--color-primary-strong) !important;
-  transform: translateY(0) !important;
-  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2) !important;
-}
-
-.heroControls {
-  position: absolute;
-  inset: 0;
-  padding: 0 clamp(0.75rem, 3vw, 2rem);
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
-  z-index: 3;
+  gap: 0.75rem;
 }
 
-.heroNavButton {
-  pointer-events: auto;
-  width: clamp(40px, 5vw, 48px);
-  height: clamp(40px, 5vw, 48px);
-  border-radius: 999px;
-  border: none;
-  background: rgba(255, 255, 255, 0.18);
-  color: var(--color-text-inverse);
-  font-size: clamp(1.35rem, 2vw, 1.85rem);
-  display: grid;
-  place-items: center;
-  transition: background 0.2s ease;
-}
-
-.heroNavButton:hover,
-.heroNavButton:focus-visible {
-  background: rgba(255, 255, 255, 0.32);
-}
-
-/* Progress bar */
-.progressBar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  z-index: 3;
+/* Large Search Box */
+.heroSearchBox {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50px;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.progressFill {
-  height: 100%;
-  background: var(--color-primary, #f51957);
-  width: 0;
-  animation: fillProgress 6s linear forwards;
-  transform-origin: left;
+.heroSearchInput {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  color: var(--color-text-strong);
+  outline: none;
 }
 
-@keyframes fillProgress {
-  from {
-    width: 0%;
-  }
-
-  to {
-    width: 100%;
-  }
+.heroSearchInput::placeholder {
+  color: var(--color-text-muted);
 }
+
+.heroSearchButton {
+  padding: 0.875rem 1.75rem;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+
+.heroSearchButton:hover {
+  background: var(--color-primary-strong);
+}
+
+/* Quick Category Buttons */
+.quickCategories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.quickCategoryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.85rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--color-text-strong);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.quickCategoryBtn:hover {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Service Category Row - All in one line */
+.serviceCategoryRow {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  margin-bottom: 2rem;
+}
+
+.serviceCategoryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  background: transparent;
+  color: var(--color-text-strong);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  white-space: nowrap;
+  transition: all var(--transition-base);
+}
+
+.serviceCategoryBtn:hover {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+
 
 
 .section {
@@ -447,84 +288,79 @@
 
 @media (max-width: 768px) {
   .fixedSearchBar {
-    display: block;
-  }
-
-  .filterContainer {
-    display: none !important;
+    display: none;
   }
 
   .container {
     padding-top: 0;
     padding-bottom: 80px;
-    /* Space for bottom nav */
   }
   
   .hero {
-    margin-top: 130px;
+    margin-top: 60px;
+    min-height: clamp(280px, 45vh, 360px);
     width: 100%;
     margin-left: 0;
     margin-right: 0;
   }
 
-  /* MODIFIED: Mobile Layout Stacking */
   .heroContent {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 2rem;
-    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 3vw, 1.5rem);
-  }
-
-  .heroLeft {
-    align-items: center;
-    text-align: center;
-    width: 100%;
-  }
-
-  .heroCopy {
-    align-items: center;
-    text-align: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    padding: clamp(1rem, 3vw, 1.5rem) clamp(0.75rem, 2vw, 1rem);
   }
 
   .heroTitle {
-    max-width: 95%;
-    margin: 0 auto;
-    text-align: center;
+    font-size: clamp(1.25rem, 5vw, 1.6rem);
   }
 
-  .heroSubtitle {
-    margin-inline: auto;
-    max-width: 90%;
-    line-height: 1.5;
-    text-align: center;
+  .heroSearchContainer {
+    width: 100%;
+    gap: 0.5rem;
   }
 
-  .heroActions {
+  .heroSearchBox {
+    max-width: 100%;
+    border-radius: 30px;
+  }
+
+  .heroSearchInput {
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .heroSearchButton {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .quickCategories {
+    gap: 0.35rem;
+  }
+
+  .quickCategoryBtn {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  /* Service category row - horizontal scroll on mobile */
+  .serviceCategoryRow {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .serviceCategoryRow::-webkit-scrollbar {
     display: none;
-    /* Hidden on mobile */
   }
 
-  .heroStats {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-  }
-
-  .stat {
-    flex: 1 1 calc(33.333% - 0.5rem);
-    min-width: 80px;
-  }
-
-  .heroControls {
-    padding-inline: clamp(0.5rem, 3vw, 1.25rem);
-  }
-
-  .heroNavButton {
-    width: 38px;
-    height: 38px;
-    font-size: 1.4rem;
+  .serviceCategoryBtn {
+    scroll-snap-align: start;
+    flex-shrink: 0;
   }
 
   .section {
@@ -547,55 +383,40 @@
   .container {
     padding-top: 0;
     padding-bottom: 75px;
-    /* Adjusted for bottom nav */
-  }
-
-  .fixedSearchBar {
-    top: 48px;
-    padding: 0.5rem 0.65rem;
   }
 
   .hero {
-    min-height: clamp(300px, 55vh, 420px);
-    margin-top: 115px;
-    margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    min-height: clamp(260px, 42vh, 320px);
+    margin-top: 56px;
+    margin-bottom: clamp(0.75rem, 2vw, 1rem);
     width: 100%;
     margin-left: 0;
     margin-right: 0;
   }
 
   .heroContent {
-    padding: 1.25rem 0.85rem;
-    gap: 1.125rem;
-    /* Slightly increased for better spacing */
+    padding: 0.75rem 0.75rem;
+    gap: 0.5rem;
   }
 
   .heroTitle {
-    font-size: clamp(1.35rem, 4.5vw, 1.85rem);
+    font-size: clamp(1.1rem, 5vw, 1.4rem);
     line-height: 1.2;
   }
 
-  .heroSubtitle {
-    font-size: clamp(0.85rem, 2vw, 0.95rem);
-    line-height: 1.5;
+  .heroSearchInput {
+    padding: 0.6rem 0.85rem;
+    font-size: 0.85rem;
   }
 
-  .heroStats {
-    gap: 0.5rem;
-    padding: 0.625rem 0.75rem;
-    margin: 1rem 0;
+  .heroSearchButton {
+    padding: 0.6rem 0.85rem;
+    font-size: 0.8rem;
   }
 
-  .statValue {
-    font-size: 1.125rem;
-  }
-
-  .statLabel {
-    font-size: 0.65rem;
-  }
-
-  .statDivider {
-    height: 25px;
+  .quickCategoryBtn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
   }
 
   .section {
@@ -623,56 +444,41 @@
   }
 
   .hero {
-    min-height: clamp(280px, 50vh, 400px);
-    margin-top: 110px;
-    margin-bottom: 1.5rem;
+    min-height: clamp(240px, 40vh, 300px);
+    margin-top: 52px;
+    margin-bottom: 0.75rem;
     width: 100%;
     margin-left: 0;
     margin-right: 0;
   }
 
   .heroContent {
-    padding: 1rem 0.65rem;
-    gap: 1rem;
+    padding: 0.5rem 0.5rem;
+    gap: 0.4rem;
   }
 
   .heroTitle {
-    font-size: clamp(1.15rem, 4vw, 1.6rem);
+    font-size: clamp(1rem, 5vw, 1.25rem);
     line-height: 1.2;
   }
 
-  .heroSubtitle {
-    font-size: clamp(0.75rem, 2vw, 0.875rem);
-    line-height: 1.5;
+  .heroSearchBox {
+    border-radius: 25px;
   }
 
-  .heroStats {
-    gap: 0.375rem;
-    padding: 0.5rem 0.625rem;
-    margin: 0.875rem 0;
+  .heroSearchInput {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
   }
 
-  .stat {
-    flex: 1 1 calc(33.333% - 0.25rem);
-    min-width: 70px;
+  .heroSearchButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
   }
 
-  .statValue {
-    font-size: 1rem;
-  }
-
-  .statLabel {
-    font-size: 0.6rem;
-  }
-
-  .statDivider {
-    height: 20px;
-  }
-
-  .heroNavButton {
-    width: 32px;
-    height: 32px;
-    font-size: 1.2rem;
+  .quickCategoryBtn {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.65rem;
   }
 
   .section {

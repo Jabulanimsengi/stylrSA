@@ -55,7 +55,7 @@ export default function Footer() {
         <div className={styles.footerSection}>
           <Link href="/" className={styles.logoLink}>
             <Image
-              src="/logo-white.png"
+              src="/logo-transparent.png"
               alt="Stylr SA Logo"
               width={185}
               height={45}

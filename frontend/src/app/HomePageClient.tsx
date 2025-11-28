@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import styles from './HomePage.module.css';
-import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
+import { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSocket } from '@/context/SocketContext';
 import { useAuthModal } from '@/context/AuthModalContext';
@@ -22,31 +22,10 @@ import TrendRow from '@/components/TrendRow/TrendRow';
 import ForYouRecommendations from '@/components/ForYouRecommendations/ForYouRecommendations';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { getCategorySlug } from '@/utils/categorySlug';
-import TypingAnimation from '@/components/TypingAnimation/TypingAnimation';
 
-const HERO_SLIDES = [
-  { src: '/image_01.jpg', alt: 'Professional hair styling and beauty services at South African salons' },
-  { src: '/image_02.jpg', alt: 'Expert hairdresser creating beautiful hairstyles' },
-  { src: '/image_03.jpg', alt: 'Modern salon interior with professional beauty equipment' },
-  { src: '/image_04.jpg', alt: 'Hair coloring and treatment services by certified stylists' },
-  { src: '/image_05.jpg', alt: 'Nail care and manicure services at premium salons' },
-  { src: '/image_06.jpg', alt: 'Makeup application and beauty consultation services' },
-  { src: '/image_07.jpg', alt: 'Hair braiding and African hairstyle specialists' },
-];
-
-const SLIDE_INTERVAL = 6000;
-
-const TYPING_WORDS = [
-  'Luxury Beauty',
-  'Wellness',
-  'Premium Salons',
-  'Spa Experiences',
-  'Expert Stylists',
-  'Beauty Treatments',
-];
-
-const getMobileSlides = () => {
-  return HERO_SLIDES.slice(0, 4);
+const HERO_IMAGE = {
+  src: '/image_01.jpg',
+  alt: 'Professional hair styling and beauty services at South African salons'
 };
 
 type ServiceWithSalon = Service & { salon: { id: string; name: string, city: string, province: string } };
@@ -74,11 +53,8 @@ export default function HomePageClient({
   const [trendsData, setTrendsData] = useState<Record<TrendCategory, Trend[]>>(initialTrends);
 
   const observer = useRef<IntersectionObserver | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const socket = useSocket();
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const slidesToShow = isMobile ? getMobileSlides() : HERO_SLIDES;
-  const totalSlides = slidesToShow.length;
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
@@ -152,14 +128,6 @@ export default function HomePageClient({
     };
   }, [socket, fetchServices]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-    }, SLIDE_INTERVAL);
-
-    return () => clearInterval(timer);
-  }, [totalSlides]);
-
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const target = entries[0];
     if (target.isIntersecting && !isLoading && hasMore) {
@@ -217,83 +185,71 @@ export default function HomePageClient({
         <MobileSearch onSearch={handleSearch} />
       </div>
 
-      <section className={styles.hero} aria-label="Hero section with rotating images">
-        <div className={styles.heroMedia} aria-hidden="true">
-          {slidesToShow.map((slide, index) => (
-            <Image
-              key={slide.src}
-              src={slide.src}
-              alt={slide.alt}
-              className={`${styles.heroImage} ${index === currentSlide ? styles.heroImageActive : ''}`}
-              fill
-              priority={index === 0}
-              sizes="100vw"
-              loading={index === 0 ? 'eager' : 'lazy'}
-              quality={isMobile ? 75 : 85}
-            />
-          ))}
-          <div className={styles.heroGradient} />
-        </div>
+      <section className={styles.hero} aria-label="Hero section">
+        <Image
+          src={HERO_IMAGE.src}
+          alt={HERO_IMAGE.alt}
+          className={styles.heroImage}
+          fill
+          priority
+          sizes="100vw"
+          quality={isMobile ? 75 : 85}
+        />
+        <div className={styles.heroGradient} />
         <div className={styles.heroContent}>
-          <div className={styles.heroLeft}>
-            <div className={styles.heroBadge}>No. 1 Beauty Platform</div>
-            <div className={styles.heroCopy}>
-              <h1 className={styles.heroTitle} id="hero-title">
-                South Africa's Premier Destination for <TypingAnimation words={TYPING_WORDS} />
-              </h1>
-              <p className={styles.heroSubtitle} aria-describedby="hero-title">Experience excellence with South Africa's most trusted premium salons, luxury spas, beauty clinics, and expert wellness professionals. Elevate your beauty journey with the finest service providers in one exclusive platform.</p>
+          <h1 className={styles.heroTitle} id="hero-title">
+            Find Your Perfect Salon in South Africa
+          </h1>
+
+          <div className={styles.heroSearchContainer}>
+            <div className={styles.heroSearchBox}>
+              <input
+                type="text"
+                placeholder="Search for a service or location..."
+                className={styles.heroSearchInput}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const value = (e.target as HTMLInputElement).value.trim();
+                    if (value) {
+                      router.push(`/services?service=${encodeURIComponent(value)}`);
+                    }
+                  }
+                }}
+              />
+              <button
+                className={styles.heroSearchButton}
+                onClick={() => {
+                  const input = document.querySelector(`.${styles.heroSearchInput}`) as HTMLInputElement;
+                  const value = input?.value.trim();
+                  if (value) {
+                    router.push(`/services?service=${encodeURIComponent(value)}`);
+                  } else {
+                    router.push('/services');
+                  }
+                }}
+              >
+                Search
+              </button>
             </div>
 
-            {!isMobile && (
-              <div className={styles.heroActions}>
-                <Link href="/salons" className="btn btn-primary">
-                  Explore Premium Salons
-                </Link>
-                <Link href="/services" className="btn btn-primary">
-                  Browse Luxury Services
-                </Link>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => openModal('register')}
-                >
-                  Join as Premium Partner
-                </button>
-              </div>
-            )}
-
-            <div className={styles.heroStats}>
-              <div className={styles.stat}>
-                <strong className={styles.statValue}>500+</strong>
-                <span className={styles.statLabel}>Premium Partners</span>
-              </div>
-              <div className={styles.statDivider} />
-              <div className={styles.stat}>
-                <strong className={styles.statValue}>50,000+</strong>
-                <span className={styles.statLabel}>Exclusive Bookings</span>
-              </div>
-              <div className={styles.statDivider} />
-              <div className={styles.stat}>
-                <strong className={styles.statValue}>4.9★</strong>
-                <span className={styles.statLabel}>Elite Service Rating</span>
-              </div>
+            <div className={styles.quickCategories}>
+              <Link href="/services/haircuts-styling" className={styles.quickCategoryBtn}>
+                Hair
+              </Link>
+              <Link href="/services/nail-care" className={styles.quickCategoryBtn}>
+                Nails
+              </Link>
+              <Link href="/services/massage-body-treatments" className={styles.quickCategoryBtn}>
+                Spa
+              </Link>
+              <Link href="/services/makeup-beauty" className={styles.quickCategoryBtn}>
+                Makeup
+              </Link>
+              <Link href="/salons" className={styles.quickCategoryBtn}>
+                Near Me
+              </Link>
             </div>
           </div>
-
-          {!isMobile && (
-            <div className={styles.heroRight}>
-              <div className={styles.filterContainer}>
-                <FilterBar onSearch={handleSearch} isHomePage={true} orientation="vertical" />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className={styles.progressBar}>
-          <div
-            className={styles.progressFill}
-            key={currentSlide}
-          />
         </div>
       </section>
 
@@ -352,39 +308,29 @@ export default function HomePageClient({
 
       <VideoSlideshow />
 
-      {!isMobile && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
-          <div
-            className={styles.categoryGrid}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '3rem'
-            }}
-          >
-            <Link href="/services/braiding-weaving" className="btn btn-primary" style={{ textAlign: 'center' }}>
-              Braiding & Weaving
-            </Link>
-            <Link href="/services/nail-care" className="btn btn-primary" style={{ textAlign: 'center' }}>
-              Nail Care
-            </Link>
-            <Link href="/services/makeup-beauty" className="btn btn-primary" style={{ textAlign: 'center' }}>
-              Makeup & Beauty
-            </Link>
-            <Link href="/services/haircuts-styling" className="btn btn-primary" style={{ textAlign: 'center' }}>
-              Haircuts & Styling
-            </Link>
-            <Link href="/services/massage-body-treatments" className="btn btn-primary" style={{ textAlign: 'center' }}>
-              Massage & Spa
-            </Link>
-            <Link href="/services/mens-grooming" className="btn btn-primary" style={{ textAlign: 'center' }}>
-              Men's Grooming
-            </Link>
-          </div>
-        </section>
-      )}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
+        <div className={styles.serviceCategoryRow}>
+          <Link href="/services/braiding-weaving" className={styles.serviceCategoryBtn}>
+            Braiding & Weaving
+          </Link>
+          <Link href="/services/nail-care" className={styles.serviceCategoryBtn}>
+            Nail Care
+          </Link>
+          <Link href="/services/makeup-beauty" className={styles.serviceCategoryBtn}>
+            Makeup & Beauty
+          </Link>
+          <Link href="/services/haircuts-styling" className={styles.serviceCategoryBtn}>
+            Haircuts & Styling
+          </Link>
+          <Link href="/services/massage-body-treatments" className={styles.serviceCategoryBtn}>
+            Massage & Spa
+          </Link>
+          <Link href="/services/mens-grooming" className={styles.serviceCategoryBtn}>
+            Men's Grooming
+          </Link>
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Featured Services</h2>
