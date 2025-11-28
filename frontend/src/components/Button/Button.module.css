@@ -28,23 +28,23 @@
   opacity: 0.6;
 }
 
-/* Size Variants */
+/* Size Variants - Compact */
 .sm {
-  padding: var(--space-xs, 0.5rem) var(--space-md, 1rem);
-  font-size: var(--font-size-sm, 0.875rem);
-  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  min-height: 32px;
 }
 
 .md {
-  padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
-  font-size: var(--font-size-base, 1rem);
-  min-height: 44px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  min-height: 38px;
 }
 
 .lg {
-  padding: var(--space-md, 1rem) var(--space-xl, 2rem);
-  font-size: var(--font-size-lg, 1.125rem);
-  min-height: 52px;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.95rem;
+  min-height: 44px;
 }
 
 /* Variant Styles */
@@ -215,21 +215,21 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
   .sm {
-    padding: var(--space-2xs, 0.25rem) var(--space-sm, 0.75rem);
-    font-size: var(--font-size-xs, 0.75rem);
-    min-height: 32px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.65rem;
+    min-height: 28px;
   }
 
   .md {
-    padding: var(--space-xs, 0.5rem) var(--space-md, 1rem);
-    font-size: var(--font-size-sm, 0.875rem);
-    min-height: 40px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    min-height: 34px;
   }
 
   .lg {
-    padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
-    font-size: var(--font-size-base, 1rem);
-    min-height: 48px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    min-height: 40px;
   }
 }
 

@@ -1,7 +1,7 @@
 /* Task 5.5: Viewport overflow prevention */
 .categorySection {
-  margin-bottom: 2.5rem;
-  padding: 0 clamp(1rem, 5vw, 2rem);
+  margin-bottom: 1.5rem;
+  padding: 0 clamp(0.75rem, 3vw, 1.5rem);
   max-width: 100%;
   overflow: hidden;
   contain: layout style;
@@ -12,13 +12,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   max-width: 100%;
 }
 
 /* Task 5.1: Category title as clickable link with hover effect */
 .categoryTitle {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--color-text-strong);
   margin-bottom: 0;
@@ -37,10 +37,10 @@
   background: none;
   border: none;
   color: var(--muted-teal);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   transition: color 0.2s ease;
   flex-shrink: 0;
 }
@@ -58,8 +58,8 @@
 /* Task 5.3: Enhanced scroll container styles */
 .servicesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.875rem;
   max-width: 100%;
   width: 100%;
   overflow-x: auto;
@@ -147,23 +147,23 @@
 /* Task 5.4: Mobile-specific styles */
 @media (max-width: 768px) {
   .categorySection {
-    margin-bottom: 2rem;
-    padding: 0 clamp(1rem, 3vw, 1.5rem);
+    margin-bottom: 1.25rem;
+    padding: 0 clamp(0.5rem, 2vw, 1rem);
     max-width: 100%; /* Task 5.5: Viewport overflow prevention */
   }
 
   .categoryHeader {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
     max-width: 100%; /* Task 5.5: Viewport overflow prevention */
   }
 
   .categoryTitle {
-    font-size: 1rem;
+    font-size: 0.85rem;
     padding-left: 0;
   }
 
   .viewAllButton {
-    font-size: 13px;
+    font-size: 11px;
   }
 
   /* Task 5.4: Maintain touch scroll behavior, scroll snap, and peek effect */
@@ -178,11 +178,11 @@
     scrollbar-width: none; /* Task 5.3: Firefox */
     -ms-overflow-style: none; /* Task 5.3: IE and Edge */
     padding: 0;
-    gap: 1rem;
-    margin-left: -0.5rem; /* Task 5.4: Offset for peek effect */
-    margin-right: -0.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    gap: 0.5rem;
+    margin-left: -0.35rem; /* Task 5.4: Offset for peek effect */
+    margin-right: -0.35rem;
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
     max-width: 100%; /* Task 5.5: Viewport overflow prevention */
   }
 

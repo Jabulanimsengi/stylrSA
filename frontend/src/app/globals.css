@@ -27,14 +27,15 @@
 }
 
 .Toastify__toast {
-  border-radius: var(--radius-md) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
-  padding: 1rem !important;
-  padding-right: 3rem !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
+  padding: 0.75rem !important;
+  padding-right: 2.5rem !important;
   font-weight: 500 !important;
+  font-size: 0.85rem !important;
   position: relative !important;
   pointer-events: auto !important;
-  min-height: 64px !important;
+  min-height: 52px !important;
 }
 
 .Toastify__toast--default {
@@ -297,23 +298,23 @@
     --radius-full: 999px;
 
     --font-family-base: 'InterVariable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    /* Typography Scale - Complete system */
-    --font-size-xs: 0.75rem;
-    /* 12px */
-    --font-size-sm: 0.875rem;
-    /* 14px */
-    --font-size-base: clamp(0.95rem, 0.2vw + 0.9rem, 1rem);
-    /* 16px */
-    --font-size-lg: clamp(1.1rem, 0.25vw + 1rem, 1.25rem);
-    /* 20px */
-    --font-size-xl: clamp(1.35rem, 0.35vw + 1.25rem, 1.6rem);
-    /* 24px */
-    --font-size-2xl: clamp(1.6rem, 0.45vw + 1.55rem, 2rem);
-    /* 32px */
-    --font-size-3xl: clamp(2rem, 0.6vw + 1.8rem, 2.5rem);
-    /* 40px */
-    --font-size-4xl: clamp(2.5rem, 0.8vw + 2.2rem, 3rem);
-    /* 48px */
+    /* Typography Scale - Compact system for dense information */
+    --font-size-xs: 0.7rem;
+    /* 11px */
+    --font-size-sm: 0.8rem;
+    /* 13px */
+    --font-size-base: clamp(0.875rem, 0.15vw + 0.85rem, 0.9375rem);
+    /* 14-15px */
+    --font-size-lg: clamp(1rem, 0.2vw + 0.95rem, 1.125rem);
+    /* 16-18px */
+    --font-size-xl: clamp(1.2rem, 0.3vw + 1.1rem, 1.4rem);
+    /* 19-22px */
+    --font-size-2xl: clamp(1.4rem, 0.4vw + 1.35rem, 1.75rem);
+    /* 22-28px */
+    --font-size-3xl: clamp(1.75rem, 0.5vw + 1.6rem, 2.25rem);
+    /* 28-36px */
+    --font-size-4xl: clamp(2.25rem, 0.7vw + 2rem, 2.75rem);
+    /* 36-44px */
 
     /* Heading Sizes */
     --heading-1: var(--font-size-4xl);
@@ -419,19 +420,19 @@
     --nav-icon-bg: rgba(255, 255, 255, 0.86);
     --nav-icon-hover-bg: rgba(255, 255, 255, 0.98);
     --nav-badge-text: var(--color-text-inverse);
-    --app-shell-top-gap: 70px;
+    --app-shell-top-gap: 56px;
 
-    /* Global card layout tokens */
-    --cards-per-view: 4;
-    --card-gap: 1.25rem;
-    --card-height: 340px;
+    /* Global card layout tokens - Compact */
+    --cards-per-view: 5;
+    --card-gap: 0.875rem;
+    --card-height: 280px;
 
-    /* Section spacing */
-    --space-section-sm: 3rem;
-    --space-section-md: 4rem;
-    --space-section-lg: 6rem;
-    --space-content: 1.5rem;
-    --space-card-gap: 1.25rem;
+    /* Section spacing - Tighter */
+    --space-section-sm: 2rem;
+    --space-section-md: 2.5rem;
+    --space-section-lg: 3.5rem;
+    --space-content: 1rem;
+    --space-card-gap: 0.875rem;
   }
 
   [data-theme='dark'] {
@@ -668,79 +669,79 @@
   }
 }
 
-/* Global card layout breakpoints */
+/* Global card layout breakpoints - Compact */
 @media (max-width: 479px) {
   :root {
-    --cards-per-view: 2.2;
-    /* 2 full + peek */
+    --cards-per-view: 2.3;
     --card-gap: 6px;
-    --card-height: 280px;
+    --card-height: 220px;
   }
 }
 
 @media (min-width: 480px) and (max-width: 767px) {
   :root {
-    --cards-per-view: 2.5;
+    --cards-per-view: 2.8;
     --card-gap: 8px;
-    --card-height: 300px;
+    --card-height: 240px;
   }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
   :root {
-    --cards-per-view: 3;
-    --card-gap: 12px;
-    --card-height: 320px;
+    --cards-per-view: 4;
+    --card-gap: 10px;
+    --card-height: 260px;
   }
 }
 
 @media (min-width: 1024px) and (max-width: 1439px) {
   :root {
-    --cards-per-view: 4;
-    --card-gap: 12px;
-    --card-height: 340px;
+    --cards-per-view: 5;
+    --card-gap: 10px;
+    --card-height: 280px;
   }
 }
 
 @media (min-width: 1440px) {
   :root {
-    --cards-per-view: 5;
+    --cards-per-view: 6;
     --card-gap: 12px;
-    --card-height: 360px;
+    --card-height: 300px;
   }
 }
 
 /* --- GLOBAL BUTTON STYLES --- */
 .btn {
   @apply inline-flex items-center justify-center font-semibold border-2 border-transparent shadow-sm;
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  font-size: 0.85rem;
 }
 
 @media (max-width: 768px) {
   .btn {
-    padding: 0.4rem 0.875rem;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.7rem;
   }
 }
 
 @media (max-width: 520px) {
   .btn {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.55rem;
+    font-size: 0.65rem;
   }
 }
 
 @media (max-width: 400px) {
   .btn {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.7rem;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.6rem;
   }
 }
 
@@ -888,8 +889,8 @@ a.btn-secondary:visited {
 .main-content {
   flex: 1;
   width: 100%;
-  padding: var(--space-lg);
-  padding-top: calc(var(--app-shell-top-gap) + var(--space-lg));
+  padding: var(--space-md);
+  padding-top: calc(var(--app-shell-top-gap) + var(--space-md));
   margin: 0;
   box-sizing: border-box;
 }

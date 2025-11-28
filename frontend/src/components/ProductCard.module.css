@@ -2,23 +2,23 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   background-color: var(--color-surface-elevated);
   color: var(--color-text-strong);
   border: 1px solid var(--color-border);
-  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 24px 46px rgba(15, 23, 42, 0.16);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
 }
 
 .imageContainer {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 180px;
   overflow: hidden;
   cursor: pointer;
 }
@@ -119,8 +119,8 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1.1rem 1.25rem;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem 1rem;
   flex: 1;
 }
 
@@ -128,12 +128,12 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .title {
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   margin: 0;
 }
 
@@ -141,19 +141,20 @@
   font-weight: 600;
   color: var(--color-primary);
   white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .description {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 .metaRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   color: var(--color-text-muted);
 }
 
@@ -172,7 +173,7 @@
   background: transparent;
   border: none;
   color: var(--color-primary);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -189,8 +190,8 @@
 .detailsSection {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  padding: 0.35rem 0 0.25rem;
+  gap: 0.45rem;
+  padding: 0.25rem 0 0.15rem;
 }
 
 .footer {
@@ -198,35 +199,35 @@
   justify-content: space-between;
   align-items: center;
   border-top: 1px solid var(--color-border);
-  padding-top: 0.75rem;
+  padding-top: 0.5rem;
   margin-top: auto;
 }
 
 .actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .actionButton {
-  padding: 0.45rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
   line-height: 1.1;
   letter-spacing: 0.01em;
 }
 
 .primaryAction {
-  min-width: 6.5rem;
+  min-width: 5.5rem;
 }
 
 @media (min-width: 1024px) {
   .imageContainer {
-    height: 260px;
+    height: 200px;
   }
 }
 
 @media (max-width: 768px) {
   .content {
-    padding: 0.9rem 1rem 1.15rem;
+    padding: 0.625rem 0.75rem 0.875rem;
   }
 
   .carouselButton {
@@ -236,7 +237,7 @@
   .footer {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .actions {
@@ -252,28 +253,32 @@
 
 @media (max-width: 480px) {
   .card {
-    border-radius: 0.875rem;
+    border-radius: 0.625rem;
   }
 
   .imageContainer {
-    height: 200px;
+    height: 150px;
   }
 
   .header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: 0.15rem;
   }
 
-  .price {
-    font-size: 1rem;
-  }
-
-  .metaRow {
+  .title {
     font-size: 0.8rem;
   }
 
+  .price {
+    font-size: 0.85rem;
+  }
+
+  .metaRow {
+    font-size: 0.65rem;
+  }
+
   .detailsToggle {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
   }
 }
