@@ -195,8 +195,12 @@ export class ServicesService {
 
   async findAllApproved(page: number = 1, pageSize: number = 10, user?: any) {
     // Rank globally by visibility score then recency, and only then paginate.
+    // Only include services that have at least one image (for featured display on home page)
     const items = await this.prisma.service.findMany({
-      where: { approvalStatus: 'APPROVED' },
+      where: {
+        approvalStatus: 'APPROVED',
+        images: { isEmpty: false },
+      },
       include: {
         salon: {
           select: {

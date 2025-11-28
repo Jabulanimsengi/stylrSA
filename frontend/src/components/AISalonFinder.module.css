@@ -17,7 +17,7 @@
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(0, 123, 255, 0.3);
   transition: all 0.3s ease;
-  z-index: 10000;
+  z-index: 100000;
   animation: pulse 2s infinite;
 }
 
@@ -84,7 +84,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 9999;
+  z-index: 100001;
   animation: slideIn 0.3s ease-out;
 }
 
@@ -434,7 +434,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 99998;
+    z-index: 100000;
     animation: fadeIn 0.3s ease-out;
   }
   
@@ -456,7 +456,7 @@
     height: calc(100vh - 180px); /* Leave space for top and bottom UI */
     max-height: calc(100vh - 180px);
     border-radius: 16px;
-    z-index: 99999; /* Ensure it's above everything on mobile */
+    z-index: 100001; /* Ensure it's above everything on mobile */
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); /* Enhanced shadow for modal effect */
   }
 

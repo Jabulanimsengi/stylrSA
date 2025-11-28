@@ -19,6 +19,7 @@ export interface EnhancedChatIntent {
     | 'promotions_query'
     | 'products_query'
     | 'trends_query'
+    | 'site_info'
     | 'help'
     | 'unknown';
   
@@ -31,6 +32,31 @@ export interface EnhancedChatIntent {
   serviceId?: string;
   actionType?: 'view_salon' | 'view_services' | 'view_gallery' | 'view_reviews' | 'book_now' | 'show_prices' | 'view_promotions' | 'view_products' | 'view_trends';
 }
+
+// Site information for accurate responses
+const SITE_INFO = {
+  name: 'Stylr SA',
+  description: 'South Africa\'s premier destination for luxury beauty & wellness',
+  features: [
+    'Find and book appointments at top-rated salons',
+    'Browse services with real prices',
+    'View salon galleries and reviews',
+    'Discover trending hairstyles and beauty trends',
+    'Shop beauty products',
+    'Find promotions and deals'
+  ],
+  serviceCategories: [
+    'Hair Care & Styling',
+    'Braiding & Protective Styles',
+    'Nails & Manicure',
+    'Spa & Wellness',
+    'Makeup & Beauty',
+    'Skincare',
+    'Waxing & Hair Removal',
+    'Barber Services'
+  ]
+};
+
 
 /**
  * Comprehensive category mapping for better service matching
@@ -54,46 +80,41 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
     'nail', 'nails', 'manicure', 'mani', 'pedicure', 'pedi', 'mani pedi',
     'gel', 'gel nails', 'acrylic', 'acrylics', 'shellac', 'nail art',
     'nail polish', 'nail design', 'french tips', 'ombre nails', 'chrome nails',
-    'nail extensions', 'nail overlay', 'nail removal', 'nail care',
-    'cuticle care', 'hand spa', 'foot spa'
+    'nail extensions', 'nail overlay', 'nail removal', 'nail care'
   ],
   'Spa & Wellness': [
     'spa', 'massage', 'facial', 'body scrub', 'body wrap', 'sauna',
     'steam', 'hot stone', 'aromatherapy', 'reflexology', 'swedish massage',
-    'deep tissue', 'thai massage', 'relaxation', 'wellness', 'detox',
-    'body treatment', 'skin treatment', 'spa package', 'spa day'
+    'deep tissue', 'thai massage', 'relaxation', 'wellness', 'detox'
   ],
   'Makeup & Beauty': [
     'makeup', 'make up', 'make-up', 'mua', 'beauty', 'cosmetics',
     'foundation', 'contour', 'eyeshadow', 'eyeliner', 'mascara', 'lipstick',
     'blush', 'highlighter', 'glam', 'bridal makeup', 'wedding makeup',
-    'party makeup', 'special occasion', 'eyebrows', 'brows', 'lashes',
-    'eyelash extensions', 'lash lift', 'brow tint', 'brow lamination'
-  ],
-  'Skincare': [
-    'skincare', 'skin care', 'facial', 'face', 'acne', 'anti-aging',
-    'hydration', 'cleansing', 'exfoliation', 'mask', 'serum', 'moisturizer',
-    'peel', 'chemical peel', 'microdermabrasion', 'dermaplaning',
-    'laser treatment', 'led therapy', 'skin analysis', 'consultation',
-    'pigmentation', 'dark spots', 'wrinkles', 'fine lines'
-  ],
-  'Waxing & Hair Removal': [
-    'wax', 'waxing', 'brazilian', 'bikini', 'leg wax', 'arm wax',
-    'underarm', 'full body wax', 'face wax', 'eyebrow wax', 'upper lip',
-    'hair removal', 'threading', 'laser hair removal', 'ipl', 'sugaring'
+    'eyebrows', 'brows', 'lashes', 'eyelash extensions', 'lash lift'
   ],
   'Barber Services': [
     'barber', 'barbering', 'fade', 'taper', 'line up', 'edge up',
     'beard', 'beard trim', 'beard shaping', 'shave', 'hot towel shave',
-    'mens haircut', 'mens grooming', 'boys haircut', 'kids haircut',
-    'low fade', 'high fade', 'mid fade', 'skin fade', 'afro', 'shape up'
-  ],
-  'Special Occasions': [
-    'wedding', 'bridal', 'bride', 'bridesmaid', 'wedding party',
-    'prom', 'matric dance', 'graduation', 'birthday', 'photoshoot',
-    'event', 'special event', 'party', 'occasion', 'formal event'
+    'mens haircut', 'mens grooming', 'boys haircut', 'kids haircut'
   ]
 };
+
+/**
+ * South African locations for better matching
+ */
+const SA_LOCATIONS: Record<string, string[]> = {
+  'Gauteng': ['johannesburg', 'joburg', 'jozi', 'pretoria', 'pta', 'sandton', 'midrand', 'centurion', 'soweto', 'randburg', 'roodepoort', 'fourways', 'rosebank', 'braamfontein', 'melville', 'parkhurst'],
+  'Western Cape': ['cape town', 'capetown', 'cpt', 'stellenbosch', 'paarl', 'somerset west', 'bellville', 'claremont', 'sea point', 'camps bay', 'waterfront'],
+  'KwaZulu-Natal': ['durban', 'dbn', 'umhlanga', 'ballito', 'pietermaritzburg', 'pmb', 'pinetown', 'westville'],
+  'Eastern Cape': ['port elizabeth', 'pe', 'east london', 'gqeberha'],
+  'Free State': ['bloemfontein', 'bloem'],
+  'Mpumalanga': ['nelspruit', 'mbombela', 'witbank', 'emalahleni'],
+  'Limpopo': ['polokwane', 'pietersburg'],
+  'North West': ['rustenburg', 'potchefstroom', 'klerksdorp'],
+  'Northern Cape': ['kimberley', 'upington']
+};
+
 
 /**
  * Extract service category from user input
@@ -103,14 +124,36 @@ function extractCategoryFromText(text: string): string | undefined {
   
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     if (keywords.some(keyword => {
-      // Check for whole word matches or phrase matches
       const regex = new RegExp(`\\b${keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
       return regex.test(lowerText);
     })) {
       return category;
     }
   }
+  return undefined;
+}
+
+/**
+ * Extract location from user input
+ */
+function extractLocationFromText(text: string): { city?: string; province?: string } | undefined {
+  const lowerText = text.toLowerCase();
   
+  for (const [province, cities] of Object.entries(SA_LOCATIONS)) {
+    for (const city of cities) {
+      if (lowerText.includes(city)) {
+        // Map common abbreviations to full names
+        const cityMap: Record<string, string> = {
+          'joburg': 'Johannesburg', 'jozi': 'Johannesburg',
+          'pta': 'Pretoria', 'cpt': 'Cape Town', 'capetown': 'Cape Town',
+          'dbn': 'Durban', 'pe': 'Port Elizabeth', 'bloem': 'Bloemfontein',
+          'pmb': 'Pietermaritzburg'
+        };
+        const normalizedCity = cityMap[city] || city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        return { city: normalizedCity, province };
+      }
+    }
+  }
   return undefined;
 }
 
@@ -123,224 +166,41 @@ export function parseEnhancedInput(input: string, context?: {
   currentSalon?: any;
 }): EnhancedChatIntent {
   const lowerInput = input.toLowerCase().trim();
+  const detectedCategory = extractCategoryFromText(input);
+  const detectedLocation = extractLocationFromText(input);
+
 
   // Greeting detection
-  if (/^(hi|hello|hey|howzit|sawubona|good (morning|afternoon|evening))$/i.test(lowerInput)) {
-    const locationAvailable = context?.userLocation ? 
-      `📍 I can see your location - I'll find the best salons near you!` : 
-      `💡 Tip: Ask me to "find salons near me" to use your current location for better results!`;
-    
+  if (/^(hi|hello|hey|howzit|sawubona|good (morning|afternoon|evening)|yo|sup)$/i.test(lowerInput)) {
     return {
       type: 'greeting',
-      response: `👋 Hello! I'm your personal beauty assistant. ${locationAvailable}
+      response: `👋 Hello! Welcome to ${SITE_INFO.name} - ${SITE_INFO.description}.
 
-I can help you with:
-      
-✅ Finding salons near you
-✅ Viewing salon profiles, services, and prices
-✅ Checking availability and booking schedules
-✅ Viewing salon galleries and reviews
-✅ Making bookings directly from chat
-✅ Comparing services and prices
-✅ Finding promotions and deals
-✅ Browsing beauty products
-✅ Discovering latest trends
-
-What would you like to do today?`,
+I can help you find real salons, services, and prices from our database. What would you like to do?`,
       quickActions: [
         'Find salons near me',
+        'Browse services',
         'Show promotions',
-        'View services',
-        'Book an appointment'
+        'What can you do?'
       ]
     };
   }
 
-  // Salon profile requests
-  if (/show (me )?(salon )?profile|view (salon )?profile|salon (details|info)/i.test(lowerInput)) {
+  // Site info / about queries
+  if (/what (is|are) (this|stylr|the site)|about (stylr|this)|tell me about/i.test(lowerInput)) {
     return {
-      type: 'salon_profile',
-      response: 'I can show you detailed salon profiles including services, prices, gallery, reviews, and booking options. Which salon would you like to know more about?',
-      actionType: 'view_salon',
-      quickActions: [
-        'Find top-rated salons',
-        'Salons near me',
-        'Featured salons'
-      ]
-    };
-  }
+      type: 'site_info',
+      response: `📱 **${SITE_INFO.name}** is ${SITE_INFO.description}.
 
-  // Service and price queries
-  if (/how much|price|cost|rate|pricing|charges/i.test(lowerInput)) {
-    return {
-      type: 'price_query',
-      response: `💰 I can help you find service prices! I have access to:
-      
-• Detailed service pricing from all salons
-• Price comparisons across providers
-• Special offers and promotions
-• Package deals
+**What you can do here:**
+${SITE_INFO.features.map(f => `• ${f}`).join('\n')}
 
-What service are you interested in pricing for?`,
-      actionType: 'show_prices',
-      quickActions: [
-        'Hair braiding prices',
-        'Nail services prices',
-        'Show affordable options',
-        'View promotions'
-      ]
-    };
-  }
+**Service Categories:**
+${SITE_INFO.serviceCategories.slice(0, 4).map(c => `• ${c}`).join('\n')}
+...and more!
 
-  // Gallery and images
-  if (/show (me )?(pictures|photos|images|gallery)|view gallery|see (their )?work/i.test(lowerInput)) {
-    return {
-      type: 'images_gallery',
-      response: `📸 I can show you salon galleries including:
-      
-• Before & after photos
-• Service showcases
-• Salon interior photos
-• Stylist work portfolios
-
-Which salon's gallery would you like to view?`,
-      actionType: 'view_gallery',
-      quickActions: [
-        'Top-rated salons with galleries',
-        'Recent work photos',
-        'Before & after transformations'
-      ]
-    };
-  }
-
-  // Booking and availability
-  if (/book|appointment|schedule|available|open|when can i|availability/i.test(lowerInput)) {
-    return {
-      type: 'booking_query',
-      response: `📅 I can help you book appointments! I have access to:
-      
-• Real-time salon availability
-• Operating hours and schedules
-• Booking time slots
-• Direct booking capability
-
-${context?.userId 
-  ? 'Ready to book! Which salon would you like to book with?' 
-  : 'Please log in to make a booking. Would you like to browse available salons first?'}`,
-      actionType: 'book_now',
-      requiresAuth: true,
-      quickActions: context?.userId 
-        ? ['Find available salons', 'Book now', 'View my bookings']
-        : ['Find salons', 'View operating hours', 'Login to book']
-    };
-  }
-
-  // Reviews and ratings
-  if (/reviews?|ratings?|feedback|testimonials?|what (do )?people (think|say)/i.test(lowerInput)) {
-    return {
-      type: 'reviews_query',
-      response: `⭐ I can show you salon reviews and ratings including:
-      
-• Customer reviews and ratings
-• Service-specific feedback
-• Overall salon ratings
-• Recent reviews
-
-Which salon's reviews would you like to see?`,
-      actionType: 'view_reviews',
-      quickActions: [
-        'Top-rated salons',
-        'Recent reviews',
-        'Best reviewed services'
-      ]
-    };
-  }
-
-  // Services query
-  if (/services?|what (do they|does|can)|offer|treatment/i.test(lowerInput)) {
-    return {
-      type: 'service_query',
-      response: `💇‍♀️ I can show you all available services including:
-      
-• Complete service catalogs
-• Service descriptions
-• Duration and pricing
-• Service categories (Hair, Nails, Spa, etc.)
-
-What type of service are you looking for?`,
-      actionType: 'view_services',
-      quickActions: [
-        'Hair services',
-        'Nail services',
-        'Spa services',
-        'All services'
-      ]
-    };
-  }
-
-  // Promotions and deals
-  if (/promotion|deal|discount|special|offer|sale|save|cheap/i.test(lowerInput)) {
-    return {
-      type: 'promotions_query',
-      response: `🎉 I can show you current promotions and deals! I have access to:
-      
-• Active promotions from salons
-• Service discounts
-• Product specials
-• Limited-time offers
-
-Let me find the best deals for you!`,
-      actionType: 'view_promotions',
-      quickActions: [
-        'Show all promotions',
-        'Find deals near me',
-        'Service discounts',
-        'Product specials'
-      ]
-    };
-  }
-
-  // Products query
-  if (/products?|buy|shop|store|purchase|sell|selling/i.test(lowerInput)) {
-    return {
-      type: 'products_query',
-      response: `🛍️ I can help you find products! I have access to:
-      
-• Beauty products for sale
-• Hair care products
-• Product catalogs
-• Pricing and availability
-
-What products are you looking for?`,
-      actionType: 'view_products',
-      quickActions: [
-        'Browse all products',
-        'Hair products',
-        'Beauty products',
-        'Products in stock'
-      ]
-    };
-  }
-
-  // Trends query
-  if (/trend|trending|style|fashion|latest|new|popular|what's (hot|in)/i.test(lowerInput)) {
-    return {
-      type: 'trends_query',
-      response: `✨ I can show you the latest beauty trends! I have access to:
-      
-• Trending hairstyles
-• Popular nail designs
-• Latest beauty trends
-• Trend categories (Hair, Nails, Makeup, etc.)
-
-What trends are you interested in?`,
-      actionType: 'view_trends',
-      quickActions: [
-        'Show all trends',
-        'Hair trends',
-        'Nail trends',
-        'Latest trends'
-      ]
+How can I help you today?`,
+      quickActions: ['Find salons', 'Browse services', 'View trends', 'Show promotions']
     };
   }
 
@@ -348,154 +208,218 @@ What trends are you interested in?`,
   if (/help|what can you do|how (do|can) (i|you)|capabilities/i.test(lowerInput)) {
     return {
       type: 'help',
-      response: `🤖 Here's everything I can help you with:
+      response: `🤖 I can help you with:
 
-**Find & Explore:**
-• "Find salons near me"
-• "Show salon profiles"
-• "View service listings"
-• "Show featured salons"
+**Find Salons:**
+• "Find salons in Sandton"
+• "Hair salons near me"
+• "Braiding salons in Johannesburg"
 
 **Services & Prices:**
-• "How much does braiding cost?"
-• "Show me prices"
-• "Compare service prices"
-• "Search for hair services"
-• "Find nail services"
+• "How much do braids cost?"
+• "Show nail services"
+• "Find affordable haircuts"
 
-**Gallery & Reviews:**
-• "Show salon photos"
-• "View before & after"
-• "Read reviews"
-• "View salon gallery"
-
-**Promotions & Deals:**
-• "Show me promotions"
-• "Find deals"
-• "What discounts are available?"
-• "Show current specials"
-
-**Products:**
-• "Browse products"
-• "Show beauty products"
-• "Find hair products"
-• "Products in stock"
-
-**Trends:**
-• "Show me trends"
+**Explore:**
+• "Show promotions"
 • "What's trending?"
-• "Latest hairstyles"
-• "Popular nail designs"
+• "Browse products"
 
-**Booking:**
+**Book:**
 • "Book an appointment"
 • "Check availability"
-• "View booking schedule"
 
-**Navigation:**
-• Direct access to any salon page
-• View services, prices, gallery, reviews
-• Make bookings right from chat
+Just ask naturally - I'll search our database for real results!`,
+      quickActions: ['Find salons near me', 'Show services', 'View promotions', 'Browse trends']
+    };
+  }
 
-Try asking me anything!`,
-      quickActions: [
-        'Find salons',
-        'View services',
-        'Show promotions',
-        'Book appointment'
-      ]
+
+  // Price queries
+  if (/how much|price|cost|rate|pricing|charges|afford/i.test(lowerInput)) {
+    const filters: any = {};
+    if (detectedCategory) filters.category = detectedCategory;
+    if (detectedLocation?.city) filters.city = detectedLocation.city;
+    if (detectedLocation?.province) filters.province = detectedLocation.province;
+    
+    const categoryHint = detectedCategory ? ` for ${detectedCategory}` : '';
+    const locationHint = detectedLocation?.city ? ` in ${detectedLocation.city}` : '';
+    
+    return {
+      type: 'price_query',
+      response: `💰 Let me search for prices${categoryHint}${locationHint}...
+
+I'll show you real service prices from salons on our platform.`,
+      actionType: 'show_prices',
+      filters,
+      quickActions: ['Show all prices', 'Affordable options', 'Premium services', 'Compare prices']
+    };
+  }
+
+  // Promotions and deals
+  if (/promotion|deal|discount|special|offer|sale|save/i.test(lowerInput)) {
+    return {
+      type: 'promotions_query',
+      response: `🎉 Let me find current promotions and deals for you...
+
+I'll search for active discounts from salons on our platform.`,
+      actionType: 'view_promotions',
+      quickActions: ['Show all promotions', 'Hair deals', 'Nail specials', 'Spa offers']
+    };
+  }
+
+  // Products query
+  if (/products?|buy|shop|store|purchase/i.test(lowerInput)) {
+    return {
+      type: 'products_query',
+      response: `🛍️ Let me search for beauty products...
+
+I'll show you products available from sellers on our platform.`,
+      actionType: 'view_products',
+      quickActions: ['Browse all products', 'Hair products', 'Skincare', 'View categories']
+    };
+  }
+
+  // Trends query
+  if (/trend|trending|style|fashion|latest|new|popular|what's (hot|in)/i.test(lowerInput)) {
+    return {
+      type: 'trends_query',
+      response: `✨ Let me find the latest beauty trends...
+
+I'll show you what's trending on our platform.`,
+      actionType: 'view_trends',
+      quickActions: ['Hair trends', 'Nail trends', 'Makeup trends', 'All trends']
+    };
+  }
+
+
+  // Gallery and images
+  if (/show (me )?(pictures|photos|images|gallery)|view gallery|see (their )?work|before.?after/i.test(lowerInput)) {
+    return {
+      type: 'images_gallery',
+      response: `📸 To view a salon's gallery, I need to know which salon you're interested in.
+
+Search for a salon first, then click on it to see their gallery, before & after photos, and work samples.`,
+      actionType: 'view_gallery',
+      quickActions: ['Find salons', 'Featured salons', 'Top-rated salons']
+    };
+  }
+
+  // Reviews and ratings
+  if (/reviews?|ratings?|feedback|testimonials?|what (do )?people (think|say)/i.test(lowerInput)) {
+    return {
+      type: 'reviews_query',
+      response: `⭐ To view reviews, I need to know which salon you're interested in.
+
+Search for a salon first, then click on it to see customer reviews and ratings.`,
+      actionType: 'view_reviews',
+      quickActions: ['Top-rated salons', 'Find salons', 'Featured salons']
+    };
+  }
+
+  // Booking and availability
+  if (/book|appointment|schedule|available|when can i|availability/i.test(lowerInput)) {
+    const isLoggedIn = !!context?.userId;
+    return {
+      type: 'booking_query',
+      response: isLoggedIn 
+        ? `📅 To book an appointment, find a salon and select a service. I'll help you find the right salon!`
+        : `📅 To book an appointment, you'll need to log in first. Would you like to browse salons in the meantime?`,
+      actionType: 'book_now',
+      requiresAuth: true,
+      quickActions: isLoggedIn 
+        ? ['Find salons near me', 'View my bookings', 'Featured salons']
+        : ['Find salons', 'Login', 'Browse services']
     };
   }
 
   // Location-based queries (near me)
   if (/near me|nearby|close to me|around here|my location|current location/i.test(lowerInput)) {
+    const filters: any = { sortBy: 'distance' };
+    if (detectedCategory) filters.category = detectedCategory;
     if (context?.userLocation) {
-      return {
-        type: 'location_query',
-        response: `📍 I'll help you find salons near your location! I can search for salons, services, and more based on where you are.
+      filters.lat = context.userLocation.lat;
+      filters.lon = context.userLocation.lng;
+      filters.radius = 15;
+    }
+    
+    const categoryHint = detectedCategory ? ` ${detectedCategory}` : '';
+    
+    return {
+      type: 'location_query',
+      response: context?.userLocation 
+        ? `📍 Searching for${categoryHint} salons near your location...`
+        : `📍 I need your location to find salons near you. Please allow location access, or tell me a specific area (e.g., "salons in Sandton").`,
+      filters,
+      quickActions: context?.userLocation 
+        ? ['Show results', 'Expand search radius', 'Filter by service']
+        : ['Search in Johannesburg', 'Search in Sandton', 'Search in Cape Town', 'Allow location']
+    };
+  }
 
-What are you looking for?`,
-        quickActions: [
-          'Find salons near me',
-          'Hair salons nearby',
-          'Nail salons close by',
-          'Spas near me'
-        ],
-        filters: {
-          sortBy: 'distance',
-          latitude: context.userLocation.lat,
-          longitude: context.userLocation.lng,
-          radius: 10 // 10km radius
-        }
-      };
-    } else {
-      return {
-        type: 'location_query',
-        response: `📍 I can help you find salons near you! To give you the best results, I'll need access to your location.
 
-Please allow location access when prompted, or tell me a specific city/area you'd like to search in.
+  // Service queries
+  if (/services?|what (do they|does|can)|offer|treatment/i.test(lowerInput) || detectedCategory) {
+    const filters: any = {};
+    if (detectedCategory) filters.category = detectedCategory;
+    if (detectedLocation?.city) filters.city = detectedLocation.city;
+    if (detectedLocation?.province) filters.province = detectedLocation.province;
+    
+    const categoryHint = detectedCategory ? ` for ${detectedCategory}` : '';
+    const locationHint = detectedLocation?.city ? ` in ${detectedLocation.city}` : '';
+    
+    return {
+      type: 'service_query',
+      response: `💇‍♀️ Searching${categoryHint} services${locationHint}...
 
-For example:
-• "Find braiding salons in Sandton"
-• "Show me nail salons in Johannesburg"
-• "What are the prices for haircuts?"`,
-        quickActions: [
-          'Find salons near me',
-          'Search in Johannesburg',
-          'Search in Sandton',
-          'View all services'
-        ]
-      };
+I'll show you real services with prices from salons on our platform.`,
+      actionType: 'view_services',
+      filters,
+      quickActions: detectedCategory 
+        ? [`All ${detectedCategory}`, 'Compare prices', 'Near me', 'View salons']
+        : ['Hair services', 'Nail services', 'Spa services', 'All services']
+    };
+  }
+
+  // Default: treat as salon search with intelligent detection
+  const filters: any = {};
+  if (detectedCategory) filters.category = detectedCategory;
+  if (detectedLocation?.city) filters.city = detectedLocation.city;
+  if (detectedLocation?.province) filters.province = detectedLocation.province;
+  if (context?.userLocation && !detectedLocation) {
+    filters.lat = context.userLocation.lat;
+    filters.lon = context.userLocation.lng;
+  }
+  
+  // Extract any remaining search terms
+  let searchTerm = input;
+  if (detectedCategory) {
+    // Remove category keywords from search
+    for (const keyword of CATEGORY_KEYWORDS[detectedCategory] || []) {
+      searchTerm = searchTerm.replace(new RegExp(`\\b${keyword}\\b`, 'gi'), '');
     }
   }
-
-  // Default: treat as search query with intelligent category detection
-  const detectedCategory = extractCategoryFromText(input);
-  const locationHint = context?.userLocation 
-    ? ' I can also search near your location if you ask for "near me"!'
-    : '';
-  
-  const filters: any = {
-    q: input
-  };
-  
-  // Add detected category to filters
-  if (detectedCategory) {
-    filters.category = detectedCategory;
+  if (detectedLocation?.city) {
+    searchTerm = searchTerm.replace(new RegExp(detectedLocation.city, 'gi'), '');
   }
+  searchTerm = searchTerm.replace(/\b(salon|salons|find|show|search|in|near|me|the|a|an)\b/gi, '').trim();
+  if (searchTerm) filters.q = searchTerm;
   
-  // Add location if available
-  if (context?.userLocation) {
-    filters.latitude = context.userLocation.lat;
-    filters.longitude = context.userLocation.lng;
-    filters.radius = 10; // 10km radius
-  }
+  const categoryHint = detectedCategory ? ` ${detectedCategory}` : '';
+  const locationHint = detectedLocation?.city ? ` in ${detectedLocation.city}` : '';
   
-  const categoryMessage = detectedCategory 
-    ? `\n\n📂 I detected you're looking for: **${detectedCategory}**` 
-    : '';
-    
   return {
     type: 'salon_info',
-    response: `🔍 I'll help you search for: "${input}"${categoryMessage}
+    response: `🔍 Searching for${categoryHint} salons${locationHint}...
 
-Let me find the best matches for you!${locationHint}`,
+I'll find real salons matching your request from our database.`,
     filters,
-    quickActions: detectedCategory
-      ? [
-          `Show all ${detectedCategory}`,
-          'Filter by price',
-          'Near me',
-          'View details'
-        ]
-      : [
-          'Find salons near me',
-          'View all services',
-          'Check prices',
-          'Help'
-        ]
+    quickActions: ['View all results', 'Filter by price', 'Near me', 'Refine search']
   };
 }
+
+
+// ============ API Functions for fetching real data ============
 
 /**
  * Get salon details for display in chat
@@ -516,7 +440,7 @@ export async function getSalonDetails(salonId: string) {
  */
 export async function getSalonServices(salonId: string) {
   try {
-    const response = await fetch(`/api/salons/${salonId}/services`);
+    const response = await fetch(`/api/services/salon/${salonId}`);
     if (!response.ok) throw new Error('Failed to fetch services');
     return await response.json();
   } catch (error) {
@@ -530,7 +454,7 @@ export async function getSalonServices(salonId: string) {
  */
 export async function getSalonGallery(salonId: string) {
   try {
-    const response = await fetch(`/api/salons/${salonId}/gallery`);
+    const response = await fetch(`/api/gallery/salon/${salonId}`);
     if (!response.ok) throw new Error('Failed to fetch gallery');
     return await response.json();
   } catch (error) {
@@ -540,7 +464,7 @@ export async function getSalonGallery(salonId: string) {
 }
 
 /**
- * Get salon reviews (included in salon details)
+ * Get salon reviews
  */
 export async function getSalonReviews(salonId: string) {
   try {
@@ -552,22 +476,6 @@ export async function getSalonReviews(salonId: string) {
   }
 }
 
-/**
- * Get service booking availability
- */
-export async function getServiceAvailability(serviceId: string, date?: string) {
-  try {
-    const params = new URLSearchParams();
-    if (date) params.append('date', date);
-    
-    const response = await fetch(`/api/bookings/availability/${serviceId}?${params.toString()}`);
-    if (!response.ok) throw new Error('Failed to fetch availability');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching availability:', error);
-    return null;
-  }
-}
 
 /**
  * Get all public promotions
@@ -626,7 +534,6 @@ export async function getTrends(category?: string) {
     if (!response.ok) throw new Error('Failed to fetch trends');
     const data = await response.json();
     
-    // If fetching all trends, it returns grouped by category, so flatten it
     if (!category && typeof data === 'object') {
       return Object.values(data).flat();
     }
@@ -637,8 +544,9 @@ export async function getTrends(category?: string) {
   }
 }
 
+
 /**
- * Search for services with location support
+ * Search for services with filters
  */
 export async function searchServices(filters?: {
   q?: string;
@@ -649,9 +557,6 @@ export async function searchServices(filters?: {
   province?: string;
   city?: string;
   sortBy?: string;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
 }) {
   try {
     const params = new URLSearchParams();
@@ -662,19 +567,7 @@ export async function searchServices(filters?: {
     if (filters?.priceMax) params.append('priceMax', filters.priceMax);
     if (filters?.province) params.append('province', filters.province);
     if (filters?.city) params.append('city', filters.city);
-    
-    // Location-based filtering
-    if (filters?.latitude !== undefined && filters?.longitude !== undefined) {
-      params.append('latitude', filters.latitude.toString());
-      params.append('longitude', filters.longitude.toString());
-      if (filters?.radius) {
-        params.append('radius', filters.radius.toString());
-      }
-      // Sort by distance when location is provided
-      params.append('sortBy', 'distance');
-    } else if (filters?.sortBy) {
-      params.append('sortBy', filters.sortBy);
-    }
+    if (filters?.sortBy) params.append('sortBy', filters.sortBy);
     
     const response = await fetch(`/api/services/search?${params.toString()}`);
     if (!response.ok) throw new Error('Failed to search services');
@@ -713,6 +606,9 @@ export async function getFeaturedServices() {
   }
 }
 
+
+// ============ Formatting helpers ============
+
 /**
  * Format salon data for chat display
  */
@@ -723,11 +619,11 @@ export function formatSalonForChat(salon: any) {
     description: salon.description || 'No description available',
     address: salon.address || `${salon.city}, ${salon.province}`,
     rating: salon.avgRating || 'No rating yet',
-    reviewCount: salon.reviews?.length || 0,
+    reviewCount: salon.reviews?.length || salon.reviewCount || 0,
     services: salon.services || [],
     operatingHours: salon.operatingHours || {},
     phone: salon.phoneNumber,
-    email: salon.email,
+    email: salon.contactEmail,
     offersMobile: salon.offersMobile || false
   };
 }
@@ -738,11 +634,13 @@ export function formatSalonForChat(salon: any) {
 export function formatServicesForChat(services: any[]) {
   return services.map(service => ({
     id: service.id,
-    name: service.name,
+    name: service.title || service.name,
     description: service.description || 'No description',
     price: service.price ? `R${service.price}` : 'Price on request',
-    duration: service.duration || 'Duration varies',
-    category: service.category || 'General'
+    duration: service.duration ? `${service.duration} min` : 'Duration varies',
+    category: service.category?.name || service.category || 'General',
+    salonId: service.salonId,
+    salonName: service.salon?.name
   }));
 }
 
@@ -770,5 +668,5 @@ export function getContextualActions(context: {
     actions.push('Compare prices', 'View details');
   }
 
-  return actions.slice(0, 4); // Max 4 actions
+  return actions.slice(0, 4);
 }
