@@ -740,6 +740,43 @@ export class SalonsService {
       );
     }
 
+    // Night shift filter - salons open after 6pm (18:00)
+    if (sortBy === 'night_shift') {
+      salons = salons.filter((s: any) => {
+        const hours = s.operatingHours;
+        if (!hours) return false;
+        
+        // Check if any day has closing time >= 18:00
+        const hasNightHours = (hoursData: any): boolean => {
+          if (Array.isArray(hoursData)) {
+            return hoursData.some((day: any) => {
+              const closeTime = day?.close;
+              if (!closeTime) return false;
+              const [hour] = closeTime.split(':').map(Number);
+              return hour >= 18; // Open until 6pm or later
+            });
+          }
+          if (typeof hoursData === 'object') {
+            return Object.values(hoursData).some((time: any) => {
+              if (typeof time === 'string') {
+                // Format: "09:00 - 21:00"
+                const parts = time.split('-');
+                if (parts.length >= 2) {
+                  const closeTime = parts[1].trim();
+                  const [hour] = closeTime.split(':').map(Number);
+                  return hour >= 18;
+                }
+              }
+              return false;
+            });
+          }
+          return false;
+        };
+        
+        return hasNightHours(hours);
+      });
+    }
+
     return salons;
   }
 

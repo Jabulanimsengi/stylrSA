@@ -1,7 +1,7 @@
 // frontend/src/context/SocketContext.tsx
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +22,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [status, setStatus] = useState({ isConnected: false, isRegistered: false });
   const { authStatus, user } = useAuth();
   const userId = user?.id;
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
 
   useEffect(() => {
     if (authStatus === 'loading') {
@@ -34,7 +36,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // Pass userId in query params if authenticated for immediate socket authentication
     const socketOptions: any = { 
       withCredentials: true,
-      query: {}
+      query: {},
+      // Reconnection settings for better resilience
+      reconnection: true,
+      reconnectionAttempts: maxReconnectAttempts,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 10000,
+      timeout: 20000,
+      transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
     };
     
     if (authStatus === 'authenticated' && userId) {
@@ -45,16 +54,37 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     nextSocket.on('connect', () => {
       console.log('Socket connected:', nextSocket.id);
+      reconnectAttempts.current = 0; // Reset on successful connection
       setStatus({ isConnected: true, isRegistered: Boolean(userId) });
       if (userId) nextSocket.emit('register', userId);
     });
 
-    const handleDisconnect = () => {
+    const handleDisconnect = (reason: string) => {
+      console.log('Socket disconnected:', reason);
       setStatus({ isConnected: false, isRegistered: false });
+      // Don't crash - socket.io will auto-reconnect
+    };
+
+    const handleConnectError = (error: Error) => {
+      console.warn('Socket connection error:', error.message);
+      reconnectAttempts.current++;
+      setStatus({ isConnected: false, isRegistered: false });
+      // Silently handle - socket.io will retry automatically
+    };
+
+    const handleReconnectAttempt = (attempt: number) => {
+      console.log(`Socket reconnection attempt ${attempt}/${maxReconnectAttempts}`);
+    };
+
+    const handleReconnectFailed = () => {
+      console.warn('Socket reconnection failed after max attempts');
+      // Don't crash the app - just stay disconnected
     };
 
     nextSocket.on('disconnect', handleDisconnect);
-    nextSocket.on('connect_error', handleDisconnect);
+    nextSocket.on('connect_error', handleConnectError);
+    nextSocket.io.on('reconnect_attempt', handleReconnectAttempt);
+    nextSocket.io.on('reconnect_failed', handleReconnectFailed);
 
     nextSocket.on('newBooking', (data) => {
       toast.info(`New Booking Request: ${data.service.title} from ${data.client.firstName}`);
@@ -69,7 +99,9 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       setStatus({ isConnected: false, isRegistered: false });
       nextSocket.off('disconnect', handleDisconnect);
-      nextSocket.off('connect_error', handleDisconnect);
+      nextSocket.off('connect_error', handleConnectError);
+      nextSocket.io.off('reconnect_attempt', handleReconnectAttempt);
+      nextSocket.io.off('reconnect_failed', handleReconnectFailed);
       nextSocket.disconnect();
     };
     // Reconnect when auth status or userId changes to pass updated credentials

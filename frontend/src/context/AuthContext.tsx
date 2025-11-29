@@ -42,7 +42,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (sessionStatus === 'authenticated' && backendJwt && attachedRef.current !== backendJwt) {
         attachedRef.current = backendJwt;
         try {
-          await fetch('/api/auth/attach', {
+          console.log('[AuthContext] Attaching backend JWT cookie...');
+          const attachRes = await fetch('/api/auth/attach', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -52,10 +53,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             credentials: 'include',
             body: JSON.stringify({ token: backendJwt }),
           });
+          if (attachRes.ok) {
+            console.log('[AuthContext] JWT cookie attached successfully');
+          } else {
+            console.warn('[AuthContext] Failed to attach JWT cookie:', attachRes.status);
+          }
         } catch (attachError) {
-          // Silently fail on attach - it's not critical
-          console.warn('[AuthContext] Failed to attach JWT, continuing...', attachError);
+          console.warn('[AuthContext] Failed to attach JWT:', attachError);
         }
+      } else if (sessionStatus === 'authenticated' && !backendJwt) {
+        console.warn('[AuthContext] NextAuth session exists but no backendJwt - user may need to re-login');
       }
 
       // Primary: cookie-based status check with cache-busting

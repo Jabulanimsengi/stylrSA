@@ -20,17 +20,20 @@ const handler = NextAuth({
       if (account && account.provider === 'google') {
         try {
           // Read role from cookie for Google OAuth
-          const cookieStore = cookies();
+          const cookieStore = await cookies();
           const roleCookie = cookieStore.get('oauth_signup_role');
           const selectedRole = roleCookie?.value || 'CLIENT';
           
           console.log('[NextAuth] OAuth signup - role from cookie:', selectedRole);
-          console.log('[NextAuth] Cookie value:', roleCookie);
 
           // Clear cookie after reading
-          cookieStore.delete('oauth_signup_role');
+          try {
+            cookieStore.delete('oauth_signup_role');
+          } catch {}
 
           const backendOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:5000";
+          console.log('[NextAuth] Calling backend SSO at:', `${backendOrigin}/api/auth/sso`);
+          
           const r = await fetch(`${backendOrigin}/api/auth/sso`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -42,27 +45,38 @@ const handler = NextAuth({
               role: selectedRole,
             })
           });
+          
+          console.log('[NextAuth] Backend SSO response status:', r.status);
+          
           if (r.ok) {
             const data = await r.json();
+            console.log('[NextAuth] Got backend JWT:', data.jwt ? 'Yes' : 'No');
+            console.log('[NextAuth] Got user:', data.user?.id, data.user?.role);
+            
             (token as any).backendJwt = data.jwt;
             (token as any).userId = data.user?.id;
             (token as any).role = data.user?.role;
-            // Attach backend JWT as httpOnly cookie for API rewrites
+            
+            // Try to set cookie directly (may not work in all contexts)
             try {
               const isProduction = process.env.NODE_ENV === 'production';
-              // Don't set domain in development to avoid localhost issues
-              const cookieOptions: any = {
+              cookieStore.set('access_token', String(data.jwt), {
                 httpOnly: true,
                 sameSite: 'lax',
                 secure: isProduction,
                 path: '/',
-                maxAge: 60 * 60 * 24, // 1 day in seconds
-              };
-              cookies().set('access_token', String(data.jwt), cookieOptions);
-            } catch {}
+                maxAge: 60 * 60 * 24,
+              });
+              console.log('[NextAuth] Set access_token cookie');
+            } catch (cookieError) {
+              console.warn('[NextAuth] Could not set cookie directly:', cookieError);
+            }
+          } else {
+            const errorText = await r.text();
+            console.error('[NextAuth] Backend SSO failed:', r.status, errorText);
           }
-        } catch {
-          // ignore
+        } catch (error) {
+          console.error('[NextAuth] OAuth callback error:', error);
         }
       }
       return token;

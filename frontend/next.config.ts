@@ -67,11 +67,10 @@ const nextConfig: NextConfig = {
     const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://127.0.0.1:5000";
     return {
       beforeFiles: [
-        // Proxy credential REST endpoints to backend while keeping NextAuth handled locally
-        { source: "/api/auth/login", destination: `${apiOrigin}/api/auth/login` },
+        // Auth routes are now handled by frontend API routes in /app/api/auth/
+        // This ensures cookies are properly set on the frontend domain
+        // Only proxy register to backend (login, status, logout have frontend routes)
         { source: "/api/auth/register", destination: `${apiOrigin}/api/auth/register` },
-        { source: "/api/auth/status", destination: `${apiOrigin}/api/auth/status` },
-        { source: "/api/auth/logout", destination: `${apiOrigin}/api/auth/logout` },
       ],
       // ADDED: Rewrite rules for dynamic sitemaps
       afterFiles: [

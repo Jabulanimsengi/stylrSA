@@ -1,0 +1,84 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import styles from './BackendStatus.module.css';
+
+export default function BackendStatus() {
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+
+  // Only show in development
+  if (process.env.NODE_ENV !== 'development') {
+    return null;
+  }
+
+  const checkConnection = async () => {
+    setIsChecking(true);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      
+      const res = await fetch('/api/health', { 
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+      clearTimeout(timeout);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[DevTools] Health check:', res.ok ? 'OK' : `Failed (${res.status})`);
+      }
+      
+      setIsConnected(res.ok);
+    } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[DevTools] Health check error:', error.message);
+      }
+      setIsConnected(false);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    // Delay initial check to let the app settle
+    const initialCheck = setTimeout(checkConnection, 1500);
+    const interval = setInterval(checkConnection, 10000);
+    return () => {
+      clearTimeout(initialCheck);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Don't show if connected, still checking initial, or dismissed
+  if (isConnected === null || isConnected || dismissed) {
+    return null;
+  }
+
+  return (
+    <div className={styles.banner}>
+      <div className={styles.content}>
+        <span className={styles.icon}>⚠️</span>
+        <div className={styles.text}>
+          <strong>Backend not connected</strong>
+          <span>Some features may not work. Start the backend server to enable full functionality.</span>
+        </div>
+        <div className={styles.actions}>
+          <button 
+            onClick={checkConnection} 
+            disabled={isChecking}
+            className={styles.retryBtn}
+          >
+            {isChecking ? 'Checking...' : 'Retry'}
+          </button>
+          <button 
+            onClick={() => setDismissed(true)}
+            className={styles.dismissBtn}
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -5,7 +5,7 @@ import { UpdateAvailabilityDto } from './dto/update-availability.dto';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 
-@Controller('availability')
+@Controller('api/availability')
 export class AvailabilityController {
   constructor(private readonly availabilityService: AvailabilityService) {}
 

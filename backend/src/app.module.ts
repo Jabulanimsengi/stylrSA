@@ -35,6 +35,8 @@ import { BlogsModule } from './blogs/blogs.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { SeoModule } from './seo/seo.module';
 import { CandidatesModule } from './candidates/candidates.module';
+import { TeamMembersModule } from './team-members/team-members.module';
+import { JobPostingsModule } from './job-postings/job-postings.module';
 
 @Module({
   imports: [
@@ -88,6 +90,8 @@ import { CandidatesModule } from './candidates/candidates.module';
     AvailabilityModule,
     SeoModule,
     CandidatesModule,
+    TeamMembersModule,
+    JobPostingsModule,
   ],
   controllers: [AppController],
   providers: [

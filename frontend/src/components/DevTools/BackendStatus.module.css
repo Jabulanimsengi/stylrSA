@@ -1,0 +1,100 @@
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  z-index: 10000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.retryBtn,
+.dismissBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retryBtn {
+  background: white;
+  color: #dc2626;
+  border: none;
+}
+
+.retryBtn:hover {
+  background: #f3f4f6;
+}
+
+.retryBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dismissBtn {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dismissBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 640px) {
+  .content {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+  
+  .text {
+    flex-basis: calc(100% - 40px);
+  }
+  
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+}

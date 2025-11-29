@@ -238,6 +238,26 @@ export default function CreateSalonPage() {
     } else if (authStatus === 'authenticated' && user?.email) {
       // Pre-fill email from user registration
       setEmail(user.email);
+      
+      // Check if user already has a salon - redirect to dashboard if so
+      const checkExistingSalon = async () => {
+        try {
+          const res = await fetch('/api/salons/my-salon', { credentials: 'include' });
+          if (res.ok) {
+            const salon = await res.json();
+            if (salon && salon.id) {
+              // User already has a salon, redirect to dashboard
+              toast.info('You already have a salon profile. Redirecting to dashboard...');
+              router.push('/dashboard');
+            }
+          }
+        } catch (error) {
+          // Ignore errors - user might not have a salon yet
+          logger.debug('No existing salon found, allowing creation');
+        }
+      };
+      
+      checkExistingSalon();
     }
   }, [authStatus, router, user]);
 

@@ -1,0 +1,466 @@
+.container {
+  margin: 1.5rem 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.addButton:hover {
+  background: var(--color-primary-hover);
+}
+
+.emptyText {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-surface-hover);
+  margin: 0 auto 0.75rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarImage {
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+.info {
+  min-height: 60px;
+}
+
+.name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 0 0 0.25rem;
+}
+
+.role {
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  margin: 0 0 0.25rem;
+  font-weight: 500;
+}
+
+.experience {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.bio {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem;
+  line-height: 1.4;
+}
+
+.specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.specialty {
+  font-size: 0.65rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  padding: 0.15rem 0.4rem;
+  border-radius: 10px;
+}
+
+.actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.editBtn,
+.deleteBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.editBtn {
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+}
+
+.editBtn:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.deleteBtn {
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+}
+
+.deleteBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.modal {
+  background: var(--color-surface-elevated, #ffffff);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 450px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  margin: auto;
+  animation: modalSlideIn 0.25s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modalTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: var(--color-text-strong);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.formGroup label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.formGroup input,
+.formGroup textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.cancelBtn,
+.submitBtn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.cancelBtn:hover {
+  background: var(--color-surface-hover);
+}
+
+.submitBtn {
+  background: var(--color-primary);
+  border: none;
+  color: white;
+}
+
+.submitBtn:hover {
+  background: var(--color-primary-hover);
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  
+  .card {
+    padding: 0.75rem;
+  }
+  
+  .avatar {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .name {
+    font-size: 0.85rem;
+  }
+  
+  .role {
+    font-size: 0.7rem;
+  }
+}
+
+
+/* Image Upload Section */
+.imageUploadSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.imageUploadPreview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--color-surface-hover, #f3f4f6);
+  border: 2px dashed var(--color-border, #e5e7eb);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.imageUploadPreview:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft, rgba(245, 25, 87, 0.05));
+}
+
+.previewImage {
+  object-fit: cover;
+}
+
+.uploadPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.uploadPlaceholder svg {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+.uploadingOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.7rem;
+  border-radius: 50%;
+}
+
+.imageHint {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Mobile modal adjustments */
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding: 0.5rem;
+  }
+  
+  .modal {
+    max-height: 90vh;
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  
+  .modalTitle {
+    font-size: 1rem;
+  }
+  
+  .imageUploadPreview {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+
+/* Close button */
+.closeButton {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-surface-hover, #f3f4f6);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.closeButton:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Loading skeleton */
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.loadingCard {
+  height: 180px;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-hover, #f3f4f6) 25%,
+    var(--color-surface, #e5e7eb) 50%,
+    var(--color-surface-hover, #f3f4f6) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 10px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Disabled button state */
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

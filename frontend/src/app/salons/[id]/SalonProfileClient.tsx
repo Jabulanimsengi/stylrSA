@@ -40,6 +40,7 @@ import TrustBadges from '@/components/TrustBadges/TrustBadges';
 import SocialShare from '@/components/SocialShare/SocialShare';
 import VerificationBadge from '@/components/VerificationBadge/VerificationBadge';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import TeamMembers from '@/components/TeamMembers/TeamMembers';
 
 type Props = {
   initialSalon: Salon | null;
@@ -112,17 +113,27 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
       };
     }
 
-    const loadSalon = async () => {
+    const loadSalon = async (retryCount = 0) => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/salons/${salonId}`);
-        if (!res.ok) throw new Error('Failed to load salon');
+        const res = await fetch(`/api/salons/${salonId}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        });
+        if (!res.ok) {
+          throw new Error(`Failed to load salon: ${res.status}`);
+        }
         const data: Salon = await res.json();
         applySalon(data);
       } catch (error) {
         logger.error('Failed to load salon', error);
+        // Retry once after a short delay (backend might be waking up)
+        if (retryCount < 1 && isActive) {
+          setTimeout(() => loadSalon(retryCount + 1), 1500);
+          return;
+        }
         if (isActive) {
-          toast.error(toFriendlyMessage(error, 'Unable to load salon details right now.'));
+          toast.error(toFriendlyMessage(error, 'Unable to load salon details. Please refresh the page.'));
           applySalon(null);
         }
       }
@@ -799,23 +810,6 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 </section>
               )}
 
-              {/* Calendar Schedule Section */}
-              {services.length > 0 && (
-                <CalendarSchedule
-                  salon={salon}
-                  services={services}
-                  onServiceSelect={(service) => {
-                    setSelectedService(service);
-                  }}
-                  onSlotSelect={(slot) => {
-                    // When a slot is selected, open booking modal with that service
-                    if (selectedService) {
-                      setSelectedService(selectedService);
-                    }
-                  }}
-                />
-              )}
-
               <section id="services-section">
                 <h2 className={styles.sectionTitle}>Services</h2>
                 <div className={styles.servicesGrid}>
@@ -840,21 +834,65 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 />
               </section>
 
+              {/* Calendar & Availability Section - After Services */}
+              {services.length > 0 && (
+                <section id="booking-section">
+                  <h2 className={styles.sectionTitle}>Book an Appointment</h2>
+                  <div className={styles.bookingRow}>
+                    <CalendarSchedule
+                      salon={salon}
+                      services={services}
+                      onServiceSelect={(service) => {
+                        setSelectedService(service);
+                      }}
+                      onSlotSelect={(slot) => {
+                        // When a slot is selected, open booking modal with that service
+                        if (selectedService) {
+                          setSelectedService(selectedService);
+                        }
+                      }}
+                    />
+                    <div className={styles.availabilityBox}>
+                      <div className={styles.availabilityBoxHeader}>
+                        <FaClock />
+                        <h3>Operating Hours</h3>
+                      </div>
+                      {hoursRecord && orderedOperatingDays.length > 0 ? (
+                        <ul className={styles.availabilityList}>
+                          {orderedOperatingDays.map(day => (
+                            <li key={day} className={day === todayLabel ? styles.todayRow : ''}>
+                              <span className={styles.dayName}>{day}</span>
+                              <span className={styles.dayHours}>{hoursRecord[day]}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className={styles.noHours}>Operating hours not listed.</p>
+                      )}
+                      <div className={styles.availabilityStatus}>
+                        <span className={`${styles.statusDot} ${salon.isAvailableNow ? styles.open : styles.closed}`} />
+                        <span>{salon.isAvailableNow ? 'Open Now' : 'Currently Closed'}</span>
+                      </div>
+                      {salon.bookingType && (
+                        <p className={styles.bookingTypeInfo}>
+                          {salon.bookingType === 'MOBILE' && '📍 Mobile visits available'}
+                          {salon.bookingType === 'BOTH' && '📍 On-site & mobile visits'}
+                          {salon.bookingType === 'ONSITE' && '📍 On-site appointments'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Team Members Section */}
+              <section id="team-section">
+                <TeamMembers salonId={salon.id} isEditable={false} />
+              </section>
+
               <section>
                 <h2 className={styles.sectionTitle}>Details</h2>
 
-                <Accordion title="Operating Hours">
-                  {hoursRecord && orderedOperatingDays.length > 0 ? (
-                    <ul>
-                      {orderedOperatingDays.map(day => (
-                        <li key={day}>
-                          <span>{day}</span>
-                          <strong>{hoursRecord[day]}</strong>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : <p>Operating hours not listed.</p>}
-                </Accordion>
                 <Accordion title="Service Type">
                   <p>{formatBookingType(salon.bookingType || 'ONSITE')}</p>
                   {salon.offersMobile && salon.mobileFee && (

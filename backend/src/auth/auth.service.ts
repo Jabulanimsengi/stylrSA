@@ -223,7 +223,6 @@ export class AuthService {
       },
     });
 
-    const salon = user.salons && user.salons.length > 0 ? user.salons[0] : null;
     const accessToken = await this.signToken(user.id, user.email, user.role);
 
     return {
@@ -232,7 +231,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        salonId: salon?.id,
+        salonId: user.salons?.id || null,
         emailVerified: user.emailVerified,
       },
     };

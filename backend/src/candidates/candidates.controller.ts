@@ -8,7 +8,7 @@ import { UserRole } from '@prisma/client';
 import { Roles } from '../auth/guard/roles.decorator';
 import { RolesGuard } from '../auth/guard/roles.guard';
 
-@Controller('candidates')
+@Controller('api/candidates')
 export class CandidatesController {
     constructor(private readonly candidatesService: CandidatesService) { }
 

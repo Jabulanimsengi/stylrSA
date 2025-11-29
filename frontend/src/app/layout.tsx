@@ -30,7 +30,8 @@ import { Suspense } from 'react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import SkipToContent from '@/components/SkipToContent/SkipToContent';
-import BackToTop from '@/components/BackToTop';
+import DevTools from '@/components/DevTools/DevTools';
+import BackendStatus from '@/components/DevTools/BackendStatus';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -128,6 +129,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
+        <BackendStatus />
         <Suspense fallback={null}>
           <ClientInit />
         </Suspense>
@@ -154,7 +156,6 @@ export default function RootLayout({
                       </div>
                       <ClientChatWidget />
                       <ClientAISalonFinder />
-                      <BackToTop />
                       <Suspense fallback={null}>
                         <ToasterClient />
                       </Suspense>
@@ -166,6 +167,7 @@ export default function RootLayout({
                       <VercelAnalytics />
                       <SpeedInsights />
                       <PWAInstallPrompt />
+                      <DevTools />
                     </NavigationLoadingProvider>
                   </AuthModalProvider>
                 </SocketProvider>

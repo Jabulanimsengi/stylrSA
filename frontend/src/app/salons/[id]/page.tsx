@@ -13,7 +13,7 @@ const buildApiUrl = (base: string | undefined, path: string) => {
   return `${normalizedBase}${normalizedPath}`;
 };
 
-const fetchSalonWithTimeout = async (url: string, timeoutMs = 10000): Promise<Salon | null> => {
+const fetchSalonWithTimeout = async (url: string, timeoutMs = 5000): Promise<Salon | null> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -21,11 +21,20 @@ const fetchSalonWithTimeout = async (url: string, timeoutMs = 10000): Promise<Sa
     // SSR: Always fetch fresh data, no caching for real-time availability
     const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
     if (!res.ok) {
+      console.warn(`[fetchSalon] Response not OK: ${res.status} from ${url}`);
       return null;
     }
     const data: Salon = await res.json();
     return data;
-  } catch (error) {
+  } catch (error: any) {
+    // Log specific error for debugging
+    if (error.name === 'AbortError') {
+      console.warn(`[fetchSalon] Request timed out after ${timeoutMs}ms: ${url}`);
+    } else if (error.code === 'ECONNREFUSED') {
+      console.warn(`[fetchSalon] Backend not running at: ${url}`);
+    } else {
+      console.warn(`[fetchSalon] Fetch error: ${error.message}`);
+    }
     return null;
   } finally {
     clearTimeout(timeout);

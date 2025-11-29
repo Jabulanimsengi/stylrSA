@@ -296,7 +296,7 @@ export default function FilterBar({
     }
   }, [isSearching]);
 
-  const handleQuickFilter = (filterType: 'openNow' | 'nearMe' | 'topRated' | 'mobile') => {
+  const handleQuickFilter = (filterType: 'openNow' | 'nearMe' | 'topRated' | 'mobile' | 'nightShift') => {
     const filters = buildFilters();
 
     switch (filterType) {
@@ -308,12 +308,17 @@ export default function FilterBar({
         handleFindNearby();
         return;
       case 'topRated':
-        filters.sortBy = 'top_rated';
-        setSortBy('top_rated');
+        filters.sortBy = sortBy === 'top_rated' ? '' : 'top_rated';
+        setSortBy(sortBy === 'top_rated' ? '' : 'top_rated');
         break;
       case 'mobile':
         filters.offersMobile = !offersMobile;
         setOffersMobile(!offersMobile);
+        break;
+      case 'nightShift':
+        // Night shift filter - salons open after 6pm
+        filters.sortBy = sortBy === 'night_shift' ? '' : 'night_shift';
+        setSortBy(sortBy === 'night_shift' ? '' : 'night_shift');
         break;
     }
 
@@ -352,6 +357,13 @@ export default function FilterBar({
           className={`${styles.quickFilterBtn} ${offersMobile ? styles.active : ''}`}
         >
           <FaBolt /> Mobile Services
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickFilter('nightShift')}
+          className={`${styles.quickFilterBtn} ${sortBy === 'night_shift' ? styles.active : ''}`}
+        >
+          🌙 Night Shift
         </button>
       </div>
 

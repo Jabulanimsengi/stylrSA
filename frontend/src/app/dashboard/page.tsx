@@ -44,6 +44,9 @@ import MyBeforeAfter from '@/components/MyBeforeAfter/MyBeforeAfter';
 import VideoUpload from '@/components/VideoUpload/VideoUpload';
 import MyVideos from '@/components/MyVideos/MyVideos';
 import AvailabilityManager from '@/components/AvailabilityManager/AvailabilityManager';
+import OnboardingGuide from '@/components/OnboardingGuide/OnboardingGuide';
+import JobPostingForm from '@/components/JobPostingForm/JobPostingForm';
+import TeamMembers from '@/components/TeamMembers/TeamMembers';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
@@ -89,7 +92,7 @@ function DashboardPageContent() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'service' | 'product' | 'promotion' | 'gallery' } | null>(null);
 
   const [activeBookingTab, setActiveBookingTab] = useState<'pending' | 'confirmed' | 'past'>('pending');
-  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'before-after' | 'videos' | 'booking-settings' | 'availability'>('bookings');
+  const [activeMainTab, setActiveMainTab] = useState<'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'before-after' | 'videos' | 'booking-settings' | 'availability' | 'team' | 'jobs'>('bookings');
   const [selectedServiceForPromo, setSelectedServiceForPromo] = useState<Service | null>(null);
   const [isCreatePromoModalOpen, setIsCreatePromoModalOpen] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
@@ -106,7 +109,7 @@ function DashboardPageContent() {
   const searchParams = useSearchParams();
   const socket = useSocket();
 
-  const { authStatus, user } = useAuth();
+  const { authStatus, user, logout } = useAuth();
 
   const ownerId = user?.role === 'ADMIN' ? searchParams.get('ownerId') : user?.id;
 
@@ -152,17 +155,35 @@ function DashboardPageContent() {
     }
     setIsLoading(true);
     try {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] Fetching salon data for ownerId:', ownerId);
+      }
+      
       const salonRes = await fetch(`/api/salons/my-salon?ownerId=${ownerId}`, { credentials: 'include', cache: 'no-store' as any });
-      if (salonRes.status === 401) { router.push('/'); return; }
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] Salon response status:', salonRes.status);
+      }
+      
+      if (salonRes.status === 401) { 
+        console.warn('[Dashboard] 401 Unauthorized - session may have expired');
+        toast.error('Session expired. Please log in again.');
+        router.push('/'); 
+        return; 
+      }
       if (salonRes.status === 404) { setSalon(null); setIsLoading(false); return; }
-      if (!salonRes.ok) throw new Error('Could not fetch salon data.');
+      if (!salonRes.ok) throw new Error(`Could not fetch salon data. Status: ${salonRes.status}`);
 
       // Parse JSON with proper error handling
       let salonData;
       try {
         const text = await salonRes.text();
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Dashboard] Salon response body:', text?.substring(0, 200));
+        }
         if (!text || text.trim() === '') {
           // Empty response means no salon exists
+          console.log('[Dashboard] Empty response - no salon found');
           setSalon(null);
           setIsLoading(false);
           return;
@@ -170,7 +191,7 @@ function DashboardPageContent() {
         salonData = JSON.parse(text);
       } catch (jsonError) {
         logger.error('Failed to parse salon data:', jsonError);
-        toast.error('You must create a salon profile to view the salon dashboard.');
+        toast.error('Failed to load salon data. Please try refreshing the page.');
         setSalon(null);
         setIsLoading(false);
         return;
@@ -241,12 +262,24 @@ function DashboardPageContent() {
   }, [ownerId, router]);
 
   useEffect(() => {
+    // Debug logging for development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Dashboard] Auth state:', { authStatus, userId: user?.id, ownerId, userRole: user?.role });
+    }
+    
     if (authStatus === 'loading') { setIsLoading(true); return; }
     if (authStatus === 'unauthenticated') { router.push('/'); return; }
     if (authStatus === 'authenticated' && ownerId) {
       fetchDashboardData();
+    } else if (authStatus === 'authenticated' && !ownerId) {
+      // User is authenticated but no ownerId - this shouldn't happen for salon owners
+      console.warn('[Dashboard] Authenticated but no ownerId. User:', user);
+      if (user?.role === 'SALON_OWNER') {
+        toast.error('Unable to load your profile. Please try logging out and back in.');
+      }
+      setIsLoading(false);
     }
-  }, [authStatus, ownerId, fetchDashboardData, router]);
+  }, [authStatus, ownerId, fetchDashboardData, router, user]);
 
   // Handle tab query parameter
   useEffect(() => {
@@ -560,12 +593,38 @@ function DashboardPageContent() {
   }
 
   if (!salon) {
+    const handleReauthenticate = async () => {
+      try {
+        // Clear current session
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        logout();
+        // Redirect to home with login modal
+        router.push('/?auth=login&redirect=/dashboard');
+      } catch {
+        router.push('/?auth=login&redirect=/dashboard');
+      }
+    };
+
     return (
       <div className={styles.welcomeContainer}>
         <div className={styles.welcomeCard}>
           <h2>Welcome, Service Provider!</h2>
           <p>Create your salon profile to start adding services and accepting bookings.</p>
-          <Link href="/create-salon" className="btn btn-primary">Create Your Salon Profile</Link>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link href="/create-salon" className="btn btn-primary">Create Your Salon Profile</Link>
+          </div>
+          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
+              Already have a salon? Your session may have expired.
+            </p>
+            <button 
+              onClick={handleReauthenticate}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.875rem' }}
+            >
+              Re-authenticate
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -771,9 +830,9 @@ function DashboardPageContent() {
           ]}
         />
       )}
-      {isCreatePromoModalOpen && selectedServiceForPromo && (
+      {isCreatePromoModalOpen && selectedServiceForPromo && selectedServiceForPromo.title && (
         <CreatePromotionModal
-          service={selectedServiceForPromo}
+          service={selectedServiceForPromo as any}
           isOpen={isCreatePromoModalOpen}
           onClose={() => {
             setIsCreatePromoModalOpen(false);
@@ -853,6 +912,14 @@ function DashboardPageContent() {
           </div>
         </header>
 
+        {/* Onboarding Guide for new salon owners */}
+        <OnboardingGuide
+          salonId={salon?.id}
+          hasServices={services.length > 0}
+          hasGallery={galleryImages.length > 0}
+          hasOperatingHours={Boolean(salon?.operatingHours && typeof salon.operatingHours === 'object')}
+        />
+
         <div className={styles.mainTabs}>
           <button
             onClick={() => setActiveMainTab('bookings')}
@@ -908,6 +975,18 @@ function DashboardPageContent() {
           >
             Availability
           </button>
+          <button
+            onClick={() => setActiveMainTab('team')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'team' ? styles.activeMainTab : ''}`}
+          >
+            Team
+          </button>
+          <button
+            onClick={() => setActiveMainTab('jobs')}
+            className={`${styles.mainTabButton} ${activeMainTab === 'jobs' ? styles.activeMainTab : ''}`}
+          >
+            Jobs
+          </button>
         </div>
 
         {activeMainTab === 'reviews' && <ReviewsTab />}
@@ -948,7 +1027,7 @@ function DashboardPageContent() {
                     <div key={service.id} className={styles.listItem}>
                       <p><strong>{service.title}</strong> - R{service.price.toFixed(2)}</p>
                       <div className={styles.actions}>
-                        <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus)}`}>{service.approvalStatus}</span>
+                        <span className={`${styles.statusBadge} ${getStatusClass(service.approvalStatus || 'PENDING')}`}>{service.approvalStatus}</span>
                         {service.approvalStatus === 'APPROVED' && !hasPromotion && (
                           <button
                             onClick={() => openCreatePromoModal(service)}
@@ -1075,7 +1154,7 @@ function DashboardPageContent() {
               <div className={styles.contentCard}>
                 <BeforeAfterUpload
                   salonId={salon.id}
-                  services={services}
+                  services={services as any}
                   onUploadComplete={fetchDashboardData}
                 />
               </div>
@@ -1092,8 +1171,8 @@ function DashboardPageContent() {
               <div className={styles.contentCard}>
                 <VideoUpload
                   salonId={salon.id}
-                  services={services}
-                  planCode={salon.planCode}
+                  services={services as any}
+                  planCode={salon.planCode ?? null}
                   onUploadComplete={fetchDashboardData}
                 />
               </div>
@@ -1294,7 +1373,9 @@ function DashboardPageContent() {
                           gap: '0.75rem',
                         }}>
                           {salon.operatingDays?.map((day: string) => {
-                            const schedule = salon.operatingHours.find((h: any) => h.day === day);
+                            const schedule = Array.isArray(salon.operatingHours) 
+                              ? salon.operatingHours.find((h: any) => h.day === day)
+                              : null;
                             return (
                               <div key={day} style={{
                                 display: 'flex',
@@ -1422,6 +1503,30 @@ function DashboardPageContent() {
             <div className={styles.contentGrid}>
               <div className={styles.contentCard} style={{ gridColumn: '1 / -1' }}>
                 <AvailabilityManager salonId={salon.id} />
+              </div>
+            </div>
+          )
+        }
+
+        {
+          activeMainTab === 'team' && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard} style={{ gridColumn: '1 / -1' }}>
+                <TeamMembers salonId={salon.id} isEditable={true} />
+              </div>
+            </div>
+          )
+        }
+
+        {
+          activeMainTab === 'jobs' && (
+            <div className={styles.contentGrid}>
+              <div className={styles.contentCard} style={{ gridColumn: '1 / -1' }}>
+                <JobPostingForm
+                  salonId={salon.id}
+                  salonName={salon.name}
+                  salonLocation={`${salon.city}, ${salon.province}`}
+                />
               </div>
             </div>
           )
