@@ -23,12 +23,21 @@ interface ApiLog {
   error?: string;
 }
 
+interface SeoStats {
+  totalUrls: number;
+  totalSitemaps: number;
+  cachedUrls: number;
+  lastGenerated: string | null;
+  keywords?: number;
+  locations?: number;
+}
+
 const MAX_LOGS = 50;
 const POSITION_KEY = 'devtools-position';
 
 export default function DevTools() {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'health' | 'logs' | 'env'>('health');
+  const [activeTab, setActiveTab] = useState<'health' | 'logs' | 'env' | 'seo'>('health');
   const [health, setHealth] = useState<HealthStatus>({
     backend: 'checking',
     database: 'checking',
@@ -38,6 +47,8 @@ export default function DevTools() {
   });
   const [apiLogs, setApiLogs] = useState<ApiLog[]>([]);
   const [isChecking, setIsChecking] = useState(false);
+  const [seoStats, setSeoStats] = useState<SeoStats | null>(null);
+  const [isSeoLoading, setIsSeoLoading] = useState(false);
   
   // Drag state
   const [position, setPosition] = useState({ x: 20, y: 80 });
@@ -88,8 +99,11 @@ export default function DevTools() {
       const deltaX = e.clientX - dragRef.current.startX;
       const deltaY = e.clientY - dragRef.current.startY;
       
-      const newX = Math.max(10, Math.min(window.innerWidth - 50, dragRef.current.startPosX + deltaX));
-      const newY = Math.max(10, Math.min(window.innerHeight - 50, dragRef.current.startPosY + deltaY));
+      // Since we use 'right' and 'bottom' positioning, we need to SUBTRACT the delta
+      // Dragging left (negative deltaX) should decrease 'right' value (move element left)
+      // Dragging up (negative deltaY) should decrease 'bottom' value (move element up)
+      const newX = Math.max(10, Math.min(window.innerWidth - 50, dragRef.current.startPosX - deltaX));
+      const newY = Math.max(10, Math.min(window.innerHeight - 50, dragRef.current.startPosY - deltaY));
       
       setPosition({ x: newX, y: newY });
     };
@@ -164,6 +178,40 @@ export default function DevTools() {
       clearInterval(interval);
     };
   }, [checkHealth]);
+
+  // Fetch SEO stats
+  const fetchSeoStats = useCallback(async () => {
+    if (isSeoLoading) return; // Prevent duplicate calls
+    setIsSeoLoading(true);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      
+      const res = await fetch('/api/seo/sitemap-stats', { 
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      
+      if (res.ok) {
+        const data = await res.json();
+        setSeoStats(data);
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Failed to fetch SEO stats:', error);
+      }
+    } finally {
+      setIsSeoLoading(false);
+    }
+  }, [isSeoLoading]);
+
+  // Load SEO stats when tab is opened (only once)
+  useEffect(() => {
+    if (activeTab === 'seo' && !seoStats && !isSeoLoading) {
+      fetchSeoStats();
+    }
+  }, [activeTab]); // Removed dependencies to prevent re-fetching
 
   // Intercept fetch for logging
   useEffect(() => {
@@ -302,6 +350,12 @@ export default function DevTools() {
               Logs ({apiLogs.length})
             </button>
             <button 
+              onClick={() => setActiveTab('seo')}
+              className={activeTab === 'seo' ? styles.activeTab : ''}
+            >
+              SEO
+            </button>
+            <button 
               onClick={() => setActiveTab('env')}
               className={activeTab === 'env' ? styles.activeTab : ''}
             >
@@ -408,6 +462,65 @@ export default function DevTools() {
                     Clear
                   </button>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'seo' && (
+              <div className={styles.seoTab}>
+                {isSeoLoading ? (
+                  <p className={styles.emptyLogs}>Loading SEO stats...</p>
+                ) : seoStats ? (
+                  <>
+                    <div className={styles.seoHeader}>
+                      <span>📊 Sitemap Statistics</span>
+                    </div>
+                    <div className={styles.seoGrid}>
+                      <div className={styles.seoCard}>
+                        <span className={styles.seoValue}>{seoStats.totalUrls.toLocaleString()}</span>
+                        <span className={styles.seoLabel}>Total URLs</span>
+                      </div>
+                      <div className={styles.seoCard}>
+                        <span className={styles.seoValue}>{seoStats.totalSitemaps}</span>
+                        <span className={styles.seoLabel}>Sitemaps</span>
+                      </div>
+                      <div className={styles.seoCard}>
+                        <span className={styles.seoValue}>{seoStats.cachedUrls.toLocaleString()}</span>
+                        <span className={styles.seoLabel}>Cached Pages</span>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.seoInfo}>
+                      <div className={styles.seoInfoItem}>
+                        <span>Last Generated</span>
+                        <span>{seoStats.lastGenerated ? new Date(seoStats.lastGenerated).toLocaleString() : 'Never'}</span>
+                      </div>
+                      <div className={styles.seoInfoItem}>
+                        <span>URLs per Sitemap</span>
+                        <span>50,000 max</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.seoLinks}>
+                      <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className={styles.seoLink}>
+                        📄 View Sitemap Index
+                      </a>
+                      <a href="/api/seo/sitemap-stats" target="_blank" rel="noopener noreferrer" className={styles.seoLink}>
+                        📈 Raw Stats API
+                      </a>
+                    </div>
+
+                    <div className={styles.actions}>
+                      <button onClick={fetchSeoStats} className={styles.refreshBtn}>
+                        Refresh Stats
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.helpBox}>
+                    <strong>SEO stats unavailable</strong>
+                    <p>Make sure the backend is running and the SEO module is configured.</p>
+                  </div>
+                )}
               </div>
             )}
 

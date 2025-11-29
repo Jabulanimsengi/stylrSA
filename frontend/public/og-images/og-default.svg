@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f51957;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B4513;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="1050" cy="150" r="250" fill="#f51957" opacity="0.08"/>
+  <circle cx="150" cy="480" r="200" fill="#8B4513" opacity="0.08"/>
+  
+  <!-- Accent bar -->
+  <rect x="0" y="0" width="8" height="630" fill="url(#accent)"/>
+  
+  <!-- Logo -->
+  <text x="600" y="200" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="#f51957">
+    Stylr SA
+  </text>
+  
+  <!-- Tagline -->
+  <text x="600" y="300" font-family="Arial, sans-serif" font-size="36" text-anchor="middle" fill="#ffffff">
+    South Africa's Beauty Booking Platform
+  </text>
+  
+  <!-- Features -->
+  <text x="600" y="400" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#aaaaaa">
+    ✓ Hair Salons  ✓ Nail Techs  ✓ Makeup Artists  ✓ Spas  ✓ Barbers
+  </text>
+  
+  <!-- CTA -->
+  <rect x="400" y="460" width="400" height="70" rx="35" fill="url(#accent)"/>
+  <text x="600" y="505" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#ffffff">
+    Book Your Appointment
+  </text>
+  
+  <!-- Bottom bar -->
+  <rect x="0" y="610" width="1200" height="20" fill="url(#accent)"/>
+  
+  <!-- Website -->
+  <text x="1140" y="590" font-family="Arial, sans-serif" font-size="20" text-anchor="end" fill="#888888">
+    stylrsa.co.za
+  </text>
+</svg>

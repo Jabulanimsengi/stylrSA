@@ -943,7 +943,7 @@ export class SalonsService {
       },
       orderBy: [
         { avgRating: 'desc' },
-        { reviewCount: 'desc' },
+        { viewCount: 'desc' },
         { visibilityWeight: 'desc' }
       ],
       take: 12

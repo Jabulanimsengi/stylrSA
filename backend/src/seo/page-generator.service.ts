@@ -153,24 +153,45 @@ export class SEOPageGeneratorService {
 
   /**
    * Generate meta title (max 60 characters)
+   * CTR-optimized with numbers, power words, and urgency
    */
-  generateMetaTitle(keyword: SeoKeyword, location: SeoLocation): string {
-    const locationName = this.getLocationDisplayName(location);
+  generateMetaTitle(keyword: SeoKeyword, location: SeoLocation, serviceCount?: number): string {
+    const cityName = location.type === 'PROVINCE' ? location.name : location.name;
+    const count = serviceCount && serviceCount > 0 ? serviceCount : null;
     
-    // Format: "{keyword} in {location} | Book Online"
-    let title = `${keyword.keyword} in ${locationName} | Book`;
+    // CTR-optimized title templates (rotate based on location hash)
+    const templateIndex = this.hashLocationId(location.id) % 5;
+    
+    const templates = [
+      // Template 1: Number + Location + CTA
+      count && count >= 5 
+        ? `${count}+ Best ${keyword.keyword} in ${cityName} | Book Now`
+        : `Top ${keyword.keyword} in ${cityName} | Book Online`,
+      
+      // Template 2: Superlative + Year
+      `Best ${keyword.keyword} ${cityName} 2025 | Book Today`,
+      
+      // Template 3: Near You + Trust signal
+      `${keyword.keyword} Near You in ${cityName} | Verified Pros`,
+      
+      // Template 4: Price signal
+      `Affordable ${keyword.keyword} in ${cityName} | Compare & Book`,
+      
+      // Template 5: Rating signal
+      `Top-Rated ${keyword.keyword} ${cityName} | ⭐ 4.5+ Stars`,
+    ];
+    
+    let title = templates[templateIndex];
     
     // Ensure it's under 60 characters
     if (title.length > 60) {
-      // Try shorter format: "{keyword} {city} | Book"
-      const cityName = location.type === 'PROVINCE' ? location.name : location.name;
-      title = `${keyword.keyword} ${cityName} | Book`;
+      // Fallback to shorter format
+      title = count && count >= 5
+        ? `${count}+ ${keyword.keyword} in ${cityName} | Book`
+        : `${keyword.keyword} in ${cityName} | Book Now`;
       
-      // If still too long, truncate keyword
       if (title.length > 60) {
-        const maxKeywordLength = 60 - cityName.length - 9; // " | Book" = 7 chars + space
-        const truncatedKeyword = keyword.keyword.substring(0, maxKeywordLength);
-        title = `${truncatedKeyword} ${cityName} | Book`;
+        title = `${keyword.keyword} ${cityName} | Book`;
       }
     }
     
@@ -179,26 +200,47 @@ export class SEOPageGeneratorService {
 
   /**
    * Generate meta description (max 160 characters)
+   * CTR-optimized with social proof, urgency, and clear value props
    */
   generateMetaDescription(
     keyword: SeoKeyword,
     location: SeoLocation,
     count: number,
+    avgPrice?: number,
   ): string {
-    const locationName = this.getLocationDisplayName(location);
+    const cityName = location.type === 'PROVINCE' ? location.name : location.name;
+    const priceText = avgPrice ? `from R${Math.round(avgPrice)}` : '';
+    const countText = count > 0 ? `${count}+` : '';
     
-    // Format: "Find the best {keyword} in {location}. Book appointments online with {count}+ verified professionals. Compare prices & reviews."
-    let description = `Find the best ${keyword.keyword} in ${locationName}. Book appointments online with ${count}+ verified professionals. Compare prices & reviews.`;
+    // CTR-optimized description templates (rotate based on location hash)
+    const templateIndex = this.hashLocationId(location.id) % 5;
+    
+    const templates = [
+      // Template 1: Numbers + Social proof + CTA
+      `Compare ${countText} verified ${keyword.keyword} in ${cityName}. See prices${priceText ? ` ${priceText}` : ''}, read real reviews & book online in 2 mins. ⭐ Trusted by 10K+ customers.`,
+      
+      // Template 2: Urgency + Value
+      `Looking for ${keyword.keyword} in ${cityName}? ${countText} top-rated pros available. Book same-day appointments${priceText ? ` ${priceText}` : ''}. Free cancellation!`,
+      
+      // Template 3: Question + Solution
+      `Need ${keyword.keyword} near ${cityName}? Browse ${countText} verified salons, compare prices & reviews. Book your appointment online today!`,
+      
+      // Template 4: Benefits-focused
+      `${countText} ${keyword.keyword} services in ${cityName}. ✓ Verified pros ✓ Real reviews ✓ Instant booking${priceText ? ` ✓ Prices ${priceText}` : ''}. Book now!`,
+      
+      // Template 5: Local + Trust
+      `Find the best ${keyword.keyword} in ${cityName}. ${countText} local professionals, honest reviews${priceText ? `, prices ${priceText}` : ''}. Book online 24/7!`,
+    ];
+    
+    let description = templates[templateIndex];
     
     // Ensure it's under 160 characters
     if (description.length > 160) {
-      // Try shorter format
-      description = `Book ${keyword.keyword} in ${locationName}. ${count}+ verified professionals. Compare prices, read reviews & book online instantly.`;
+      // Fallback to shorter format
+      description = `${countText} ${keyword.keyword} in ${cityName}. Compare prices, read reviews & book online instantly. Verified professionals!`;
       
-      // If still too long, use minimal format
       if (description.length > 160) {
-        const cityName = location.type === 'PROVINCE' ? location.name : location.name;
-        description = `Book ${keyword.keyword} in ${cityName}. ${count}+ verified pros. Compare & book online.`;
+        description = `Book ${keyword.keyword} in ${cityName}. ${countText} verified pros. Compare & book online today!`;
       }
     }
     
@@ -439,10 +481,15 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
 
   /**
    * Generate Schema.org JSON-LD markup
+   * Enhanced with images for rich results in Google Search
    */
-  generateSchema(page: SEOPageData): SchemaMarkup {
+  generateSchema(page: SEOPageData, featuredImage?: string): SchemaMarkup {
     const baseUrl = process.env.FRONTEND_URL || 'https://www.stylrsa.co.za';
     const fullUrl = `${baseUrl}${page.url}`;
+    
+    // Default OG image or category-specific image
+    const pageImage = featuredImage || `${baseUrl}/og-images/${page.keyword.slug}.jpg`;
+    const fallbackImage = `${baseUrl}/og-default.jpg`;
 
     const schema: SchemaMarkup = {
       '@context': 'https://schema.org',
@@ -458,6 +505,14 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
       logo: {
         '@type': 'ImageObject',
         url: `${baseUrl}/logo.png`,
+        width: 512,
+        height: 512,
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/og-default.jpg`,
+        width: 1200,
+        height: 630,
       },
       sameAs: [
         'https://www.facebook.com/stylrsa',
@@ -496,7 +551,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
       itemListElement: breadcrumbItems,
     });
 
-    // 4. WebPage schema
+    // 4. WebPage schema with primaryImageOfPage
     schema['@graph'].push({
       '@type': 'WebPage',
       '@id': `${fullUrl}#webpage`,
@@ -510,9 +565,51 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
         '@id': `${fullUrl}#breadcrumb`,
       },
       inLanguage: 'en-ZA',
+      primaryImageOfPage: {
+        '@type': 'ImageObject',
+        '@id': `${fullUrl}#primaryimage`,
+        url: pageImage,
+        width: 1200,
+        height: 630,
+        caption: `${page.keyword.keyword} in ${page.location.name}`,
+      },
+      thumbnailUrl: pageImage,
     });
 
-    // 5. ItemList schema for services (if services exist)
+    // 5. Service schema (helps with rich results for service-based searches)
+    schema['@graph'].push({
+      '@type': 'Service',
+      '@id': `${fullUrl}#service`,
+      name: `${page.keyword.keyword} in ${page.location.name}`,
+      description: page.metaDescription,
+      provider: {
+        '@id': `${baseUrl}/#organization`,
+      },
+      areaServed: {
+        '@type': 'Place',
+        name: page.location.name,
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: page.location.name,
+          addressRegion: page.location.province,
+          addressCountry: 'ZA',
+        },
+      },
+      image: pageImage,
+      ...(page.avgPrice && {
+        offers: {
+          '@type': 'Offer',
+          priceSpecification: {
+            '@type': 'PriceSpecification',
+            price: page.avgPrice,
+            priceCurrency: 'ZAR',
+            minPrice: Math.round(page.avgPrice * 0.5),
+          },
+        },
+      }),
+    });
+
+    // 6. ItemList schema for services (if services exist)
     if (page.serviceCount > 0) {
       schema['@graph'].push({
         '@type': 'ItemList',
@@ -520,6 +617,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
         name: `${page.keyword.keyword} in ${page.location.name}`,
         description: `List of ${page.serviceCount} ${page.keyword.keyword} services available in ${page.location.name}`,
         numberOfItems: page.serviceCount,
+        mainEntityOfPage: fullUrl,
         itemListElement: page.relatedServices.slice(0, 5).map((service, index) => ({
           '@type': 'ListItem',
           position: index + 1,
@@ -528,6 +626,40 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
         })),
       });
     }
+
+    // 7. FAQPage schema (helps get FAQ rich results)
+    schema['@graph'].push({
+      '@type': 'FAQPage',
+      '@id': `${fullUrl}#faq`,
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: `How much does ${page.keyword.keyword} cost in ${page.location.name}?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: page.avgPrice 
+              ? `${page.keyword.keyword} in ${page.location.name} typically costs from R${Math.round(page.avgPrice * 0.5)} to R${Math.round(page.avgPrice * 1.5)}, with an average price of R${Math.round(page.avgPrice)}.`
+              : `Prices for ${page.keyword.keyword} in ${page.location.name} vary. Compare ${page.serviceCount}+ services on Stylr SA to find the best rates.`,
+          },
+        },
+        {
+          '@type': 'Question',
+          name: `How do I book ${page.keyword.keyword} in ${page.location.name}?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `You can book ${page.keyword.keyword} in ${page.location.name} online through Stylr SA. Browse ${page.serviceCount}+ verified professionals, compare prices and reviews, then book instantly with just a few clicks.`,
+          },
+        },
+        {
+          '@type': 'Question',
+          name: `Are ${page.keyword.keyword} providers in ${page.location.name} verified?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `Yes! All ${page.keyword.keyword} providers listed on Stylr SA are verified. We check credentials, reviews, and service quality to ensure you get the best experience in ${page.location.name}.`,
+          },
+        },
+      ],
+    });
 
     return schema;
   }
@@ -903,12 +1035,12 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
         this.logger.warn(`Failed to get avg price: ${error.message}`);
       }
 
-      // Generate content
+      // Generate content with CTR-optimized meta tags
       const h1 = this.generateH1(keyword, location);
       const h2Headings = this.generateH2Headings(keyword, location, serviceCount);
       const h3Headings = this.generateH3Headings(keyword, location);
-      const metaTitle = this.generateMetaTitle(keyword, location);
-      const metaDescription = this.generateMetaDescription(keyword, location, serviceCount);
+      const metaTitle = this.generateMetaTitle(keyword, location, serviceCount);
+      const metaDescription = this.generateMetaDescription(keyword, location, serviceCount, avgPrice);
       const introText = this.generateIntroText(keyword, location, serviceCount, salonCount, avgPrice);
 
       // Generate links with fallbacks
