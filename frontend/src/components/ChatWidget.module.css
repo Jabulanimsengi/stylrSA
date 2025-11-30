@@ -11,7 +11,8 @@
   border-radius: 0.75rem;
   box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   overflow: hidden;
-  z-index: 50;
+  /* Higher z-index than AI Salon Finder (100001) to ensure messages are accessible */
+  z-index: 100002;
  }
 
 @media (max-width: 640px) {
@@ -26,7 +27,8 @@
 .launcher {
   position: fixed;
   right: 16px;
-  bottom: 16px;
+  /* Position above AI Salon Finder launcher which is at bottom: 100px */
+  bottom: 160px;
   background: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
@@ -36,7 +38,8 @@
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  z-index: 40;
+  /* Higher z-index than AI Salon Finder launcher (100000) */
+  z-index: 100003;
 }
 .launcher:hover {
   transform: translateY(-2px);
@@ -221,8 +224,9 @@
   .launcher {
     padding: 0.625rem 1.25rem;
     font-size: 0.9rem;
-    bottom: 20px;
-    right: 20px;
+    /* Position above AI Salon Finder on mobile (which is at bottom: 160px) */
+    bottom: 220px;
+    right: 16px;
   }
   .container {
     width: min(340px, 90vw);
@@ -234,7 +238,8 @@
   .launcher {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
-    bottom: 16px;
+    /* Position above AI Salon Finder on small mobile */
+    bottom: 220px;
     right: 16px;
   }
   .container {

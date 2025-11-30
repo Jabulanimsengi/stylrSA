@@ -37,17 +37,25 @@ export default function TimeSlotPicker({
 
       try {
         const dateString = selectedDate.toISOString().split('T')[0];
+        console.log('Fetching availability for:', serviceId, dateString);
+        
+        // Use relative URL to go through Next.js rewrites
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ''}/api/bookings/availability/${serviceId}?date=${dateString}`
+          `/api/bookings/availability/${serviceId}?date=${dateString}`,
+          { credentials: 'include' }
         );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch availability');
+          const errorText = await response.text();
+          console.error('Availability fetch failed:', response.status, errorText);
+          throw new Error(`Failed to fetch availability: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('Availability data received:', data);
         setSlots(data.slots || []);
       } catch (err) {
+        console.error('Error fetching time slots:', err);
         setError('Unable to load available time slots. Please try again.');
         setSlots([]);
       } finally {
