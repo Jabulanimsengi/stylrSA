@@ -155,23 +155,58 @@
 
 .skeletonContainer {
   display: flex;
-  gap: 0.625rem;
-  padding-inline: clamp(0.35rem, 3vw, 0.875rem);
+  gap: 16px;
+  padding: 0 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.skeletonContainer::-webkit-scrollbar {
+  display: none;
 }
 
 .skeletonCard {
   flex: none;
-  width: clamp(140px, 20vw, 180px);
+  /* Match SalonCard compact dimensions */
+  width: calc((100% - 48px) / 4.1);
+  min-width: 220px;
   height: 240px;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm, 0.5rem);
+  background: var(--color-surface-elevated, #fffaf5);
+  border: 1px solid var(--color-border, #cdbfb3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeletonCard::before {
+  content: '';
+  /* Image placeholder - matches .imageWrapper height: 160px */
+  height: 160px;
   background: linear-gradient(
     90deg,
-    rgba(240, 240, 240, 0.8) 0%,
-    rgba(225, 225, 225, 0.9) 50%,
-    rgba(240, 240, 240, 0.8) 100%
+    rgba(200, 200, 200, 0.3) 0%,
+    rgba(180, 180, 180, 0.5) 50%,
+    rgba(200, 200, 200, 0.3) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
+}
+
+.skeletonCard::after {
+  content: '';
+  flex: 1;
+  margin: 0.5rem 0.625rem;
+  background: linear-gradient(
+    90deg,
+    rgba(200, 200, 200, 0.2) 0%,
+    rgba(180, 180, 180, 0.35) 50%,
+    rgba(200, 200, 200, 0.2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 4px;
 }
 
 @keyframes shimmer {
@@ -275,7 +310,46 @@
     margin-bottom: 0.625rem;
   }
 
+  .skeletonContainer {
+    gap: 12px;
+    padding: 0 0.5rem;
+  }
+
   .skeletonCard {
+    /* Match mobile SalonCard compact: height: 200px */
+    width: calc(100% / 1.15 - 12px);
+    min-width: 280px;
     height: 200px;
+  }
+
+  .skeletonCard::before {
+    /* Match mobile .imageWrapper height: 130px */
+    height: 130px;
+  }
+}
+
+@media (max-width: 480px) {
+  .skeletonCard {
+    /* Match small mobile SalonCard compact: height: 180px */
+    min-width: 260px;
+    height: 180px;
+  }
+
+  .skeletonCard::before {
+    /* Match small mobile .imageWrapper height: 115px */
+    height: 115px;
+  }
+}
+
+@media (max-width: 400px) {
+  .skeletonCard {
+    /* Match extra small mobile SalonCard compact: height: 165px */
+    min-width: 240px;
+    height: 165px;
+  }
+
+  .skeletonCard::before {
+    /* Match extra small mobile .imageWrapper height: 105px */
+    height: 105px;
   }
 }

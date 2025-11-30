@@ -78,3 +78,23 @@ export function SkeletonCard({ lines = 3, hasImage = false }: SkeletonCardProps)
     </div>
   );
 }
+
+// Service card skeleton - matches FeaturedServiceCard dimensions
+export function ServiceCardSkeleton() {
+  return <div className={styles.serviceCardSkeleton} aria-hidden />;
+}
+
+// Horizontal row of service card skeletons
+interface ServiceRowSkeletonProps {
+  count?: number;
+}
+
+export function ServiceRowSkeleton({ count = 4 }: ServiceRowSkeletonProps) {
+  return (
+    <div className={styles.skeletonRow} aria-hidden>
+      {Array.from({ length: count }).map((_, idx) => (
+        <ServiceCardSkeleton key={idx} />
+      ))}
+    </div>
+  );
+}

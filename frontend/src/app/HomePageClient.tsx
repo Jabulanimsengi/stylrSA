@@ -10,8 +10,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSocket } from '@/context/SocketContext';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { Service, Trend, TrendCategory } from '@/types';
-import { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
-import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
+import { ServiceRowSkeleton } from '@/components/Skeleton/Skeleton';
 import dynamic from 'next/dynamic';
 import FeaturedSalons from '@/components/FeaturedSalons';
 import FeaturedServicesCategoryRow from '@/components/FeaturedServicesCategoryRow/FeaturedServicesCategoryRow';
@@ -25,10 +24,11 @@ const BeforeAfterSlideshow = dynamic(() => import('@/components/BeforeAfterSlide
   loading: () => <div style={{ height: '300px' }} />,
   ssr: false
 });
-const VideoSlideshow = dynamic(() => import('@/components/VideoSlideshow/VideoSlideshow'), {
-  loading: () => <div style={{ height: '300px' }} />,
-  ssr: false
-});
+// TEMPORARILY DISABLED: VideoSlideshow - will reintroduce once app is stable
+// const VideoSlideshow = dynamic(() => import('@/components/VideoSlideshow/VideoSlideshow'), {
+//   loading: () => <div style={{ height: '300px' }} />,
+//   ssr: false
+// });
 const TrendRow = dynamic(() => import('@/components/TrendRow/TrendRow'), {
   ssr: true
 });
@@ -99,6 +99,16 @@ export default function HomePageClient({
     }
   }, []);
 
+  // Define the specific categories to display in order (excluding "Other Services")
+  const FEATURED_CATEGORIES = [
+    'Braiding & Weaving',
+    'Nail Care',
+    'Makeup & Beauty',
+    'Haircuts & Styling',
+    'Massage & Spa',
+    "Men's Grooming"
+  ];
+
   const groupedServices = useMemo(() => {
     const grouped: Record<string, ServiceWithSalon[]> = {};
 
@@ -109,24 +119,42 @@ export default function HomePageClient({
         service.category ||
         'Other Services';
 
+      // Skip "Other Services" category
+      if (categoryName === 'Other Services' || categoryName === 'Other') {
+        return;
+      }
+
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
       }
       grouped[categoryName].push(service);
     });
 
-    const sorted = Object.entries(grouped)
-      .sort(([, aServices], [, bServices]) => bServices.length - aServices.length)
-      .reduce((acc, [category, categoryServices]) => {
-        acc[category] = categoryServices.sort((a, b) => {
-          const planWeightA = (a.salon as any)?.visibilityWeight || 0;
-          const planWeightB = (b.salon as any)?.visibilityWeight || 0;
-          return planWeightB - planWeightA;
-        });
-        return acc;
-      }, {} as Record<string, ServiceWithSalon[]>);
+    // Sort services within each category by visibility weight
+    Object.keys(grouped).forEach(category => {
+      grouped[category] = grouped[category].sort((a, b) => {
+        const planWeightA = (a.salon as any)?.visibilityWeight || 0;
+        const planWeightB = (b.salon as any)?.visibilityWeight || 0;
+        return planWeightB - planWeightA;
+      });
+    });
 
-    return sorted;
+    // Return categories in the defined order
+    const ordered: Record<string, ServiceWithSalon[]> = {};
+    FEATURED_CATEGORIES.forEach(category => {
+      if (grouped[category] && grouped[category].length > 0) {
+        ordered[category] = grouped[category];
+      }
+    });
+
+    // Add any remaining categories not in the predefined list (but not "Other Services")
+    Object.keys(grouped).forEach(category => {
+      if (!FEATURED_CATEGORIES.includes(category) && !ordered[category]) {
+        ordered[category] = grouped[category];
+      }
+    });
+
+    return ordered;
   }, [services]);
 
   useEffect(() => {
@@ -325,7 +353,8 @@ export default function HomePageClient({
 
       <BeforeAfterSlideshow />
 
-      <VideoSlideshow />
+      {/* TEMPORARILY DISABLED: VideoSlideshow - will reintroduce once app is stable */}
+      {/* <VideoSlideshow /> */}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
@@ -368,9 +397,18 @@ export default function HomePageClient({
             })}
           </div>
         ) : (
-          <SkeletonGroup count={8} className={styles.grid}>
-            {() => <FeaturedServiceCardSkeleton />}
-          </SkeletonGroup>
+          /* Skeleton rows matching FeaturedServicesCategoryRow layout */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem' }}>
+            {FEATURED_CATEGORIES.slice(0, 3).map((category) => (
+              <div key={category}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <div style={{ height: '1rem', width: '120px', background: 'rgba(200,200,200,0.3)', borderRadius: '4px' }} />
+                  <div style={{ height: '0.875rem', width: '60px', background: 'rgba(200,200,200,0.3)', borderRadius: '4px' }} />
+                </div>
+                <ServiceRowSkeleton count={5} />
+              </div>
+            ))}
+          </div>
         )}
 
         <div ref={loader} />

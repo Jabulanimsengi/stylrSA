@@ -55,11 +55,10 @@
   max-width: 100%;
 }
 
-/* Task 5.3: Enhanced scroll container styles */
+/* Horizontal scroll container matching FeaturedSalons/Recommended style */
 .servicesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 0.875rem;
+  display: flex;
+  gap: 16px;
   max-width: 100%;
   width: 100%;
   overflow-x: auto;
@@ -67,11 +66,18 @@
   scroll-behavior: smooth;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  padding: 0.25rem 0;
 }
 
-/* Task 5.3: Hide scrollbar for webkit browsers */
+/* Hide scrollbar for webkit browsers */
 .servicesGrid::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+
+/* Service cards - match SalonCard compact size */
+.servicesGrid > * {
+  flex: 0 0 auto;
+  width: 220px; /* Match SalonCard compact width */
 }
 
 /* Task 5.2: Desktop navigation arrows - circular button styles (44px × 44px) */
@@ -166,35 +172,30 @@
     font-size: 11px;
   }
 
-  /* Task 5.4: Maintain touch scroll behavior, scroll snap, and peek effect */
+  /* Mobile horizontal scroll with peek effect */
   .servicesGrid {
-    grid-template-columns: unset; /* Disable grid for mobile carousel */
     display: flex;
     overflow-x: auto;
-    overflow-y: hidden; /* Task 5.3 */
-    scroll-snap-type: x mandatory; /* Task 5.4: Keep scroll snap functionality */
-    -webkit-overflow-scrolling: touch; /* Task 5.4: Maintain touch scroll behavior */
-    scroll-behavior: smooth; /* Task 5.3 */
-    scrollbar-width: none; /* Task 5.3: Firefox */
-    -ms-overflow-style: none; /* Task 5.3: IE and Edge */
-    padding: 0;
-    gap: 0.5rem;
-    margin-left: -0.35rem; /* Task 5.4: Offset for peek effect */
-    margin-right: -0.35rem;
-    padding-left: 0.35rem;
-    padding-right: 0.35rem;
-    max-width: 100%; /* Task 5.5: Viewport overflow prevention */
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0.25rem 0;
+    gap: 12px;
+    max-width: 100%;
   }
 
-  /* Task 5.3: Hide scrollbar for webkit browsers */
   .servicesGrid::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none;
   }
 
-  /* Task 5.4: Preserve peek effect for next card */
+  /* Mobile card size - match SalonCard compact mobile */
   .servicesGrid > * {
-    flex-shrink: 0;
-    width: calc(80% - 0.5rem); /* One card plus peek */
+    flex: 0 0 auto;
+    width: calc(100% / 1.15 - 12px); /* Show 1.15 cards for peek effect */
+    min-width: 280px;
     scroll-snap-align: start;
   }
 
