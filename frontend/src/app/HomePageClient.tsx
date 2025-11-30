@@ -18,6 +18,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { getCategorySlug } from '@/utils/categorySlug';
+import AdSense from '@/components/AdSense';
 
 // Lazy load below-the-fold components for better LCP
 const BeforeAfterSlideshow = dynamic(() => import('@/components/BeforeAfterSlideshow/BeforeAfterSlideshow'), {
@@ -64,8 +65,8 @@ export default function HomePageClient({
   const [page, setPage] = useState(2); // Start at page 2 since we have page 1
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [isLoading, setIsLoading] = useState(false);
-  // Track if initial data has been loaded (from server or first fetch)
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(initialServices.length > 0);
+  // Track if initial data has been loaded - true if server provided data (even if empty array)
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(true);
   const loader = useRef(null);
   const [trendsData, setTrendsData] = useState<Record<TrendCategory, Trend[]>>(initialTrends);
 
@@ -317,6 +318,9 @@ export default function HomePageClient({
 
       <FeaturedSalons />
 
+      {/* Ad placement 1: After featured salons - user has seen main content */}
+      <AdSense slot="6873445391" format="auto" />
+
       {Object.keys(trendsData).length > 0 && (
         <>
           {trendsData.HAIRSTYLE && trendsData.HAIRSTYLE.length > 0 && (
@@ -367,6 +371,9 @@ export default function HomePageClient({
       <ForYouRecommendations />
 
       <BeforeAfterSlideshow />
+
+      {/* Ad placement 2: After slideshow - engaged users scrolling */}
+      <AdSense slot="6873445391" format="auto" />
 
       {/* TEMPORARILY DISABLED: VideoSlideshow - will reintroduce once app is stable */}
       {/* <VideoSlideshow /> */}

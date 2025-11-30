@@ -51,9 +51,9 @@ function FeaturedSalons() {
     try {
       // Add cache-busting timestamp to force fresh data
       const timestamp = Date.now();
-      // Add timeout to prevent infinite loading
+      // Add timeout to prevent infinite loading (5 seconds)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       const res = await fetch(`/api/salons/featured?_t=${timestamp}`, { 
         credentials: 'include',
@@ -64,21 +64,12 @@ function FeaturedSalons() {
       clearTimeout(timeoutId);
       
       if (!res.ok) {
-        const errorText = await res.text();
-        logger.error('Featured salons fetch failed:', { status: res.status, statusText: res.statusText, body: errorText });
-        throw new Error(`Failed to fetch featured salons (${res.status}): ${errorText}`);
+        throw new Error(`Failed to fetch featured salons (${res.status})`);
       }
       const data = await res.json();
-      console.log('🎯 Featured salons loaded:', data.map((s: any) => ({ name: s.name, hasLogo: !!s.logo })));
-      setSalons(data);
+      setSalons(Array.isArray(data) ? data : []);
     } catch (error) {
-      // Don't show error toast for abort/timeout - just silently fail
-      if (error instanceof Error && error.name !== 'AbortError') {
-        logger.error('Failed to fetch featured salons:', error);
-        if (!error.message.includes('404')) {
-          toast.error(toFriendlyMessage(error, 'Failed to load featured salons.'));
-        }
-      }
+      // Silently fail - don't show error toast, just hide the section
       setSalons([]);
     } finally {
       setIsLoading(false);

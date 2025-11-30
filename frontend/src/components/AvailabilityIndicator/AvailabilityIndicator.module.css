@@ -26,6 +26,33 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Mobile: smaller Open Now badge */
+@media (max-width: 768px) {
+  .indicator.compact {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    gap: 0.25rem;
+  }
+  
+  .indicator.compact .icon {
+    font-size: 0.55rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .indicator.compact {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.55rem;
+    gap: 0.2rem;
+  }
+  
+  .indicator.compact .icon {
+    font-size: 0.5rem;
+  }
+}
+
 .icon {
   display: flex;
   align-items: center;
