@@ -64,6 +64,8 @@ export default function HomePageClient({
   const [page, setPage] = useState(2); // Start at page 2 since we have page 1
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [isLoading, setIsLoading] = useState(false);
+  // Track if initial data has been loaded (from server or first fetch)
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(initialServices.length > 0);
   const loader = useRef(null);
   const [trendsData, setTrendsData] = useState<Record<TrendCategory, Trend[]>>(initialTrends);
 
@@ -88,12 +90,15 @@ export default function HomePageClient({
 
         setHasMore(data.currentPage < data.totalPages);
         setPage(data.currentPage + 1);
+        setHasInitiallyLoaded(true);
       } else {
         setHasMore(false);
+        setHasInitiallyLoaded(true);
       }
     } catch (error) {
       console.error('Failed to fetch services:', error);
       setHasMore(false);
+      setHasInitiallyLoaded(true);
     } finally {
       setIsLoading(false);
     }
@@ -380,49 +385,52 @@ export default function HomePageClient({
         </div>
       </section>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Featured Services</h2>
-        {services.length > 0 && Object.keys(groupedServices).length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-            {Object.entries(groupedServices).map(([categoryName, categoryServices]) => {
-              const categorySlug = getCategorySlug(categoryName);
-              return (
-                <FeaturedServicesCategoryRow
-                  key={categoryName}
-                  categoryName={categoryName}
-                  services={categoryServices}
-                  categorySlug={categorySlug}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          /* Skeleton rows matching FeaturedServicesCategoryRow layout */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem' }}>
-            {FEATURED_CATEGORIES.slice(0, 3).map((category) => (
-              <div key={category}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <div style={{ height: '1rem', width: '120px', background: 'rgba(200,200,200,0.3)', borderRadius: '4px' }} />
-                  <div style={{ height: '0.875rem', width: '60px', background: 'rgba(200,200,200,0.3)', borderRadius: '4px' }} />
+      {/* Only show Featured Services section if there's content or still loading initial data */}
+      {(Object.keys(groupedServices).length > 0 || !hasInitiallyLoaded) && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Featured Services</h2>
+          {Object.keys(groupedServices).length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+              {Object.entries(groupedServices).map(([categoryName, categoryServices]) => {
+                const categorySlug = getCategorySlug(categoryName);
+                return (
+                  <FeaturedServicesCategoryRow
+                    key={categoryName}
+                    categoryName={categoryName}
+                    services={categoryServices}
+                    categorySlug={categorySlug}
+                  />
+                );
+              })}
+            </div>
+          ) : !hasInitiallyLoaded ? (
+            /* Only show skeleton while initial data is loading */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem' }}>
+              {FEATURED_CATEGORIES.slice(0, 3).map((category) => (
+                <div key={category}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <div style={{ height: '1rem', width: '120px', background: 'rgba(200,200,200,0.3)', borderRadius: '4px' }} />
+                    <div style={{ height: '0.875rem', width: '60px', background: 'rgba(200,200,200,0.3)', borderRadius: '4px' }} />
+                  </div>
+                  <ServiceRowSkeleton count={5} />
                 </div>
-                <ServiceRowSkeleton count={5} />
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          ) : null}
 
-        <div ref={loader} />
+          <div ref={loader} />
 
-        {isLoading && page > 2 && (
-          <div className={styles.spinnerContainer}>
-            <LoadingSpinner size="medium" color="primary" />
-          </div>
-        )}
+          {isLoading && page > 2 && (
+            <div className={styles.spinnerContainer}>
+              <LoadingSpinner size="medium" color="primary" />
+            </div>
+          )}
 
-        {!hasMore && services.length > 0 && (
-          <p className={styles.endOfList}>You've reached the end!</p>
-        )}
-      </section>
+          {!hasMore && services.length > 0 && (
+            <p className={styles.endOfList}>You've reached the end!</p>
+          )}
+        </section>
+      )}
 
       <Script
         id="organization-schema"
