@@ -31,9 +31,16 @@ function ForYouRecommendations() {
     const fetchRecommendations = async () => {
       setIsLoading(true);
       try {
+        // Add timeout to prevent infinite loading
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
         const response = await fetch('/api/salons/recommended', {
           credentials: 'include',
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           setSalons([]);
@@ -43,6 +50,7 @@ function ForYouRecommendations() {
         const data = await response.json();
         setSalons(data || []);
       } catch (error) {
+        // Silently fail on timeout/abort
         setSalons([]);
       } finally {
         setIsLoading(false);
@@ -53,6 +61,7 @@ function ForYouRecommendations() {
       fetchRecommendations();
     } else {
       setIsLoading(false);
+      setSalons([]); // Ensure salons is empty when not authenticated
     }
   }, [authStatus]);
 

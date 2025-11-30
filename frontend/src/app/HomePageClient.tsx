@@ -78,7 +78,16 @@ export default function HomePageClient({
   const fetchServices = useCallback(async (pageNum: number) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/services/approved?page=${pageNum}&pageSize=24`);
+      // Add timeout to prevent infinite loading
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const res = await fetch(`/api/services/approved?page=${pageNum}&pageSize=24`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (res.ok) {
         const data: { services: ServiceWithSalon[], currentPage: number, totalPages: number } = await res.json();
 
@@ -90,17 +99,18 @@ export default function HomePageClient({
 
         setHasMore(data.currentPage < data.totalPages);
         setPage(data.currentPage + 1);
-        setHasInitiallyLoaded(true);
       } else {
         setHasMore(false);
-        setHasInitiallyLoaded(true);
       }
     } catch (error) {
-      console.error('Failed to fetch services:', error);
+      // Silently fail on timeout/abort
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Failed to fetch services:', error);
+      }
       setHasMore(false);
-      setHasInitiallyLoaded(true);
     } finally {
       setIsLoading(false);
+      setHasInitiallyLoaded(true);
     }
   }, []);
 
