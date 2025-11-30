@@ -15,7 +15,12 @@ const nextConfig: NextConfig = {
   staticPageGenerationTimeout: 120,
   experimental: {
     // Fix for Next.js 15 compatibility
-    optimizePackageImports: ['@sentry/nextjs'],
+    optimizePackageImports: ['@sentry/nextjs', 'react-icons', 'swiper', 'react-toastify'],
+  },
+  // Compiler optimizations for better performance
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   // Webpack configuration to handle Sentry Pages Router compatibility
   webpack: (config, { isServer, dev }) => {

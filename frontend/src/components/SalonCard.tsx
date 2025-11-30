@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -28,7 +28,7 @@ interface SalonCardProps {
   onViewCountUpdate?: (salonId: string, newCount: number) => void; // Callback when view count should be updated
 }
 
-export default function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = true, compact = false, enableLightbox = false, onViewCountUpdate }: SalonCardProps) {
+function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = true, compact = false, enableLightbox = false, onViewCountUpdate }: SalonCardProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -425,3 +425,16 @@ export default function SalonCard({ salon, showFavorite = true, onToggleFavorite
     </>
   );
 }
+
+// Memoize to prevent unnecessary re-renders and improve INP
+export default memo(SalonCard, (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return (
+    prevProps.salon.id === nextProps.salon.id &&
+    prevProps.salon.isFavorited === nextProps.salon.isFavorited &&
+    prevProps.salon.viewCount === nextProps.salon.viewCount &&
+    prevProps.compact === nextProps.compact &&
+    prevProps.showFavorite === nextProps.showFavorite &&
+    prevProps.showHours === nextProps.showHours
+  );
+});

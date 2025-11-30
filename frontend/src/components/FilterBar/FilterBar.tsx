@@ -81,7 +81,7 @@ export default function FilterBar({
   const enableAutoSearch = autoSearch ?? !isHomePage;
   const lastEmittedFiltersRef = useRef<string>('');
 
-  const { coordinates, locationName, isLoading: isGeoLoading, isReverseGeocoding, error: geoError, requestLocation } = useGeolocation();
+  const { coordinates, locationName, isLoading: isGeoLoading, isReverseGeocoding, error: geoError, requestLocation, source: locationSource } = useGeolocation();
 
   const initialProvince = initialFilters.province ?? '';
   const initialCity = initialFilters.city ?? '';
@@ -571,7 +571,7 @@ export default function FilterBar({
                   {isReverseGeocoding ? (
                     'Getting location name...'
                   ) : locationName?.city ? (
-                    `Near ${locationName.city}${locationName.province ? `, ${locationName.province}` : ''}`
+                    `${locationSource === 'ip' ? '~' : ''}Near ${locationName.city}${locationName.province ? `, ${locationName.province}` : ''}${locationSource === 'ip' ? ' (estimated)' : ''}`
                   ) : (
                     'Showing nearby results'
                   )}

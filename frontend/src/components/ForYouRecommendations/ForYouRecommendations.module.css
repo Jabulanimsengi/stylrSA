@@ -1,48 +1,151 @@
 .section {
-  margin: 3rem 0;
-  padding: 2rem 0;
+  padding: clamp(1.25rem, 3vw, 2rem) 0;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
 }
 
 .header {
-  margin-bottom: 2rem;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+  padding: 0 clamp(0.75rem, 3vw, 1.5rem);
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary, #1f2937);
-  margin: 0 0 0.5rem 0;
+  font-size: clamp(0.95rem, 2vw, 1.4rem);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-strong);
 }
 
 .subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary, #6b7280);
-  margin: 0;
+  color: var(--muted-teal);
+  font-weight: 600;
+  font-size: 12px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+.container {
+  width: 100%;
+  position: relative;
+  padding: 0 1rem;
+  overflow: visible;
+  isolation: isolate;
+}
+
+/* Navigation buttons - visible on desktop only */
+.prevButton,
+.nextButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary, #f51957);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(67, 65, 74, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.prevButton:hover,
+.nextButton:hover {
+  background: var(--color-primary-dark, #d41245);
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 16px rgba(67, 65, 74, 0.2);
+}
+
+.prevButton:active,
+.nextButton:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.prevButton {
+  left: 0;
+}
+
+.nextButton {
+  right: 0;
+}
+
+.prevButton svg,
+.nextButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Explicitly hide navigation on mobile */
+@media (max-width: 768px) {
+  .prevButton,
+  .nextButton {
+    display: none !important;
+  }
+}
+
+/* Show navigation on desktop only */
+@media (min-width: 769px) {
+  .prevButton,
+  .nextButton {
+    display: flex !important;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  
+  .container {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .prevButton,
+  .nextButton {
+    position: absolute;
+    z-index: 999;
+  }
+}
+
+/* Swiper disabled state */
+.prevButton:disabled,
+.nextButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.prevButton:disabled:hover,
+.nextButton:disabled:hover {
+  background: var(--color-primary, #f51957);
+  transform: translateY(-50%);
 }
 
 .skeletonContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  gap: 0.625rem;
+  padding-inline: clamp(0.35rem, 3vw, 0.875rem);
 }
 
 .skeletonCard {
-  height: 320px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  flex: none;
+  width: clamp(140px, 20vw, 180px);
+  height: 240px;
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    90deg,
+    rgba(240, 240, 240, 0.8) 0%,
+    rgba(225, 225, 225, 0.9) 50%,
+    rgba(240, 240, 240, 0.8) 100%
+  );
   background-size: 200% 100%;
-  animation: loading 1.5s ease-in-out infinite;
-  border-radius: 12px;
+  animation: shimmer 1.4s ease infinite;
 }
 
-@keyframes loading {
+@keyframes shimmer {
   0% {
     background-position: 200% 0;
   }
@@ -51,20 +154,49 @@
   }
 }
 
+/* Slide counter */
+.slideCounter {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  z-index: 15;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide counter on desktop */
+@media (min-width: 768px) {
+  .slideCounter {
+    display: none;
+  }
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .section {
-    margin: 2rem 0;
-    padding: 1.5rem 0;
+    padding-inline: 0.5rem;
+    padding-block: 1rem;
   }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 0.95rem;
   }
 
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+  .header {
+    margin-bottom: 0.625rem;
+  }
+
+  .skeletonCard {
+    height: 200px;
   }
 }
 
@@ -81,4 +213,3 @@
   background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
   background-size: 200% 100%;
 }
-

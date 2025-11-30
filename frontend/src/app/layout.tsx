@@ -124,11 +124,21 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
+        {/* Preload LCP hero image for faster initial paint */}
+        <link
+          rel="preload"
+          as="image"
+          href="/image_01.jpg"
+          fetchPriority="high"
+        />
+        {/* Preconnect to external domains */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9036733333821648"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>

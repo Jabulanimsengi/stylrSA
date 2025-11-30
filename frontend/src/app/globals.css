@@ -530,6 +530,19 @@
     -moz-osx-font-smoothing: grayscale;
     transition: background-color var(--transition-base), color var(--transition-base);
     position: relative;
+    /* Performance optimizations for INP */
+    text-rendering: optimizeSpeed;
+  }
+  
+  /* Optimize images for LCP */
+  img {
+    content-visibility: auto;
+  }
+  
+  /* Reduce layout shifts */
+  img, video {
+    max-width: 100%;
+    height: auto;
   }
 
   /* Desktop zoom removed - use proper responsive design instead */

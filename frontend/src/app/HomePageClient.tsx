@@ -12,20 +12,35 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import { Service, Trend, TrendCategory } from '@/types';
 import { FeaturedServiceCardSkeleton } from '@/components/FeaturedServiceCard';
 import { SkeletonGroup } from '@/components/Skeleton/Skeleton';
+import dynamic from 'next/dynamic';
 import FeaturedSalons from '@/components/FeaturedSalons';
 import FeaturedServicesCategoryRow from '@/components/FeaturedServicesCategoryRow/FeaturedServicesCategoryRow';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
-import BeforeAfterSlideshow from '@/components/BeforeAfterSlideshow/BeforeAfterSlideshow';
-import VideoSlideshow from '@/components/VideoSlideshow/VideoSlideshow';
-import TrendRow from '@/components/TrendRow/TrendRow';
-import ForYouRecommendations from '@/components/ForYouRecommendations/ForYouRecommendations';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { getCategorySlug } from '@/utils/categorySlug';
 
+// Lazy load below-the-fold components for better LCP
+const BeforeAfterSlideshow = dynamic(() => import('@/components/BeforeAfterSlideshow/BeforeAfterSlideshow'), {
+  loading: () => <div style={{ height: '300px' }} />,
+  ssr: false
+});
+const VideoSlideshow = dynamic(() => import('@/components/VideoSlideshow/VideoSlideshow'), {
+  loading: () => <div style={{ height: '300px' }} />,
+  ssr: false
+});
+const TrendRow = dynamic(() => import('@/components/TrendRow/TrendRow'), {
+  ssr: true
+});
+const ForYouRecommendations = dynamic(() => import('@/components/ForYouRecommendations/ForYouRecommendations'), {
+  ssr: false
+});
+
 const HERO_IMAGE = {
   src: '/image_01.jpg',
-  alt: 'Professional hair styling and beauty services at South African salons'
+  alt: 'Professional hair styling and beauty services at South African salons',
+  // Preload hint for LCP optimization
+  blurDataURL: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDAwUBAAAAAAAAAAAAAQIDAAQRBRIhBhMiMUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAZEQACAwEAAAAAAAAAAAAAAAABAgADESH/2gAMAwEAAhEDEEA/AKOm6hqF1qMUV1cSSwq2WRmJBx+VYpSlKqxYAOxP/9k='
 };
 
 type ServiceWithSalon = Service & { salon: { id: string; name: string, city: string, province: string } };
@@ -192,8 +207,12 @@ export default function HomePageClient({
           className={styles.heroImage}
           fill
           priority
+          fetchPriority="high"
           sizes="100vw"
-          quality={isMobile ? 75 : 85}
+          quality={isMobile ? 70 : 80}
+          placeholder="blur"
+          blurDataURL={HERO_IMAGE.blurDataURL}
+          loading="eager"
         />
         <div className={styles.heroGradient} />
         <div className={styles.heroContent}>

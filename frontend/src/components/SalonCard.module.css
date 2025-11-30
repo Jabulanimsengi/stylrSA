@@ -286,6 +286,8 @@
   color: var(--text-muted, #666);
   margin: 0;
   text-align: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .salonCard.compact .cardMeta {
@@ -469,6 +471,7 @@
 
   .salonCard.compact .cardLocation {
     font-size: 0.6rem;
+    justify-content: center;
   }
 
   .salonCard.compact .cardMeta {
@@ -558,6 +561,7 @@
   .salonCard.compact .cardLocation {
     font-size: 0.55rem;
     margin-top: 0.15rem;
+    justify-content: center;
   }
 
   .salonCard.compact .cardMeta {

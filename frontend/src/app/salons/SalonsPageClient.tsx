@@ -37,8 +37,9 @@ export default function SalonsPageClient() {
     const { authStatus } = useAuth();
     const { openModal } = useAuthModal();
 
-    // Auto-request geolocation when page loads
-    const { coordinates, error: geoError } = useGeolocation(true);
+    // Auto-request geolocation when page loads (with IP fallback)
+    const geoState = useGeolocation(true);
+    const { coordinates, error: geoError, source: locationSource } = geoState;
 
     const getInitialFilters = useCallback((): SalonPageFilters => {
         const params = new URLSearchParams(searchParams.toString());
@@ -128,12 +129,15 @@ export default function SalonsPageClient() {
     // Show notification when location is detected
     useEffect(() => {
         if (coordinates && !searchParams.get('lat')) {
-            toast.info('📍 Showing salons near your location', {
+            const message = locationSource === 'ip' 
+                ? '📍 Showing salons near your estimated location'
+                : '📍 Showing salons near your location';
+            toast.info(message, {
                 position: 'bottom-center',
                 autoClose: 3000,
             });
         }
-    }, [coordinates, searchParams]);
+    }, [coordinates, searchParams, locationSource]);
 
     // Show error if geolocation fails
     useEffect(() => {

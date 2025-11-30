@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useTransition, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
@@ -15,17 +15,17 @@ import { Salon } from '@/types';
 import styles from './FeaturedSalons.module.css';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useNavigationLoading } from '@/context/NavigationLoadingContext';
-import { useSalonImpression } from '@/hooks/useSalonImpression';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
-export default function FeaturedSalons() {
+function FeaturedSalons() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [, startTransition] = useTransition();
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
   const prevRef = useRef<HTMLButtonElement>(null);
@@ -91,7 +91,7 @@ export default function FeaturedSalons() {
     return () => window.removeEventListener('salon-updated', handleSalonUpdate);
   }, [fetchFeaturedSalons]);
 
-  const handleToggleFavorite = async (e: React.MouseEvent, salonId: string) => {
+  const handleToggleFavorite = useCallback(async (e: React.MouseEvent, salonId: string) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -102,11 +102,14 @@ export default function FeaturedSalons() {
     }
 
     const originalSalons = salons;
-    setSalons(prevSalons =>
-      prevSalons.map(salon =>
-        salon.id === salonId ? { ...salon, isFavorited: !salon.isFavorited } : salon
-      )
-    );
+    // Use startTransition for non-urgent UI updates to improve INP
+    startTransition(() => {
+      setSalons(prevSalons =>
+        prevSalons.map(salon =>
+          salon.id === salonId ? { ...salon, isFavorited: !salon.isFavorited } : salon
+        )
+      );
+    });
 
     try {
       const res = await fetch(`/api/favorites/toggle/${salonId}`, {
@@ -124,9 +127,9 @@ export default function FeaturedSalons() {
 
     } catch (error) {
       toast.error('Could not update favorites. Please try again.');
-      setSalons(originalSalons);
+      startTransition(() => setSalons(originalSalons));
     }
-  };
+  }, [authStatus, openModal, salons]);
 
   const handleViewCountUpdate = useCallback((salonId: string, newCount: number) => {
     setSalons(prevSalons =>
@@ -243,3 +246,6 @@ export default function FeaturedSalons() {
     </section>
   );
 }
+
+// Memoize to prevent unnecessary re-renders
+export default memo(FeaturedSalons);

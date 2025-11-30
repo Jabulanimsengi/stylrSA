@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useReverseGeolocation, type ReverseGeolocationResult } from './useReverseGeolocation';
+import { useIPGeolocation } from './useIPGeolocation';
 
 export interface GeolocationCoordinates {
   latitude: number;
@@ -12,6 +13,7 @@ interface GeolocationState {
   error: string | null;
   isLoading: boolean;
   isReverseGeocoding: boolean;
+  source: 'browser' | 'ip' | 'cache' | null;
 }
 
 const STORAGE_KEY = 'user_location';
@@ -19,28 +21,90 @@ const LOCATION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
 
 interface StoredLocation {
   coordinates: GeolocationCoordinates;
-  locationName?: ReverseGeolocationResult;
+  locationName?: ReverseGeolocationResult | null;
   timestamp: number;
 }
 
 export function useGeolocation(autoRequest: boolean = false) {
   const { reverseGeocode } = useReverseGeolocation();
+  const { fetchIPLocation } = useIPGeolocation();
   const [state, setState] = useState<GeolocationState>({
     coordinates: null,
     locationName: null,
     error: null,
     isLoading: false,
     isReverseGeocoding: false,
+    source: null,
   });
 
-  const requestLocation = () => {
+  // IP-based fallback when browser geolocation fails
+  const fallbackToIPLocation = useCallback(async (originalError: string) => {
+    console.log('[Geolocation] Browser geolocation failed, trying IP fallback...');
+    
+    try {
+      const ipResult = await fetchIPLocation();
+      
+      if (ipResult) {
+        const coordinates = {
+          latitude: ipResult.latitude,
+          longitude: ipResult.longitude,
+        };
+
+        const locationName: ReverseGeolocationResult = {
+          city: ipResult.city,
+          province: ipResult.region,
+          country: ipResult.country,
+        };
+
+        // Store in localStorage
+        try {
+          const storedData: StoredLocation = {
+            coordinates,
+            locationName,
+            timestamp: Date.now(),
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+        } catch (e) {
+          // localStorage not available
+        }
+
+        setState({
+          coordinates,
+          locationName,
+          error: null,
+          isLoading: false,
+          isReverseGeocoding: false,
+          source: 'ip',
+        });
+
+        console.log('[Geolocation] IP fallback successful:', ipResult.city);
+        return;
+      }
+    } catch (ipError) {
+      console.warn('[Geolocation] IP fallback also failed:', ipError);
+    }
+
+    // Both methods failed
+    setState({
+      coordinates: null,
+      locationName: null,
+      error: originalError,
+      isLoading: false,
+      isReverseGeocoding: false,
+      source: null,
+    });
+  }, [fetchIPLocation]);
+
+  const requestLocation = useCallback(() => {
     // Skip on server-side rendering
-    if (typeof window === 'undefined' || !navigator.geolocation) {
-      setState({
-        coordinates: null,
-        error: 'Geolocation is not supported by your browser',
-        isLoading: false,
-      });
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    // If browser doesn't support geolocation, go straight to IP fallback
+    if (!navigator.geolocation) {
+      setState(prev => ({ ...prev, isLoading: true }));
+      fallbackToIPLocation('Geolocation is not supported by your browser');
       return;
     }
 
@@ -58,7 +122,8 @@ export function useGeolocation(autoRequest: boolean = false) {
           ...prev, 
           coordinates,
           isLoading: false,
-          isReverseGeocoding: true 
+          isReverseGeocoding: true,
+          source: 'browser',
         }));
 
         // Perform reverse geocoding asynchronously
@@ -88,6 +153,7 @@ export function useGeolocation(autoRequest: boolean = false) {
           error: null,
           isLoading: false,
           isReverseGeocoding: false,
+          source: 'browser',
         });
       },
       (error) => {
@@ -100,13 +166,8 @@ export function useGeolocation(autoRequest: boolean = false) {
           errorMessage = 'Location request timed out';
         }
 
-        setState({
-          coordinates: null,
-          locationName: null,
-          error: errorMessage,
-          isLoading: false,
-          isReverseGeocoding: false,
-        });
+        // Try IP-based fallback
+        fallbackToIPLocation(errorMessage);
       },
       {
         enableHighAccuracy: false,
@@ -114,7 +175,7 @@ export function useGeolocation(autoRequest: boolean = false) {
         maximumAge: LOCATION_EXPIRY,
       }
     );
-  };
+  }, [reverseGeocode, fallbackToIPLocation]);
 
   useEffect(() => {
     // Skip on server-side rendering
@@ -137,6 +198,7 @@ export function useGeolocation(autoRequest: boolean = false) {
             error: null,
             isLoading: false,
             isReverseGeocoding: false,
+            source: 'cache',
           });
           return;
         }
@@ -149,10 +211,9 @@ export function useGeolocation(autoRequest: boolean = false) {
     if (autoRequest) {
       requestLocation();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRequest]);
+  }, [autoRequest, requestLocation]);
 
-  const clearLocation = () => {
+  const clearLocation = useCallback(() => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.removeItem(STORAGE_KEY);
@@ -166,8 +227,9 @@ export function useGeolocation(autoRequest: boolean = false) {
       error: null,
       isLoading: false,
       isReverseGeocoding: false,
+      source: null,
     });
-  };
+  }, []);
 
   return {
     ...state,
