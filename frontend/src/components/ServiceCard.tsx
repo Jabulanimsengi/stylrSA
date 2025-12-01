@@ -3,11 +3,13 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Service } from '@/types';
 import styles from './ServiceCard.module.css';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { useNavigationLoading } from '@/context/NavigationLoadingContext';
 import { apiFetch } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { getPlaceholder } from '@/lib/placeholders';
@@ -25,6 +27,8 @@ interface ServiceCardProps {
 export default function ServiceCard({ service, onBook, onImageClick, promotion, onPromotionClick, variant = 'listing' }: ServiceCardProps) {
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
+  const { setIsNavigating } = useNavigationLoading();
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(Boolean(service.isLikedByCurrentUser));
   const [likeCount, setLikeCount] = useState(service.likeCount ?? 0);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -130,9 +134,16 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
         {/* Salon info - hidden on salon profile page */}
         {showSalonInfo && service.salon && (
           <div className={styles.locationInfo}>
-            <Link href={`/salons/${service.salon.id}`} className={styles.salonNameLink} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.salonNameLink} 
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsNavigating(true);
+                router.push(`/salons/${service.salon!.id}`);
+              }}
+            >
               {service.salon.name}
-            </Link>
+            </button>
             {(service.salon.city || service.salon.province) && (
               <p className={styles.salonLocation}>
                 {[service.salon.city, service.salon.province].filter(Boolean).join(', ')}
