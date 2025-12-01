@@ -10,6 +10,20 @@ interface PageProps {
     }>;
 }
 
+// Fetch initial salons on server for better LCP
+async function getInitialSalons(cityName: string) {
+    try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stylrsa.co.za';
+        const res = await fetch(`${apiUrl}/api/salons/approved?city=${encodeURIComponent(cityName)}&limit=12`, {
+            next: { revalidate: 300 }, // Cache for 5 minutes
+        });
+        if (!res.ok) return [];
+        return res.json();
+    } catch {
+        return [];
+    }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { location, city } = await params;
     const cityInfo = getCityInfo(location, city);
@@ -56,5 +70,8 @@ export default async function CityPage({ params }: PageProps) {
         notFound();
     }
 
-    return <CityPageClient />;
+    // Fetch initial data on server for faster LCP
+    const initialSalons = await getInitialSalons(cityInfo.name);
+
+    return <CityPageClient initialSalons={initialSalons} cityInfo={cityInfo} />;
 }

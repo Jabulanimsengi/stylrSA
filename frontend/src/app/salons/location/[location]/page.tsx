@@ -1,12 +1,26 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import LocationPageClient from './LocationPageClient';
-import { PROVINCES, getProvinceInfo } from '@/lib/locationData';
+import { getProvinceInfo } from '@/lib/locationData';
 
 interface PageProps {
     params: Promise<{
         location: string;
     }>;
+}
+
+// Fetch initial salons on server for better LCP
+async function getInitialSalons(provinceName: string) {
+    try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stylrsa.co.za';
+        const res = await fetch(`${apiUrl}/api/salons/approved?province=${encodeURIComponent(provinceName)}&limit=12`, {
+            next: { revalidate: 300 }, // Cache for 5 minutes
+        });
+        if (!res.ok) return [];
+        return res.json();
+    } catch {
+        return [];
+    }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -55,5 +69,8 @@ export default async function LocationPage({ params }: PageProps) {
         notFound();
     }
 
-    return <LocationPageClient />;
+    // Fetch initial data on server for faster LCP
+    const initialSalons = await getInitialSalons(provinceInfo.name);
+
+    return <LocationPageClient initialSalons={initialSalons} provinceInfo={provinceInfo} />;
 }
