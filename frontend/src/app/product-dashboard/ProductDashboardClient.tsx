@@ -40,7 +40,7 @@ const BANK_DETAILS = {
   bank: 'Capitec Bank',
   accountNumber: '1618097723',
   accountHolder: 'J Msengi',
-  whatsapp: '0787770524',
+  whatsapp: '0738021196',
 };
 
 const PLAN_PAYMENT_LABELS: Record<PlanPaymentStatus, string> = {
@@ -398,7 +398,7 @@ export default function ProductDashboardClient() {
             </p>
           )}
           <p>
-            Pay <strong>{planAmountDisplay}</strong> to <strong>{BANK_DETAILS.bank}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>, Account number: <strong>{BANK_DETAILS.accountNumber}</strong>). Use <strong>{effectiveReference}</strong> as your payment reference and WhatsApp the proof to <strong>{BANK_DETAILS.whatsapp}</strong>.
+            Pay <strong>{planAmountDisplay}</strong> to <strong>{BANK_DETAILS.bank}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>, Account number: <strong>{BANK_DETAILS.accountNumber}</strong>). Please make an instant payment to allow us to track the payment fast. Use <strong>{effectiveReference}</strong> as your payment reference and WhatsApp the proof to <strong>{BANK_DETAILS.whatsapp}</strong>.
           </p>
           <div className={styles.planControls}>
             <label className={styles.planReferenceLabel}>

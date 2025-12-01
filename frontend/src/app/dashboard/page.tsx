@@ -57,7 +57,7 @@ const BANK_DETAILS = {
   bank: 'Capitec Bank',
   accountNumber: '1618097723',
   accountHolder: 'J Msengi',
-  whatsapp: '0787770524',
+  whatsapp: '0738021196',
 };
 
 const PLAN_PAYMENT_LABELS: Record<PlanPaymentStatus, string> = {
@@ -312,7 +312,7 @@ function DashboardPageContent() {
         const salonData = await salonRes.json();
         if (salonData) setSalon(salonData);
       }
-    } catch {}
+    } catch { }
   };
 
   const toggleAvailability = async () => {
@@ -546,8 +546,8 @@ function DashboardPageContent() {
         {planStatus !== 'VERIFIED' && (
           <div className={styles.paymentNotice}>
             <p>
-              Pay <strong>{planDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong>. 
-              Use <strong>{planReference}</strong> as reference. WhatsApp proof to <strong>{BANK_DETAILS.whatsapp}</strong>.
+              Pay <strong>{planDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong>.
+              Please make an instant payment to allow us to track the payment fast. Use <strong>{planReference}</strong> as reference. WhatsApp proof to <strong>{BANK_DETAILS.whatsapp}</strong>.
             </p>
             <div className={styles.paymentActions}>
               <button type="button" onClick={handleCopyReference} className={styles.copyButton}>Copy Reference</button>

@@ -201,33 +201,34 @@ export interface GalleryImage {
 }
 
 export interface Product {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    images: string[];
-    stock: number;
-    sellerId: string;
-    createdAt: string;
-    updatedAt: string;
-    isOnSale?: boolean;
-    salePrice?: number;
-    seller?: Partial<User>;
-    category?: string;
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  images: string[];
+  stock: number;
+  sellerId: string;
+  createdAt: string;
+  updatedAt: string;
+  isOnSale?: boolean;
+  salePrice?: number;
+  seller?: Partial<User>;
+  category?: string;
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export interface Promotion {
-    id: string;
-    title: string;
-    description: string;
-    discountPercentage: number;
-    startDate: string;
-    endDate: string;
-    salonId?: string;
-    serviceId?: string;
-    productId?: string;
-    promoCode?: string;
-    isActive: boolean;
+  id: string;
+  title: string;
+  description: string;
+  discountPercentage: number;
+  startDate: string;
+  endDate: string;
+  salonId?: string;
+  serviceId?: string;
+  productId?: string;
+  promoCode?: string;
+  isActive: boolean;
 }
 
 export type ProductOrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';

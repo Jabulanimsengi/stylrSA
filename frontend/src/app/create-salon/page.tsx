@@ -78,7 +78,7 @@ export default function CreateSalonPage() {
     bank: 'Capitec Bank',
     accountNumber: '1618097723',
     accountHolder: 'J Msengi',
-    whatsapp: '0787770524',
+    whatsapp: '0738021196',
   };
 
   // Save draft to localStorage
@@ -238,7 +238,7 @@ export default function CreateSalonPage() {
     } else if (authStatus === 'authenticated' && user?.email) {
       // Pre-fill email from user registration
       setEmail(user.email);
-      
+
       // Check if user already has a salon - redirect to dashboard if so
       const checkExistingSalon = async () => {
         try {
@@ -256,7 +256,7 @@ export default function CreateSalonPage() {
           logger.debug('No existing salon found, allowing creation');
         }
       };
-      
+
       checkExistingSalon();
     }
   }, [authStatus, router, user]);
@@ -416,7 +416,7 @@ export default function CreateSalonPage() {
             </div>
             <div className={styles.paymentNotice}>
               <p>
-                Send the package amount of <strong>{selectedPlanDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>). Use <strong>{(paymentReference.trim() || name || 'your salon name')}</strong> as the payment reference and WhatsApp the proof to <strong>{BANK_DETAILS.whatsapp}</strong> immediately after payment.
+                Send the package amount of <strong>{selectedPlanDetails.price}</strong> to <strong>{BANK_DETAILS.bank}</strong>, account <strong>{BANK_DETAILS.accountNumber}</strong> (Account holder: <strong>{BANK_DETAILS.accountHolder}</strong>). Please make an instant payment to allow us to track the payment fast. Use <strong>{(paymentReference.trim() || name || 'your salon name')}</strong> as the payment reference and WhatsApp the proof to <strong>{BANK_DETAILS.whatsapp}</strong> immediately after payment.
               </p>
             </div>
             <div className={styles.planControls}>
@@ -495,7 +495,7 @@ export default function CreateSalonPage() {
               className={styles.input}
             />
             {showAddrSuggestions && addrSuggestions.length > 0 && (
-              <ul 
+              <ul
                 ref={suggestionsRef}
                 style={{
                   listStyle: 'none',
@@ -776,8 +776,8 @@ export default function CreateSalonPage() {
           </div>
           <div className={styles.buttonContainer}>
             <div className={styles.draftActions}>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={saveDraft}
                 disabled={isSaving}
                 className={styles.saveDraftButton}
@@ -785,8 +785,8 @@ export default function CreateSalonPage() {
                 {isSaving ? 'Saving...' : '💾 Save Draft'}
               </button>
               {hasDraft && (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={clearDraft}
                   className={styles.clearDraftButton}
                 >

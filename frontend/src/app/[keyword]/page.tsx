@@ -35,6 +35,20 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { keyword } = await params;
 
+  // Filter out invalid paths early
+  const invalidPrefixes = ['_vercel', '_next', 'api', 'static', 'favicon'];
+  const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2', '.xml', '.txt'];
+  
+  if (
+    invalidPrefixes.includes(keyword) ||
+    invalidExtensions.some(ext => keyword.endsWith(ext))
+  ) {
+    return {
+      title: 'Not Found',
+      robots: { index: false, follow: false },
+    };
+  }
+
   // Try to find cached page data
   const cachedPage = await getFirstPageForKeyword(keyword);
 
@@ -75,6 +89,17 @@ export async function generateMetadata({
  */
 export default async function KeywordPage({ params }: PageProps) {
   const { keyword } = await params;
+
+  // Filter out invalid paths (Vercel scripts, static files, etc.)
+  const invalidPrefixes = ['_vercel', '_next', 'api', 'static', 'favicon'];
+  const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2', '.xml', '.txt'];
+  
+  if (
+    invalidPrefixes.includes(keyword) ||
+    invalidExtensions.some(ext => keyword.endsWith(ext))
+  ) {
+    notFound();
+  }
 
   // Fetch keyword data
   const keywordData = await getKeywordBySlug(keyword);

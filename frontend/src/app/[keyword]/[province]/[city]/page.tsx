@@ -61,6 +61,21 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { keyword, province, city } = await params;
+  
+  // Filter out invalid paths early
+  const invalidPrefixes = ['_vercel', '_next', 'api', 'static'];
+  const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2'];
+  
+  if (
+    invalidPrefixes.includes(keyword) ||
+    invalidExtensions.some(ext => city.endsWith(ext))
+  ) {
+    return {
+      title: 'Not Found',
+      robots: { index: false, follow: false },
+    };
+  }
+  
   const url = `/${keyword}/${province}/${city}`;
 
   try {
@@ -111,6 +126,18 @@ export async function generateMetadata({
  */
 export default async function KeywordProvinceCityPage({ params }: PageProps) {
   const { keyword, province, city } = await params;
+  
+  // Filter out invalid paths (Vercel scripts, static files, etc.)
+  const invalidPrefixes = ['_vercel', '_next', 'api', 'static'];
+  const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2'];
+  
+  if (
+    invalidPrefixes.includes(keyword) ||
+    invalidExtensions.some(ext => city.endsWith(ext))
+  ) {
+    notFound();
+  }
+  
   const url = `/${keyword}/${province}/${city}`;
 
   try {
