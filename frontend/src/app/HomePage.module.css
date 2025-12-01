@@ -200,7 +200,7 @@
 
 
 .section {
-  padding: clamp(1.25rem, 3vw, 2rem) 0;
+  padding: clamp(0.75rem, 2vw, 1.25rem) 0;
   max-width: 100%;
   margin: 0 auto;
   text-align: left;
@@ -261,7 +261,7 @@
 /* Section styling with subtle background patterns */
 .section {
   position: relative;
-  padding: var(--space-section-sm) 0;
+  padding: clamp(0.75rem, 2vw, 1.25rem) 0;
   overflow: hidden;
 }
 

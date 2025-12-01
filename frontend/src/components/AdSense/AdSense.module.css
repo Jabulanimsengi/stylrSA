@@ -1,29 +1,48 @@
 .adContainer {
   width: 100%;
   max-width: 1200px;
-  margin: 1.5rem auto;
+  margin: 0.75rem auto;
   padding: 0 1rem;
-  min-height: 90px; /* Reserve space to prevent layout shift */
+  min-height: 0;
+  max-height: 50px; /* Collapse when no ad content */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: max-height 0.3s ease, margin 0.3s ease;
+}
+
+/* When ad has content, expand */
+.adContainer.hasContent {
+  min-height: 90px;
+  max-height: 400px;
+  margin: 1rem auto;
 }
 
 .adLabel {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   color: var(--color-text-muted, #888);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
   align-self: flex-start;
+  opacity: 0.6;
+}
+
+.adContainer.hasContent .adLabel {
+  opacity: 1;
 }
 
 /* Responsive ad container */
 @media (max-width: 768px) {
   .adContainer {
-    min-height: 100px;
-    margin: 1rem auto;
+    margin: 0.5rem auto;
     padding: 0 0.5rem;
+  }
+
+  .adContainer.hasContent {
+    min-height: 100px;
+    margin: 0.75rem auto;
   }
 }
 

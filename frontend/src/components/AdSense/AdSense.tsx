@@ -30,6 +30,7 @@ export default function AdSense({
   const pathname = usePathname();
   const isAdLoaded = useRef(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [hasAdContent, setHasAdContent] = useState(false);
 
   // Check if container has valid width before loading ad
   useEffect(() => {
@@ -63,6 +64,30 @@ export default function AdSense({
     };
   }, []);
 
+  // Check if ad actually loaded content
+  useEffect(() => {
+    if (!adRef.current || !isVisible) return;
+
+    // Check after a delay if the ad has content
+    const checkAdContent = () => {
+      const adElement = adRef.current;
+      if (adElement) {
+        // Check if ad has actual content (height > 0 and has children)
+        const hasContent = adElement.offsetHeight > 10 || adElement.children.length > 0;
+        setHasAdContent(hasContent);
+      }
+    };
+
+    // Check multiple times as ads load asynchronously
+    const timers = [
+      setTimeout(checkAdContent, 500),
+      setTimeout(checkAdContent, 1500),
+      setTimeout(checkAdContent, 3000),
+    ];
+
+    return () => timers.forEach(clearTimeout);
+  }, [isVisible]);
+
   useEffect(() => {
     // Only load ad once per mount and when visible
     if (isAdLoaded.current || !isVisible) return;
@@ -86,14 +111,20 @@ export default function AdSense({
     };
   }, []);
 
+  // Don't render anything if no ad content after timeout
+  // But keep minimal space initially to prevent layout shift
   return (
-    <div ref={containerRef} className={`${styles.adContainer} ${className || ''}`} style={{ minWidth: '300px', minHeight: '100px', ...style }}>
-      <span className={styles.adLabel}>Advertisement</span>
+    <div 
+      ref={containerRef} 
+      className={`${styles.adContainer} ${hasAdContent ? styles.hasContent : ''} ${className || ''}`} 
+      style={style}
+    >
+      {(isVisible || !hasAdContent) && <span className={styles.adLabel}>Advertisement</span>}
       {isVisible && (
         <ins
           ref={adRef}
           className="adsbygoogle"
-          style={{ display: 'block', minWidth: '300px', minHeight: '100px' }}
+          style={{ display: 'block' }}
           data-ad-client="ca-pub-9036733333821648"
           data-ad-slot={slot}
           data-ad-format={format}
