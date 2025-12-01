@@ -224,8 +224,8 @@
   .launcher {
     padding: 0.625rem 1.25rem;
     font-size: 0.9rem;
-    /* Position above AI Salon Finder on mobile (which is at bottom: 160px) */
-    bottom: 220px;
+    /* Position above AI Salon Finder on mobile (which is at bottom: 80px) */
+    bottom: 140px;
     right: 16px;
   }
   .container {
@@ -239,7 +239,7 @@
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
     /* Position above AI Salon Finder on small mobile */
-    bottom: 220px;
+    bottom: 140px;
     right: 16px;
   }
   .container {

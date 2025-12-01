@@ -33,12 +33,13 @@ export default function BackToTop() {
     });
   };
 
-  if (!isVisible) return null;
+  // Don't render on mobile - bottom nav has home button
+  if (!isVisible || isMobile) return null;
 
   return (
     <button
       onClick={scrollToTop}
-      className={`${styles.backToTop} ${isMobile ? styles.mobile : ''}`}
+      className={styles.backToTop}
       aria-label="Back to top"
       type="button"
     >

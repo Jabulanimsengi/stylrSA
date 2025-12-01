@@ -33,11 +33,7 @@
 }
 
 .backToTop.mobile {
-  bottom: 70px; /* Above bottom nav */
-  right: 12px;
-  width: 36px;
-  height: 36px;
-  box-shadow: 0 2px 8px rgba(245, 25, 87, 0.3);
+  display: none; /* Hide on mobile - bottom nav has home button */
 }
 
 .backToTop.mobile svg {

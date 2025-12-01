@@ -77,7 +77,9 @@
 /* Service cards - match SalonCard compact size */
 .servicesGrid > * {
   flex: 0 0 auto;
-  width: 220px; /* Match SalonCard compact width */
+  width: calc((100% - 48px) / 4.1); /* Match FeaturedSalons/Recommended width */
+  min-width: 220px;
+  max-width: 280px;
 }
 
 /* Task 5.2: Desktop navigation arrows - circular button styles (44px × 44px) */
@@ -195,7 +197,8 @@
   .servicesGrid > * {
     flex: 0 0 auto;
     width: calc(100% / 1.15 - 12px); /* Show 1.15 cards for peek effect */
-    min-width: 280px;
+    min-width: 260px;
+    max-width: 320px;
     scroll-snap-align: start;
   }
 

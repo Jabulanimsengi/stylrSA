@@ -19,7 +19,7 @@ interface ServiceCardProps {
   onImageClick: (images: string[], index: number) => void;
   promotion?: any;
   onPromotionClick?: (promotion: any) => void;
-  variant?: 'featured' | 'salonProfile' | 'listing'; // Different card styles for different contexts
+  variant?: 'featured' | 'salonProfile' | 'listing';
 }
 
 export default function ServiceCard({ service, onBook, onImageClick, promotion, onPromotionClick, variant = 'listing' }: ServiceCardProps) {
@@ -36,6 +36,10 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
     return unique.length > 0 ? unique : [getPlaceholder('wide')];
   }, [service.images]);
   const [activeImage, setActiveImage] = useState(0);
+
+  const isSalonProfile = variant === 'salonProfile';
+  const isFeatured = variant === 'featured';
+  const showSalonInfo = !isSalonProfile;
 
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,81 +63,74 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
     const originalLikedState = isLiked;
     const originalLikeCount = likeCount;
     
-    // Optimistic UI update
     setIsLiked(!isLiked);
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
 
     try {
       await apiFetch(`/api/likes/service/${service.id}/toggle`, { method: 'POST' });
     } catch (error) {
-      // Revert UI on error
       setIsLiked(originalLikedState);
       setLikeCount(originalLikeCount);
       toast.error(toFriendlyMessage(error, 'Failed to update like status.'));
     }
   };
 
-  const isSalonProfile = variant === 'salonProfile';
-  const isFeatured = variant === 'featured';
-  const showSalonInfo = !isSalonProfile; // Hide salon info on salon profile pages
+  const cardClassName = `${styles.card} ${isSalonProfile ? styles.salonProfile : ''} ${isFeatured ? styles.featured : ''}`;
 
   return (
-    <div className={`${styles.card} ${isSalonProfile ? styles.salonProfile : ''} ${isFeatured ? styles.featured : ''}`}>
-      {/* Featured like button at top right */}
+    <div className={cardClassName}>
+      {/* Favorite button - shown for featured variant */}
       {isFeatured && (
-        <button onClick={handleLikeClick} className={`${styles.favoriteButton} ${isLiked ? styles.favorited : ''}`} aria-label={isLiked ? 'Remove from favorites' : 'Add to favorites'}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <button 
+          onClick={handleLikeClick} 
+          className={`${styles.favoriteButton} ${isLiked ? styles.favorited : ''}`} 
+          aria-label={isLiked ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
         </button>
       )}
-      <div
-        className={styles.imageContainer}
-        onClick={() => images.length > 0 && onImageClick(images, activeImage)}
-      >
+
+      {/* Image Container */}
+      <div className={styles.imageContainer} onClick={() => images.length > 0 && onImageClick(images, activeImage)}>
         <Image
           key={images[activeImage]}
           src={images[activeImage]}
           alt={serviceTitle}
           className={styles.image}
           fill
-          sizes="(max-width: 768px) 100vw, 33vw"
+          sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 25vw"
         />
-        {images.length > 1 && !isFeatured && (
+        
+        {/* Carousel controls - hidden on mobile via CSS */}
+        {images.length > 1 && (
           <>
-            <button className={`${styles.carouselButton} ${styles.prev}`} onClick={handlePrevImage} aria-label="Previous image">
-              ‹
-            </button>
-            <button className={`${styles.carouselButton} ${styles.next}`} onClick={handleNextImage} aria-label="Next image">
-              ›
-            </button>
-            <div className={styles.imageCounter}>
-              {activeImage + 1}/{images.length}
-            </div>
+            <button className={`${styles.carouselButton} ${styles.prev}`} onClick={handlePrevImage} aria-label="Previous image">‹</button>
+            <button className={`${styles.carouselButton} ${styles.next}`} onClick={handleNextImage} aria-label="Next image">›</button>
+            <div className={styles.imageCounter}>{activeImage + 1}/{images.length}</div>
           </>
         )}
+        
+        {/* Promotion badge */}
         {promotion && (
-          <div 
-            className={styles.promotionBadge}
-            onClick={(e) => {
-              e.stopPropagation();
-              onPromotionClick?.(promotion);
-            }}
-          >
+          <div className={styles.promotionBadge} onClick={(e) => { e.stopPropagation(); onPromotionClick?.(promotion); }}>
             <span className={styles.badgeIcon}>🏷️</span>
             <span className={styles.badgeText}>Promo</span>
           </div>
         )}
       </div>
+
+      {/* Content */}
       <div className={styles.content}>
         <div className={styles.header}>
           <h3 className={styles.title}>{serviceTitle}</h3>
         </div>
+
+        {/* Salon info - hidden on salon profile page */}
         {showSalonInfo && service.salon && (
           <div className={styles.locationInfo}>
-            <Link 
-              href={`/salons/${service.salon.id}`} 
-              className={styles.salonNameLink}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <Link href={`/salons/${service.salon.id}`} className={styles.salonNameLink} onClick={(e) => e.stopPropagation()}>
               {service.salon.name}
             </Link>
             {(service.salon.city || service.salon.province) && (
@@ -143,7 +140,9 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
             )}
           </div>
         )}
-        <div className={`${styles.priceWrapper} ${isSalonProfile ? styles.salonProfilePrice : ''}`}>
+
+        {/* Price */}
+        <div className={styles.priceWrapper}>
           <span className={styles.price}>R{service.price.toFixed(2)}</span>
           {service.pricingType && (
             <span className={styles.pricingType}>
@@ -151,25 +150,30 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
             </span>
           )}
         </div>
-        {!isFeatured && (
+
+        {/* Description & Expand - only for salonProfile variant */}
+        {isSalonProfile && (
           <>
             <p className={`${styles.description} ${isExpanded ? styles.expanded : ''}`}>
               {sanitizeText(service.description || '')}
             </p>
-            <button onClick={() => setIsExpanded(!isExpanded)} className={styles.expandButton}>
-              {isExpanded ? 'View Less' : 'View More'}
-            </button>
-          </>
-        )}
-        {!isFeatured && (
-          <div className={`${styles.footer} ${isSalonProfile ? styles.salonProfileFooter : ''}`}>
-            {!isSalonProfile && (
-              <button onClick={handleLikeClick} className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <span>{likeCount}</span>
+            {service.description && (
+              <button onClick={() => setIsExpanded(!isExpanded)} className={styles.expandButton}>
+                {isExpanded ? 'View Less' : 'View More'}
               </button>
             )}
-            <button onClick={(e) => { e.stopPropagation(); onBook(service); }} className={`btn btn-primary ${isSalonProfile ? styles.salonProfileBookButton : ''}`} style={{ flex: 1 }}>Book Now</button>
+          </>
+        )}
+
+        {/* Footer with Book button - only for salonProfile variant */}
+        {isSalonProfile && (
+          <div className={styles.footer}>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onBook(service); }} 
+              className={`btn btn-primary ${styles.salonProfileBookButton}`}
+            >
+              Book Now
+            </button>
           </div>
         )}
       </div>
