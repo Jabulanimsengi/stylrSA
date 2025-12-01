@@ -300,6 +300,7 @@ function DashboardPageContent() {
   const handleSalonUpdate = (updatedSalon: Salon) => {
     setSalon(updatedSalon);
     setIsEditSalonModalOpen(false);
+    toast.success('Profile updated successfully!');
     setTimeout(() => refetchSalon(), 500);
   };
 
@@ -404,6 +405,10 @@ function DashboardPageContent() {
       <div className={styles.container}>
         <PageNav />
         <h1 className={styles.title}>My Dashboard</h1>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner} />
+          <p className={styles.loadingText}>Loading your dashboard...</p>
+        </div>
         <div className={styles.contentGrid}>
           {[1, 2, 3].map(i => (
             <div key={i} className={styles.contentCard}>

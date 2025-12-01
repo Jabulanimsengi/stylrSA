@@ -333,3 +333,34 @@
     align-items: flex-start;
   }
 }
+
+
+/* Loading indicator with spinner */
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--color-surface, #fff);
+  border-bottom: 1px solid var(--color-border, #e5e5e5);
+}
+
+.loadingIndicator span {
+  font-size: 0.95rem;
+  color: var(--text-muted, #666);
+  font-weight: 500;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-border, #e5e5e5);
+  border-top-color: var(--color-primary, #f51957);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

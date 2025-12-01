@@ -1,8 +1,14 @@
 import { Skeleton, SkeletonGroup } from './Skeleton';
+import styles from './Skeleton.module.css';
 
 export default function SalonProfileSkeleton() {
   return (
     <div aria-hidden>
+      {/* Loading indicator */}
+      <div className={styles.loadingIndicator}>
+        <div className={styles.spinner} />
+        <span>Loading salon...</span>
+      </div>
       <div
         style={{
           position: 'sticky',

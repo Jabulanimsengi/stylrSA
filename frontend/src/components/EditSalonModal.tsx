@@ -103,34 +103,42 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         ) || []
       );
 
+      // Parse operating hours from salon data
       const rawHours = salon.operatingHours as unknown;
-      let hoursRecord: Record<string, string> | null = null;
+      const nextHours: Record<string, { open: string; close: string; isOpen: boolean }> = {} as any;
+      
+      // Initialize all days as closed first
+      days.forEach((d) => {
+        nextHours[d] = { open: '09:00', close: '17:00', isOpen: false };
+      });
+
       if (Array.isArray(rawHours)) {
-        const derived: Record<string, string> = {};
+        // Handle array format: [{ day: 'Monday', open: '09:00', close: '17:00' }, ...]
         rawHours.forEach((entry: { day?: string; open?: string; close?: string }) => {
           if (!entry?.day) return;
-          const open = entry.open ?? '';
-          const close = entry.close ?? '';
-          if (!open && !close) return;
-          derived[entry.day] = `${open} - ${close}`.trim();
+          const dayName = entry.day;
+          if (days.includes(dayName)) {
+            nextHours[dayName] = {
+              open: entry.open || '09:00',
+              close: entry.close || '17:00',
+              isOpen: true,
+            };
+          }
         });
-        hoursRecord = Object.keys(derived).length > 0 ? derived : null;
       } else if (rawHours && typeof rawHours === 'object') {
-        hoursRecord = rawHours as Record<string, string>;
+        // Handle object format: { Monday: '09:00 - 17:00', ... }
+        const hoursRecord = rawHours as Record<string, string>;
+        days.forEach((d) => {
+          const val = hoursRecord[d];
+          if (val && typeof val === 'string') {
+            const match = val.match(/(\d{1,2}:\d{2}).*(\d{1,2}:\d{2})/);
+            if (match) {
+              nextHours[d] = { open: match[1], close: match[2], isOpen: true };
+            }
+          }
+        });
       }
-
-      const nextHours: Record<string, { open: string; close: string; isOpen: boolean }> = {} as any;
-      days.forEach((d) => {
-        const val = hoursRecord?.[d];
-        if (val && typeof val === 'string') {
-          const match = val.match(/(\d{1,2}:\d{2}).*(\d{1,2}:\d{2})/);
-          const open = match?.[1] || '09:00';
-          const close = match?.[2] || '17:00';
-          nextHours[d] = { open, close, isOpen: true };
-        } else {
-          nextHours[d] = { open: '09:00', close: '17:00', isOpen: false };
-        }
-      });
+      
       setHours(nextHours);
     }
   }, [salon]);
