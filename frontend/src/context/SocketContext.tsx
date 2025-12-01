@@ -87,11 +87,24 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     nextSocket.io.on('reconnect_failed', handleReconnectFailed);
 
     nextSocket.on('newBooking', (data) => {
-      toast.info(`New Booking Request: ${data.service.title} from ${data.client.firstName}`);
+      try {
+        toast.info(`New Booking Request: ${data?.service?.title || 'Service'} from ${data?.client?.firstName || 'Client'}`);
+      } catch (e) {
+        console.warn('Error handling newBooking event:', e);
+      }
     });
 
     nextSocket.on('bookingUpdate', (data) => {
-      toast.success(`Your booking has been ${data.status.toLowerCase()}!`);
+      try {
+        toast.success(`Your booking has been ${data?.status?.toLowerCase() || 'updated'}!`);
+      } catch (e) {
+        console.warn('Error handling bookingUpdate event:', e);
+      }
+    });
+
+    // Handle generic errors to prevent crashes
+    nextSocket.on('error', (error) => {
+      console.warn('Socket error:', error);
     });
 
     setSocket(nextSocket);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import styles from './AdSense.module.css';
 
@@ -25,22 +25,59 @@ export default function AdSense({
   className,
   style,
 }: AdSenseProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const adRef = useRef<HTMLModElement>(null);
   const pathname = usePathname();
   const isAdLoaded = useRef(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Check if container has valid width before loading ad
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const checkWidth = () => {
+      const width = containerRef.current?.offsetWidth || 0;
+      if (width > 0) {
+        setIsVisible(true);
+      }
+    };
+
+    // Check immediately and after a short delay (for layout shifts)
+    checkWidth();
+    const timer = setTimeout(checkWidth, 100);
+
+    // Use ResizeObserver to detect when container gets width
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setIsVisible(true);
+        }
+      }
+    });
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
-    // Only load ad once per mount
-    if (isAdLoaded.current) return;
+    // Only load ad once per mount and when visible
+    if (isAdLoaded.current || !isVisible) return;
 
     try {
       const adsbygoogle = window.adsbygoogle || [];
       adsbygoogle.push({});
       isAdLoaded.current = true;
     } catch (error) {
-      console.error('AdSense error:', error);
+      // Silently handle AdSense errors - they're common and not critical
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('AdSense warning:', error);
+      }
     }
-  }, [pathname]);
+  }, [pathname, isVisible]);
 
   // Reset on unmount so ad reloads on remount
   useEffect(() => {
@@ -50,17 +87,19 @@ export default function AdSense({
   }, []);
 
   return (
-    <div className={`${styles.adContainer} ${className || ''}`} style={style}>
+    <div ref={containerRef} className={`${styles.adContainer} ${className || ''}`} style={{ minWidth: '300px', minHeight: '100px', ...style }}>
       <span className={styles.adLabel}>Advertisement</span>
-      <ins
-        ref={adRef}
-        className="adsbygoogle"
-        style={{ display: 'block' }}
-        data-ad-client="ca-pub-9036733333821648"
-        data-ad-slot={slot}
-        data-ad-format={format}
-        data-full-width-responsive={responsive ? 'true' : 'false'}
-      />
+      {isVisible && (
+        <ins
+          ref={adRef}
+          className="adsbygoogle"
+          style={{ display: 'block', minWidth: '300px', minHeight: '100px' }}
+          data-ad-client="ca-pub-9036733333821648"
+          data-ad-slot={slot}
+          data-ad-format={format}
+          data-full-width-responsive={responsive ? 'true' : 'false'}
+        />
+      )}
     </div>
   );
 }

@@ -78,6 +78,12 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
 
   return (
     <div className={`${styles.card} ${isSalonProfile ? styles.salonProfile : ''} ${isFeatured ? styles.featured : ''}`}>
+      {/* Featured like button at top right */}
+      {isFeatured && (
+        <button onClick={handleLikeClick} className={`${styles.favoriteButton} ${isLiked ? styles.favorited : ''}`} aria-label={isLiked ? 'Remove from favorites' : 'Add to favorites'}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </button>
+      )}
       <div
         className={styles.imageContainer}
         onClick={() => images.length > 0 && onImageClick(images, activeImage)}
@@ -90,7 +96,7 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
         />
-        {images.length > 1 && (
+        {images.length > 1 && !isFeatured && (
           <>
             <button className={`${styles.carouselButton} ${styles.prev}`} onClick={handlePrevImage} aria-label="Previous image">
               ‹
@@ -148,15 +154,17 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
             </button>
           </>
         )}
-        <div className={`${styles.footer} ${isSalonProfile ? styles.salonProfileFooter : ''}`}>
-          {!isSalonProfile && (
-            <button onClick={handleLikeClick} className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              <span>{likeCount}</span>
-            </button>
-          )}
-          <button onClick={(e) => { e.stopPropagation(); onBook(service); }} className={`btn btn-primary ${isSalonProfile ? styles.salonProfileBookButton : ''}`} style={{ flex: 1 }}>Book Now</button>
-        </div>
+        {!isFeatured && (
+          <div className={`${styles.footer} ${isSalonProfile ? styles.salonProfileFooter : ''}`}>
+            {!isSalonProfile && (
+              <button onClick={handleLikeClick} className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <span>{likeCount}</span>
+              </button>
+            )}
+            <button onClick={(e) => { e.stopPropagation(); onBook(service); }} className={`btn btn-primary ${isSalonProfile ? styles.salonProfileBookButton : ''}`} style={{ flex: 1 }}>Book Now</button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -20,6 +20,65 @@
   min-height: 280px;
   overflow: visible;
 }
+
+/* Featured variant - compact card with heart at top right like SalonCard */
+.card.featured {
+  height: 200px;
+}
+
+.card.featured .footer {
+  display: none;
+}
+
+.card.featured .content {
+  padding-bottom: 0.5rem;
+}
+
+.card.featured .imageContainer {
+  height: 130px;
+}
+
+/* Favorite button at top right (like SalonCard) */
+.favoriteButton {
+  position: absolute;
+  top: clamp(0.45rem, 1.5vw, 0.65rem);
+  right: clamp(0.55rem, 2.5vw, 0.85rem);
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.85);
+  filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.7));
+  padding: 0;
+}
+
+.favoriteButton svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.favoriteButton:hover {
+  transform: scale(1.1);
+  color: var(--text-inverse, #ffffff);
+}
+
+.favoriteButton.favorited {
+  color: var(--primary-pink, #f51957);
+  filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+.favoriteButton.favorited svg {
+  animation: heartBeat 0.3s ease-in-out;
+}
 .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(245, 25, 87, 0.1),
@@ -399,12 +458,32 @@
     height: 200px;
   }
 
+  .card.featured {
+    height: 180px;
+  }
+
+  .card.featured .imageContainer {
+    height: 115px;
+  }
+
   .card.salonProfile {
     min-height: 240px;
   }
 
   .imageContainer {
     height: 130px;
+  }
+
+  .favoriteButton {
+    top: 0.35rem;
+    right: 0.35rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .favoriteButton svg {
+    width: 18px;
+    height: 18px;
   }
 
   .imageCounter {
@@ -495,12 +574,32 @@
     height: 180px;
   }
 
+  .card.featured {
+    height: 165px;
+  }
+
+  .card.featured .imageContainer {
+    height: 105px;
+  }
+
   .card.salonProfile {
     min-height: 220px;
   }
 
   .imageContainer {
     height: 115px;
+  }
+
+  .favoriteButton {
+    top: 0.3rem;
+    right: 0.3rem;
+    width: 28px;
+    height: 28px;
+  }
+
+  .favoriteButton svg {
+    width: 16px;
+    height: 16px;
   }
 
   .content {

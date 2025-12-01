@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './ImageLightbox.module.css';
 import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -14,6 +15,12 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
   const [currentIndex, setCurrentIndex] = useState(initialImageIndex);
   const [isLoading, setIsLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const goToPrevious = useCallback(() => {
     setCurrentIndex((prevIndex) =>
@@ -62,8 +69,6 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
   }, [goToNext, goToPrevious, onClose, images.length]);
 
 
-  if (!images || images.length === 0) return null;
-
   // Update currentIndex when initialImageIndex changes
   useEffect(() => {
     if (initialImageIndex !== undefined && initialImageIndex >= 0 && initialImageIndex < images.length) {
@@ -87,7 +92,9 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
     setImageError(true);
   };
 
-  return (
+  if (!images || images.length === 0 || !mounted) return null;
+
+  const lightboxContent = (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <div className={styles.imageWrapper}>
@@ -135,4 +142,6 @@ export default function ImageLightbox({ images, initialImageIndex = 0, onClose }
       )}
     </div>
   );
+
+  return createPortal(lightboxContent, document.body);
 }
