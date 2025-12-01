@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Service } from '@/types';
 import styles from './ServiceCard.module.css';
 import { toast } from 'react-toastify';
@@ -128,7 +129,13 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
         </div>
         {showSalonInfo && service.salon && (
           <div className={styles.locationInfo}>
-            <p className={styles.salonName}>{service.salon.name}</p>
+            <Link 
+              href={`/salons/${service.salon.id}`} 
+              className={styles.salonNameLink}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {service.salon.name}
+            </Link>
             {(service.salon.city || service.salon.province) && (
               <p className={styles.salonLocation}>
                 {[service.salon.city, service.salon.province].filter(Boolean).join(', ')}

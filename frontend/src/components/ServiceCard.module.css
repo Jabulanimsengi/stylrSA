@@ -23,7 +23,7 @@
 
 /* Featured variant - compact card with heart at top right like SalonCard */
 .card.featured {
-  height: 200px;
+  height: 220px;
 }
 
 .card.featured .footer {
@@ -36,6 +36,16 @@
 
 .card.featured .imageContainer {
   height: 130px;
+}
+
+/* Ensure location shows on featured cards */
+.card.featured .locationInfo {
+  display: block;
+}
+
+.card.featured .salonNameLink,
+.card.featured .salonLocation {
+  font-size: 0.65rem;
 }
 
 /* Favorite button at top right (like SalonCard) */
@@ -336,6 +346,26 @@
   font-style: italic;
   text-align: center;
 }
+
+.salonNameLink {
+  font-size: 0.7rem;
+  color: var(--text-muted, #666);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.salonNameLink:hover {
+  color: var(--color-primary, #f51957);
+  text-decoration: underline;
+}
 .salonLocation {
   font-size: 0.7rem;
   color: var(--text-muted, #666);
@@ -459,11 +489,16 @@
   }
 
   .card.featured {
-    height: 180px;
+    height: 195px;
   }
 
   .card.featured .imageContainer {
     height: 115px;
+  }
+
+  .card.featured .salonNameLink,
+  .card.featured .salonLocation {
+    font-size: 0.6rem;
   }
 
   .card.salonProfile {
@@ -575,11 +610,16 @@
   }
 
   .card.featured {
-    height: 165px;
+    height: 180px;
   }
 
   .card.featured .imageContainer {
     height: 105px;
+  }
+
+  .card.featured .salonNameLink,
+  .card.featured .salonLocation {
+    font-size: 0.55rem;
   }
 
   .card.salonProfile {
