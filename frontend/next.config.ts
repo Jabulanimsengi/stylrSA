@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withPWA from 'next-pwa';
+import { withBotId } from 'botid/next/config';
 import path from 'path';
 
 const nextConfig: NextConfig = {
@@ -193,4 +194,4 @@ export default withPWA({
       },
     },
   ],
-})(nextConfig);
+})(withBotId(nextConfig));
