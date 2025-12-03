@@ -16,6 +16,10 @@
     "@vercel/speed-insights": "^1.2.0",
     "next": "15.5.4",
     "pg": "^8.16.3",
-    "debug": "^4.3.4"
+    "debug": "^4.3.4",
+    "function-bind": "^1.1.2",
+    "has-symbols": "^1.0.3",
+    "get-intrinsic": "^1.2.4",
+    "call-bind": "^1.0.7"
   }
 }
