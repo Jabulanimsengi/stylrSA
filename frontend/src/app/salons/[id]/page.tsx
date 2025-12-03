@@ -42,6 +42,11 @@ const fetchSalonWithTimeout = async (url: string, timeoutMs = 5000): Promise<Sal
 };
 
 async function getSalon(id: string): Promise<Salon | null> {
+  // Skip fetching during build time - data will be fetched client-side
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return null;
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_PATH;
 
   if (!baseUrl) {

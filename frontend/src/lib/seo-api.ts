@@ -4,8 +4,11 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+// Check if we're in build phase - skip API calls during static generation
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+
 // Debug: Log the API base URL being used
-if (typeof window === 'undefined') {
+if (typeof window === 'undefined' && !isBuildPhase) {
   console.log('🔍 SEO API Base URL:', API_BASE_URL);
 }
 
@@ -53,6 +56,8 @@ export interface SeoPageCache {
  * Fetch cached SEO page data by URL
  */
 export async function getSeoPageByUrl(url: string): Promise<SeoPageCache | null> {
+  if (isBuildPhase) return null;
+  
   try {
     const response = await fetch(`${API_BASE_URL}/seo-pages/by-url?url=${encodeURIComponent(url)}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
@@ -76,6 +81,8 @@ export async function getSeoPageByUrl(url: string): Promise<SeoPageCache | null>
  * Get top keywords for static generation
  */
 export async function getTopKeywords(limit: number = 100): Promise<{ slug: string }[]> {
+  if (isBuildPhase) return [];
+  
   const url = `${API_BASE_URL}/seo-pages/keywords/top?limit=${limit}`;
   console.log('🌐 Fetching keywords from:', url);
   
@@ -105,6 +112,8 @@ export async function getTopKeywords(limit: number = 100): Promise<{ slug: strin
  * Get all provinces
  */
 export async function getProvinces(): Promise<{ provinceSlug: string }[]> {
+  if (isBuildPhase) return [];
+  
   try {
     const response = await fetch(`${API_BASE_URL}/seo-pages/locations/provinces`, {
       next: { revalidate: 86400 }, // Cache for 24 hours
@@ -127,6 +136,8 @@ export async function getProvinces(): Promise<{ provinceSlug: string }[]> {
  * Get top cities for static generation
  */
 export async function getTopCities(limit: number = 100): Promise<{ slug: string; provinceSlug: string }[]> {
+  if (isBuildPhase) return [];
+  
   try {
     const response = await fetch(`${API_BASE_URL}/seo-pages/locations/cities/top?limit=${limit}`, {
       next: { revalidate: 86400 }, // Cache for 24 hours
@@ -149,6 +160,8 @@ export async function getTopCities(limit: number = 100): Promise<{ slug: string;
  * Get location by ID
  */
 export async function getLocationById(id: number): Promise<SeoLocation | null> {
+  if (isBuildPhase) return null;
+  
   try {
     const response = await fetch(`${API_BASE_URL}/seo-pages/locations/${id}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
@@ -172,6 +185,8 @@ export async function getLocationById(id: number): Promise<SeoLocation | null> {
  * Get first cached page for a keyword (any location)
  */
 export async function getFirstPageForKeyword(slug: string): Promise<SeoPageCache | null> {
+  if (isBuildPhase) return null;
+  
   try {
     const response = await fetch(`${API_BASE_URL}/seo-pages/keyword/${slug}/first`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
@@ -195,6 +210,8 @@ export async function getFirstPageForKeyword(slug: string): Promise<SeoPageCache
  * Get keyword by slug
  */
 export async function getKeywordBySlug(slug: string): Promise<SeoKeyword | null> {
+  if (isBuildPhase) return null;
+  
   try {
     const response = await fetch(`${API_BASE_URL}/seo-pages/keywords/${slug}`, {
       next: { revalidate: 86400 }, // Cache for 24 hours

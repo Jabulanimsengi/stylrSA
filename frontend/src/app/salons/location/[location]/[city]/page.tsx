@@ -12,6 +12,10 @@ interface PageProps {
 
 // Fetch initial salons on server for better LCP
 async function getInitialSalons(cityName: string) {
+    // Skip fetching during build time - data will be fetched client-side
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+        return [];
+    }
     try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stylrsa.co.za';
         const res = await fetch(`${apiUrl}/api/salons/approved?city=${encodeURIComponent(cityName)}&limit=12`, {
