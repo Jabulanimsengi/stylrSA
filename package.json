@@ -12,20 +12,10 @@
     "lint": "npm run lint --prefix frontend"
   },
   "dependencies": {
+    "@asamuzakjp/css-color": "^3.1.7",
     "@opentelemetry/api": "^1.9.0",
     "@vercel/speed-insights": "^1.2.0",
     "next": "15.5.4",
-    "pg": "^8.16.3",
-    "debug": "^4.3.4",
-    "function-bind": "^1.1.2",
-    "has-symbols": "^1.0.3",
-    "get-intrinsic": "^1.2.4",
-    "call-bind": "^1.0.7",
-    "has-flag": "^4.0.0",
-    "supports-color": "^7.2.0",
-    "color-convert": "^2.0.1",
-    "ansi-styles": "^4.3.0",
-    "import-in-the-middle": "^1.15.0",
-    "require-in-the-middle": "^7.5.1"
+    "pg": "^8.16.3"
   }
 }
