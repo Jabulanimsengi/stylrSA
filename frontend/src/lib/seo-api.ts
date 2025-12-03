@@ -7,15 +7,17 @@ function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 }
 
-// Check if we should skip API calls (build phase or no valid API URL)
+// Check if we should skip API calls (only during build phase with localhost)
 function shouldSkipFetch(): boolean {
-  const apiUrl = getApiBaseUrl();
-  // Skip if API URL is localhost (not accessible during build)
-  if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
-    return true;
+  // Only skip during build phase when API URL is localhost
+  const isBuildPhase = process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build';
+  if (!isBuildPhase) {
+    return false; // Always fetch at runtime
   }
-  // Skip during build phase
-  if (process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build') {
+  
+  // During build, skip if API URL is localhost (not accessible)
+  const apiUrl = getApiBaseUrl();
+  if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
     return true;
   }
   return false;

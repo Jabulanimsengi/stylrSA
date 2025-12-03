@@ -41,9 +41,10 @@ type ServiceWithSalon = Service & { salon: { id: string; name: string, city: str
 // Fetch initial data server-side
 async function getInitialData() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
+  const isBuildPhase = process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build';
   
-  // Skip fetching during build time or if API is localhost
-  if (apiUrl.includes('localhost') || process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build') {
+  // Only skip fetching during build time when API is localhost
+  if (isBuildPhase && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
     return {
       services: [] as ServiceWithSalon[],
       trends: {} as Record<TrendCategory, Trend[]>,

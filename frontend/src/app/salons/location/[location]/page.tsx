@@ -12,9 +12,10 @@ interface PageProps {
 // Fetch initial salons on server for better LCP
 async function getInitialSalons(provinceName: string) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stylrsa.co.za';
+    const isBuildPhase = process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build';
     
-    // Skip fetching during build time or if API is localhost
-    if (apiUrl.includes('localhost') || process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build') {
+    // Only skip fetching during build time when API is localhost
+    if (isBuildPhase && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
         return [];
     }
     try {
