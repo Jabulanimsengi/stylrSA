@@ -4,6 +4,10 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, '..'),
+  env: {
+    // Set build phase flag for skipping API calls during static generation
+    IS_BUILD_PHASE: process.env.npm_lifecycle_event === 'build' ? 'true' : 'false',
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

@@ -42,6 +42,16 @@ type ServiceWithSalon = Service & { salon: { id: string; name: string, city: str
 async function getInitialData() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
   
+  // Skip fetching during build time or if API is localhost
+  if (apiUrl.includes('localhost') || process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build') {
+    return {
+      services: [] as ServiceWithSalon[],
+      trends: {} as Record<TrendCategory, Trend[]>,
+      hasMore: false,
+      totalPages: 1,
+    };
+  }
+  
   try {
     // Fetch initial services
     const servicesRes = await fetch(`${apiUrl}/api/services/approved?page=1&pageSize=24`, {

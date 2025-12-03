@@ -2,14 +2,23 @@
  * SEO API client for fetching cached page data from backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// Get API URL dynamically to handle env var changes
+function getApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+}
 
-// Check if we're in build phase - skip API calls during static generation
-const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
-
-// Debug: Log the API base URL being used
-if (typeof window === 'undefined' && !isBuildPhase) {
-  console.log('🔍 SEO API Base URL:', API_BASE_URL);
+// Check if we should skip API calls (build phase or no valid API URL)
+function shouldSkipFetch(): boolean {
+  const apiUrl = getApiBaseUrl();
+  // Skip if API URL is localhost (not accessible during build)
+  if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
+    return true;
+  }
+  // Skip during build phase
+  if (process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build') {
+    return true;
+  }
+  return false;
 }
 
 export interface SeoKeyword {
@@ -56,10 +65,10 @@ export interface SeoPageCache {
  * Fetch cached SEO page data by URL
  */
 export async function getSeoPageByUrl(url: string): Promise<SeoPageCache | null> {
-  if (isBuildPhase) return null;
+  if (shouldSkipFetch()) return null;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/seo-pages/by-url?url=${encodeURIComponent(url)}`, {
+    const response = await fetch(`${getApiBaseUrl()}/seo-pages/by-url?url=${encodeURIComponent(url)}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
@@ -81,9 +90,9 @@ export async function getSeoPageByUrl(url: string): Promise<SeoPageCache | null>
  * Get top keywords for static generation
  */
 export async function getTopKeywords(limit: number = 100): Promise<{ slug: string }[]> {
-  if (isBuildPhase) return [];
+  if (shouldSkipFetch()) return [];
   
-  const url = `${API_BASE_URL}/seo-pages/keywords/top?limit=${limit}`;
+  const url = `${getApiBaseUrl()}/seo-pages/keywords/top?limit=${limit}`;
   console.log('🌐 Fetching keywords from:', url);
   
   try {
@@ -112,10 +121,10 @@ export async function getTopKeywords(limit: number = 100): Promise<{ slug: strin
  * Get all provinces
  */
 export async function getProvinces(): Promise<{ provinceSlug: string }[]> {
-  if (isBuildPhase) return [];
+  if (shouldSkipFetch()) return [];
   
   try {
-    const response = await fetch(`${API_BASE_URL}/seo-pages/locations/provinces`, {
+    const response = await fetch(`${getApiBaseUrl()}/seo-pages/locations/provinces`, {
       next: { revalidate: 86400 }, // Cache for 24 hours
       cache: 'force-cache',
     });
@@ -136,10 +145,10 @@ export async function getProvinces(): Promise<{ provinceSlug: string }[]> {
  * Get top cities for static generation
  */
 export async function getTopCities(limit: number = 100): Promise<{ slug: string; provinceSlug: string }[]> {
-  if (isBuildPhase) return [];
+  if (shouldSkipFetch()) return [];
   
   try {
-    const response = await fetch(`${API_BASE_URL}/seo-pages/locations/cities/top?limit=${limit}`, {
+    const response = await fetch(`${getApiBaseUrl()}/seo-pages/locations/cities/top?limit=${limit}`, {
       next: { revalidate: 86400 }, // Cache for 24 hours
       cache: 'force-cache',
     });
@@ -160,10 +169,10 @@ export async function getTopCities(limit: number = 100): Promise<{ slug: string;
  * Get location by ID
  */
 export async function getLocationById(id: number): Promise<SeoLocation | null> {
-  if (isBuildPhase) return null;
+  if (shouldSkipFetch()) return null;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/seo-pages/locations/${id}`, {
+    const response = await fetch(`${getApiBaseUrl()}/seo-pages/locations/${id}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
@@ -185,10 +194,10 @@ export async function getLocationById(id: number): Promise<SeoLocation | null> {
  * Get first cached page for a keyword (any location)
  */
 export async function getFirstPageForKeyword(slug: string): Promise<SeoPageCache | null> {
-  if (isBuildPhase) return null;
+  if (shouldSkipFetch()) return null;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/seo-pages/keyword/${slug}/first`, {
+    const response = await fetch(`${getApiBaseUrl()}/seo-pages/keyword/${slug}/first`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
@@ -210,10 +219,10 @@ export async function getFirstPageForKeyword(slug: string): Promise<SeoPageCache
  * Get keyword by slug
  */
 export async function getKeywordBySlug(slug: string): Promise<SeoKeyword | null> {
-  if (isBuildPhase) return null;
+  if (shouldSkipFetch()) return null;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/seo-pages/keywords/${slug}`, {
+    const response = await fetch(`${getApiBaseUrl()}/seo-pages/keywords/${slug}`, {
       next: { revalidate: 86400 }, // Cache for 24 hours
     });
 
