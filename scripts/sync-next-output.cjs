@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { cpSync, existsSync, rmSync, symlinkSync, unlinkSync } = require('node:fs');
+const { cpSync, existsSync, rmSync, readdirSync, statSync } = require('node:fs');
 const { join } = require('node:path');
 
 const shouldSync =
@@ -29,25 +29,38 @@ try {
   cpSync(source, target, { recursive: true });
   console.log(`[sync-next-output] Copied ${source} -> ${target}`);
 
-  // Symlink frontend node_modules to root for Vercel trace phase
+  // Copy ALL packages from frontend node_modules to root for Vercel trace phase
   const frontendNodeModules = join(__dirname, '..', 'frontend', 'node_modules');
   const rootNodeModules = join(__dirname, '..', 'node_modules');
   
-  // Copy missing packages from frontend to root node_modules
   if (existsSync(frontendNodeModules) && existsSync(rootNodeModules)) {
-    const packagesToSync = ['debug', 'ms', 'supports-color', 'has-flag'];
-    for (const pkg of packagesToSync) {
-      const srcPkg = join(frontendNodeModules, pkg);
-      const destPkg = join(rootNodeModules, pkg);
-      if (existsSync(srcPkg) && !existsSync(destPkg)) {
-        try {
+    console.log('[sync-next-output] Syncing node_modules from frontend to root...');
+    let copied = 0;
+    let skipped = 0;
+    
+    const entries = readdirSync(frontendNodeModules);
+    for (const entry of entries) {
+      const srcPkg = join(frontendNodeModules, entry);
+      const destPkg = join(rootNodeModules, entry);
+      
+      // Skip if already exists in root
+      if (existsSync(destPkg)) {
+        skipped++;
+        continue;
+      }
+      
+      try {
+        const stat = statSync(srcPkg);
+        if (stat.isDirectory()) {
           cpSync(srcPkg, destPkg, { recursive: true });
-          console.log(`[sync-next-output] Copied ${pkg} to root node_modules`);
-        } catch (e) {
-          console.warn(`[sync-next-output] Could not copy ${pkg}:`, e.message);
+          copied++;
         }
+      } catch (e) {
+        // Ignore errors for individual packages
       }
     }
+    
+    console.log(`[sync-next-output] Copied ${copied} packages, skipped ${skipped} existing`);
   }
 } catch (error) {
   console.error('[sync-next-output] Failed to sync Next.js output:', error);

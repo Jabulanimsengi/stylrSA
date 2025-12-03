@@ -2,11 +2,16 @@
   "name": "thesalonhub-monorepo",
   "private": true,
   "version": "0.0.0",
-  "description": "Monorepo root - Vercel deploys from frontend folder directly.",
+  "description": "Monorepo root to delegate Vercel builds to the frontend app.",
   "scripts": {
-    "dev": "npm run dev --prefix frontend",
+    "postinstall": "node scripts/install-frontend.cjs",
     "build": "npm run build --prefix frontend",
+    "postbuild": "node scripts/sync-next-output.cjs",
     "start": "npm run start --prefix frontend",
+    "dev": "npm run dev --prefix frontend",
     "lint": "npm run lint --prefix frontend"
+  },
+  "dependencies": {
+    "next": "15.5.4"
   }
 }
