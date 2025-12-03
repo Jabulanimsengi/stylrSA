@@ -20,6 +20,10 @@
     "function-bind": "^1.1.2",
     "has-symbols": "^1.0.3",
     "get-intrinsic": "^1.2.4",
-    "call-bind": "^1.0.7"
+    "call-bind": "^1.0.7",
+    "has-flag": "^4.0.0",
+    "supports-color": "^7.2.0",
+    "color-convert": "^2.0.1",
+    "ansi-styles": "^4.3.0"
   }
 }
