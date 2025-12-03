@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { cpSync, existsSync, rmSync } = require('node:fs');
+const { cpSync, existsSync, rmSync, symlinkSync, unlinkSync } = require('node:fs');
 const { join } = require('node:path');
 
 const shouldSync =
@@ -28,6 +28,27 @@ try {
 
   cpSync(source, target, { recursive: true });
   console.log(`[sync-next-output] Copied ${source} -> ${target}`);
+
+  // Symlink frontend node_modules to root for Vercel trace phase
+  const frontendNodeModules = join(__dirname, '..', 'frontend', 'node_modules');
+  const rootNodeModules = join(__dirname, '..', 'node_modules');
+  
+  // Copy missing packages from frontend to root node_modules
+  if (existsSync(frontendNodeModules) && existsSync(rootNodeModules)) {
+    const packagesToSync = ['debug', 'ms', 'supports-color', 'has-flag'];
+    for (const pkg of packagesToSync) {
+      const srcPkg = join(frontendNodeModules, pkg);
+      const destPkg = join(rootNodeModules, pkg);
+      if (existsSync(srcPkg) && !existsSync(destPkg)) {
+        try {
+          cpSync(srcPkg, destPkg, { recursive: true });
+          console.log(`[sync-next-output] Copied ${pkg} to root node_modules`);
+        } catch (e) {
+          console.warn(`[sync-next-output] Could not copy ${pkg}:`, e.message);
+        }
+      }
+    }
+  }
 } catch (error) {
   console.error('[sync-next-output] Failed to sync Next.js output:', error);
   process.exit(1);
