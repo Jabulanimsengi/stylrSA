@@ -1,16 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { checkBotId } from 'botid/server';
 
 export async function POST(req: Request) {
   try {
-    // Check for bot activity
-    const verification = await checkBotId();
-    if (verification.isBot) {
-      console.log('[Login API] Bot detected, blocking request');
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
-    }
-
     const body = await req.json();
     const backendOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
     
