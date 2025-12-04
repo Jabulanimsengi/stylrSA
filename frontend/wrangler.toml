@@ -1,0 +1,14 @@
+# Cloudflare Pages configuration for Next.js with OpenNext
+name = "stylrsa"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables - set sensitive ones in Cloudflare Dashboard
+[vars]
+NEXT_PUBLIC_SITE_URL = "https://www.stylrsa.co.za"
+NEXT_PUBLIC_CLOUDFLARE = "true"
+NEXT_PUBLIC_API_URL = "https://stylrsa.onrender.com"
+NEXT_PUBLIC_API_ORIGIN = "https://stylrsa.onrender.com"
+
+# Note: Build output is handled by @opennextjs/cloudflare
+# The build command generates .open-next directory

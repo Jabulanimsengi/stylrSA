@@ -14,9 +14,9 @@ interface PageProps {
   }>;
 }
 
-// Use dynamic rendering with ISR
+// Use dynamic rendering with ISR - 24 hour revalidation to reduce writes
 export const dynamicParams = true;
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 /**
  * Generate static params for top 5 keywords × top 10 cities only

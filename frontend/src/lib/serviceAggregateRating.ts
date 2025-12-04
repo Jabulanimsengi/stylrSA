@@ -1,12 +1,9 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 /**
  * Get aggregate rating for service category in a specific location
  * Only returns data if there are at least 5 approved reviews (Google's minimum recommendation)
  * 
- * This function queries the database directly.
+ * This function fetches data from the backend API.
  * It is intended for use in Server Components.
  */
 export async function getServiceLocationAggregateRating(
@@ -15,76 +12,41 @@ export async function getServiceLocationAggregateRating(
     province: string
 ): Promise<{ averageRating: number; totalReviews: number } | null> {
     try {
-        // Skip database queries during build if explicitly requested
-        // This prevents build failures when database is unreachable
-        if (process.env.SKIP_DB_QUERIES_ON_BUILD === 'true') {
-            console.log('[getServiceLocationAggregateRating] Skipping DB query during build');
-            return null;
-        }
-
-        // Find all salons with services in this category and location
-        const salons = await prisma.salon.findMany({
-            where: {
-                city: {
-                    equals: city,
-                    mode: 'insensitive',
-                },
-                province: {
-                    equals: province,
-                    mode: 'insensitive',
-                },
-                approvalStatus: 'APPROVED',
-                services: {
-                    some: {
-                        category: {
-                            name: {
-                                contains: category,
-                                mode: 'insensitive',
-                            },
-                        },
-                        approvalStatus: 'APPROVED',
-                    },
-                },
-            },
-            select: {
-                id: true,
-            },
+        const params = new URLSearchParams({
+            category,
+            city,
+            province,
         });
 
-        if (salons.length === 0) {
-            return null;
-        }
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-        const salonIds = salons.map((s) => s.id);
-
-        // Get approved reviews for these salons
-        const reviews = await prisma.review.findMany({
-            where: {
-                salonId: {
-                    in: salonIds,
-                },
-                approvalStatus: 'APPROVED',
-            },
-            select: {
-                rating: true,
-            },
+        const response = await fetch(`${apiUrl}/api/salons/aggregate-rating?${params.toString()}`, {
+            next: { revalidate: 3600 } // Cache for 1 hour
         });
 
-        // Google recommends minimum 5 reviews for aggregate rating
-        if (reviews.length < 5) {
+        if (!response.ok) {
+            // 404 means no data found (or not enough reviews), which is valid -> return null
+            if (response.status === 404) return null;
+            // Other errors should be logged
+            console.error(`[getServiceLocationAggregateRating] API returned ${response.status}`);
             return null;
         }
 
-        // Calculate aggregate
-        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-        const averageRating = totalRating / reviews.length;
+        const data = await response.json();
+        // If the API returns null (which it might if we designed it that way, but our backend returns 404 or object), handle it.
+        // Our backend service returns null, but the controller returns it. NestJS might return 200 with empty body or 204?
+        // Actually, if the service returns null, the controller returns null. NestJS default for null is 200 OK with empty body?
+        // Let's check the backend service implementation again.
+        // It returns null or an object.
+        // If it returns null, NestJS sends 200 OK with empty body (usually).
+        // But wait, if I want to be safe, I should check if data is empty.
 
-        return {
-            averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
-            totalReviews: reviews.length,
-        };
+        if (!data) return null;
+
+        return data;
     } catch (error) {
-        console.error('[getServiceLocationAggregateRating] DB Error:', error);
+        console.error('[getServiceLocationAggregateRating] API Error:', error);
         return null;
     }
 }
+

@@ -3,3 +3,7 @@
 .env.local
 .env.build
 .env.production
+
+# Cloudflare Pages build output
+.open-next
+.wrangler

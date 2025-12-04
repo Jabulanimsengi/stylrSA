@@ -12,8 +12,8 @@ interface PageProps {
   }>;
 }
 
-// Revalidate every hour (ISR)
-export const revalidate = 3600;
+// Revalidate every 24 hours to reduce ISR writes
+export const revalidate = 86400;
 
 /**
  * Generate static params for top 20 keywords only

@@ -54,18 +54,18 @@ async function getInitialData() {
   }
   
   try {
-    // Fetch initial services
+    // Fetch initial services - 5 minute revalidation to reduce ISR writes
     const servicesRes = await fetch(`${apiUrl}/api/services/approved?page=1&pageSize=24`, {
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+      next: { revalidate: 300 },
     });
     
     const servicesData = servicesRes.ok 
       ? await servicesRes.json() 
       : { services: [], currentPage: 1, totalPages: 1 };
 
-    // Fetch trends
+    // Fetch trends - 5 minute revalidation
     const trendsRes = await fetch(`${apiUrl}/api/trends`, {
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+      next: { revalidate: 300 },
     });
     
     const trendsData = trendsRes.ok 

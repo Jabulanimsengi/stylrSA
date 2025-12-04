@@ -540,6 +540,70 @@ export class SalonsService {
     });
   }
 
+  async getAggregateRating(category: string, city: string, province: string) {
+    // Find all salons with services in this category and location
+    const salons = await this.prisma.salon.findMany({
+      where: {
+        city: {
+          equals: city,
+          mode: 'insensitive',
+        },
+        province: {
+          equals: province,
+          mode: 'insensitive',
+        },
+        approvalStatus: 'APPROVED',
+        services: {
+          some: {
+            category: {
+              name: {
+                contains: category,
+                mode: 'insensitive',
+              },
+            },
+            approvalStatus: 'APPROVED',
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (salons.length === 0) {
+      return null;
+    }
+
+    const salonIds = salons.map((s) => s.id);
+
+    // Get approved reviews for these salons
+    const reviews = await this.prisma.review.findMany({
+      where: {
+        salonId: {
+          in: salonIds,
+        },
+        approvalStatus: 'APPROVED',
+      },
+      select: {
+        rating: true,
+      },
+    });
+
+    // Google recommends minimum 5 reviews for aggregate rating
+    if (reviews.length < 5) {
+      return null;
+    }
+
+    // Calculate aggregate
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+
+    return {
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      totalReviews: reviews.length,
+    };
+  }
+
   findMySalon(user: any, ownerId: string) {
     if (user.id !== ownerId && user.role !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to view this salon');
@@ -745,7 +809,7 @@ export class SalonsService {
       salons = salons.filter((s: any) => {
         const hours = s.operatingHours;
         if (!hours) return false;
-        
+
         // Check if any day has closing time >= 18:00
         const hasNightHours = (hoursData: any): boolean => {
           if (Array.isArray(hoursData)) {
@@ -772,7 +836,7 @@ export class SalonsService {
           }
           return false;
         };
-        
+
         return hasNightHours(hours);
       });
     }

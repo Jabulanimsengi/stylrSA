@@ -20,7 +20,7 @@ import { OptionalJwtAuthGuard } from 'src/auth/guard/optional-jwt.guard';
 
 @Controller('api/salons')
 export class SalonsController {
-  constructor(private readonly salonsService: SalonsService) {}
+  constructor(private readonly salonsService: SalonsService) { }
 
   @UseGuards(JwtGuard)
   @Post()
@@ -85,6 +85,16 @@ export class SalonsController {
   @Get('recommended')
   findRecommended(@GetUser() user: any) {
     return this.salonsService.findRecommended(user);
+  }
+
+  @Get('aggregate-rating')
+  @UseGuards(OptionalJwtAuthGuard)
+  getAggregateRating(
+    @Query('category') category: string,
+    @Query('city') city: string,
+    @Query('province') province: string,
+  ) {
+    return this.salonsService.getAggregateRating(category, city, province);
   }
 
   @Get('nearby')

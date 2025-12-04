@@ -129,4 +129,5 @@ approve.json
 *.md
 !README.md
 !MOBILE_CONNECTION_FIX.md
+!DEPLOY.md
 backend/migration-data.json

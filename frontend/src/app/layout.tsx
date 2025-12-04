@@ -27,8 +27,7 @@ import ZoomHandler from '@/components/ZoomHandler';
 import AuthModalHandler from '@/components/AuthModalHandler';
 import ClientInit from '@/components/ClientInit';
 import { Suspense } from 'react';
-import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
+// Vercel analytics removed - using Cloudflare Pages
 import SkipToContent from '@/components/SkipToContent/SkipToContent';
 import DevTools from '@/components/DevTools/DevTools';
 import BackendStatus from '@/components/DevTools/BackendStatus';
@@ -177,8 +176,7 @@ export default function RootLayout({
                       <Suspense fallback={null}>
                         <Analytics />
                       </Suspense>
-                      <VercelAnalytics />
-                      <SpeedInsights />
+                      {/* Vercel analytics removed - using Cloudflare Pages */}
                       <PWAInstallPrompt />
                       <DevTools />
                     </NavigationLoadingProvider>
