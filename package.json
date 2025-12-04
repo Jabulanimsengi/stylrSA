@@ -6,6 +6,7 @@
   "scripts": {
     "postinstall": "node scripts/install-frontend.cjs",
     "build": "npm run build --prefix frontend",
+    "build:cloudflare": "npm run build:cloudflare --prefix frontend",
     "postbuild": "node scripts/sync-next-output.cjs",
     "start": "npm run start --prefix frontend",
     "dev": "npm run dev --prefix frontend",
