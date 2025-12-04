@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack -p 3001",
     "build": "next build",
-    "build:cloudflare": "npx @opennextjs/cloudflare build",
+    "build:cloudflare": "npx opennextjs-cloudflare build",
     "preview:cloudflare": "wrangler dev",
     "deploy:cloudflare": "wrangler deploy",
     "start": "next start",
