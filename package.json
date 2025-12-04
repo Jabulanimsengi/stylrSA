@@ -12,6 +12,6 @@
     "lint": "npm run lint --prefix frontend"
   },
   "dependencies": {
-    "next": "15.5.4"
+    "next": "15.5.7"
   }
 }
