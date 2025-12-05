@@ -270,24 +270,9 @@ const CATEGORY_INFO: Record<string, {
 
 // Generate static params for all combinations
 export async function generateStaticParams() {
-  const params: Array<{ category: string; location: string; city: string }> = [];
-
-  const categories = Object.keys(CATEGORY_INFO);
-
-  Object.keys(PROVINCES).forEach(provinceSlug => {
-    const province = PROVINCES[provinceSlug];
-    province.cities.forEach(city => {
-      categories.forEach(category => {
-        params.push({
-          category,
-          location: provinceSlug,
-          city: city.slug,
-        });
-      });
-    });
-  });
-
-  return params;
+  // Return empty array to disable static generation at build time
+  // Pages will be generated on-demand (ISR)
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

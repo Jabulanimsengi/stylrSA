@@ -25,44 +25,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-    const { getAllCities, PROVINCES } = await import('@/lib/locationData');
-    const cities = getAllCities();
-    const provinces = Object.values(PROVINCES);
-
-    const roles = [
-        'hairdresser', 'nail-tech', 'makeup-artist', 'barber',
-        'massage-therapist', 'esthetician', 'beauty-professional',
-        'hair-stylist', 'lash-technician', 'brow-artist', 'salon-manager',
-        'spa-therapist', 'skincare-specialist', 'waxing-specialist',
-    ];
-
-    const params = [];
-
-    // 1. Roles + Provinces
-    for (const role of roles) {
-        for (const province of provinces) {
-            params.push({ slug: [role, province.slug] });
-        }
-    }
-
-    // 2. Roles + Cities
-    for (const role of roles) {
-        for (const city of cities) {
-            params.push({ slug: [role, city.slug] });
-        }
-    }
-
-    // 3. Province-only pages (for browsing all jobs in a province)
-    for (const province of provinces) {
-        params.push({ slug: [province.slug] });
-    }
-
-    // 4. City-only pages (for browsing all jobs in a city)
-    for (const city of cities) {
-        params.push({ slug: [city.slug] });
-    }
-
-    return params;
+    // Return empty array to disable static generation at build time
+    // Pages will be generated on-demand (ISR)
+    return [];
 }
 
 export default function DynamicJobPage({ params }: Props) {

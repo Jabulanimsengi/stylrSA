@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const locationName = location[location.length - 1] ? capitalize(location[location.length - 1]) : 'South Africa';
     const province = location[0] ? capitalize(location[0]) : '';
 
-    const title = province && location.length > 1 
+    const title = province && location.length > 1
         ? `Beauty Professionals in ${locationName}, ${province} | Stylr SA`
         : `Beauty Professionals in ${locationName} | Stylr SA`;
 
@@ -32,25 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-    const { getAllCities, PROVINCES } = await import('@/lib/locationData');
-    const cities = getAllCities();
-    const provinces = Object.values(PROVINCES);
-
-    const params = [];
-
-    // Province pages
-    for (const province of provinces) {
-        params.push({ location: [province.slug] });
-    }
-
-    // City pages (province/city)
-    for (const province of provinces) {
-        for (const city of province.cities) {
-            params.push({ location: [province.slug, city.slug] });
-        }
-    }
-
-    return params;
+    // Return empty array to disable static generation at build time
+    // Pages will be generated on-demand (ISR)
+    return [];
 }
 
 export default function CandidatesLocationPage({ params }: Props) {
@@ -121,13 +105,13 @@ export default function CandidatesLocationPage({ params }: Props) {
                 <div className="bg-white rounded-xl shadow-sm p-8 mb-8">
                     <h2 className="text-2xl font-bold mb-4">Hire Beauty Professionals in {locationName}</h2>
                     <p className="text-gray-600 mb-4">
-                        Looking to expand your salon or spa team in {locationName}? Stylr SA connects you with 
-                        qualified beauty professionals actively seeking new opportunities. Our database includes 
+                        Looking to expand your salon or spa team in {locationName}? Stylr SA connects you with
+                        qualified beauty professionals actively seeking new opportunities. Our database includes
                         experienced hairdressers, nail technicians, makeup artists, massage therapists, and more.
                     </p>
                     <p className="text-gray-600 mb-4">
-                        Each candidate profile includes their qualifications, experience, portfolio, and availability. 
-                        Whether you need full-time staff, part-time help, or freelance professionals, find the 
+                        Each candidate profile includes their qualifications, experience, portfolio, and availability.
+                        Whether you need full-time staff, part-time help, or freelance professionals, find the
                         perfect match for your business.
                     </p>
                     <Link href="/candidates" className="text-pink-600 font-semibold hover:underline">
@@ -138,17 +122,17 @@ export default function CandidatesLocationPage({ params }: Props) {
                 <div className="bg-white rounded-xl shadow-sm p-8">
                     <h2 className="text-2xl font-bold mb-4">Looking for Work in {locationName}?</h2>
                     <p className="text-gray-600 mb-4">
-                        Create your free candidate profile and get discovered by top salons and spas in {locationName}. 
+                        Create your free candidate profile and get discovered by top salons and spas in {locationName}.
                         Upload your CV, showcase your portfolio, and let employers find you.
                     </p>
                     <div className="flex gap-4 flex-wrap">
-                        <Link 
-                            href="/create-candidate-profile" 
+                        <Link
+                            href="/create-candidate-profile"
                             className="px-6 py-3 bg-pink-600 text-white rounded-lg font-bold hover:bg-pink-700 transition-colors"
                         >
                             Create Your Profile
                         </Link>
-                        <Link 
+                        <Link
                             href={`/jobs/${location.join('/')}`}
                             className="px-6 py-3 border border-pink-600 text-pink-600 rounded-lg font-bold hover:bg-pink-50 transition-colors"
                         >

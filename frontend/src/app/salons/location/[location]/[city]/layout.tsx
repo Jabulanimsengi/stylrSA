@@ -6,10 +6,10 @@ type Props = {
 };
 
 // City data with SEO information
-const CITY_DATA: Record<string, Record<string, { 
-  name: string; 
-  province: string; 
-  description: string; 
+const CITY_DATA: Record<string, Record<string, {
+  name: string;
+  province: string;
+  description: string;
   keywords: string[];
   population?: string;
 }>> = {
@@ -20,12 +20,7 @@ const CITY_DATA: Record<string, Record<string, {
       description: 'Find the best hair salons, nail salons, spas, and beauty services near you in Johannesburg.',
       keywords: ['hair salon near me Johannesburg', 'nail salon near me Johannesburg', 'spa near me Johannesburg']
     },
-    'sandton': {
-      name: 'Sandton',
-      province: 'Gauteng',
-      description: 'Book luxury beauty services and premium salons in Sandton.',
-      keywords: ['luxury spa near me Sandton', 'best hair salon in Sandton', 'nail salon near me Sandton']
-    },
+
     'pretoria': {
       name: 'Pretoria',
       province: 'Gauteng',
@@ -389,22 +384,16 @@ const CITY_DATA: Record<string, Record<string, {
 
 // Generate static params for all city pages
 export async function generateStaticParams() {
-  const params: Array<{ location: string; city: string }> = [];
-  
-  Object.keys(CITY_DATA).forEach(province => {
-    Object.keys(CITY_DATA[province]).forEach(city => {
-      params.push({ location: province, city });
-    });
-  });
-  
-  return params;
+  // Return empty array to disable static generation at build time
+  // Pages will be generated on-demand (ISR)
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { location, city } = await params;
-  
+
   const cityInfo = CITY_DATA[location]?.[city];
-  
+
   if (!cityInfo) {
     return {
       title: 'Salons & Beauty Services Near Me',

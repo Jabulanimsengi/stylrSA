@@ -24,33 +24,9 @@ export const revalidate = 86400;
  * Returns empty array if backend is unavailable
  */
 export async function generateStaticParams() {
-  try {
-    const keywords = await getTopKeywords(5);
-    const cities = await getTopCities(10);
-
-    // If no data available, return empty array and rely on ISR
-    if (keywords.length === 0 || cities.length === 0) {
-      console.log('⚠️  No keywords or cities available, using ISR mode');
-      return [];
-    }
-
-    const params: { keyword: string; province: string; city: string }[] = [];
-
-    for (const keyword of keywords) {
-      for (const city of cities) {
-        params.push({
-          keyword: keyword.slug,
-          province: city.provinceSlug,
-          city: city.slug,
-        });
-      }
-    }
-
-    return params;
-  } catch (error) {
-    console.warn('⚠️  Failed to generate static params, using ISR mode:', error);
-    return [];
-  }
+  // Return empty array to disable static generation at build time
+  // Pages will be generated on-demand (ISR)
+  return [];
 }
 
 /**
@@ -61,11 +37,11 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { keyword, province, city } = await params;
-  
+
   // Filter out invalid paths early
   const invalidPrefixes = ['_vercel', '_next', 'api', 'static'];
   const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2'];
-  
+
   if (
     invalidPrefixes.includes(keyword) ||
     invalidExtensions.some(ext => city.endsWith(ext))
@@ -75,7 +51,7 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
-  
+
   const url = `/${keyword}/${province}/${city}`;
 
   try {
@@ -126,18 +102,18 @@ export async function generateMetadata({
  */
 export default async function KeywordProvinceCityPage({ params }: PageProps) {
   const { keyword, province, city } = await params;
-  
+
   // Filter out invalid paths (Vercel scripts, static files, etc.)
   const invalidPrefixes = ['_vercel', '_next', 'api', 'static'];
   const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2'];
-  
+
   if (
     invalidPrefixes.includes(keyword) ||
     invalidExtensions.some(ext => city.endsWith(ext))
   ) {
     notFound();
   }
-  
+
   const url = `/${keyword}/${province}/${city}`;
 
   try {

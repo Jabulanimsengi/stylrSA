@@ -13,25 +13,14 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  const categories = getAllCategorySlugs();
-  const provinces = getAllProvinceSlugs();
-  
-  const params = [];
-  for (const category of categories) {
-    for (const province of provinces) {
-      const cities = getCitiesByProvince(province);
-      for (const city of cities) {
-        params.push({ category, province, city: city.slug });
-      }
-    }
-  }
-  
-  return params;
+  // Return empty array to disable static generation at build time
+  // Pages will be generated on-demand (ISR)
+  return [];
 }
 
 export default async function ServiceCityNearYouPage({ params }: Props) {
   const { category, province, city } = await params;
-  
+
   return (
     <Suspense
       fallback={

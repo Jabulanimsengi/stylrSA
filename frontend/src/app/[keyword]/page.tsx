@@ -20,11 +20,9 @@ export const revalidate = 86400;
  * Other pages will be generated on-demand via ISR
  */
 export async function generateStaticParams() {
-  const keywords = await getTopKeywords(20);
-
-  return keywords.map((keyword) => ({
-    keyword: keyword.slug,
-  }));
+  // Return empty array to disable static generation at build time
+  // Pages will be generated on-demand (ISR)
+  return [];
 }
 
 /**
@@ -38,7 +36,7 @@ export async function generateMetadata({
   // Filter out invalid paths early
   const invalidPrefixes = ['_vercel', '_next', 'api', 'static', 'favicon'];
   const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2', '.xml', '.txt'];
-  
+
   if (
     invalidPrefixes.includes(keyword) ||
     invalidExtensions.some(ext => keyword.endsWith(ext))
@@ -93,7 +91,7 @@ export default async function KeywordPage({ params }: PageProps) {
   // Filter out invalid paths (Vercel scripts, static files, etc.)
   const invalidPrefixes = ['_vercel', '_next', 'api', 'static', 'favicon'];
   const invalidExtensions = ['.js', '.css', '.json', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2', '.xml', '.txt'];
-  
+
   if (
     invalidPrefixes.includes(keyword) ||
     invalidExtensions.some(ext => keyword.endsWith(ext))
