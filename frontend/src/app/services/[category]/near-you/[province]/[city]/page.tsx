@@ -5,8 +5,8 @@ import { getAllCategorySlugs, getAllProvinceSlugs } from '@/lib/nearYouContent';
 import { getCitiesByProvince } from '@/lib/locationData';
 import styles from '../../../../../salons/SalonsPage.module.css';
 
-// ISR: Revalidate every hour for fresh content
-export const revalidate = 3600;
+// ISR: Revalidate every 24 hours to reduce ISR writes
+export const revalidate = 86400;
 
 type Props = {
   params: Promise<{ category: string; province: string; city: string }>;

@@ -130,4 +130,5 @@ approve.json
 !README.md
 !MOBILE_CONNECTION_FIX.md
 !DEPLOY.md
+!DEPLOY_NETLIFY.md
 backend/migration-data.json

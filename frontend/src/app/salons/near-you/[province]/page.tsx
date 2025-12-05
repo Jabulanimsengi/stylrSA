@@ -4,8 +4,8 @@ import SalonProvinceNearYouClient from './SalonProvinceNearYouClient';
 import { getAllProvinceSlugs } from '@/lib/nearYouContent';
 import styles from '@/app/salons/SalonsPage.module.css';
 
-// ISR: Revalidate every hour for fresh content
-export const revalidate = 3600;
+// ISR: Revalidate every 24 hours to reduce ISR writes
+export const revalidate = 86400;
 
 type Props = {
   params: Promise<{ province: string }>;

@@ -61,3 +61,25 @@ export function isCloudflare(): boolean {
   }
   return false;
 }
+
+/**
+ * Fetch JSON from API endpoint
+ * @param path - API path starting with /api/
+ * @param options - Fetch options
+ * @returns Parsed JSON response
+ */
+export async function apiJson<T = unknown>(path: string, options?: RequestInit): Promise<T> {
+  const response = await apiFetch(path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status} ${response.statusText}`);
+  }
+  
+  return response.json();
+}

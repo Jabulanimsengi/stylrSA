@@ -24,9 +24,9 @@ type Props = {
 
 async function fetchSalon(id: string) {
   try {
-    // ISR: Revalidate every 10 minutes (600 seconds) for better performance and Core Web Vitals
+    // ISR: Revalidate every 1 hour to reduce ISR writes while keeping content fresh
     // This serves fast static pages while updating in the background
-    const res = await fetch(`/api/salons/${id}`, { next: { revalidate: 600 } });
+    const res = await fetch(`/api/salons/${id}`, { next: { revalidate: 3600 } });
     if (!res.ok) return null;
     return res.json();
   } catch {

@@ -14,8 +14,8 @@ interface PageProps {
   }>;
 }
 
-// Revalidate every hour (ISR)
-export const revalidate = 3600;
+// Revalidate every 24 hours to reduce ISR writes
+export const revalidate = 86400;
 
 /**
  * No static generation for suburbs - on-demand only

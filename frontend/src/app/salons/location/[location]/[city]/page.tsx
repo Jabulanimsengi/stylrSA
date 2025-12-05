@@ -21,7 +21,7 @@ async function getInitialSalons(cityName: string) {
     }
     try {
         const res = await fetch(`${apiUrl}/api/salons/approved?city=${encodeURIComponent(cityName)}&limit=12`, {
-            next: { revalidate: 300 }, // Cache for 5 minutes
+            next: { revalidate: 3600 }, // Cache for 1 hour to reduce ISR writes
         });
         if (!res.ok) return [];
         return res.json();

@@ -20,7 +20,7 @@ async function getInitialSalons(provinceName: string) {
     }
     try {
         const res = await fetch(`${apiUrl}/api/salons/approved?province=${encodeURIComponent(provinceName)}&limit=12`, {
-            next: { revalidate: 300 }, // Cache for 5 minutes
+            next: { revalidate: 3600 }, // Cache for 1 hour to reduce ISR writes
         });
         if (!res.ok) return [];
         return res.json();
