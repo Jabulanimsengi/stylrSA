@@ -44,7 +44,10 @@ export class PrismaService extends BasePrismaClient implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.connectWithRetry();
+    // Don't block app startup - connect in background
+    this.connectWithRetry().catch(() => {
+      this.logger.warn('Initial database connection failed, will retry on first query');
+    });
   }
 
   private async connectWithRetry(): Promise<void> {
@@ -63,9 +66,10 @@ export class PrismaService extends BasePrismaClient implements OnModuleInit {
         
         if (this.connectionRetries >= this.maxRetries) {
           this.logger.error(
-            'Max database connection retries reached. Please check your database server.',
+            'Max database connection retries reached. App will continue but DB operations will fail.',
           );
-          throw error;
+          // Don't throw - let app start anyway so Render sees the port
+          return;
         }
         
         // Exponential backoff: 1s, 2s, 4s, 8s, 16s
