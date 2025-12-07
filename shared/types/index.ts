@@ -24,6 +24,7 @@ export type UserRole = 'user' | 'salon_owner' | 'admin';
 export interface Salon {
   id: string;
   name: string;
+  slug?: string | null;
   description?: string;
   address?: string;
   city?: string;

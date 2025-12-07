@@ -37,6 +37,7 @@ import { SeoModule } from './seo/seo.module';
 import { CandidatesModule } from './candidates/candidates.module';
 import { TeamMembersModule } from './team-members/team-members.module';
 import { JobPostingsModule } from './job-postings/job-postings.module';
+import { Top10RequestsModule } from './top10-requests/top10-requests.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { JobPostingsModule } from './job-postings/job-postings.module';
     CandidatesModule,
     TeamMembersModule,
     JobPostingsModule,
+    Top10RequestsModule,
   ],
   controllers: [AppController],
   providers: [

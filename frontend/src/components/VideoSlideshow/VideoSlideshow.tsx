@@ -36,7 +36,8 @@ interface ServiceVideo {
 export default function VideoSlideshow() {
   const [videos, setVideos] = useState<ServiceVideo[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  // 'pending' = not started, 'loading' = fetching, 'done' = completed
+  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<ServiceVideo | null>(null);
   const prevRef = useRef<HTMLButtonElement>(null);
@@ -48,6 +49,7 @@ export default function VideoSlideshow() {
   }, []);
 
   const fetchVideos = async () => {
+    setLoadingState('loading');
     try {
       const res = await fetch('/api/videos/approved?limit=20');
       if (res.ok) {
@@ -57,7 +59,7 @@ export default function VideoSlideshow() {
     } catch (error) {
       console.error('Failed to fetch videos:', error);
     } finally {
-      setIsLoading(false);
+      setLoadingState('done');
     }
   };
 
@@ -71,7 +73,14 @@ export default function VideoSlideshow() {
     setSelectedVideo(null);
   };
 
-  if (isLoading) {
+  // Don't render anything until we've started fetching
+  // This prevents the flash of skeleton → empty
+  if (loadingState === 'pending') {
+    return null;
+  }
+
+  // Show skeleton only while actively loading
+  if (loadingState === 'loading') {
     return (
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Service Video Highlights</h2>
@@ -86,6 +95,7 @@ export default function VideoSlideshow() {
     );
   }
 
+  // After loading completes, only render if we have videos
   if (videos.length === 0) {
     return null;
   }

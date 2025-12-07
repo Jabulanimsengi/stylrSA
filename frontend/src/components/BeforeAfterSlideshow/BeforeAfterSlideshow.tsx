@@ -33,7 +33,8 @@ interface BeforeAfterPhoto {
 
 export default function BeforeAfterSlideshow() {
   const [photos, setPhotos] = useState<BeforeAfterPhoto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Start as null = "not checked yet", then true/false after fetch
+  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -47,6 +48,7 @@ export default function BeforeAfterSlideshow() {
   }, []);
 
   const fetchPhotos = async () => {
+    setLoadingState('loading');
     try {
       const res = await fetch('/api/before-after/approved?limit=20');
       if (res.ok) {
@@ -56,7 +58,7 @@ export default function BeforeAfterSlideshow() {
     } catch (error) {
       console.error('Failed to fetch before/after photos:', error);
     } finally {
-      setIsLoading(false);
+      setLoadingState('done');
     }
   };
 
@@ -87,7 +89,14 @@ export default function BeforeAfterSlideshow() {
 
 
 
-  if (isLoading) {
+  // Don't render anything until we've checked if there's data
+  // This prevents the flash of skeleton → empty
+  if (loadingState === 'pending') {
+    return null;
+  }
+
+  // Show skeleton only while actively loading (after we've started the fetch)
+  if (loadingState === 'loading') {
     return (
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Before & After Transformations</h2>
@@ -102,6 +111,7 @@ export default function BeforeAfterSlideshow() {
     );
   }
 
+  // After loading completes, only render if we have photos
   if (photos.length === 0) {
     return null;
   }

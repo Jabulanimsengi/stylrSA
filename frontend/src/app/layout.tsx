@@ -31,6 +31,7 @@ import { Suspense } from 'react';
 import SkipToContent from '@/components/SkipToContent/SkipToContent';
 import DevTools from '@/components/DevTools/DevTools';
 import BackendStatus from '@/components/DevTools/BackendStatus';
+import RequestTop10Button from '@/components/RequestTop10/RequestTop10Button';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -178,6 +179,7 @@ export default function RootLayout({
                       </Suspense>
                       {/* Vercel analytics removed - using Cloudflare Pages */}
                       <PWAInstallPrompt />
+                      <RequestTop10Button variant="floating" />
                       <DevTools />
                     </NavigationLoadingProvider>
                   </AuthModalProvider>

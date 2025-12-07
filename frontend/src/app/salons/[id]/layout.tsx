@@ -38,7 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const salon = await fetchSalon(id);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
-  const canonicalUrl = `${siteUrl}/salons/${id}`;
+  // Use slug for canonical URL if available for better SEO
+  const canonicalUrl = `${siteUrl}/salons/${salon?.slug || id}`;
 
   if (!salon) {
     return {
@@ -92,7 +93,9 @@ export default async function SalonLayout({ children, params }: Props) {
   const { id } = await params;
   const salon = await fetchSalon(id);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
-  const businessId = `${siteUrl}/salons/${id}#localbusiness`;
+  // Use slug for URLs if available for better SEO
+  const salonIdentifier = salon?.slug || id;
+  const businessId = `${siteUrl}/salons/${salonIdentifier}#localbusiness`;
 
   const breadcrumbSchema = salon ? {
     '@context': 'https://schema.org',
@@ -114,7 +117,7 @@ export default async function SalonLayout({ children, params }: Props) {
         '@type': 'ListItem',
         position: 3,
         name: salon.name,
-        item: `${siteUrl}/salons/${salon.id}`,
+        item: `${siteUrl}/salons/${salon.slug || salon.id}`,
       },
     ],
   } : null;
@@ -210,7 +213,7 @@ export default async function SalonLayout({ children, params }: Props) {
         name: salon.name,
         description: salon.description || undefined,
         image: normalizedImages,
-        url: `${siteUrl}/salons/${salon.id}`,
+        url: `${siteUrl}/salons/${salon.slug || salon.id}`,
         telephone: salon.phoneNumber || undefined,
         email: salon.contactEmail || undefined,
         address: {

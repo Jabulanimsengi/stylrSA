@@ -16,7 +16,7 @@ import {
   FaEnvelope,
 } from 'react-icons/fa';
 import { Salon, Service, GalleryImage, Review } from '@/types';
-import BookingModal from '@/components/BookingModal';
+import BookingModal from '@/components/BookingModal/BookingModal';
 import styles from './SalonProfile.module.css';
 import Accordion from '@/components/Accordion';
 import ServiceCard from '@/components/ServiceCard';
@@ -491,7 +491,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
   };
   const shareProfile = async () => {
     if (!salon) return;
-    const url = `${window.location.origin}/salons/${salon.id}`;
+    const url = `${window.location.origin}/salons/${salon.slug || salon.id}`;
     const text = `Check out ${salon.name} on Stylr SA`;
     try {
       if (navigator.share) {
@@ -526,6 +526,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
         <BookingModal
           salon={salon}
           service={selectedService}
+          services={services}
           onClose={() => setSelectedService(null)}
           onBookingSuccess={() => {
             toast.success('Booking request sent! The salon will confirm shortly.');
@@ -607,7 +608,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
               </button>
             )}
             <SocialShare
-              url={`${typeof window !== 'undefined' ? window.location.origin : ''}/salons/${salon.id}`}
+              url={`${typeof window !== 'undefined' ? window.location.origin : ''}/salons/${salon.slug || salon.id}`}
               title={salon.name}
               description={salon.description || `Check out ${salon.name} on Stylr SA`}
               image={salon.backgroundImage || ''}
@@ -835,54 +836,57 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 />
               </section>
 
-              {/* Calendar & Availability Section - After Services */}
+              {/* Booking CTA Section - Clean card with operating hours */}
               {services.length > 0 && (
-                <section id="booking-section">
-                  <h2 className={styles.sectionTitle}>Book an Appointment</h2>
-                  <div className={styles.bookingRow}>
-                    <CalendarSchedule
-                      salon={salon}
-                      services={services}
-                      onServiceSelect={(service) => {
-                        setSelectedService(service);
-                      }}
-                      onSlotSelect={(slot) => {
-                        // When a slot is selected, open booking modal with that service
-                        if (selectedService) {
-                          setSelectedService(selectedService);
-                        }
-                      }}
-                    />
-                    <div className={styles.availabilityBox}>
-                      <div className={styles.availabilityBoxHeader}>
-                        <FaClock />
-                        <h3>Operating Hours</h3>
+                <section id="booking-section" className={styles.bookingSection}>
+                  <div className={styles.bookingCard}>
+                    <div className={styles.bookingCardMain}>
+                      <div className={styles.bookingCardHeader}>
+                        <h2>Ready to book?</h2>
+                        <p>Choose a service and pick your preferred time</p>
                       </div>
-                      {hoursRecord && orderedOperatingDays.length > 0 ? (
-                        <ul className={styles.availabilityList}>
-                          {orderedOperatingDays.map(day => (
-                            <li key={day} className={day === todayLabel ? styles.todayRow : ''}>
-                              <span className={styles.dayName}>{day}</span>
-                              <span className={styles.dayHours}>{hoursRecord[day]}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className={styles.noHours}>Operating hours not listed.</p>
-                      )}
+                      <button
+                        className={styles.bookNowButton}
+                        onClick={() => {
+                          if (authStatus !== 'authenticated') {
+                            openModal('login');
+                          } else if (services.length > 0) {
+                            // Open modal without pre-selected service to show service selection step
+                            setSelectedService(services[0]);
+                          }
+                        }}
+                      >
+                        <FaBolt /> Book Now
+                      </button>
+                    </div>
+                    <div className={styles.bookingCardInfo}>
                       <div className={styles.availabilityStatus}>
                         <span className={`${styles.statusDot} ${salon.isAvailableNow ? styles.open : styles.closed}`} />
                         <span>{salon.isAvailableNow ? 'Open Now' : 'Currently Closed'}</span>
                       </div>
                       {salon.bookingType && (
-                        <p className={styles.bookingTypeInfo}>
-                          {salon.bookingType === 'MOBILE' && '📍 Mobile visits available'}
-                          {salon.bookingType === 'BOTH' && '📍 On-site & mobile visits'}
-                          {salon.bookingType === 'ONSITE' && '📍 On-site appointments'}
-                        </p>
+                        <span className={styles.bookingTypeTag}>
+                          {salon.bookingType === 'MOBILE' && '📍 Mobile visits'}
+                          {salon.bookingType === 'BOTH' && '📍 On-site & mobile'}
+                          {salon.bookingType === 'ONSITE' && '📍 On-site only'}
+                        </span>
                       )}
                     </div>
                   </div>
+                  
+                  {/* Operating Hours - Collapsible */}
+                  {hoursRecord && orderedOperatingDays.length > 0 && (
+                    <Accordion title="Operating Hours" initialOpen={false}>
+                      <ul className={styles.hoursListCompact}>
+                        {orderedOperatingDays.map(day => (
+                          <li key={day} className={day === todayLabel ? styles.todayRow : ''}>
+                            <span className={styles.dayName}>{day}</span>
+                            <span className={styles.dayHours}>{hoursRecord[day]}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </Accordion>
+                  )}
                 </section>
               )}
 

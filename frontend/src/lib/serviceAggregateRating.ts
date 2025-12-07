@@ -32,18 +32,20 @@ export async function getServiceLocationAggregateRating(
             return null;
         }
 
-        const data = await response.json();
-        // If the API returns null (which it might if we designed it that way, but our backend returns 404 or object), handle it.
-        // Our backend service returns null, but the controller returns it. NestJS might return 200 with empty body or 204?
-        // Actually, if the service returns null, the controller returns null. NestJS default for null is 200 OK with empty body?
-        // Let's check the backend service implementation again.
-        // It returns null or an object.
-        // If it returns null, NestJS sends 200 OK with empty body (usually).
-        // But wait, if I want to be safe, I should check if data is empty.
+        // Handle empty response body (NestJS returns empty body for null)
+        const text = await response.text();
+        if (!text || text.trim() === '') {
+            return null;
+        }
 
-        if (!data) return null;
-
-        return data;
+        try {
+            const data = JSON.parse(text);
+            if (!data) return null;
+            return data;
+        } catch {
+            // Invalid JSON response
+            return null;
+        }
     } catch (error) {
         console.error('[getServiceLocationAggregateRating] API Error:', error);
         return null;

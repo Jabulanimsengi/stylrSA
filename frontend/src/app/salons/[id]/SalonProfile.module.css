@@ -1343,3 +1343,142 @@
 [data-theme='dark'] .availabilityList li {
   background: var(--color-surface, #374151);
 }
+
+
+/* New Booking Section - Clean CTA Card */
+.bookingSection {
+  margin: 1.5rem 0;
+}
+
+.bookingCard {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bookingCardMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.bookingCardHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: var(--color-text-strong);
+}
+
+.bookingCardHeader p {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.bookNowButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bookNowButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(245, 25, 87, 0.25);
+}
+
+.bookNowButton svg {
+  font-size: 0.9rem;
+}
+
+.bookingCardInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.bookingTypeTag {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Compact hours list for accordion */
+.hoursListCompact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hoursListCompact li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.hoursListCompact li.todayRow {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  font-weight: 600;
+}
+
+.hoursListCompact .dayName {
+  color: var(--color-text-strong);
+}
+
+.hoursListCompact .dayHours {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+}
+
+/* Mobile adjustments for booking card */
+@media (max-width: 640px) {
+  .bookingCard {
+    padding: 1.25rem;
+  }
+
+  .bookingCardMain {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .bookNowButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bookingCardInfo {
+    justify-content: center;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .bookingCard {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+}

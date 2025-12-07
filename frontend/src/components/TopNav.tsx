@@ -36,6 +36,7 @@ import ConfirmationModal from './ConfirmationModal/ConfirmationModal';
 import { useSocket } from '@/context/SocketContext';
 import { Notification, PaginatedNotifications } from '@/types';
 import { createPortal } from 'react-dom';
+import RequestTop10Button from './RequestTop10/RequestTop10Button';
 
 // Notification constants
 const NOTIFICATIONS_CACHE_KEY = 'nav-notifications-cache';
@@ -385,6 +386,7 @@ export default function TopNav() {
                 </div>
 
                 <div className={styles.rightSection}>
+                    <RequestTop10Button variant="desktop" />
                     <ThemeToggle />
 
                     {authStatus === 'authenticated' ? (

@@ -21,15 +21,17 @@ function ForYouRecommendations() {
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // 'pending' = not started, 'loading' = fetching, 'done' = completed
+  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
   const [activeIndex, setActiveIndex] = useState(0);
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const hasFetched = useRef(false);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
-      setIsLoading(true);
+      setLoadingState('loading');
       try {
         // Add timeout to prevent infinite loading (5 seconds)
         const controller = new AbortController();
@@ -53,15 +55,17 @@ function ForYouRecommendations() {
         // Silently fail on timeout/abort
         setSalons([]);
       } finally {
-        setIsLoading(false);
+        setLoadingState('done');
       }
     };
 
-    if (authStatus === 'authenticated') {
+    if (authStatus === 'authenticated' && !hasFetched.current) {
+      hasFetched.current = true;
       fetchRecommendations();
-    } else {
-      setIsLoading(false);
-      setSalons([]); // Ensure salons is empty when not authenticated
+    } else if (authStatus !== 'authenticated') {
+      setLoadingState('done'); // Mark as done so we don't show skeleton
+      setSalons([]);
+      hasFetched.current = false; // Reset so it fetches again if user logs in
     }
   }, [authStatus]);
 
@@ -105,12 +109,19 @@ function ForYouRecommendations() {
     }
   }, [authStatus, openModal, salons]);
 
-  // Don't show section if user is not authenticated or no recommendations
-  if (authStatus !== 'authenticated' || (isLoading === false && salons.length === 0)) {
+  // Don't render anything until we know if there's data
+  // This prevents the flash of skeleton → empty
+  if (authStatus !== 'authenticated') {
     return null;
   }
 
-  if (isLoading) {
+  // Still waiting to start or haven't checked yet
+  if (loadingState === 'pending') {
+    return null;
+  }
+
+  // Show skeleton only while actively loading
+  if (loadingState === 'loading') {
     return (
       <section className={styles.section}>
         <div className={styles.header}>
@@ -123,6 +134,11 @@ function ForYouRecommendations() {
         </div>
       </section>
     );
+  }
+
+  // After loading completes, only render if we have salons
+  if (salons.length === 0) {
+    return null;
   }
 
   return (

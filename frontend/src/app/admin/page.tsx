@@ -96,7 +96,8 @@ export default function AdminPage() {
   const [availableSalons, setAvailableSalons] = useState<PendingSalon[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
   const [featureDuration, setFeatureDuration] = useState<number>(30);
-  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media' | 'trends' | 'salon-trendz' | 'blogs'>('salons');
+  const [view, setView] = useState<'salons' | 'services' | 'reviews' | 'all-salons' | 'products' | 'all-sellers' | 'deleted-salons' | 'deleted-sellers' | 'audit' | 'featured-salons' | 'promotions' | 'media' | 'trends' | 'salon-trendz' | 'blogs' | 'top10-requests'>('salons');
+  const [top10Requests, setTop10Requests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   // Inline edit state for salon visibility features
@@ -842,6 +843,19 @@ export default function AdminPage() {
           Blogs
         </button>
         <button
+          onClick={async () => {
+            setView('top10-requests');
+            try {
+              const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+              const r = await fetch(`/api/admin/top10-requests?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
+              if (r.ok) setTop10Requests(await r.json());
+            } catch {}
+          }}
+          className={`${styles.tabButton} ${view === 'top10-requests' ? styles.activeTab : ''}`}
+        >
+          Top 10 Requests ({top10Requests.length})
+        </button>
+        <button
           onClick={() => setView('deleted-salons')}
           className={`${styles.tabButton} ${view === 'deleted-salons' ? styles.activeTab : ''}`}
         >
@@ -1557,6 +1571,57 @@ export default function AdminPage() {
         )}
         {view === 'blogs' && (
           <AdminBlogManager />
+        )}
+
+        {view === 'top10-requests' && (
+          top10Requests.length > 0 ? top10Requests.map((req: any) => (
+            <div key={req.id} className={styles.listItem}>
+              <div className={styles.info}>
+                <h4>{req.fullName} - {req.category}</h4>
+                <p><strong>Service:</strong> {req.serviceNeeded}</p>
+                <p><strong>Budget:</strong> R{req.budget} | <strong>Type:</strong> {req.serviceType === 'onsite' ? 'Mobile' : 'Visit Salon'}</p>
+                <p><strong>Location:</strong> {req.location}</p>
+                <p><strong>Date:</strong> {req.preferredDate ? new Date(req.preferredDate).toLocaleDateString() : 'Not specified'} {req.preferredTime ? `at ${req.preferredTime}` : ''}</p>
+                <p><strong>Phone:</strong> <a href={`tel:${req.phone}`}>{req.phone}</a> {req.whatsapp && <> | <strong>WhatsApp:</strong> <a href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">{req.whatsapp}</a></>}</p>
+                {req.email && <p><strong>Email:</strong> <a href={`mailto:${req.email}`}>{req.email}</a></p>}
+                {req.styleOrLook && <p><strong>Style:</strong> {req.styleOrLook}</p>}
+                <p style={{ opacity: 0.7, fontSize: '0.85rem' }}>Submitted: {new Date(req.createdAt).toLocaleString()}</p>
+                <p><strong>Status:</strong> <span style={{ color: req.status === 'PENDING' ? '#f59e0b' : req.status === 'CONTACTED' ? '#3b82f6' : req.status === 'MATCHED' ? '#10b981' : '#6b7280' }}>{req.status}</span></p>
+              </div>
+              <div className={styles.actions}>
+                <select
+                  value={req.status}
+                  onChange={async (e) => {
+                    const newStatus = e.target.value;
+                    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+                    try {
+                      const res = await fetch(`/api/admin/top10-requests/${req.id}/status`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders },
+                        credentials: 'include',
+                        body: JSON.stringify({ status: newStatus }),
+                      });
+                      if (res.ok) {
+                        setTop10Requests(prev => prev.map(r => r.id === req.id ? { ...r, status: newStatus } : r));
+                        toast.success('Status updated');
+                      } else {
+                        toast.error('Failed to update status');
+                      }
+                    } catch {
+                      toast.error('Failed to update status');
+                    }
+                  }}
+                  style={{ padding: '0.5rem', borderRadius: 4 }}
+                >
+                  <option value="PENDING">Pending</option>
+                  <option value="CONTACTED">Contacted</option>
+                  <option value="MATCHED">Matched</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+            </div>
+          )) : <p>No Top 10 requests yet.</p>
         )}
 
         {view === 'deleted-sellers' && (

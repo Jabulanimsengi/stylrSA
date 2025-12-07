@@ -14,6 +14,7 @@ import {
 } from './utils/operating-hours.util';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EventsGateway } from '../events/events.gateway';
+import { generateSalonSlug, isUUID } from '../common/slug.util';
 
 type PlanCode = 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 type PlanPaymentStatus =
@@ -41,6 +42,45 @@ export class SalonsService {
     private notificationsService: NotificationsService,
     private eventsGateway: EventsGateway,
   ) { }
+
+  /**
+   * Generate a unique slug for a salon
+   * If the base slug already exists, append a number suffix
+   */
+  private async generateUniqueSlug(name: string, city: string): Promise<string> {
+    const baseSlug = generateSalonSlug(name, city);
+    
+    // Check if base slug exists
+    const existing = await this.prisma.salon.findUnique({
+      where: { slug: baseSlug },
+      select: { id: true },
+    });
+    
+    if (!existing) {
+      return baseSlug;
+    }
+    
+    // Find all slugs that start with the base slug
+    const similarSlugs = await this.prisma.salon.findMany({
+      where: {
+        slug: {
+          startsWith: baseSlug,
+        },
+      },
+      select: { slug: true },
+    });
+    
+    // Extract numbers from existing slugs and find the next available
+    const numbers = similarSlugs
+      .map(s => {
+        const match = s.slug?.match(new RegExp(`^${baseSlug}-(\\d+)$`));
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .filter(n => n > 0);
+    
+    const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 2;
+    return `${baseSlug}-${nextNumber}`;
+  }
 
   /**
    * Validate that image URL is from trusted source (Cloudinary)
@@ -130,9 +170,13 @@ export class SalonsService {
       )
       : normalizedOperatingHours.map((oh) => oh.day);
 
+    // Generate unique slug for SEO-friendly URLs
+    const slug = await this.generateUniqueSlug(dto.name, (dto as any).city || '');
+
     const data: any = {
       ownerId: userId,
       name: dto.name,
+      slug,
       description: (dto as any).description,
       address: (dto as any).address,
       province: (dto as any).province,
@@ -355,9 +399,18 @@ export class SalonsService {
     }
   }
 
-  async findOne(id: string, user?: any, ipAddress?: string) {
-    const salon = await this.prisma.salon.findUnique({
-      where: { id },
+  /**
+   * Find a salon by slug or ID
+   * Supports both UUID lookups (for backward compatibility) and slug lookups (for SEO)
+   */
+  async findOne(idOrSlug: string, user?: any, ipAddress?: string) {
+    // Determine if we're looking up by UUID or slug
+    const isId = isUUID(idOrSlug);
+    
+    const salon = await this.prisma.salon.findFirst({
+      where: isId 
+        ? { id: idOrSlug }
+        : { slug: idOrSlug },
       include: {
         reviews: {
           where: { approvalStatus: 'APPROVED' },
@@ -395,11 +448,11 @@ export class SalonsService {
     });
 
     if (!salon) {
-      throw new NotFoundException(`Salon with ID ${id} not found`);
+      throw new NotFoundException(`Salon not found`);
     }
 
     // Track view (fire-and-forget to avoid blocking response)
-    this.trackView(id, user?.id, ipAddress).catch((error) => {
+    this.trackView(salon.id, user?.id, ipAddress).catch((error) => {
       // Silently fail - view tracking should not disrupt UX
       console.error('Failed to track salon view:', error);
     });

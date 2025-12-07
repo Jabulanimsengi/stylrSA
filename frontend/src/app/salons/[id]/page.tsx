@@ -1,8 +1,17 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import Script from 'next/script';
 import type { Salon } from '@/types';
 import SalonProfileClient from './SalonProfileClient';
 import { generateSalonStructuredData, generateSalonBreadcrumb } from '@/lib/salonSeoHelpers';
+
+/**
+ * Check if a string looks like a UUID
+ */
+function isUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
@@ -99,7 +108,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const serviceKeywords = salon.services?.map(s => s.name || s.title).filter(Boolean).join(', ') || '';
   const keywords = `${salon.name}, salon ${salon.city || 'South Africa'}, ${serviceKeywords}, hair salon, beauty salon, book appointment`;
 
-  const canonicalUrl = `${siteUrl}/salons/${salon.id}`;
+  // Use slug for canonical URL if available, fallback to ID
+  const salonIdentifier = salon.slug || salon.id;
+  const canonicalUrl = `${siteUrl}/salons/${salonIdentifier}`;
   const imageUrl = salon.logo || salon.backgroundImage || salon.gallery?.[0]?.imageUrl || `${siteUrl}/logo-transparent.png`;
 
   return {
@@ -139,6 +150,12 @@ export default async function SalonProfilePage({ params }: { params: Promise<{ i
 
   if (!salon) {
     return <SalonProfileClient initialSalon={null} salonId={id} />;
+  }
+
+  // Redirect from UUID to slug for SEO-friendly URLs
+  // If user visits /salons/uuid-here and salon has a slug, redirect to /salons/slug-here
+  if (isUUID(id) && salon.slug && salon.slug !== id) {
+    redirect(`/salons/${salon.slug}`);
   }
 
   const structuredData = generateSalonStructuredData(salon);

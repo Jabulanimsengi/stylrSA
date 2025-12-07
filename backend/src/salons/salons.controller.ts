@@ -121,13 +121,20 @@ export class SalonsController {
     return { success: true };
   }
 
-  // Constrain :id to UUID to prevent conflicts with static routes like 'featured'
+  // Support both UUID and slug lookups for SEO-friendly URLs
+  // UUID format: de55643d-89d1-4ffe-9801-d9e3d3c1a0f9
+  // Slug format: glamour-hair-studio-johannesburg
   // Must be defined AFTER more specific routes like /impression
-  @Get(":id([0-9a-fA-F-]{36})")
+  @Get(':idOrSlug')
   @UseGuards(OptionalJwtAuthGuard)
-  findOne(@Param('id') id: string, @GetUser() user?: any, @Req() req?: any) {
+  findOne(@Param('idOrSlug') idOrSlug: string, @GetUser() user?: any, @Req() req?: any) {
+    // Skip if it matches a static route name
+    const staticRoutes = ['approved', 'featured', 'recommended', 'nearby', 'aggregate-rating', 'my-salon', 'mine'];
+    if (staticRoutes.includes(idOrSlug)) {
+      return null;
+    }
     const ipAddress = req?.ip || req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress;
-    return this.salonsService.findOne(id, user, ipAddress);
+    return this.salonsService.findOne(idOrSlug, user, ipAddress);
   }
 
   @UseGuards(JwtGuard)

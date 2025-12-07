@@ -250,7 +250,7 @@ export default function SalonsPageClient() {
                             >
                                 <FaHeart />
                             </button>
-                            <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
+                            <Link href={`/salons/${salon.slug || salon.id}`} className={styles.salonLink}>
                                 <div className={styles.imageWrapper}>
                                     <ReviewBadge
                                         reviewCount={salon.reviews?.length || 0}

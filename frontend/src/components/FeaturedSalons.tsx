@@ -23,7 +23,8 @@ type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
 function FeaturedSalons() {
   const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // 'pending' = not started, 'loading' = fetching, 'done' = completed
+  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
   const [activeIndex, setActiveIndex] = useState(0);
   const [, startTransition] = useTransition();
   const { authStatus } = useAuth();
@@ -46,8 +47,11 @@ function FeaturedSalons() {
     router.push('/salons');
   };
 
-  const fetchFeaturedSalons = useCallback(async () => {
-    setIsLoading(true);
+  const fetchFeaturedSalons = useCallback(async (showLoading = true) => {
+    // Only show loading skeleton on first fetch when we don't have data
+    if (showLoading && loadingState === 'pending') {
+      setLoadingState('loading');
+    }
     try {
       // Add cache-busting timestamp to force fresh data
       const timestamp = Date.now();
@@ -70,22 +74,24 @@ function FeaturedSalons() {
       setSalons(Array.isArray(data) ? data : []);
     } catch (error) {
       // Silently fail - don't show error toast, just hide the section
-      setSalons([]);
+      // Keep existing data if we have it
     } finally {
-      setIsLoading(false);
+      setLoadingState('done');
     }
-  }, []);
+  }, [loadingState]);
 
   useEffect(() => {
     fetchFeaturedSalons();
-  }, [fetchFeaturedSalons, authStatus]);
+    // Only fetch once on mount - don't re-fetch on authStatus change to prevent flickering
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Listen for salon updates from EditSalonModal
   useEffect(() => {
-    const handleSalonUpdate = (event: any) => {
-      console.log('🔄 FeaturedSalons: Salon updated event received, refetching...');
+    const handleSalonUpdate = () => {
+      // Refetch without showing loading skeleton to prevent flickering
       setTimeout(() => {
-        fetchFeaturedSalons();
+        fetchFeaturedSalons(false);
       }, 500);
     };
 
@@ -141,7 +147,14 @@ function FeaturedSalons() {
     );
   }, []);
 
-  if (isLoading) {
+  // Don't render anything until we've started fetching
+  // This prevents the flash of skeleton → empty
+  if (loadingState === 'pending') {
+    return null;
+  }
+
+  // Show skeleton only while actively loading
+  if (loadingState === 'loading') {
     return (
       <section className={styles.section}>
         <div className={styles.header}>
@@ -161,6 +174,7 @@ function FeaturedSalons() {
     );
   }
 
+  // After loading completes, only render if we have salons
   if (salons.length === 0) {
     return null;
   }

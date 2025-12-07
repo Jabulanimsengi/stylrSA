@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect, memo, useMemo } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FaHeart, FaEye } from 'react-icons/fa';
 import { transformCloudinary } from '@/utils/cloudinary';
@@ -11,6 +10,7 @@ import ImageLightbox from '@/components/ImageLightbox';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { useNavigationLoading } from '@/context/NavigationLoadingContext';
 import { Salon } from '@/types';
+import { getSalonUrl } from '@/utils/salonUrl';
 import styles from './SalonCard.module.css';
 import AvailabilityIndicator from './AvailabilityIndicator/AvailabilityIndicator';
 import VerificationBadge from './VerificationBadge/VerificationBadge';
@@ -64,8 +64,8 @@ function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = t
       setIsCardNavigating(true);
       setIsNavigating(true);
       
-      // Navigate to salon profile
-      router.push(`/salons/${salon.id}`);
+      // Navigate to salon profile using slug if available
+      router.push(getSalonUrl(salon));
       
       // Reset loading state after timeout
       setTimeout(() => {
@@ -107,8 +107,8 @@ function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = t
       // Then set global navigation state
       setIsNavigating(true);
       
-      // Navigate to salon profile
-      router.push(`/salons/${salon.id}`);
+      // Navigate to salon profile using slug if available
+      router.push(getSalonUrl(salon));
       
       // Reset loading state after a reasonable timeout
       // This handles cases where navigation fails or user goes back
@@ -201,7 +201,7 @@ function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = t
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsNavigating(true);
-                  router.push(`/salons/${salon.id}`);
+                  router.push(getSalonUrl(salon));
                 }}
                 style={{ cursor: 'pointer' }}
               >
@@ -346,7 +346,7 @@ function SalonCard({ salon, showFavorite = true, onToggleFavorite, showHours = t
               onClick={(e) => {
                 e.stopPropagation();
                 setIsNavigating(true);
-                router.push(`/salons/${salon.id}`);
+                router.push(getSalonUrl(salon));
               }}
               style={{ cursor: 'pointer' }}
             >

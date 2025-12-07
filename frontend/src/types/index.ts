@@ -37,6 +37,7 @@ export interface User {
 export interface Salon {
   id: string;
   name: string;
+  slug?: string | null;
   description?: string;
   backgroundImage?: string | null;
   logo?: string | null;
