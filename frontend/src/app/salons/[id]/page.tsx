@@ -67,7 +67,8 @@ async function getSalon(id: string): Promise<Salon | null> {
   const url = buildApiUrl(baseUrl, `/api/salons/${id}`);
 
   try {
-    const salon = await fetchSalonWithTimeout(url, 5000);
+    // Increased timeout for sleeping backends (Render free tier can take 30-60s to wake)
+    const salon = await fetchSalonWithTimeout(url, 15000);
 
     if (!salon) {
       console.warn(`[getSalon] Salon not found at: ${url}`);

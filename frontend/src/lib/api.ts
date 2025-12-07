@@ -36,14 +36,24 @@ export function apiUrl(path: string): string {
  * Fetch wrapper that automatically uses the correct API URL
  * @param path - API path starting with /api/
  * @param options - Fetch options
+ * @param timeout - Timeout in milliseconds (default: 30000)
  * @returns Fetch response
  */
-export async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+export async function apiFetch(path: string, options?: RequestInit, timeout: number = 30000): Promise<Response> {
   const url = apiUrl(path);
-  return fetch(url, {
-    ...options,
-    credentials: options?.credentials || 'include',
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      credentials: options?.credentials || 'include',
+      signal: options?.signal || controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /**
@@ -61,20 +71,28 @@ export function isCloudflare(): boolean {
  * Fetch JSON from API endpoint
  * @param path - API path starting with /api/
  * @param options - Fetch options
+ * @param timeout - Timeout in milliseconds (default: 30000)
  * @returns Parsed JSON response
  */
-export async function apiJson<T = unknown>(path: string, options?: RequestInit): Promise<T> {
-  const response = await apiFetch(path, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+export async function apiJson<T = unknown>(path: string, options?: RequestInit, timeout: number = 30000): Promise<T> {
+  try {
+    const response = await apiFetch(path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    }, timeout);
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Please check your connection and try again.');
+    }
+    throw error;
   }
-  
-  return response.json();
 }
