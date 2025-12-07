@@ -155,6 +155,7 @@ export class SitemapService {
       where: { approvalStatus: 'APPROVED' },
       select: {
         id: true,
+        slug: true,
         updatedAt: true,
         avgRating: true,
       },
@@ -163,7 +164,7 @@ export class SitemapService {
     });
 
     const urls: SitemapUrl[] = salons.map((salon) => ({
-      loc: `/salons/${salon.id}`,
+      loc: `/salons/${salon.slug || salon.id}`,
       lastmod: salon.updatedAt.toISOString(),
       changefreq: 'weekly',
       priority: this.calculateSalonPriority(salon),
@@ -190,13 +191,18 @@ export class SitemapService {
         id: true,
         updatedAt: true,
         salonId: true,
+        salon: {
+          select: {
+            slug: true,
+          },
+        },
       },
       orderBy: { updatedAt: 'desc' },
       take: 10000,
     });
 
     const urls: SitemapUrl[] = services.map((service) => ({
-      loc: `/salons/${service.salonId}?service=${service.id}`,
+      loc: `/salons/${service.salon?.slug || service.salonId}?service=${service.id}`,
       lastmod: service.updatedAt.toISOString(),
       changefreq: 'weekly',
       priority: '0.6',

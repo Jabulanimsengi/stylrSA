@@ -113,6 +113,7 @@ export interface Service {
     ownerId: string;
     city?: string;
     province?: string;
+    slug?: string | null;
   };
 }
 

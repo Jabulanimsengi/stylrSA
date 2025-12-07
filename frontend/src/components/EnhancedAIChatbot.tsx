@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaRobot, FaTimes, FaMinus, FaPaperPlane, FaExpand, FaStar, FaMapMarkerAlt, FaCalendar, FaImage, FaDollarSign } from 'react-icons/fa';
 import styles from './AISalonFinder.module.css';
+import { getSalonUrl } from '@/utils/salonUrl';
 import { 
   parseEnhancedInput, 
   getSalonDetails, 
@@ -560,8 +561,8 @@ export default function EnhancedAIChatbot() {
     handleSendMessage(input);
   };
 
-  const handleSalonClick = (salonId: string) => {
-    router.push(`/salons/${salonId}`);
+  const handleSalonClick = (salon: { id: string; slug?: string | null }) => {
+    router.push(getSalonUrl(salon));
     setIsOpen(false);
   };
 
@@ -631,7 +632,7 @@ export default function EnhancedAIChatbot() {
                           <div
                             key={salon.id}
                             className={styles.salonCard}
-                            onClick={() => handleSalonClick(salon.id)}
+                            onClick={() => handleSalonClick(salon)}
                             style={{ cursor: 'pointer' }}
                           >
                             <div className={styles.salonCardHeader}>
@@ -692,8 +693,8 @@ export default function EnhancedAIChatbot() {
                           <div
                             key={service.id}
                             className={styles.salonCard}
-                            onClick={() => service.salonId && handleSalonClick(service.salonId)}
-                            style={{ cursor: service.salonId ? 'pointer' : 'default' }}
+                            onClick={() => (service.salon || service.salonId) && handleSalonClick(service.salon || { id: service.salonId })}
+                            style={{ cursor: (service.salon || service.salonId) ? 'pointer' : 'default' }}
                           >
                             <div className={styles.salonCardHeader}>
                               <h4 className={styles.salonCardName}>{service.name}</h4>
@@ -743,8 +744,8 @@ export default function EnhancedAIChatbot() {
                           <div
                             key={promo.id}
                             className={styles.salonCard}
-                            onClick={() => promo.service?.salonId && handleSalonClick(promo.service.salonId)}
-                            style={{ cursor: promo.service?.salonId ? 'pointer' : 'default' }}
+                            onClick={() => (promo.service?.salon || promo.service?.salonId) && handleSalonClick(promo.service?.salon || { id: promo.service?.salonId })}
+                            style={{ cursor: (promo.service?.salon || promo.service?.salonId) ? 'pointer' : 'default' }}
                           >
                             <div className={styles.salonCardHeader}>
                               <h4 className={styles.salonCardName}>

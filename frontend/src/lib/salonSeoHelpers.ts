@@ -8,12 +8,13 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
  * Generate LocalBusiness structured data for a salon
  */
 export function generateSalonStructuredData(salon: Salon): object {
+  const salonIdentifier = salon.slug || salon.id;
   const structuredData: any = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
-    '@id': `${siteUrl}/salons/${salon.id}`,
+    '@id': `${siteUrl}/salons/${salonIdentifier}`,
     name: salon.name,
-    url: `${siteUrl}/salons/${salon.id}`,
+    url: `${siteUrl}/salons/${salonIdentifier}`,
     image: salon.logo || salon.backgroundImage || salon.gallery?.[0]?.imageUrl || `${siteUrl}/logo-transparent.png`,
     description: salon.description || `Professional salon services at ${salon.name}`,
     telephone: salon.phoneNumber || undefined,
@@ -151,7 +152,7 @@ export function generateSalonBreadcrumb(salon: Salon): object {
     '@type': 'ListItem',
     position: currentPosition,
     name: salon.name,
-    item: `${siteUrl}/salons/${salon.id}`,
+    item: `${siteUrl}/salons/${salon.slug || salon.id}`,
   });
 
   return {

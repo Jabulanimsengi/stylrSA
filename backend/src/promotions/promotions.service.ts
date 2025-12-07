@@ -174,6 +174,7 @@ export class PromotionsService {
               select: {
                 id: true,
                 name: true,
+                slug: true,
                 city: true,
                 province: true,
               },

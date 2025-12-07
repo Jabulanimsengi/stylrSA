@@ -26,6 +26,7 @@ import { getCityInfo, getCitiesByProvince, getProvinceInfo } from '@/lib/locatio
 import RelatedLocations from '@/components/RelatedLocations/RelatedLocations';
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import { pageview } from '@/lib/analytics';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
@@ -232,7 +233,7 @@ export default function SalonCityNearYouClient({ provinceSlug, citySlug }: Props
               >
                 <FaHeart />
               </button>
-              <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
+              <Link href={getSalonUrl(salon)} className={styles.salonLink}>
                 <div className={styles.imageWrapper}>
                   <ReviewBadge 
                     reviewCount={salon.reviews?.length || 0}

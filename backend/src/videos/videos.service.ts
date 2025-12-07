@@ -126,7 +126,7 @@ export class VideosService {
       take: limit,
       include: {
         salon: {
-          select: { id: true, name: true, city: true, province: true },
+          select: { id: true, name: true, slug: true, city: true, province: true },
         },
         service: {
           select: { id: true, title: true },

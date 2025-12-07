@@ -8,6 +8,7 @@ import styles from './AISalonFinder.module.css';
 import { parseEnhancedInput, EnhancedChatIntent } from '@/lib/aiChatbotEnhanced';
 import { ChatIntent } from '@/lib/chatIntent';
 import { FilterValues } from './FilterBar/FilterBar';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 interface Salon {
   id: string;
@@ -16,6 +17,7 @@ interface Salon {
   province: string;
   avgRating?: number;
   reviews?: any[];
+  slug?: string | null;
 }
 
 interface Message {
@@ -301,7 +303,7 @@ export default function AISalonFinder() {
                             {message.salons.map((salon) => (
                               <Link
                                 key={salon.id}
-                                href={`/salons/${salon.id}`}
+                                href={getSalonUrl(salon)}
                                 className={styles.salonCard}
                                 onClick={() => setIsOpen(false)}
                               >

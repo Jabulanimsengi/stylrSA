@@ -15,6 +15,7 @@ import { getImageWithFallback } from '@/lib/placeholders';
 import { transformCloudinary } from '@/utils/cloudinary';
 import PageNav from '@/components/PageNav';
 import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 export default function MyFavoritesPage() {
   const [favorites, setFavorites] = useState<Salon[]>([]);
@@ -131,7 +132,7 @@ export default function MyFavoritesPage() {
       ) : (
         <div className={styles.salonGrid}>
           {favorites.map((salon) => (
-            <Link href={`/salons/${salon.id}`} key={salon.id} className={styles.salonCard}>
+            <Link href={getSalonUrl(salon)} key={salon.id} className={styles.salonCard}>
               <div className={styles.imageWrapper}>
                 <ReviewBadge 
                   reviewCount={salon.reviews?.length || 0}

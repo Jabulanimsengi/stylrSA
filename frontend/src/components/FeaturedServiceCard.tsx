@@ -6,9 +6,10 @@ import { Service } from '@/types';
 import ServiceCard from './ServiceCard';
 import ImageLightbox from '@/components/ImageLightbox';
 import { SkeletonCard } from './Skeleton/Skeleton';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 interface FeaturedServiceCardProps {
-  service: Service & { salon: { id: string; name: string; city: string; province: string } };
+  service: Service & { salon: { id: string; name: string; city: string; province: string; slug?: string | null } };
 }
 
 export default function FeaturedServiceCard({ service }: FeaturedServiceCardProps) {
@@ -28,7 +29,8 @@ export default function FeaturedServiceCard({ service }: FeaturedServiceCardProp
 
   // Navigate to salon page for booking (BookingModal requires full salon data)
   const handleBook = () => {
-    router.push(`/salons/${salonId}?book=${service.id}`);
+    const salonUrl = getSalonUrl(service.salon);
+    router.push(`${salonUrl}?book=${service.id}`);
   };
 
   return (

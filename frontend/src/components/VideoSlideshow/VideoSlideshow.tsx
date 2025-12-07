@@ -8,6 +8,7 @@ import type { Swiper as SwiperType } from 'swiper';
 import VideoLightbox from '@/components/VideoLightbox/VideoLightbox';
 import OptimizedImage from '@/components/OptimizedImage/OptimizedImage';
 import styles from './VideoSlideshow.module.css';
+import { getSalonUrl } from '@/utils/salonUrl';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 import 'swiper/css';
@@ -26,6 +27,7 @@ interface ServiceVideo {
     name: string;
     city: string;
     province: string;
+    slug?: string | null;
   };
   service?: {
     id: string;
@@ -173,7 +175,7 @@ export default function VideoSlideshow() {
                     <div className={styles.duration}>{video.duration}s</div>
                   </div>
                   <div className={styles.cardContent}>
-                    <Link href={`/salons/${video.salon.id}`} className={styles.cardTitle}>
+                    <Link href={getSalonUrl(video.salon)} className={styles.cardTitle}>
                       {video.salon.name}
                     </Link>
                     <p className={styles.cardLocation}>

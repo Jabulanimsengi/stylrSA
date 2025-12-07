@@ -165,6 +165,11 @@ export class ServicesService {
         salon: {
           select: {
             id: true,
+            name: true,
+            slug: true,
+            city: true,
+            province: true,
+            ownerId: true,
             visibilityWeight: true,
             featuredUntil: true,
             createdAt: true,
@@ -206,8 +211,10 @@ export class ServicesService {
           select: {
             id: true,
             name: true,
+            slug: true,
             city: true,
             province: true,
+            ownerId: true,
             visibilityWeight: true,
             featuredUntil: true,
           },
@@ -327,6 +334,7 @@ export class ServicesService {
           select: {
             id: true,
             name: true,
+            slug: true,
             city: true,
             province: true,
             ownerId: true,

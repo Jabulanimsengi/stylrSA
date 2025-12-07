@@ -45,6 +45,7 @@ import MyVideos from '@/components/MyVideos/MyVideos';
 import AvailabilityManager from '@/components/AvailabilityManager/AvailabilityManager';
 import JobPostingForm from '@/components/JobPostingForm/JobPostingForm';
 import TeamMembers from '@/components/TeamMembers/TeamMembers';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 type DashboardBooking = Booking & {
   user: { firstName: string; lastName: string };
@@ -218,11 +219,11 @@ function DashboardPageContent() {
       ]);
 
       const [servicesRes, bookingsRes, galleryRes, productsRes, promotionsRes] = results;
-      if (servicesRes.status === 'fulfilled') setServices(servicesRes.value);
-      if (bookingsRes.status === 'fulfilled') setBookings(Array.isArray(bookingsRes.value) ? bookingsRes.value : []);
-      if (galleryRes.status === 'fulfilled') setGalleryImages(galleryRes.value);
-      if (productsRes.status === 'fulfilled') setProducts(productsRes.value);
-      if (promotionsRes.status === 'fulfilled') setPromotions(promotionsRes.value || { active: [], expired: [] });
+      if (servicesRes.status === 'fulfilled') setServices(servicesRes.value as Service[]);
+      if (bookingsRes.status === 'fulfilled') setBookings(Array.isArray(bookingsRes.value) ? bookingsRes.value as DashboardBooking[] : []);
+      if (galleryRes.status === 'fulfilled') setGalleryImages(galleryRes.value as GalleryImage[]);
+      if (productsRes.status === 'fulfilled') setProducts(productsRes.value as Product[]);
+      if (promotionsRes.status === 'fulfilled') setPromotions((promotionsRes.value as { active: any[]; expired: any[] }) || { active: [], expired: [] });
     } catch (err: any) {
       toast.error(toFriendlyMessage(err, 'Failed to load dashboard.'));
     } finally {
@@ -318,7 +319,7 @@ function DashboardPageContent() {
   const toggleAvailability = async () => {
     if (!ownerId) return;
     try {
-      const updated = await apiJson(`/api/salons/mine/availability?ownerId=${ownerId}`, { method: 'PATCH' });
+      const updated = await apiJson(`/api/salons/mine/availability?ownerId=${ownerId}`, { method: 'PATCH' }) as Salon;
       setSalon(updated);
       toast.success(updated.isAvailableNow ? 'Marked as available' : 'Marked as unavailable');
     } catch (e: any) {
@@ -334,7 +335,7 @@ function DashboardPageContent() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingMessage }),
-      });
+      }) as Salon;
       setSalon(updated);
       setIsEditingMessage(false);
       toast.success('Booking message saved');
@@ -354,7 +355,7 @@ function DashboardPageContent() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ operatingHours: hoursArray, operatingDays: hoursArray.map(h => h.day) }),
-      });
+      }) as Salon;
       setSalon(updated);
       setIsEditingHours(false);
       toast.success('Operating hours saved');
@@ -538,7 +539,7 @@ function DashboardPageContent() {
           <button onClick={toggleAvailability} className="btn btn-ghost">
             {salon.isAvailableNow ? 'Set Unavailable' : 'Set Available'}
           </button>
-          <Link href={`/salons/${salon.id}`} className="btn btn-ghost" target="_blank">View Profile</Link>
+          <Link href={getSalonUrl(salon)} className="btn btn-ghost" target="_blank">View Profile</Link>
           <button onClick={() => setIsEditSalonModalOpen(true)} className="btn btn-secondary">Edit Profile</button>
         </div>
 

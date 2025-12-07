@@ -14,6 +14,7 @@ import { apiFetch } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { getPlaceholder } from '@/lib/placeholders';
 import { sanitizeText } from '@/lib/sanitize';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 interface ServiceCardProps {
   service: Service;
@@ -139,7 +140,7 @@ export default function ServiceCard({ service, onBook, onImageClick, promotion, 
               onClick={(e) => {
                 e.stopPropagation();
                 setIsNavigating(true);
-                router.push(`/salons/${service.salon!.id}`);
+                router.push(getSalonUrl(service.salon!));
               }}
             >
               {service.salon.name}

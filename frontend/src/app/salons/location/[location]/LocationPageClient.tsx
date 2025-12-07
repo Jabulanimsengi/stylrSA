@@ -21,6 +21,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
 import { PROVINCES } from '@/lib/locationData';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
@@ -150,7 +151,7 @@ function SalonsLocationContent({ initialSalons = [], provinceInfo }: LocationPag
               >
                 <FaHeart />
               </button>
-              <Link href={`/salons/${salon.id}`} className={styles.salonLink}>
+              <Link href={getSalonUrl(salon)} className={styles.salonLink}>
                 <div className={styles.imageWrapper}>
                   <ReviewBadge reviewCount={salon.reviews?.length || 0} avgRating={salon.avgRating || 0} />
                   <Image

@@ -17,6 +17,7 @@ import styles from './TrendDetailPage.module.css';
 import PageNav from '@/components/PageNav';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { getImageWithFallback } from '@/lib/placeholders';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -366,7 +367,7 @@ export default function TrendDetailPage({ params }: PageProps) {
               {recommendedSalons.map((salon: any) => (
                 <Link
                   key={salon.id}
-                  href={`/salons/${salon.id}`}
+                  href={getSalonUrl(salon)}
                   className={styles.salonCard}
                   onClick={() => handleSalonClick(salon.id)}
                 >

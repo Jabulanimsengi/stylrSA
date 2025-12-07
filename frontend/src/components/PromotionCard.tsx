@@ -8,6 +8,7 @@ import { transformCloudinary } from '@/utils/cloudinary';
 import { SkeletonCard } from './Skeleton/Skeleton';
 import BookingConfirmationModal from './BookingConfirmationModal/BookingConfirmationModal';
 import { toast } from 'react-toastify';
+import { getSalonUrl } from '@/utils/salonUrl';
 
 const DEFAULT_PLACEHOLDER_IMAGE =
   'data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice"%3E%3Cdefs%3E%3ClinearGradient id="g" x1="0" x2="1" y1="0" y2="1"%3E%3Cstop offset="0%25" stop-color="%23f3f4f6"/%3E%3Cstop offset="100%25" stop-color="%23d1d5db"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="600" height="400" fill="url(%23g)"/%3E%3Cg fill="%239ca3af" font-family="Arial, sans-serif" font-size="28" font-weight="600" text-anchor="middle"%3E%3Ctext x="50%25" y="52%25"%3ENo Image%3C/text%3E%3C/g%3E%3C/svg%3E';
@@ -28,6 +29,7 @@ export interface Promotion {
       name: string;
       city: string;
       province: string;
+      slug?: string | null;
     };
   };
   product?: {
@@ -103,7 +105,7 @@ export default function PromotionCard({ promotion, onImageClick, onBookNow }: Pr
     : DEFAULT_PLACEHOLDER_IMAGE;
 
   const isCloudinarySource = typeof primaryImage === 'string' && primaryImage.includes('/image/upload/');
-  const linkHref = isService && salonId ? `/salons/${salonId}` : '#';
+  const linkHref = isService && promotion.service?.salon ? getSalonUrl(promotion.service.salon) : '#';
   const timeRemaining = calculateTimeRemaining(promotion.endDate);
 
   const handleImageClick = (e: React.MouseEvent) => {
