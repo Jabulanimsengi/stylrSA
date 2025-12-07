@@ -63,41 +63,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Rewrites for local development only
-  // In production on Cloudflare, API calls go directly to backend URL
+  // API rewrites to proxy requests through Next.js (avoids CORS issues)
   async rewrites() {
-    // Only use rewrites in development
-    if (process.env.NODE_ENV === 'development') {
-      const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || "http://127.0.0.1:5000";
-      return {
-        beforeFiles: [
-          { source: "/api/auth/register", destination: `${apiOrigin}/api/auth/register` },
-        ],
-        afterFiles: [
-          {
-            source: '/sitemap-seo-:segment.xml',
-            destination: '/sitemap-seo/:segment',
-          },
-          {
-            source: '/sitemap-:segment.xml',
-            destination: '/sitemap/:segment',
-          },
-        ],
-        fallback: [
-          {
-            source: "/socket.io/:path*",
-            destination: `${apiOrigin}/socket.io/:path*`,
-          },
-          {
-            source: "/api/:path*",
-            destination: `${apiOrigin}/api/:path*`,
-          },
-        ],
-      };
-    }
-    // Production: no rewrites, use direct API URLs
+    const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
     return {
-      beforeFiles: [],
+      beforeFiles: [
+        { source: "/api/auth/register", destination: `${apiOrigin}/api/auth/register` },
+      ],
       afterFiles: [
         {
           source: '/sitemap-seo-:segment.xml',
@@ -108,7 +80,16 @@ const nextConfig: NextConfig = {
           destination: '/sitemap/:segment',
         },
       ],
-      fallback: [],
+      fallback: [
+        {
+          source: "/socket.io/:path*",
+          destination: `${apiOrigin}/socket.io/:path*`,
+        },
+        {
+          source: "/api/:path*",
+          destination: `${apiOrigin}/api/:path*`,
+        },
+      ],
     };
   },
 };

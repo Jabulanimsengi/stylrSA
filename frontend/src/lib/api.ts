@@ -5,18 +5,13 @@
 
 // Get the API base URL
 export function getApiUrl(): string {
-  // In browser, check if we're on Cloudflare or have a configured API URL
+  // In browser, always use relative URLs to go through Next.js rewrites
+  // This avoids CORS issues since requests are proxied through the same origin
   if (typeof window !== 'undefined') {
-    // Use environment variable if set
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (apiUrl) {
-      return apiUrl;
-    }
-    // Fallback to relative URL (works with Vercel rewrites)
     return '';
   }
   
-  // Server-side: use environment variable
+  // Server-side: use environment variable for SSR API calls
   return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_ORIGIN || '';
 }
 
