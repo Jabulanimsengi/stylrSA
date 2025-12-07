@@ -116,21 +116,46 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
 
     const loadSalon = async (retryCount = 0) => {
       setIsLoading(true);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
       try {
         const res = await fetch(`/api/salons/${salonId}`, {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache' },
+          signal: controller.signal,
         });
+        clearTimeout(timeoutId);
+        
         if (!res.ok) {
           throw new Error(`Failed to load salon: ${res.status}`);
         }
         const data: Salon = await res.json();
         applySalon(data);
-      } catch (error) {
+        // Fetch salon-specific before/after photos and videos after main data loads
+        fetchSalonMedia();
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        
+        // Handle timeout specifically
+        if (error.name === 'AbortError') {
+          logger.error('Salon fetch timed out', { salonId, retryCount });
+          if (retryCount < 2 && isActive) {
+            // Retry with longer timeout on subsequent attempts
+            setTimeout(() => loadSalon(retryCount + 1), 2000);
+            return;
+          }
+          if (isActive) {
+            toast.error('Loading is taking longer than expected. The server may be starting up - please try refreshing.');
+            applySalon(null);
+          }
+          return;
+        }
+        
         logger.error('Failed to load salon', error);
         // Retry once after a short delay (backend might be waking up)
-        if (retryCount < 1 && isActive) {
-          setTimeout(() => loadSalon(retryCount + 1), 1500);
+        if (retryCount < 2 && isActive) {
+          setTimeout(() => loadSalon(retryCount + 1), 2000);
           return;
         }
         if (isActive) {

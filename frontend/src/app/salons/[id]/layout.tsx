@@ -23,13 +23,27 @@ type Props = {
 };
 
 async function fetchSalon(id: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_PATH;
+  
+  // Skip during build if no API URL configured
+  if (!baseUrl) {
+    return null;
+  }
+  
+  const url = `${baseUrl.replace(/\/$/, '')}/api/salons/${id}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout for layout
+  
   try {
-    // ISR: Revalidate every 1 hour to reduce ISR writes while keeping content fresh
-    // This serves fast static pages while updating in the background
-    const res = await fetch(`/api/salons/${id}`, { next: { revalidate: 3600 } });
+    const res = await fetch(url, { 
+      next: { revalidate: 3600 },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
     if (!res.ok) return null;
     return res.json();
   } catch {
+    clearTimeout(timeoutId);
     return null;
   }
 }
@@ -71,8 +85,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: canonicalUrl,
       siteName: 'Stylr SA',
-      type: 'business.business',
-      images: images.map(img => ({
+      type: 'website',
+      images: images.map((img: string) => ({
         url: img,
         width: 1200,
         height: 630,
@@ -197,8 +211,8 @@ export default async function SalonLayout({ children, params }: Props) {
         })
     : [];
 
-  const normalizedImages = salon?.heroImages && salon.heroImages.length > 0
-    ? salon.heroImages
+  const normalizedImages = salon?.heroImages && Array.isArray(salon.heroImages) && salon.heroImages.length > 0
+    ? (salon.heroImages as string[])
         .map((img: string) => ensureAbsoluteUrl(siteUrl, img))
         .filter((img): img is string => Boolean(img))
     : salon?.backgroundImage
