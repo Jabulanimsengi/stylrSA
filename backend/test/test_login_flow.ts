@@ -1,4 +1,5 @@
 // Test login flow through frontend proxy
+export { };
 const BASE_URL = 'http://localhost:3000';
 
 async function testLoginFlow() {

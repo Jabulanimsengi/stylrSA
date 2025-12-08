@@ -36,12 +36,12 @@ function ForYouRecommendations() {
         // Add timeout to prevent infinite loading (5 seconds)
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
+
         const response = await fetch('/api/salons/recommended', {
           credentials: 'include',
           signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
 
         if (!response.ok) {
@@ -120,20 +120,10 @@ function ForYouRecommendations() {
     return null;
   }
 
-  // Show skeleton only while actively loading
+  // Don't show skeleton during loading - only show content once we have it
+  // This prevents skeleton flash when there's no content
   if (loadingState === 'loading') {
-    return (
-      <section className={styles.section}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>Recommended for You</h2>
-        </div>
-        <div className={styles.skeletonContainer}>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className={styles.skeletonCard} />
-          ))}
-        </div>
-      </section>
-    );
+    return null;
   }
 
   // After loading completes, only render if we have salons
@@ -200,12 +190,12 @@ function ForYouRecommendations() {
           <>
             <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18l-6-6 6-6"/>
+                <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
             <button ref={nextRef} className={styles.nextButton} aria-label="Next">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 18l6-6-6-6"/>
+                <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
           </>

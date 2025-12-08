@@ -42,35 +42,46 @@ type ServiceWithSalon = Service & { salon: { id: string; name: string, city: str
 async function getInitialData() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
   const isBuildPhase = process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build';
-  
+
   // Only skip fetching during build time when API is localhost
   if (isBuildPhase && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
     return {
       services: [] as ServiceWithSalon[],
       trends: {} as Record<TrendCategory, Trend[]>,
+      featuredSalons: [] as any[],
       hasMore: false,
       totalPages: 1,
     };
   }
-  
+
   try {
-    // Fetch initial services - 1 hour revalidation to reduce ISR writes
-    const servicesRes = await fetch(`${apiUrl}/api/services/approved?page=1&pageSize=24`, {
-      next: { revalidate: 3600 },
-    });
-    
-    const servicesData = servicesRes.ok 
-      ? await servicesRes.json() 
+    // Fetch all data in parallel for faster loading
+    const [servicesRes, trendsRes, featuredSalonsRes] = await Promise.all([
+      // Fetch initial services - 1 hour revalidation
+      fetch(`${apiUrl}/api/services/approved?page=1&pageSize=24`, {
+        next: { revalidate: 3600 },
+      }),
+      // Fetch trends - 1 hour revalidation
+      fetch(`${apiUrl}/api/trends`, {
+        next: { revalidate: 3600 },
+      }),
+      // Fetch featured salons - 1 hour revalidation
+      fetch(`${apiUrl}/api/salons/featured`, {
+        next: { revalidate: 3600 },
+      }),
+    ]);
+
+    const servicesData = servicesRes.ok
+      ? await servicesRes.json()
       : { services: [], currentPage: 1, totalPages: 1 };
 
-    // Fetch trends - 1 hour revalidation to reduce ISR writes
-    const trendsRes = await fetch(`${apiUrl}/api/trends`, {
-      next: { revalidate: 3600 },
-    });
-    
-    const trendsData = trendsRes.ok 
-      ? await trendsRes.json() 
+    const trendsData = trendsRes.ok
+      ? await trendsRes.json()
       : {} as Record<TrendCategory, Trend[]>;
+
+    const featuredSalonsData = featuredSalonsRes.ok
+      ? await featuredSalonsRes.json()
+      : [];
 
     // Sort trends by view count
     const sortedTrends: Record<TrendCategory, Trend[]> = {} as Record<TrendCategory, Trend[]>;
@@ -83,6 +94,7 @@ async function getInitialData() {
     return {
       services: servicesData.services as ServiceWithSalon[],
       trends: sortedTrends,
+      featuredSalons: Array.isArray(featuredSalonsData) ? featuredSalonsData : [],
       hasMore: servicesData.currentPage < servicesData.totalPages,
       totalPages: servicesData.totalPages,
     };
@@ -91,6 +103,7 @@ async function getInitialData() {
     return {
       services: [] as ServiceWithSalon[],
       trends: {} as Record<TrendCategory, Trend[]>,
+      featuredSalons: [] as any[],
       hasMore: false,
       totalPages: 1,
     };
@@ -204,9 +217,10 @@ export default async function HomePage() {
       />
 
       {/* Client Component with server-rendered initial data */}
-      <HomePageClient 
+      <HomePageClient
         initialServices={initialData.services}
         initialTrends={initialData.trends}
+        initialFeaturedSalons={initialData.featuredSalons}
         initialHasMore={initialData.hasMore}
         initialTotalPages={initialData.totalPages}
       />

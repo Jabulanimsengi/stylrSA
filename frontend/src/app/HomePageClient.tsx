@@ -22,14 +22,13 @@ import AdSense from '@/components/AdSense';
 
 // Lazy load below-the-fold components for better LCP
 const BeforeAfterSlideshow = dynamic(() => import('@/components/BeforeAfterSlideshow/BeforeAfterSlideshow'), {
-  loading: () => <div style={{ height: '300px' }} />,
+  loading: () => null,
   ssr: false
 });
-// TEMPORARILY DISABLED: VideoSlideshow - will reintroduce once app is stable
-// const VideoSlideshow = dynamic(() => import('@/components/VideoSlideshow/VideoSlideshow'), {
-//   loading: () => <div style={{ height: '300px' }} />,
-//   ssr: false
-// });
+const VideoSlideshow = dynamic(() => import('@/components/VideoSlideshow/VideoSlideshow'), {
+  loading: () => null,
+  ssr: false
+});
 const TrendRow = dynamic(() => import('@/components/TrendRow/TrendRow'), {
   ssr: true
 });
@@ -49,6 +48,7 @@ type ServiceWithSalon = Service & { salon: { id: string; name: string, city: str
 interface HomePageClientProps {
   initialServices: ServiceWithSalon[];
   initialTrends: Record<TrendCategory, Trend[]>;
+  initialFeaturedSalons: any[];
   initialHasMore: boolean;
   initialTotalPages: number;
 }
@@ -56,6 +56,7 @@ interface HomePageClientProps {
 export default function HomePageClient({
   initialServices,
   initialTrends,
+  initialFeaturedSalons,
   initialHasMore,
   initialTotalPages
 }: HomePageClientProps) {
@@ -82,13 +83,13 @@ export default function HomePageClient({
       // Add timeout to prevent infinite loading
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
+
       const res = await fetch(`/api/services/approved?page=${pageNum}&pageSize=24`, {
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (res.ok) {
         const data: { services: ServiceWithSalon[], currentPage: number, totalPages: number } = await res.json();
 
@@ -316,7 +317,7 @@ export default function HomePageClient({
         </div>
       </section>
 
-      <FeaturedSalons />
+      <FeaturedSalons initialSalons={initialFeaturedSalons} />
 
       {/* Ad placement 1: After featured salons - user has seen main content */}
       <AdSense slot="6873445391" format="auto" />
@@ -375,8 +376,7 @@ export default function HomePageClient({
       {/* Ad placement 2: After slideshow - engaged users scrolling */}
       <AdSense slot="6873445391" format="auto" />
 
-      {/* TEMPORARILY DISABLED: VideoSlideshow - will reintroduce once app is stable */}
-      {/* <VideoSlideshow /> */}
+      <VideoSlideshow />
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Browse by Service Category</h2>

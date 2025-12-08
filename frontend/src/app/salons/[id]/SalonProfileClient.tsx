@@ -70,6 +70,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
   const [isVideoLightboxOpen, setIsVideoLightboxOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(!initialSalon);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -118,7 +119,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
       setIsLoading(true);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-      
+
       try {
         const res = await fetch(`/api/salons/${salonId}`, {
           cache: 'no-store',
@@ -126,7 +127,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
-        
+
         if (!res.ok) {
           throw new Error(`Failed to load salon: ${res.status}`);
         }
@@ -136,7 +137,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
         fetchSalonMedia();
       } catch (error: any) {
         clearTimeout(timeoutId);
-        
+
         // Handle timeout specifically
         if (error.name === 'AbortError') {
           logger.error('Salon fetch timed out', { salonId, retryCount });
@@ -151,7 +152,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
           }
           return;
         }
-        
+
         logger.error('Failed to load salon', error);
         // Retry once after a short delay (backend might be waking up)
         if (retryCount < 2 && isActive) {
@@ -335,6 +336,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
       } else {
         // Open booking modal directly
         setSelectedService(service);
+        setShowBookingModal(true);
       }
     }
   };
@@ -355,6 +357,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
     } else {
       // Open booking modal directly
       setSelectedService(selectedPromotion.service);
+      setShowBookingModal(true);
     }
   };
 
@@ -362,6 +365,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
     setShowBookingConfirmation(false);
     if (pendingBookingService) {
       setSelectedService(pendingBookingService);
+      setShowBookingModal(true);
       setPendingBookingService(null);
     }
   };
@@ -547,14 +551,18 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
 
   return (
     <>
-      {selectedService && (
+      {showBookingModal && (
         <BookingModal
           salon={salon}
-          service={selectedService}
+          service={selectedService || undefined}
           services={services}
-          onClose={() => setSelectedService(null)}
+          onClose={() => {
+            setShowBookingModal(false);
+            setSelectedService(null);
+          }}
           onBookingSuccess={() => {
             toast.success('Booking request sent! The salon will confirm shortly.');
+            setShowBookingModal(false);
             setSelectedService(null);
           }}
         />
@@ -877,7 +885,8 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                             openModal('login');
                           } else if (services.length > 0) {
                             // Open modal without pre-selected service to show service selection step
-                            setSelectedService(services[0]);
+                            setSelectedService(null);
+                            setShowBookingModal(true);
                           }
                         }}
                       >
@@ -898,7 +907,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Operating Hours - Collapsible */}
                   {hoursRecord && orderedOperatingDays.length > 0 && (
                     <Accordion title="Operating Hours" initialOpen={false}>

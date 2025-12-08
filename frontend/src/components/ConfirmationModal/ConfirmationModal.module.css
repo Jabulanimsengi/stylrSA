@@ -5,7 +5,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1001; /* Higher than navbar */
+  z-index: 100000;
+  /* Higher than mobile navbar sidebar (z-index: 9999) */
   padding: 1rem;
 }
 
@@ -108,18 +109,22 @@
   .modalOverlay {
     padding: 0.5rem;
   }
+
   .modalContent {
     padding: 1rem;
     max-width: 90vw;
   }
+
   .message {
     font-size: 0.85rem;
     margin: 0 0 0.875rem 0;
   }
+
   .buttonGroup {
     gap: 0.5rem;
     margin-top: 1rem;
   }
+
   .actionButton {
     padding: 0.4rem 0.75rem;
     font-size: 0.75rem;
@@ -131,18 +136,22 @@
   .modalOverlay {
     padding: 0.35rem;
   }
+
   .modalContent {
     padding: 0.875rem;
     border-radius: 0.35rem;
   }
+
   .message {
     font-size: 0.75rem;
     margin: 0 0 0.75rem 0;
   }
+
   .buttonGroup {
     gap: 0.4rem;
     margin-top: 0.875rem;
   }
+
   .actionButton {
     padding: 0.35rem 0.625rem;
     font-size: 0.7rem;

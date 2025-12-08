@@ -58,8 +58,12 @@
   width: 100%;
   position: relative;
   padding: 0 1rem;
-  overflow: visible;
-  isolation: isolate; /* Create new stacking context */
+  overflow: hidden;
+  /* Prevent content overflow during Swiper init */
+  isolation: isolate;
+  /* Create new stacking context */
+  /* Min height to prevent CLS during Swiper initialization */
+  min-height: 280px;
 }
 
 /* Navigation buttons - visible on desktop only */
@@ -72,7 +76,8 @@
   height: 44px;
   border-radius: 50%;
   border: none;
-  display: none; /* Hidden by default (mobile) */
+  display: none;
+  /* Hidden by default (mobile) */
   align-items: center;
   justify-content: center;
   background: var(--color-primary, #f51957);
@@ -96,11 +101,13 @@
 }
 
 .prevButton {
-  left: 0; /* Position at left edge */
+  left: 0;
+  /* Position at left edge */
 }
 
 .nextButton {
-  right: 0; /* Position at right edge */
+  right: 0;
+  /* Position at right edge */
 }
 
 .prevButton svg,
@@ -111,6 +118,7 @@
 
 /* Explicitly hide navigation on mobile */
 @media (max-width: 768px) {
+
   .prevButton,
   .nextButton {
     display: none !important;
@@ -119,24 +127,27 @@
 
 /* Show navigation on desktop only */
 @media (min-width: 769px) {
+
   .prevButton,
   .nextButton {
     display: flex !important;
     opacity: 1;
     visibility: visible;
-    pointer-events: auto; /* Ensure buttons are clickable */
+    pointer-events: auto;
+    /* Ensure buttons are clickable */
   }
-  
+
   /* Ensure arrows are above other content */
   .container {
     position: relative;
     z-index: 1;
   }
-  
+
   .prevButton,
   .nextButton {
     position: absolute;
-    z-index: 999; /* Higher z-index to be above all content */
+    z-index: 999;
+    /* Higher z-index to be above all content */
   }
 }
 
@@ -184,12 +195,10 @@
   content: '';
   /* Image placeholder - matches .imageWrapper height: 160px */
   height: 160px;
-  background: linear-gradient(
-    90deg,
-    rgba(200, 200, 200, 0.3) 0%,
-    rgba(180, 180, 180, 0.5) 50%,
-    rgba(200, 200, 200, 0.3) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(200, 200, 200, 0.3) 0%,
+      rgba(180, 180, 180, 0.5) 50%,
+      rgba(200, 200, 200, 0.3) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
 }
@@ -198,12 +207,10 @@
   content: '';
   flex: 1;
   margin: 0.5rem 0.625rem;
-  background: linear-gradient(
-    90deg,
-    rgba(200, 200, 200, 0.2) 0%,
-    rgba(180, 180, 180, 0.35) 50%,
-    rgba(200, 200, 200, 0.2) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(200, 200, 200, 0.2) 0%,
+      rgba(180, 180, 180, 0.35) 50%,
+      rgba(200, 200, 200, 0.2) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
   border-radius: 4px;
@@ -213,6 +220,7 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -220,7 +228,8 @@
 
 /* Mobile scroll indicators - hidden */
 .scrollIndicators {
-  display: none; /* Hide scroll indicators on all screen sizes */
+  display: none;
+  /* Hide scroll indicators on all screen sizes */
   justify-content: space-between;
   position: absolute;
   top: 50%;
@@ -257,10 +266,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.7;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.1);
@@ -325,6 +337,12 @@
     /* Match mobile .imageWrapper height: 130px */
     height: 130px;
   }
+
+  /* Adjust container height for mobile */
+  .container {
+    min-height: 260px;
+    /* Match mobile SalonCard compact height */
+  }
 }
 
 @media (max-width: 480px) {
@@ -338,6 +356,11 @@
     /* Match small mobile .imageWrapper height: 115px */
     height: 115px;
   }
+
+  .container {
+    min-height: 240px;
+    /* Match small mobile SalonCard compact height */
+  }
 }
 
 @media (max-width: 400px) {
@@ -350,5 +373,10 @@
   .skeletonCard::before {
     /* Match extra small mobile .imageWrapper height: 105px */
     height: 105px;
+  }
+
+  .container {
+    min-height: 220px;
+    /* Match extra small mobile SalonCard compact height */
   }
 }

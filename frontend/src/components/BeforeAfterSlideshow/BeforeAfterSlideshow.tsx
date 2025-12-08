@@ -6,9 +6,11 @@ import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import styles from './BeforeAfterSlideshow.module.css';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import SalonCard from '@/components/SalonCard';
-import { Salon } from '@/types';
 import ImageLightbox from '@/components/ImageLightbox';
+import Image from 'next/image';
+import { transformCloudinary } from '@/utils/cloudinary';
+import Link from 'next/link';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -23,7 +25,6 @@ interface BeforeAfterPhoto {
     name: string;
     city: string;
     province: string;
-    viewCount?: number;
   };
   service?: {
     id: string;
@@ -31,9 +32,100 @@ interface BeforeAfterPhoto {
   };
 }
 
+// Custom card for Before/After photos
+function BeforeAfterCard({
+  photo,
+  onImageClick
+}: {
+  photo: BeforeAfterPhoto;
+  onImageClick: (photo: BeforeAfterPhoto) => void;
+}) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [photo.beforeImageUrl, photo.afterImageUrl];
+  const labels = ['Before', 'After'];
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex(0);
+  };
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex(1);
+  };
+
+  return (
+    <div className={styles.card}>
+      {/* Image container with carousel */}
+      <div
+        className={styles.imageWrapper}
+        onClick={() => onImageClick(photo)}
+      >
+        <Image
+          src={transformCloudinary(images[currentImageIndex], {
+            width: 400,
+            height: 300,
+            crop: 'fill',
+            quality: 'auto',
+            format: 'auto'
+          })}
+          alt={`${labels[currentImageIndex]} - ${photo.service?.title || 'Transformation'}`}
+          fill
+          sizes="(max-width: 768px) 85vw, 280px"
+          className={styles.cardImage}
+        />
+
+        {/* Image counter badge */}
+        <div className={styles.imageCounter}>
+          {currentImageIndex + 1}/2
+        </div>
+
+        {/* Before/After label */}
+        <div className={styles.imageLabel}>
+          {labels[currentImageIndex]}
+        </div>
+
+        {/* Navigation arrows */}
+        <button
+          className={`${styles.cardNav} ${styles.cardNavPrev}`}
+          onClick={handlePrev}
+          disabled={currentImageIndex === 0}
+          aria-label="View before image"
+        >
+          <FaChevronLeft />
+        </button>
+        <button
+          className={`${styles.cardNav} ${styles.cardNavNext}`}
+          onClick={handleNext}
+          disabled={currentImageIndex === 1}
+          aria-label="View after image"
+        >
+          <FaChevronRight />
+        </button>
+      </div>
+
+      {/* Card content */}
+      <div className={styles.cardContent}>
+        <h3 className={styles.cardTitle}>
+          {photo.service?.title || photo.caption || `${photo.salon.city}, ${photo.salon.province}`}
+        </h3>
+        <Link href={`/salons/${photo.salon.id}`} className={styles.salonName}>
+          {photo.salon.name}
+        </Link>
+        {(photo.service?.title || photo.caption) && (
+          <p className={styles.location}>
+            {photo.salon.city}, {photo.salon.province}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function BeforeAfterSlideshow() {
   const [photos, setPhotos] = useState<BeforeAfterPhoto[]>([]);
-  // Start as null = "not checked yet", then true/false after fetch
   const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -62,56 +154,16 @@ export default function BeforeAfterSlideshow() {
     }
   };
 
-  // Transform BeforeAfterPhoto to Salon-like object for SalonCard
-  const transformPhotoToSalon = (photo: BeforeAfterPhoto): Salon & { galleryImages?: any[] } => {
-    return {
-      id: photo.salon.id,
-      name: photo.salon.name,
-      city: photo.salon.city,
-      province: photo.salon.province,
-      viewCount: photo.salon.viewCount || 0,
-      backgroundImage: photo.beforeImageUrl, // Use before image as background
-      logo: undefined,
-      heroImages: [],
-      town: '',
-      ownerId: '',
-      createdAt: '',
-      updatedAt: '',
-    } as Salon & { galleryImages?: any[] };
-  };
-
   const handleImageClick = (photo: BeforeAfterPhoto) => {
-    // Open lightbox with both before and after images
     setLightboxImages([photo.beforeImageUrl, photo.afterImageUrl]);
     setLightboxIndex(0);
     setLightboxOpen(true);
   };
 
-
-
-  // Don't render anything until we've checked if there's data
-  // This prevents the flash of skeleton → empty
-  if (loadingState === 'pending') {
+  if (loadingState === 'pending' || loadingState === 'loading') {
     return null;
   }
 
-  // Show skeleton only while actively loading (after we've started the fetch)
-  if (loadingState === 'loading') {
-    return (
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Before & After Transformations</h2>
-        <div className={styles.container}>
-          <div className={styles.skeletonContainer}>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className={styles.skeletonCard} />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // After loading completes, only render if we have photos
   if (photos.length === 0) {
     return null;
   }
@@ -119,7 +171,7 @@ export default function BeforeAfterSlideshow() {
   return (
     <>
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Before & After Transformations</h2>
+        <h2 className={styles.sectionTitle}>Before & After</h2>
         <div className={styles.container}>
           <Swiper
             modules={isMobile ? [] : [Navigation]}
@@ -149,53 +201,27 @@ export default function BeforeAfterSlideshow() {
               },
             }}
           >
-            {photos.map((photo) => {
-              const salonData = transformPhotoToSalon(photo);
-              return (
-                <SwiperSlide key={photo.id}>
-                  <div style={{ position: 'relative' }}>
-                    <SalonCard
-                      salon={salonData}
-                      showFavorite={false}
-                      showHours={false}
-                      compact={true}
-                      enableLightbox={false}
-                    />
-                    {/* Clickable overlay on image area for lightbox */}
-                    <div
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleImageClick(photo);
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: isMobile ? '165px' : '200px', // Match image wrapper height (responsive)
-                        cursor: 'pointer',
-                        zIndex: 5,
-                      }}
-                      aria-label="View before and after images"
-                    />
-                  </div>
-                </SwiperSlide>
-              );
-            })}
+            {photos.map((photo) => (
+              <SwiperSlide key={photo.id}>
+                <BeforeAfterCard
+                  photo={photo}
+                  onImageClick={handleImageClick}
+                />
+              </SwiperSlide>
+            ))}
           </Swiper>
 
-          {/* Navigation buttons - hidden on mobile */}
+          {/* Swiper navigation buttons */}
           {!isMobile && (
             <>
               <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M15 18l-6-6 6-6"/>
+                  <path d="M15 18l-6-6 6-6" />
                 </svg>
               </button>
               <button ref={nextRef} className={styles.nextButton} aria-label="Next">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6"/>
+                  <path d="M9 18l6-6-6-6" />
                 </svg>
               </button>
             </>

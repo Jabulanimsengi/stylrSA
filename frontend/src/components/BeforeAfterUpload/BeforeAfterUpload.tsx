@@ -69,14 +69,15 @@ export default function BeforeAfterUpload({ salonId, services, onUploadComplete 
         body: formData,
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Upload failed');
+        console.error('Before/After upload failed:', { status: res.status, data });
+        throw new Error(data.message || data.error || `Upload failed (${res.status})`);
       }
 
-      const data = await res.json();
       toast.success(data.message || 'Before/After photos uploaded successfully! Awaiting admin approval.');
-      
+
       // Reset form
       setBeforeImage(null);
       setAfterImage(null);
@@ -84,11 +85,11 @@ export default function BeforeAfterUpload({ salonId, services, onUploadComplete 
       setAfterPreview(null);
       setCaption('');
       setServiceId('');
-      
+
       onUploadComplete();
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload photos');
+      toast.error(error.message || 'Failed to upload photos. Please try again.');
     } finally {
       setIsUploading(false);
     }

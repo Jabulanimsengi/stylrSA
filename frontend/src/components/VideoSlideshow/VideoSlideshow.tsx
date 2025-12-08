@@ -81,20 +81,10 @@ export default function VideoSlideshow() {
     return null;
   }
 
-  // Show skeleton only while actively loading
+  // Don't show skeleton during loading - only show content once we have it
+  // This prevents skeleton flash when there's no videos
   if (loadingState === 'loading') {
-    return (
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Service Video Highlights</h2>
-        <div className={styles.container}>
-          <div className={styles.skeletonContainer}>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className={styles.skeletonCard} />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
+    return null;
   }
 
   // After loading completes, only render if we have videos

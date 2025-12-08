@@ -14,11 +14,9 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('health check', () => {
-    it('should return healthy status payload', () => {
-      expect(appController.getHealthCheck()).toEqual({
-        status: 'Backend is running! 🚀',
-      });
+  describe('root', () => {
+    it('should return hello message', () => {
+      expect(appController.getHello()).toBe('Hello World!');
     });
   });
 });

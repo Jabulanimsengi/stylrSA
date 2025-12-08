@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Configure for large file uploads
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+// Increase body size limit for file uploads (default is 1MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+  },
+};
+
 // Catch-all proxy for backend API routes
 // This handles all /api/* requests that don't have explicit Next.js route handlers
 export async function GET(request: NextRequest) {
@@ -30,18 +43,27 @@ async function proxyToBackend(request: NextRequest) {
   const backendUrl = `${apiOrigin}${url.pathname}${url.search}`;
 
   try {
+    // Get the content type to determine how to handle the body
+    const contentType = request.headers.get('content-type') || '';
+
+    // Prepare headers - copy all headers but remove Next.js specific ones
+    const headers = new Headers(request.headers);
+    headers.delete('x-middleware-prefetch');
+    headers.delete('x-middleware-subrequest');
+
+    // For GET/HEAD requests, no body; for others, use the raw body
+    let body: BodyInit | undefined = undefined;
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      // Use arrayBuffer to preserve binary data for multipart/form-data
+      const buffer = await request.arrayBuffer();
+      body = Buffer.from(buffer);
+    }
+
     // Forward the request to the backend
     const response = await fetch(backendUrl, {
       method: request.method,
-      headers: {
-        ...Object.fromEntries(request.headers),
-        // Remove Next.js specific headers
-        'x-middleware-prefetch': '',
-        'x-middleware-subrequest': '',
-      },
-      body: request.method !== 'GET' && request.method !== 'HEAD'
-        ? await request.text()
-        : undefined,
+      headers: headers,
+      body: body,
       // Don't cache API responses
       cache: 'no-store',
     });
@@ -77,3 +99,4 @@ async function proxyToBackend(request: NextRequest) {
     );
   }
 }
+

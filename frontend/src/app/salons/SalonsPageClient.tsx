@@ -4,11 +4,12 @@
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { transformCloudinary } from '@/utils/cloudinary';
 import { useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { FaHeart } from 'react-icons/fa';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
@@ -32,7 +33,9 @@ type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | nul
 export default function SalonsPageClient() {
     const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [navigatingSalonId, setNavigatingSalonId] = useState<string | null>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const router = useRouter();
 
     const searchParams = useSearchParams();
     const { authStatus } = useAuth();
@@ -130,7 +133,7 @@ export default function SalonsPageClient() {
     // Show notification when location is detected
     useEffect(() => {
         if (coordinates && !searchParams.get('lat')) {
-            const message = locationSource === 'ip' 
+            const message = locationSource === 'ip'
                 ? '📍 Showing salons near your estimated location'
                 : '📍 Showing salons near your location';
             toast.info(message, {
@@ -241,60 +244,87 @@ export default function SalonsPageClient() {
                 />
             ) : (
                 <div className={styles.salonGrid}>
-                    {salons.map((salon) => (
-                        <div key={salon.id} className={styles.salonCard}>
-                            <button
-                                onClick={(e) => handleToggleFavorite(e, salon.id)}
-                                className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}
-                                aria-label={salon.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                    {salons.map((salon) => {
+                        const isNavigating = navigatingSalonId === salon.id;
+                        const salonUrl = `/salons/${salon.slug || salon.id}`;
+
+                        const handleCardClick = (e: React.MouseEvent) => {
+                            // Don't navigate if clicking on favorite button
+                            if ((e.target as HTMLElement).closest('button')) {
+                                return;
+                            }
+                            e.preventDefault();
+                            setNavigatingSalonId(salon.id);
+                            router.push(salonUrl);
+                            // Reset after timeout in case navigation fails
+                            setTimeout(() => setNavigatingSalonId(null), 5000);
+                        };
+
+                        return (
+                            <div
+                                key={salon.id}
+                                className={`${styles.salonCard} ${isNavigating ? styles.navigating : ''}`}
+                                onClick={handleCardClick}
+                                style={{ cursor: 'pointer' }}
                             >
-                                <FaHeart />
-                            </button>
-                            <Link href={`/salons/${salon.slug || salon.id}`} className={styles.salonLink}>
-                                <div className={styles.imageWrapper}>
-                                    <ReviewBadge
-                                        reviewCount={salon.reviews?.length || 0}
-                                        avgRating={salon.avgRating || 0}
-                                    />
-                                    <Image
-                                        src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
-                                        alt={`A photo of ${salon.name}`}
-                                        className={styles.cardImage}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                    />
+                                {isNavigating && (
+                                    <div className={styles.cardLoadingOverlay}>
+                                        <LoadingSpinner size="medium" color="white" />
+                                    </div>
+                                )}
+                                <button
+                                    onClick={(e) => handleToggleFavorite(e, salon.id)}
+                                    className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}
+                                    aria-label={salon.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                                >
+                                    <FaHeart />
+                                </button>
+                                <div className={styles.salonLink}>
+                                    <div className={styles.imageWrapper}>
+                                        <ReviewBadge
+                                            reviewCount={salon.reviews?.length || 0}
+                                            avgRating={salon.avgRating || 0}
+                                        />
+                                        <Image
+                                            src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
+                                            alt={`A photo of ${salon.name}`}
+                                            className={styles.cardImage}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 33vw"
+                                        />
+                                    </div>
+                                    <div className={styles.cardContent}>
+                                        <h2 className={styles.cardTitle}>{salon.name}</h2>
+                                        <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
+                                        {(() => {
+                                            const oh = salon.operatingHours as unknown;
+                                            let hoursRecord: Record<string, string> | null = null;
+                                            if (Array.isArray(oh)) {
+                                                const derived: Record<string, string> = {};
+                                                oh.forEach((entry: { day?: string; open?: string; close?: string }) => {
+                                                    const day = entry?.day;
+                                                    if (!day) return;
+                                                    const open = entry.open;
+                                                    const close = entry.close;
+                                                    if (!open && !close) return;
+                                                    derived[day] = `${open ?? ''} - ${close ?? ''}`.trim();
+                                                });
+                                                hoursRecord = Object.keys(derived).length > 0 ? derived : null;
+                                            } else if (oh && typeof oh === 'object') {
+                                                hoursRecord = oh as Record<string, string>;
+                                            }
+                                            if (!hoursRecord) return null;
+                                            const entries = Object.entries(hoursRecord);
+                                            if (entries.length === 0) return null;
+                                            const samples = entries.slice(0, 2).map(([day, hrs]) => `${day.substring(0, 3)} ${hrs}`);
+                                            const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
+                                            return <p className={styles.cardMeta}>Hours: {samples.join(' • ')}{extra}</p>;
+                                        })()}
+                                    </div>
                                 </div>
-                                <div className={styles.cardContent}>
-                                    <h2 className={styles.cardTitle}>{salon.name}</h2>
-                                    <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
-                                    {(() => {
-                                        const oh = salon.operatingHours as unknown;
-                                        let hoursRecord: Record<string, string> | null = null;
-                                        if (Array.isArray(oh)) {
-                                            const derived: Record<string, string> = {};
-                                            oh.forEach((entry: { day?: string; open?: string; close?: string }) => {
-                                                const day = entry?.day;
-                                                if (!day) return;
-                                                const open = entry.open;
-                                                const close = entry.close;
-                                                if (!open && !close) return;
-                                                derived[day] = `${open ?? ''} - ${close ?? ''}`.trim();
-                                            });
-                                            hoursRecord = Object.keys(derived).length > 0 ? derived : null;
-                                        } else if (oh && typeof oh === 'object') {
-                                            hoursRecord = oh as Record<string, string>;
-                                        }
-                                        if (!hoursRecord) return null;
-                                        const entries = Object.entries(hoursRecord);
-                                        if (entries.length === 0) return null;
-                                        const samples = entries.slice(0, 2).map(([day, hrs]) => `${day.substring(0, 3)} ${hrs}`);
-                                        const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
-                                        return <p className={styles.cardMeta}>Hours: {samples.join(' • ')}{extra}</p>;
-                                    })()}
-                                </div>
-                            </Link>
-                        </div>
-                    ))}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 

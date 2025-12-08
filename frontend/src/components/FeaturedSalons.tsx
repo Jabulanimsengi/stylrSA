@@ -21,10 +21,18 @@ import 'swiper/css/navigation';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 
-function FeaturedSalons() {
-  const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
-  // 'pending' = not started, 'loading' = fetching, 'done' = completed
-  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
+interface FeaturedSalonsProps {
+  initialSalons?: SalonWithFavorite[];
+}
+
+function FeaturedSalons({ initialSalons = [] }: FeaturedSalonsProps) {
+  // If we have server-side data, use it immediately and mark as 'done'
+  const hasServerData = initialSalons.length > 0;
+  const [salons, setSalons] = useState<SalonWithFavorite[]>(initialSalons);
+  // Start as 'done' if we have server data, otherwise 'pending'
+  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>(
+    hasServerData ? 'done' : 'pending'
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [, startTransition] = useTransition();
   const { authStatus } = useAuth();
@@ -58,15 +66,15 @@ function FeaturedSalons() {
       // Add timeout to prevent infinite loading (5 seconds)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const res = await fetch(`/api/salons/featured?_t=${timestamp}`, { 
+
+      const res = await fetch(`/api/salons/featured?_t=${timestamp}`, {
         credentials: 'include',
         cache: 'no-store' as any,
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!res.ok) {
         throw new Error(`Failed to fetch featured salons (${res.status})`);
       }
@@ -81,10 +89,12 @@ function FeaturedSalons() {
   }, [loadingState]);
 
   useEffect(() => {
-    fetchFeaturedSalons();
-    // Only fetch once on mount - don't re-fetch on authStatus change to prevent flickering
+    // Only fetch client-side if we don't have server-provided data
+    if (!hasServerData) {
+      fetchFeaturedSalons();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hasServerData]);
 
   // Listen for salon updates from EditSalonModal
   useEffect(() => {
@@ -153,25 +163,10 @@ function FeaturedSalons() {
     return null;
   }
 
-  // Show skeleton only while actively loading
+  // Don't show skeleton during loading - only show content once we have it
+  // This prevents skeleton flash when there's no content
   if (loadingState === 'loading') {
-    return (
-      <section className={styles.section}>
-        <div className={styles.header}>
-          <a href="/salons" onClick={handleHeadingClick} className={styles.title}>
-            <h2>Recommended</h2>
-          </a>
-          <a href="/salons" onClick={handleViewAllClick} className={styles.viewAll}>
-            View All
-          </a>
-        </div>
-        <div className={styles.skeletonContainer}>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className={styles.skeletonCard} />
-          ))}
-        </div>
-      </section>
-    );
+    return null;
   }
 
   // After loading completes, only render if we have salons
@@ -208,7 +203,12 @@ function FeaturedSalons() {
           }}
           spaceBetween={16}
           slidesPerView={'auto'}
-          style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
+          style={{
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            minHeight: isMobile ? '260px' : '280px', // Min height to show full cards
+          }}
           onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
           allowTouchMove={true}
           simulateTouch={true}
@@ -225,7 +225,14 @@ function FeaturedSalons() {
           }}
         >
           {salons.map((salon) => (
-            <SwiperSlide key={salon.id}>
+            <SwiperSlide
+              key={salon.id}
+              style={{
+                width: isMobile ? 'calc(100% / 1.15)' : 'calc((100% - 48px) / 4.1)',
+                minHeight: isMobile ? '260px' : '280px',
+                flexShrink: 0,
+              }}
+            >
               <SalonCard
                 salon={salon}
                 showFavorite
@@ -243,12 +250,12 @@ function FeaturedSalons() {
           <>
             <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18l-6-6 6-6"/>
+                <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
             <button ref={nextRef} className={styles.nextButton} aria-label="Next">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 18l6-6-6-6"/>
+                <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
           </>

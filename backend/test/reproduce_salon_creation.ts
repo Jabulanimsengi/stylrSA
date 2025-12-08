@@ -1,6 +1,6 @@
 
 // import { fetch } from 'undici'; // Built-in in Node 18+
-
+export { };
 const BASE_URL = 'http://127.0.0.1:5000';
 
 async function run() {

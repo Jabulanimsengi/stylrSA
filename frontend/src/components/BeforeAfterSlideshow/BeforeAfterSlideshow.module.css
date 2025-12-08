@@ -32,7 +32,8 @@
   height: 44px;
   border-radius: 50%;
   border: none;
-  display: none; /* Hidden by default (mobile) */
+  display: none;
+  /* Hidden by default (mobile) */
   align-items: center;
   justify-content: center;
   background: var(--color-primary, #f51957);
@@ -71,6 +72,7 @@
 
 /* Explicitly hide navigation on mobile */
 @media (max-width: 768px) {
+
   .prevButton,
   .nextButton {
     display: none !important;
@@ -79,6 +81,7 @@
 
 /* Show navigation on desktop only */
 @media (min-width: 769px) {
+
   .prevButton,
   .nextButton {
     display: flex !important;
@@ -110,7 +113,7 @@
 .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(245, 25, 87, 0.1),
-              0 4px 8px rgba(0, 0, 0, 0.06);
+    0 4px 8px rgba(0, 0, 0, 0.06);
   border-color: rgba(245, 25, 87, 0.2);
 }
 
@@ -214,6 +217,107 @@
   text-align: center;
 }
 
+/* Image counter badge - top right corner like service cards */
+.imageCounter {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(60, 60, 60, 0.85);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Before/After label - bottom left */
+.imageLabel {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, var(--color-primary, #f51957) 0%, #d41245 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(245, 25, 87, 0.4);
+}
+
+/* Card navigation arrows */
+.cardNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cardNav:hover:not(:disabled) {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cardNav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cardNavPrev {
+  left: 8px;
+}
+
+.cardNavNext {
+  right: 8px;
+}
+
+.cardNav svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Salon name link */
+.salonName {
+  font-size: 0.75rem;
+  color: var(--color-primary, #f51957);
+  text-decoration: none;
+  font-weight: 500;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.salonName:hover {
+  color: var(--color-primary-dark, #d41245);
+  text-decoration: underline;
+}
+
+/* Location text */
+.location {
+  font-size: 0.65rem;
+  color: var(--text-muted, #666);
+  margin: 2px 0 0 0;
+}
+
 /* Skeleton Loading */
 .skeletonContainer {
   display: flex;
@@ -226,12 +330,10 @@
   width: clamp(170px, 24vw, 210px);
   height: 280px;
   border-radius: 0.75rem;
-  background: linear-gradient(
-    90deg,
-    rgba(240, 240, 240, 0.8) 0%,
-    rgba(225, 225, 225, 0.9) 50%,
-    rgba(240, 240, 240, 0.8) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(240, 240, 240, 0.8) 0%,
+      rgba(225, 225, 225, 0.9) 50%,
+      rgba(240, 240, 240, 0.8) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
 }
@@ -240,6 +342,7 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -284,10 +387,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.7;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.1);

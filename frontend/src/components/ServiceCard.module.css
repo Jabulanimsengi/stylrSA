@@ -11,7 +11,8 @@
   border: 1px solid var(--color-border, #cdbfb3);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 260px; /* Slightly taller than SalonCard to fit price */
+  height: 260px;
+  /* Slightly taller than SalonCard to fit price */
   overflow: hidden;
   text-decoration: none;
   color: inherit;
@@ -23,7 +24,7 @@
 .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(245, 25, 87, 0.1),
-              0 4px 8px rgba(0, 0, 0, 0.06);
+    0 4px 8px rgba(0, 0, 0, 0.06);
   border-color: rgba(245, 25, 87, 0.2);
 }
 
@@ -74,16 +75,16 @@
 
 /* Title - matches SalonCard.compact .cardTitle */
 .title {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   margin: 0;
   color: var(--text-primary, #1c1c1e);
-  line-height: 1.15;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   text-align: center;
   word-break: break-word;
@@ -102,7 +103,7 @@
 
 .salonName,
 .salonNameLink {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--text-muted, #666);
   margin: 0;
   overflow: hidden;
@@ -110,7 +111,7 @@
   white-space: nowrap;
   text-align: center;
   display: block;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .salonNameLink {
@@ -130,14 +131,14 @@
 }
 
 .salonLocation {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--text-muted, #666);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 /* =============================================================================
@@ -215,9 +216,19 @@
 }
 
 @keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  25% { transform: scale(1.3); }
-  50% { transform: scale(1.1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.3);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 /* =============================================================================
@@ -314,7 +325,8 @@
    Footer with Like Button and Book Button (hidden for featured variant)
    ============================================================================= */
 .footer {
-  display: none; /* Hidden by default - shown only for salonProfile variant */
+  display: none;
+  /* Hidden by default - shown only for salonProfile variant */
 }
 
 .likeButton {
@@ -475,13 +487,13 @@
   }
 
   .title {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 
   .salonName,
   .salonNameLink,
   .salonLocation {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
   }
 
   .price {
@@ -555,14 +567,14 @@
   }
 
   .title {
-    font-size: 0.65rem;
-    line-height: 1.15;
+    font-size: 0.7rem;
+    line-height: 1.2;
   }
 
   .salonName,
   .salonNameLink,
   .salonLocation {
-    font-size: 0.5rem;
+    font-size: 0.6rem;
   }
 
   .price {
@@ -631,13 +643,13 @@
   }
 
   .title {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
   }
 
   .salonName,
   .salonNameLink,
   .salonLocation {
-    font-size: 0.45rem;
+    font-size: 0.55rem;
   }
 
   .price {

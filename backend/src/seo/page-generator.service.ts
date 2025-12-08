@@ -72,7 +72,7 @@ export class SEOPageGeneratorService {
   private readonly cache = new Map<string, { data: SEOPageData; expiry: number }>();
   private readonly MEMORY_CACHE_TTL = 3600000; // 1 hour in memory only
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   private getCacheKey(keyword: SeoKeyword, location: SeoLocation): string {
     return `${keyword.id}:${location.id}`;
@@ -154,53 +154,95 @@ export class SEOPageGeneratorService {
   /**
    * Generate meta title (max 60 characters)
    * CTR-optimized with numbers, power words, and urgency
+   * Uses keyword-specific patterns based on Search Console data
    */
   generateMetaTitle(keyword: SeoKeyword, location: SeoLocation, serviceCount?: number): string {
     const cityName = location.type === 'PROVINCE' ? location.name : location.name;
     const count = serviceCount && serviceCount > 0 ? serviceCount : null;
-    
-    // CTR-optimized title templates (rotate based on location hash)
+    const slug = keyword.slug.toLowerCase();
+
+    // Get current month for freshness signal
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    const currentMonth = monthNames[now.getMonth()];
+    const currentYear = now.getFullYear();
+
+    // Helper to get short keyword (without "near me/you" suffix)
+    const getShortKeyword = (kw: SeoKeyword): string => {
+      let short = kw.keyword.replace(/\s*near\s*(me|you)\s*$/i, '').trim();
+      return short;
+    };
+
+    // Keyword-specific high-CTR patterns based on Search Console data
+    // These patterns showed 10-40% CTR
+
+    // Walk-in patterns (27% CTR in small towns)
+    if (slug.includes('walk-in')) {
+      return this.truncate(`Walk-In ${getShortKeyword(keyword)} ${cityName} - No Booking Needed`, 60);
+    }
+
+    // 24-hour / late night patterns (10-23% CTR)
+    if (slug.includes('24-hour') || slug.includes('late')) {
+      return this.truncate(`24-Hour ${getShortKeyword(keyword)} ${cityName} - Open Now`, 60);
+    }
+
+    // Pricing patterns (15-30% CTR)
+    if (slug.includes('price') || slug.includes('affordable') || slug.includes('cheap')) {
+      return this.truncate(`${getShortKeyword(keyword)} Prices ${cityName} - From R150`, 60);
+    }
+
+    // Mobile service patterns (20-40% CTR)
+    if (slug.includes('mobile')) {
+      return this.truncate(`Mobile ${getShortKeyword(keyword)} ${cityName} - We Come to You`, 60);
+    }
+
+    // Top 10 patterns (high impressions, needs CTR boost)
+    if (slug.includes('top-10') || slug.includes('best')) {
+      return this.truncate(`Top 10 ${getShortKeyword(keyword)} ${cityName} (${currentMonth} ${currentYear})`, 60);
+    }
+
+    // CTR-optimized title templates for other keywords (rotate based on location hash)
     const templateIndex = this.hashLocationId(location.id) % 5;
-    
+
     const templates = [
       // Template 1: Number + Location + CTA
-      count && count >= 5 
-        ? `${count}+ Best ${keyword.keyword} in ${cityName} | Book Now`
-        : `Top ${keyword.keyword} in ${cityName} | Book Online`,
-      
-      // Template 2: Superlative + Year
-      `Best ${keyword.keyword} ${cityName} 2025 | Book Today`,
-      
-      // Template 3: Near You + Trust signal
-      `${keyword.keyword} Near You in ${cityName} | Verified Pros`,
-      
+      count && count >= 5
+        ? `${count}+ ${keyword.keyword} in ${cityName} | Book Now`
+        : `Best ${keyword.keyword} ${cityName} | Book Online`,
+
+      // Template 2: Freshness signal
+      `${keyword.keyword} ${cityName} ${currentYear} - Book Today`,
+
+      // Template 3: Trust signal
+      `${keyword.keyword} ${cityName} | Verified & Reviewed`,
+
       // Template 4: Price signal
-      `Affordable ${keyword.keyword} in ${cityName} | Compare & Book`,
-      
+      `${keyword.keyword} ${cityName} - Compare Prices & Book`,
+
       // Template 5: Rating signal
-      `Top-Rated ${keyword.keyword} ${cityName} | ⭐ 4.5+ Stars`,
+      `${keyword.keyword} ${cityName} | ⭐ Top Rated`,
     ];
-    
+
     let title = templates[templateIndex];
-    
+
     // Ensure it's under 60 characters
     if (title.length > 60) {
-      // Fallback to shorter format
       title = count && count >= 5
-        ? `${count}+ ${keyword.keyword} in ${cityName} | Book`
-        : `${keyword.keyword} in ${cityName} | Book Now`;
-      
+        ? `${count}+ ${keyword.keyword} ${cityName} | Book`
+        : `${keyword.keyword} ${cityName} | Book Now`;
+
       if (title.length > 60) {
-        title = `${keyword.keyword} ${cityName} | Book`;
+        title = `${keyword.keyword} ${cityName}`;
       }
     }
-    
+
     return title;
   }
 
   /**
    * Generate meta description (max 160 characters)
    * CTR-optimized with social proof, urgency, and clear value props
+   * Uses keyword-specific patterns based on Search Console data
    */
   generateMetaDescription(
     keyword: SeoKeyword,
@@ -209,41 +251,89 @@ export class SEOPageGeneratorService {
     avgPrice?: number,
   ): string {
     const cityName = location.type === 'PROVINCE' ? location.name : location.name;
-    const priceText = avgPrice ? `from R${Math.round(avgPrice)}` : '';
+    const priceText = avgPrice ? `from R${Math.round(avgPrice)}` : 'from R150';
     const countText = count > 0 ? `${count}+` : '';
-    
-    // CTR-optimized description templates (rotate based on location hash)
+    const slug = keyword.slug.toLowerCase();
+
+    // Helper to get short keyword (without "near me/you" suffix)
+    const getShortKeyword = (kw: SeoKeyword): string => {
+      return kw.keyword.replace(/\s*near\s*(me|you)\s*$/i, '').trim();
+    };
+    const shortKeyword = getShortKeyword(keyword);
+
+    // Keyword-specific high-CTR description patterns based on Search Console data
+
+    // Walk-in patterns - emphasize no appointment needed
+    if (slug.includes('walk-in')) {
+      return this.truncate(
+        `Walk-in ${shortKeyword} in ${cityName} - no booking required! ${countText} salons accepting walk-ins today. See wait times & book now.`,
+        160
+      );
+    }
+
+    // 24-hour / late night patterns - emphasize availability
+    if (slug.includes('24-hour') || slug.includes('late')) {
+      return this.truncate(
+        `${shortKeyword} open 24/7 in ${cityName}. Late night & weekend appointments available. ${countText} verified pros. Book now or walk in!`,
+        160
+      );
+    }
+
+    // Mobile service patterns - convenience focused
+    if (slug.includes('mobile')) {
+      return this.truncate(
+        `Mobile ${shortKeyword} in ${cityName} - we come to you! ${countText} verified pros, ${priceText}. Book your home appointment online today!`,
+        160
+      );
+    }
+
+    // Pricing / affordable patterns - price focused
+    if (slug.includes('price') || slug.includes('affordable') || slug.includes('cheap')) {
+      return this.truncate(
+        `Compare ${shortKeyword} prices in ${cityName} ${priceText}. ${countText} affordable options with real reviews. Find the best value & book online!`,
+        160
+      );
+    }
+
+    // Top 10 / best patterns - quality focused
+    if (slug.includes('top-10') || slug.includes('best')) {
+      return this.truncate(
+        `Top 10 ${shortKeyword} in ${cityName} ranked by reviews. ${countText} verified pros, prices ${priceText}. Compare ratings & book online!`,
+        160
+      );
+    }
+
+    // CTR-optimized description templates for other keywords (rotate based on location hash)
     const templateIndex = this.hashLocationId(location.id) % 5;
-    
+
     const templates = [
       // Template 1: Numbers + Social proof + CTA
-      `Compare ${countText} verified ${keyword.keyword} in ${cityName}. See prices${priceText ? ` ${priceText}` : ''}, read real reviews & book online in 2 mins. ⭐ Trusted by 10K+ customers.`,
-      
+      `${countText} verified ${keyword.keyword} in ${cityName}. Prices ${priceText}, real reviews. Book online in 2 mins. Trusted by 10K+ customers!`,
+
       // Template 2: Urgency + Value
-      `Looking for ${keyword.keyword} in ${cityName}? ${countText} top-rated pros available. Book same-day appointments${priceText ? ` ${priceText}` : ''}. Free cancellation!`,
-      
+      `Looking for ${keyword.keyword} in ${cityName}? ${countText} top-rated pros, same-day appointments. Prices ${priceText}. Book now!`,
+
       // Template 3: Question + Solution
-      `Need ${keyword.keyword} near ${cityName}? Browse ${countText} verified salons, compare prices & reviews. Book your appointment online today!`,
-      
+      `Need ${keyword.keyword} in ${cityName}? Browse ${countText} verified salons, compare prices & reviews. Book your appointment online today!`,
+
       // Template 4: Benefits-focused
-      `${countText} ${keyword.keyword} services in ${cityName}. ✓ Verified pros ✓ Real reviews ✓ Instant booking${priceText ? ` ✓ Prices ${priceText}` : ''}. Book now!`,
-      
+      `${countText} ${keyword.keyword} in ${cityName}. ✓ Verified ✓ Reviews ✓ Instant booking ✓ Prices ${priceText}. Book now!`,
+
       // Template 5: Local + Trust
-      `Find the best ${keyword.keyword} in ${cityName}. ${countText} local professionals, honest reviews${priceText ? `, prices ${priceText}` : ''}. Book online 24/7!`,
+      `Find ${keyword.keyword} in ${cityName}. ${countText} local pros, honest reviews, prices ${priceText}. Book online 24/7!`,
     ];
-    
+
     let description = templates[templateIndex];
-    
+
     // Ensure it's under 160 characters
     if (description.length > 160) {
-      // Fallback to shorter format
-      description = `${countText} ${keyword.keyword} in ${cityName}. Compare prices, read reviews & book online instantly. Verified professionals!`;
-      
+      description = `${countText} ${keyword.keyword} in ${cityName}. Compare prices, read reviews & book online. Verified professionals!`;
+
       if (description.length > 160) {
-        description = `Book ${keyword.keyword} in ${cityName}. ${countText} verified pros. Compare & book online today!`;
+        description = `Book ${keyword.keyword} in ${cityName}. ${countText} verified pros. Compare & book today!`;
       }
     }
-    
+
     return description;
   }
 
@@ -464,9 +554,9 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(this.toRadians(lat1)) *
-        Math.cos(this.toRadians(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos(this.toRadians(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
@@ -486,7 +576,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
   generateSchema(page: SEOPageData, featuredImage?: string): SchemaMarkup {
     const baseUrl = process.env.FRONTEND_URL || 'https://www.stylrsa.co.za';
     const fullUrl = `${baseUrl}${page.url}`;
-    
+
     // Default OG image or category-specific image
     const pageImage = featuredImage || `${baseUrl}/og-images/${page.keyword.slug}.jpg`;
     const fallbackImage = `${baseUrl}/og-default.jpg`;
@@ -637,7 +727,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
           name: `How much does ${page.keyword.keyword} cost in ${page.location.name}?`,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: page.avgPrice 
+            text: page.avgPrice
               ? `${page.keyword.keyword} in ${page.location.name} typically costs from R${Math.round(page.avgPrice * 0.5)} to R${Math.round(page.avgPrice * 1.5)}, with an average price of R${Math.round(page.avgPrice)}.`
               : `Prices for ${page.keyword.keyword} in ${page.location.name} vary. Compare ${page.serviceCount}+ services on Stylr SA to find the best rates.`,
           },
@@ -751,7 +841,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
 
     // Build location filter based on location type
     const locationFilter: any = {};
-    
+
     try {
       if (location.type === 'PROVINCE') {
         locationFilter.province = location.name;
@@ -814,7 +904,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
     try {
       // Build location filter based on location type
       const locationFilter: any = {};
-      
+
       if (location.type === 'PROVINCE') {
         locationFilter.province = location.name;
       } else if (location.type === 'CITY' || location.type === 'TOWN') {
@@ -876,7 +966,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
   ): Promise<number> {
     try {
       const locationFilter: any = {};
-      
+
       if (location.type === 'PROVINCE') {
         locationFilter.province = location.name;
       } else if (location.type === 'CITY' || location.type === 'TOWN') {
@@ -910,7 +1000,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
   async getSalonCount(location: SeoLocation): Promise<number> {
     try {
       const locationFilter: any = {};
-      
+
       if (location.type === 'PROVINCE') {
         locationFilter.province = location.name;
       } else if (location.type === 'CITY' || location.type === 'TOWN') {
@@ -944,7 +1034,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
   ): Promise<number | undefined> {
     try {
       const locationFilter: any = {};
-      
+
       if (location.type === 'PROVINCE') {
         locationFilter.province = location.name;
       } else if (location.type === 'CITY' || location.type === 'TOWN') {
@@ -995,7 +1085,7 @@ ${avgPrice ? `Competitive pricing from R${avgPrice.toFixed(0)} ` : 'Transparent 
     if (location.type === 'PROVINCE') {
       return location.name;
     }
-    
+
     // For cities/towns/suburbs: "City, Province"
     return `${location.name}, ${location.province}`;
   }
