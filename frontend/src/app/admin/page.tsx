@@ -115,14 +115,14 @@ export default function AdminPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   // Simple filters/saved views for All Salons
   const [search, setSearch] = useState('');
-  const [savedViews, setSavedViews] = useState<{name:string; query:string}[]>([]);
-  const filteredAllSalons = useMemo(()=> allSalons.filter(s => {
+  const [savedViews, setSavedViews] = useState<{ name: string; query: string }[]>([]);
+  const filteredAllSalons = useMemo(() => allSalons.filter(s => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
       s.name.toLowerCase().includes(q) ||
       s.owner.email.toLowerCase().includes(q) ||
-      (s.planCode??'').toLowerCase().includes(q)
+      (s.planCode ?? '').toLowerCase().includes(q)
     );
   }), [allSalons, search]);
   // Bulk selection state
@@ -172,18 +172,18 @@ export default function AdminPage() {
         prev.map((salon) =>
           salon.id === salonId
             ? {
-                ...salon,
-                planPaymentStatus: updated.planPaymentStatus ?? status,
-                planPaymentReference:
-                  updated.planPaymentReference ?? salon.planPaymentReference,
-                planProofSubmittedAt:
-                  updated.planProofSubmittedAt ?? salon.planProofSubmittedAt,
-                planVerifiedAt: updated.planVerifiedAt ?? salon.planVerifiedAt,
-                planPriceCents:
-                  typeof updated.planPriceCents === 'number'
-                    ? updated.planPriceCents
-                    : salon.planPriceCents,
-              }
+              ...salon,
+              planPaymentStatus: updated.planPaymentStatus ?? status,
+              planPaymentReference:
+                updated.planPaymentReference ?? salon.planPaymentReference,
+              planProofSubmittedAt:
+                updated.planProofSubmittedAt ?? salon.planProofSubmittedAt,
+              planVerifiedAt: updated.planVerifiedAt ?? salon.planVerifiedAt,
+              planPriceCents:
+                typeof updated.planPriceCents === 'number'
+                  ? updated.planPriceCents
+                  : salon.planPriceCents,
+            }
             : salon,
         ),
       );
@@ -191,18 +191,18 @@ export default function AdminPage() {
         prev.map((salon) =>
           salon.id === salonId
             ? {
-                ...salon,
-                planPaymentStatus: updated.planPaymentStatus ?? status,
-                planPaymentReference:
-                  updated.planPaymentReference ?? salon.planPaymentReference,
-                planProofSubmittedAt:
-                  updated.planProofSubmittedAt ?? salon.planProofSubmittedAt,
-                planVerifiedAt: updated.planVerifiedAt ?? salon.planVerifiedAt,
-                planPriceCents:
-                  typeof updated.planPriceCents === 'number'
-                    ? updated.planPriceCents
-                    : salon.planPriceCents,
-              }
+              ...salon,
+              planPaymentStatus: updated.planPaymentStatus ?? status,
+              planPaymentReference:
+                updated.planPaymentReference ?? salon.planPaymentReference,
+              planProofSubmittedAt:
+                updated.planProofSubmittedAt ?? salon.planProofSubmittedAt,
+              planVerifiedAt: updated.planVerifiedAt ?? salon.planVerifiedAt,
+              planPriceCents:
+                typeof updated.planPriceCents === 'number'
+                  ? updated.planPriceCents
+                  : salon.planPriceCents,
+            }
             : salon,
         ),
       );
@@ -240,28 +240,28 @@ export default function AdminPage() {
         prev.map((product) =>
           product.seller.id === sellerId
             ? {
-                ...product,
-                seller: {
-                  ...product.seller,
-                  sellerPlanPaymentStatus:
-                    updated.sellerPlanPaymentStatus ?? status,
-                  sellerPlanPaymentReference:
-                    updated.sellerPlanPaymentReference ??
-                    product.seller.sellerPlanPaymentReference,
-                  sellerPlanProofSubmittedAt:
-                    updated.sellerPlanProofSubmittedAt ??
-                    product.seller.sellerPlanProofSubmittedAt,
-                  sellerPlanVerifiedAt:
-                    updated.sellerPlanVerifiedAt ??
-                    product.seller.sellerPlanVerifiedAt,
-                  sellerPlanPriceCents:
-                    typeof updated.sellerPlanPriceCents === 'number'
-                      ? updated.sellerPlanPriceCents
-                      : product.seller.sellerPlanPriceCents,
-                  sellerPlanCode:
-                    updated.sellerPlanCode ?? product.seller.sellerPlanCode,
-                },
-              }
+              ...product,
+              seller: {
+                ...product.seller,
+                sellerPlanPaymentStatus:
+                  updated.sellerPlanPaymentStatus ?? status,
+                sellerPlanPaymentReference:
+                  updated.sellerPlanPaymentReference ??
+                  product.seller.sellerPlanPaymentReference,
+                sellerPlanProofSubmittedAt:
+                  updated.sellerPlanProofSubmittedAt ??
+                  product.seller.sellerPlanProofSubmittedAt,
+                sellerPlanVerifiedAt:
+                  updated.sellerPlanVerifiedAt ??
+                  product.seller.sellerPlanVerifiedAt,
+                sellerPlanPriceCents:
+                  typeof updated.sellerPlanPriceCents === 'number'
+                    ? updated.sellerPlanPriceCents
+                    : product.seller.sellerPlanPriceCents,
+                sellerPlanCode:
+                  updated.sellerPlanCode ?? product.seller.sellerPlanCode,
+              },
+            }
             : product,
         ),
       );
@@ -272,43 +272,43 @@ export default function AdminPage() {
     }
   };
 
-  const bulkUpdate = async (type: 'salon'|'service'|'review'|'product', ids: string[], status: ApprovalStatus) => {
+  const bulkUpdate = async (type: 'salon' | 'service' | 'review' | 'product', ids: string[], status: ApprovalStatus) => {
     if (ids.length === 0) return;
     await Promise.all(ids.map(id => fetch(
       type === 'salon' ? `/api/admin/salons/${id}/status` :
-      type === 'service' ? `/api/admin/services/${id}/status` :
-      type === 'review' ? `/api/admin/reviews/${id}/status` : `/api/admin/products/${id}/status`,
-      { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify({ approvalStatus: status }) }
+        type === 'service' ? `/api/admin/services/${id}/status` :
+          type === 'review' ? `/api/admin/reviews/${id}/status` : `/api/admin/products/${id}/status`,
+      { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ approvalStatus: status }) }
     )));
-    if (type === 'salon') setPendingSalons(prev => prev.filter(x=> !ids.includes(x.id)));
-    if (type === 'service') setPendingServices(prev => prev.filter(x=> !ids.includes(x.id)));
-    if (type === 'review') setPendingReviews(prev => prev.filter(x=> !ids.includes(x.id)));
-    if (type === 'product') setPendingProducts(prev => prev.filter(x=> !ids.includes(x.id)));
+    if (type === 'salon') setPendingSalons(prev => prev.filter(x => !ids.includes(x.id)));
+    if (type === 'service') setPendingServices(prev => prev.filter(x => !ids.includes(x.id)));
+    if (type === 'review') setPendingReviews(prev => prev.filter(x => !ids.includes(x.id)));
+    if (type === 'product') setPendingProducts(prev => prev.filter(x => !ids.includes(x.id)));
     clearSelections();
-    toast.success(`Updated ${ids.length} ${type}${ids.length>1?'s':''}`);
+    toast.success(`Updated ${ids.length} ${type}${ids.length > 1 ? 's' : ''}`);
   };
 
   const fetchFeaturedSalons = async () => {
     const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
-    
+
     logger.info('Fetching featured salons management data...', { hasAuth: !!session?.backendJwt });
-    
+
     try {
       const res = await fetch(`/api/admin/salons/featured/manage?ts=${Date.now()}`, {
         credentials: 'include',
         cache: 'no-store' as any,
         headers: authHeaders,
       });
-      
+
       logger.info('Fetch featured salons response:', { status: res.status, ok: res.ok });
-      
+
       if (res.ok) {
         const data = await res.json();
         setFeaturedSalons(ensureArray<PendingSalon>(data.featured));
         setAvailableSalons(ensureArray<PendingSalon>(data.available));
-        logger.info('Featured salons loaded:', { 
-          featured: data.featured?.length || 0, 
-          available: data.available?.length || 0 
+        logger.info('Featured salons loaded:', {
+          featured: data.featured?.length || 0,
+          available: data.available?.length || 0
         });
       } else {
         const msg = await res.text().catch(() => '');
@@ -323,9 +323,9 @@ export default function AdminPage() {
 
   const featureSalon = async (salonId: string, durationDays: number) => {
     const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
-    
+
     logger.info('Featuring salon:', { salonId, durationDays, hasAuth: !!session?.backendJwt });
-    
+
     try {
       const res = await fetch(`/api/admin/salons/${salonId}/feature`, {
         method: 'POST',
@@ -333,9 +333,9 @@ export default function AdminPage() {
         credentials: 'include',
         body: JSON.stringify({ durationDays }),
       });
-      
+
       logger.info('Feature salon response:', { status: res.status, ok: res.ok });
-      
+
       if (res.ok) {
         const data = await res.json();
         toast.success(`Salon featured for ${durationDays} days`);
@@ -374,7 +374,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (authStatus === 'loading') {
-      return; 
+      return;
     }
     if (authStatus !== 'authenticated' || user?.role !== 'ADMIN') {
       router.push('/login');
@@ -386,7 +386,7 @@ export default function AdminPage() {
       // FIX: Use relative URLs instead of hardcoding localhost.
       const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
       const requestOptions = { credentials: 'include' as const, headers: authHeaders } as const;
-      
+
       try {
         const ts = Date.now();
         const noStore: RequestInit = { ...requestOptions, cache: 'no-store' } as any;
@@ -404,10 +404,10 @@ export default function AdminPage() {
         ]);
 
         if ([pendingSalonsRes, allSalonsRes, servicesRes, reviewsRes, productsRes, allSellersRes, deletedSalonsRes, deletedSellersRes, metricsRes, promotionsRes].some(res => res.status === 401)) {
-            router.push('/login');
-            return;
+          router.push('/login');
+          return;
         }
-        
+
         // This is where the original error happened. With the backend fix, it should now work.
         setPendingSalons(ensureArray<PendingSalon>(await pendingSalonsRes.json()));
         setAllSalons(ensureArray<PendingSalon>(await allSalonsRes.json()));
@@ -427,10 +427,10 @@ export default function AdminPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
     // load saved views
-    try { const raw = localStorage.getItem('admin-saved-views'); if (raw) setSavedViews(JSON.parse(raw)); } catch {}
+    try { const raw = localStorage.getItem('admin-saved-views'); if (raw) setSavedViews(JSON.parse(raw)); } catch { }
 
     // Realtime updates
     let socket: Socket | null = null;
@@ -452,7 +452,7 @@ export default function AdminPage() {
           if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
           if (delRes.ok) setDeletedSalons(ensureArray<PendingSalon>(await delRes.json()));
           if (deletedSellerRes.ok) setDeletedSellers(ensureArray<any>(await deletedSellerRes.json()));
-        } catch {}
+        } catch { }
       });
       socket.on('seller:deleted', async () => {
         try {
@@ -471,7 +471,7 @@ export default function AdminPage() {
           if (archivedRes.ok) {
             setDeletedSellers(ensureArray<any>(await archivedRes.json()));
           }
-        } catch {}
+        } catch { }
       });
       socket.on('visibility:updated', async () => {
         try {
@@ -484,17 +484,17 @@ export default function AdminPage() {
           if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
           if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
           if (sellerRes.ok) setDeletedSellers(ensureArray<any>(await sellerRes.json()));
-        } catch {}
+        } catch { }
       });
-    } catch {}
+    } catch { }
 
-    return () => { try { socket?.disconnect(); } catch {} };
+    return () => { try { socket?.disconnect(); } catch { } };
   }, [authStatus, user, router, session?.backendJwt]);
 
   const handleUpdateStatus = async (type: 'salon' | 'service' | 'review' | 'product', id: string, status: ApprovalStatus) => {
     if (authStatus !== 'authenticated') {
-        router.push('/login');
-        return;
+      router.push('/login');
+      return;
     }
 
     let url = '';
@@ -723,9 +723,9 @@ export default function AdminPage() {
         ]);
         if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
         if (delRes.ok) setDeletedSalons(await delRes.json());
-      } catch {}
+      } catch { }
     } else {
-      const msg = await res.text().catch(()=> '');
+      const msg = await res.text().catch(() => '');
       toast.error(`Failed to restore (${res.status}). ${msg}`);
     }
   };
@@ -748,7 +748,7 @@ export default function AdminPage() {
         if (sellersRes.ok) {
           setDeletedSellers(ensureArray<any>(await sellersRes.json()));
         }
-      } catch {}
+      } catch { }
     } else {
       const msg = await res.text().catch(() => '');
       toast.error(`Failed to restore seller (${res.status}). ${msg}`);
@@ -761,9 +761,9 @@ export default function AdminPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>Admin Dashboard</h1>
       {metrics && (
-        <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', marginBottom:'0.75rem'}}>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <span>Pending: Salons {metrics.salonsPending}, Services {metrics.servicesPending}, Reviews {metrics.reviewsPending}, Products {metrics.productsPending}</span>
-          <span style={{opacity:0.8}}>Oldest: {['salon','service','review','product'].map(k=> metrics.oldest?.[k] ? `${k}: ${new Date(metrics.oldest[k]).toLocaleDateString()}` : null).filter(Boolean).join(' | ')}</span>
+          <span style={{ opacity: 0.8 }}>Oldest: {['salon', 'service', 'review', 'product'].map(k => metrics.oldest?.[k] ? `${k}: ${new Date(metrics.oldest[k]).toLocaleDateString()}` : null).filter(Boolean).join(' | ')}</span>
         </div>
       )}
       <div className={styles.tabs}>
@@ -849,7 +849,7 @@ export default function AdminPage() {
               const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
               const r = await fetch(`/api/admin/top10-requests?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
               if (r.ok) setTop10Requests(await r.json());
-            } catch {}
+            } catch { }
           }}
           className={`${styles.tabButton} ${view === 'top10-requests' ? styles.activeTab : ''}`}
         >
@@ -868,9 +868,9 @@ export default function AdminPage() {
           Deleted Sellers ({deletedSellers.length})
         </button>
         <button
-          onClick={async ()=>{
+          onClick={async () => {
             setView('audit');
-            try { const r = await fetch(`/api/admin/audit?ts=${Date.now()}`, { credentials:'include', cache:'no-store' as any }); if (r.ok) setAuditLogs(await r.json()); } catch {}
+            try { const r = await fetch(`/api/admin/audit?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any }); if (r.ok) setAuditLogs(await r.json()); } catch { }
           }}
           className={`${styles.tabButton} ${view === 'audit' ? styles.activeTab : ''}`}
         >
@@ -881,271 +881,271 @@ export default function AdminPage() {
       <div className={styles.list}>
         {view === 'salons' && (
           <>
-          {pendingSalons.length > 0 && (
-            <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem'}}>
-              <input type="checkbox" checked={selSalons.size===pendingSalons.length} onChange={e=> setSelSalons(e.target.checked? new Set(pendingSalons.map(s=>s.id)) : new Set())} />
-              <span>Select all</span>
-              <button className={styles.approveButton} disabled={selSalons.size===0} onClick={()=> bulkUpdate('salon', Array.from(selSalons), 'APPROVED')}>Approve selected</button>
-              <button className={styles.rejectButton} disabled={selSalons.size===0} onClick={()=> bulkUpdate('salon', Array.from(selSalons), 'REJECTED')}>Reject selected</button>
-            </div>
-          )}
-          {pendingSalons.length > 0 ? pendingSalons.map((salon) => {
-            const planCode = (salon.planCode ?? 'STARTER') as PlanCode;
-            const plan = PLAN_BY_CODE[planCode] ?? APP_PLANS[0];
-            const amountDue =
-              typeof salon.planPriceCents === 'number'
-                ? formatRand(salon.planPriceCents)
-                : plan.price;
-            const paymentStatus = (salon.planPaymentStatus ??
-              'PENDING_SELECTION') as PlanPaymentStatus;
-            const isFree = planCode === 'FREE';
-            const proofSubmittedAt = salon.planProofSubmittedAt
-              ? new Date(salon.planProofSubmittedAt).toLocaleString('en-ZA')
-              : null;
-            const verifiedAt = salon.planVerifiedAt
-              ? new Date(salon.planVerifiedAt).toLocaleString('en-ZA')
-              : null;
-            const isUpdating = updatingSalonPlanId === salon.id;
-            const reference = salon.planPaymentReference ?? salon.name;
-            return (
-              <div key={salon.id} className={styles.listItem}>
-                <div className={styles.info}>
-                  <input
-                    type="checkbox"
-                    checked={selSalons.has(salon.id)}
-                    onChange={(e) => {
-                      const ns = new Set(selSalons);
-                      if (e.target.checked) ns.add(salon.id);
-                      else ns.delete(salon.id);
-                      setSelSalons(ns);
-                    }}
-                  />
-                  <h4>{salon.name}</h4>
-                  <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email})</p>
-                  <div className={styles.planInfo}>
-                    <div className={styles.planInfoRow}>
-                      <span><strong>Package:</strong> {plan.name}</span>
-                      <span><strong>Amount due:</strong> {isFree ? 'R0' : amountDue}</span>
-                      <span>
-                        <strong>Status:</strong>{' '}
-                        {isFree ? (
-                          <span className={`${styles.planBadge} ${styles[`planStatus_verified`]}`}>No payment required</span>
-                        ) : (
-                          <span className={`${styles.planBadge} ${styles[`planStatus_${paymentStatus.toLowerCase()}`]}`}>
-                            {PLAN_PAYMENT_LABELS[paymentStatus]}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    {!isFree && (
-                      <>
-                        <div className={styles.planInfoRow}>
-                          <span>
-                            <strong>Reference:</strong>{' '}
-                            <code className={styles.planReference}>{reference}</code>
+            {pendingSalons.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <input type="checkbox" checked={selSalons.size === pendingSalons.length} onChange={e => setSelSalons(e.target.checked ? new Set(pendingSalons.map(s => s.id)) : new Set())} />
+                <span>Select all</span>
+                <button className={styles.approveButton} disabled={selSalons.size === 0} onClick={() => bulkUpdate('salon', Array.from(selSalons), 'APPROVED')}>Approve selected</button>
+                <button className={styles.rejectButton} disabled={selSalons.size === 0} onClick={() => bulkUpdate('salon', Array.from(selSalons), 'REJECTED')}>Reject selected</button>
+              </div>
+            )}
+            {pendingSalons.length > 0 ? pendingSalons.map((salon) => {
+              const planCode = (salon.planCode ?? 'STARTER') as PlanCode;
+              const plan = PLAN_BY_CODE[planCode] ?? APP_PLANS[0];
+              const amountDue =
+                typeof salon.planPriceCents === 'number'
+                  ? formatRand(salon.planPriceCents)
+                  : plan.price;
+              const paymentStatus = (salon.planPaymentStatus ??
+                'PENDING_SELECTION') as PlanPaymentStatus;
+              const isFree = planCode === 'FREE';
+              const proofSubmittedAt = salon.planProofSubmittedAt
+                ? new Date(salon.planProofSubmittedAt).toLocaleString('en-ZA')
+                : null;
+              const verifiedAt = salon.planVerifiedAt
+                ? new Date(salon.planVerifiedAt).toLocaleString('en-ZA')
+                : null;
+              const isUpdating = updatingSalonPlanId === salon.id;
+              const reference = salon.planPaymentReference ?? salon.name;
+              return (
+                <div key={salon.id} className={styles.listItem}>
+                  <div className={styles.info}>
+                    <input
+                      type="checkbox"
+                      checked={selSalons.has(salon.id)}
+                      onChange={(e) => {
+                        const ns = new Set(selSalons);
+                        if (e.target.checked) ns.add(salon.id);
+                        else ns.delete(salon.id);
+                        setSelSalons(ns);
+                      }}
+                    />
+                    <h4>{salon.name}</h4>
+                    <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email})</p>
+                    <div className={styles.planInfo}>
+                      <div className={styles.planInfoRow}>
+                        <span><strong>Package:</strong> {plan.name}</span>
+                        <span><strong>Amount due:</strong> {isFree ? 'R0' : amountDue}</span>
+                        <span>
+                          <strong>Status:</strong>{' '}
+                          {isFree ? (
+                            <span className={`${styles.planBadge} ${styles[`planStatus_verified`]}`}>No payment required</span>
+                          ) : (
+                            <span className={`${styles.planBadge} ${styles[`planStatus_${paymentStatus.toLowerCase()}`]}`}>
+                              {PLAN_PAYMENT_LABELS[paymentStatus]}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      {!isFree && (
+                        <>
+                          <div className={styles.planInfoRow}>
+                            <span>
+                              <strong>Reference:</strong>{' '}
+                              <code className={styles.planReference}>{reference}</code>
+                              <button
+                                type="button"
+                                className={styles.copyButton}
+                                onClick={() => copyToClipboard(reference, 'Reference copied')}
+                              >
+                                Copy
+                              </button>
+                            </span>
+                            {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
+                            {verifiedAt && <span>Verified on: {verifiedAt}</span>}
+                          </div>
+                          <div className={styles.planAdminActions}>
                             <button
                               type="button"
-                              className={styles.copyButton}
-                              onClick={() => copyToClipboard(reference, 'Reference copied')}
+                              className={styles.approveButton}
+                              onClick={() => updateSalonPaymentStatus(salon.id, 'VERIFIED')}
+                              disabled={isUpdating || paymentStatus === 'VERIFIED'}
                             >
-                              Copy
+                              {isUpdating && paymentStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
                             </button>
-                          </span>
-                          {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
-                          {verifiedAt && <span>Verified on: {verifiedAt}</span>}
-                        </div>
-                        <div className={styles.planAdminActions}>
-                          <button
-                            type="button"
-                            className={styles.approveButton}
-                            onClick={() => updateSalonPaymentStatus(salon.id, 'VERIFIED')}
-                            disabled={isUpdating || paymentStatus === 'VERIFIED'}
-                          >
-                            {isUpdating && paymentStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.approveButton}
-                            onClick={() => updateSalonPaymentStatus(salon.id, 'PROOF_SUBMITTED')}
-                            disabled={isUpdating || paymentStatus === 'PROOF_SUBMITTED'}
-                          >
-                            {isUpdating && paymentStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.rejectButton}
-                            onClick={() => updateSalonPaymentStatus(salon.id, 'AWAITING_PROOF')}
-                            disabled={isUpdating || paymentStatus === 'AWAITING_PROOF'}
-                          >
-                            {isUpdating && paymentStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
-                          </button>
-                        </div>
-                      </>
+                            <button
+                              type="button"
+                              className={styles.approveButton}
+                              onClick={() => updateSalonPaymentStatus(salon.id, 'PROOF_SUBMITTED')}
+                              disabled={isUpdating || paymentStatus === 'PROOF_SUBMITTED'}
+                            >
+                              {isUpdating && paymentStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.rejectButton}
+                              onClick={() => updateSalonPaymentStatus(salon.id, 'AWAITING_PROOF')}
+                              disabled={isUpdating || paymentStatus === 'AWAITING_PROOF'}
+                            >
+                              {isUpdating && paymentStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.actions}>
+                    <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
+                    <button onClick={() => handleUpdateStatus('salon', salon.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
+                    <button onClick={() => handleUpdateStatus('salon', salon.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
+                  </div>
+                </div>
+              );
+            }) : <p>No pending salons.</p>}
+          </>
+        )}
+
+        {view === 'all-salons' && (
+          <>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name/email/plan" style={{ padding: '0.35rem', border: '1px solid var(--color-border)', borderRadius: 8, minWidth: 260 }} />
+              <button className={styles.approveButton} onClick={() => {
+                const name = window.prompt('Save current search as view name:');
+                if (!name) return;
+                const next = [...savedViews, { name, query: search }];
+                setSavedViews(next);
+                try { localStorage.setItem('admin-saved-views', JSON.stringify(next)); } catch { }
+              }}>Save view</button>
+              {savedViews.length > 0 && (
+                <select onChange={e => setSearch(savedViews.find(v => v.name === e.target.value)?.query ?? '')} defaultValue="">
+                  <option value="" disabled>Load view…</option>
+                  {savedViews.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
+                </select>
+              )}
+            </div>
+            {filteredAllSalons.length > 0 ? filteredAllSalons.map(salon => (
+              <div key={salon.id} className={styles.listItem}>
+                <div className={styles.info}>
+                  <h4>{salon.name}</h4>
+                  <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email}) | Status: {salon.approvalStatus}</p>
+                  <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    {editingSalonId !== salon.id ? (
+                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span><strong>Package:</strong> {salon.planCode ?? '—'}</span>
+                        <span><strong>Visibility:</strong> {salon.visibilityWeight ?? '—'}</span>
+                        <span><strong>Max listings:</strong> {salon.maxListings ?? '—'}</span>
+                        <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString() : '—'}</span>
+                        <button
+                          className={styles.approveButton}
+                          onClick={() => {
+                            setEditingSalonId(salon.id);
+                            setDraftPlan((salon.planCode ?? 'STARTER').toUpperCase());
+                            setDraftWeight(String(salon.visibilityWeight ?? ''));
+                            setDraftMax(String(salon.maxListings ?? ''));
+                            setDraftFeatured(salon.featuredUntil ? new Date(salon.featuredUntil).toISOString().slice(0, 16) : '');
+                          }}
+                        >Edit</button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <label>Package</label>
+                        <select value={draftPlan} onChange={e => setDraftPlan(e.target.value)} style={{ padding: '0.35rem', border: '1px solid var(--color-border)', borderRadius: 8 }}>
+                          {APP_PLANS.map((plan) => (
+                            <option key={plan.code} value={plan.code}>
+                              {plan.name}
+                            </option>
+                          ))}
+                        </select>
+                        <label>Weight</label>
+                        <input value={draftWeight} onChange={e => setDraftWeight(e.target.value)} type="number" min={1} placeholder="visibility" style={{ width: 90, padding: '0.35rem', border: '1px solid var(--color-border)', borderRadius: 8 }} />
+                        <label>Max listings</label>
+                        <input value={draftMax} onChange={e => setDraftMax(e.target.value)} type="number" min={1} placeholder="max" style={{ width: 90, padding: '0.35rem', border: '1px solid var(--color-border)', borderRadius: 8 }} />
+                        <label>Featured until</label>
+                        <input value={draftFeatured} onChange={e => setDraftFeatured(e.target.value)} type="datetime-local" style={{ padding: '0.35rem', border: '1px solid var(--color-border)', borderRadius: 8 }} />
+                        <button
+                          className={styles.approveButton}
+                          onClick={async () => {
+                            // Start with explicit new plans, but also allow whatever is in APP_PLANS dynamic list
+                            const allowedPlans = APP_PLANS.map(p => p.code);
+                            const normalizedPlan = (draftPlan ?? '').toUpperCase();
+                            const visibilityWeight = Number(draftWeight);
+                            const maxListings = Number(draftMax);
+                            const featuredUntil = draftFeatured;
+                            const body: Record<string, unknown> = {};
+                            if (allowedPlans.includes(normalizedPlan as typeof allowedPlans[number])) {
+                              body.planCode = normalizedPlan;
+                            }
+                            if (!Number.isNaN(visibilityWeight) && draftWeight !== '') body.visibilityWeight = visibilityWeight;
+                            if (!Number.isNaN(maxListings) && draftMax !== '') body.maxListings = maxListings;
+                            // Always send featuredUntil to allow clearing on server (null when empty)
+                            body.featuredUntil = featuredUntil ? new Date(featuredUntil).toISOString() : null;
+                            const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+                            const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, credentials: 'include', body: JSON.stringify(body) });
+                            if (r.ok) {
+                              const updated = await r.json();
+                              toast.success('Visibility updated');
+                              // Trust server response to avoid client drift
+                              setAllSalons(prev => prev.map(s => s.id === salon.id ? {
+                                ...s,
+                                planCode: (updated?.planCode ?? body.planCode ?? s.planCode) as typeof s.planCode,
+                                visibilityWeight: updated?.visibilityWeight ?? (body.visibilityWeight as number | undefined) ?? s.visibilityWeight,
+                                maxListings: updated?.maxListings ?? (body.maxListings as number | undefined) ?? s.maxListings,
+                                featuredUntil: updated?.featuredUntil ?? (body.featuredUntil as string | null) ?? null,
+                              } : s));
+                              setEditingSalonId(null);
+                              // Re-fetch from server to ensure persistence and avoid stale UI
+                              try {
+                                const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
+                                if (allRes.ok) {
+                                  const fresh = ensureArray<PendingSalon>(await allRes.json());
+                                  setAllSalons(fresh);
+                                }
+                              } catch { }
+                            } else {
+                              const errText = await r.text().catch(() => '');
+                              toast.error(`Failed to update (${r.status}). ${errText}`);
+                            }
+                          }}
+                        >Save</button>
+                        <button className={styles.rejectButton} onClick={() => setEditingSalonId(null)}>Cancel</button>
+                      </div>
                     )}
                   </div>
                 </div>
                 <div className={styles.actions}>
                   <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
-                  <button onClick={() => handleUpdateStatus('salon', salon.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
-                  <button onClick={() => handleUpdateStatus('salon', salon.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
-                </div>
-              </div>
-            );
-          }) : <p>No pending salons.</p>}
-          </>
-        )}
-        
-        {view === 'all-salons' && (
-          <>
-          <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem', flexWrap:'wrap'}}>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by name/email/plan" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8, minWidth:260}} />
-            <button className={styles.approveButton} onClick={()=>{
-              const name = window.prompt('Save current search as view name:');
-              if (!name) return;
-              const next = [...savedViews, { name, query: search }];
-              setSavedViews(next);
-              try { localStorage.setItem('admin-saved-views', JSON.stringify(next)); } catch {}
-            }}>Save view</button>
-            {savedViews.length>0 && (
-              <select onChange={e=> setSearch(savedViews.find(v=>v.name===e.target.value)?.query ?? '')} defaultValue="">
-                <option value="" disabled>Load view…</option>
-                {savedViews.map(v=> <option key={v.name} value={v.name}>{v.name}</option>)}
-              </select>
-            )}
-          </div>
-          {filteredAllSalons.length > 0 ? filteredAllSalons.map(salon => (
-            <div key={salon.id} className={styles.listItem}>
-              <div className={styles.info}>
-                <h4>{salon.name}</h4>
-                <p>Owner: {salon.owner.firstName} {salon.owner.lastName} ({salon.owner.email}) | Status: {salon.approvalStatus}</p>
-                <div style={{display:'grid', gap: '0.5rem', marginTop: '0.5rem'}}>
-                  {editingSalonId !== salon.id ? (
-                    <div style={{display:'flex', gap:'1rem', alignItems:'center', flexWrap:'wrap'}}>
-                      <span><strong>Package:</strong> {salon.planCode ?? '—'}</span>
-                      <span><strong>Visibility:</strong> {salon.visibilityWeight ?? '—'}</span>
-                      <span><strong>Max listings:</strong> {salon.maxListings ?? '—'}</span>
-                      <span><strong>Featured until:</strong> {salon.featuredUntil ? new Date(salon.featuredUntil).toLocaleString() : '—'}</span>
-                      <button
-                        className={styles.approveButton}
-                        onClick={() => {
-                          setEditingSalonId(salon.id);
-                          setDraftPlan((salon.planCode ?? 'STARTER').toUpperCase());
-                          setDraftWeight(String(salon.visibilityWeight ?? ''));
-                          setDraftMax(String(salon.maxListings ?? ''));
-                          setDraftFeatured(salon.featuredUntil ? new Date(salon.featuredUntil).toISOString().slice(0,16) : '');
-                        }}
-                      >Edit</button>
-                    </div>
-                  ) : (
-                    <div style={{display:'flex', gap:'0.5rem', alignItems:'center', flexWrap:'wrap'}}>
-                      <label>Package</label>
-                      <select value={draftPlan} onChange={e=>setDraftPlan(e.target.value)} style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}}>
-                        <option value="FREE">Free</option>
-                        <option value="STARTER">Starter</option>
-                        <option value="ESSENTIAL">Essential</option>
-                        <option value="GROWTH">Growth</option>
-                        <option value="PRO">Pro</option>
-                        <option value="ELITE">Elite</option>
-                      </select>
-                      <label>Weight</label>
-                      <input value={draftWeight} onChange={e=>setDraftWeight(e.target.value)} type="number" min={1} placeholder="visibility" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                      <label>Max listings</label>
-                      <input value={draftMax} onChange={e=>setDraftMax(e.target.value)} type="number" min={1} placeholder="max" style={{width:90, padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                      <label>Featured until</label>
-                      <input value={draftFeatured} onChange={e=>setDraftFeatured(e.target.value)} type="datetime-local" style={{padding:'0.35rem', border:'1px solid var(--color-border)', borderRadius:8}} />
-                      <button
-                        className={styles.approveButton}
-                        onClick={async ()=>{
-                          const allowedPlans = ['FREE','STARTER','ESSENTIAL','GROWTH','PRO','ELITE'] as const;
-                          const normalizedPlan = (draftPlan ?? '').toUpperCase();
-                          const visibilityWeight = Number(draftWeight);
-                          const maxListings = Number(draftMax);
-                          const featuredUntil = draftFeatured;
-                          const body: Record<string, unknown> = {};
-                          if (allowedPlans.includes(normalizedPlan as typeof allowedPlans[number])) {
-                            body.planCode = normalizedPlan;
-                          }
-                          if (!Number.isNaN(visibilityWeight) && draftWeight !== '') body.visibilityWeight = visibilityWeight;
-                          if (!Number.isNaN(maxListings) && draftMax !== '') body.maxListings = maxListings;
-                          // Always send featuredUntil to allow clearing on server (null when empty)
-                          body.featuredUntil = featuredUntil ? new Date(featuredUntil).toISOString() : null;
-                          const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
-                          const r = await fetch(`/api/admin/salons/${salon.id}/plan`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders}, credentials:'include', body: JSON.stringify(body)});
-                          if (r.ok) {
-                            const updated = await r.json();
-                            toast.success('Visibility updated');
-                            // Trust server response to avoid client drift
-                            setAllSalons(prev => prev.map(s => s.id === salon.id ? {
-                              ...s,
-                              planCode: (updated?.planCode ?? body.planCode ?? s.planCode) as typeof s.planCode,
-                              visibilityWeight: updated?.visibilityWeight ?? (body.visibilityWeight as number | undefined) ?? s.visibilityWeight,
-                              maxListings: updated?.maxListings ?? (body.maxListings as number | undefined) ?? s.maxListings,
-                              featuredUntil: updated?.featuredUntil ?? (body.featuredUntil as string | null) ?? null,
-                            } : s));
-                            setEditingSalonId(null);
-                            // Re-fetch from server to ensure persistence and avoid stale UI
-                            try {
-                              const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
-                              if (allRes.ok) {
-                                const fresh = ensureArray<PendingSalon>(await allRes.json());
-                                setAllSalons(fresh);
-                              }
-                            } catch {}
-                          } else {
-                            const errText = await r.text().catch(()=> '');
-                            toast.error(`Failed to update (${r.status}). ${errText}`);
-                          }
-                        }}
-                      >Save</button>
-                      <button className={styles.rejectButton} onClick={()=> setEditingSalonId(null)}>Cancel</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className={styles.actions}>
-                <Link href={`/dashboard?ownerId=${salon.owner.id}`} className="btn btn-secondary">View Dashboard</Link>
-                <button
-                  className={salon.isVerified ? styles.approveButton : styles.rejectButton}
-                  onClick={async () => {
-                    const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
-                    try {
-                      const r = await fetch(`/api/admin/salons/${salon.id}/verification`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', ...authHeaders },
-                        credentials: 'include',
-                      });
-                      if (r.ok) {
-                        const updated = await r.json();
-                        toast.success(`Salon ${updated.isVerified ? 'verified' : 'unverified'}`);
-                        setAllSalons(prev => prev.map(s => s.id === salon.id ? { ...s, isVerified: updated.isVerified } : s));
-                        // Re-fetch to ensure consistency
-                        try {
-                          const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
-                          if (allRes.ok) {
-                            const fresh = ensureArray<PendingSalon>(await allRes.json());
-                            setAllSalons(fresh);
-                          }
-                        } catch {}
-                      } else {
-                        const errText = await r.text().catch(() => '');
-                        toast.error(`Failed to update verification (${r.status}). ${errText}`);
+                  <button
+                    className={salon.isVerified ? styles.approveButton : styles.rejectButton}
+                    onClick={async () => {
+                      const authHeaders: Record<string, string> = session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+                      try {
+                        const r = await fetch(`/api/admin/salons/${salon.id}/verification`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json', ...authHeaders },
+                          credentials: 'include',
+                        });
+                        if (r.ok) {
+                          const updated = await r.json();
+                          toast.success(`Salon ${updated.isVerified ? 'verified' : 'unverified'}`);
+                          setAllSalons(prev => prev.map(s => s.id === salon.id ? { ...s, isVerified: updated.isVerified } : s));
+                          // Re-fetch to ensure consistency
+                          try {
+                            const allRes = await fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders });
+                            if (allRes.ok) {
+                              const fresh = ensureArray<PendingSalon>(await allRes.json());
+                              setAllSalons(fresh);
+                            }
+                          } catch { }
+                        } else {
+                          const errText = await r.text().catch(() => '');
+                          toast.error(`Failed to update verification (${r.status}). ${errText}`);
+                        }
+                      } catch (error) {
+                        toast.error('Error updating verification');
                       }
-                    } catch (error) {
-                      toast.error('Error updating verification');
-                    }
-                  }}
-                  title={salon.isVerified ? 'Remove verification' : 'Verify service provider'}
-                >
-                  {salon.isVerified ? '✓ Verified' : 'Verify'}
-                </button>
+                    }}
+                    title={salon.isVerified ? 'Remove verification' : 'Verify service provider'}
+                  >
+                    {salon.isVerified ? '✓ Verified' : 'Verify'}
+                  </button>
                   <button
                     className={styles.rejectButton}
                     onClick={() => openDeleteSalonModal(salon)}
                     title="Delete provider profile"
                   >Delete Profile</button>
+                </div>
               </div>
-            </div>
-          )) : <p>No salons found.</p>}
+            )) : <p>No salons found.</p>}
           </>
         )}
 
@@ -1230,7 +1230,7 @@ export default function AdminPage() {
         )}
 
         {view === 'deleted-salons' && (
-          deletedSalons.length > 0 ? deletedSalons.map((row:any) => (
+          deletedSalons.length > 0 ? deletedSalons.map((row: any) => (
             <div key={row.id} className={styles.listItem}>
               <div className={styles.info}>
                 <h4>{row.salon?.name ?? 'Unknown name'}</h4>
@@ -1321,7 +1321,7 @@ export default function AdminPage() {
                 </div>
                 <div className={styles.actions}>
                   <button
-                      onClick={() => openDeleteSellerModal(seller.id, `${seller.firstName} ${seller.lastName}`.trim() || seller.email)}
+                    onClick={() => openDeleteSellerModal(seller.id, `${seller.firstName} ${seller.lastName}`.trim() || seller.email)}
                     className={styles.rejectButton}
                     title="Delete seller"
                   >
@@ -1335,226 +1335,226 @@ export default function AdminPage() {
 
         {view === 'services' && (
           <>
-          {pendingServices.length>0 && (
-            <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem'}}>
-              <input type="checkbox" checked={selServices.size===pendingServices.length} onChange={e=> setSelServices(e.target.checked? new Set(pendingServices.map(s=>s.id)) : new Set())} />
-              <span>Select all</span>
-              <button className={styles.approveButton} disabled={selServices.size===0} onClick={()=> bulkUpdate('service', Array.from(selServices), 'APPROVED')}>Approve selected</button>
-              <button className={styles.rejectButton} disabled={selServices.size===0} onClick={()=> bulkUpdate('service', Array.from(selServices), 'REJECTED')}>Reject selected</button>
-            </div>
-          )}
-          {pendingServices.length > 0 ? pendingServices.map(service => (
-            <div key={service.id} className={styles.listItem}>
-              <div className={styles.info}>
-                <input type="checkbox" checked={selServices.has(service.id)} onChange={e=> { const ns = new Set(selServices); if(e.target.checked) ns.add(service.id); else ns.delete(service.id); setSelServices(ns); }} />
-                <h4>{service.title}</h4>
-                <p>Salon: {service.salon.name}</p>
+            {pendingServices.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <input type="checkbox" checked={selServices.size === pendingServices.length} onChange={e => setSelServices(e.target.checked ? new Set(pendingServices.map(s => s.id)) : new Set())} />
+                <span>Select all</span>
+                <button className={styles.approveButton} disabled={selServices.size === 0} onClick={() => bulkUpdate('service', Array.from(selServices), 'APPROVED')}>Approve selected</button>
+                <button className={styles.rejectButton} disabled={selServices.size === 0} onClick={() => bulkUpdate('service', Array.from(selServices), 'REJECTED')}>Reject selected</button>
               </div>
-              <div className={styles.actions}>
-                <button onClick={() => handleUpdateStatus('service', service.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
-                <button onClick={() => handleUpdateStatus('service', service.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
+            )}
+            {pendingServices.length > 0 ? pendingServices.map(service => (
+              <div key={service.id} className={styles.listItem}>
+                <div className={styles.info}>
+                  <input type="checkbox" checked={selServices.has(service.id)} onChange={e => { const ns = new Set(selServices); if (e.target.checked) ns.add(service.id); else ns.delete(service.id); setSelServices(ns); }} />
+                  <h4>{service.title}</h4>
+                  <p>Salon: {service.salon.name}</p>
+                </div>
+                <div className={styles.actions}>
+                  <button onClick={() => handleUpdateStatus('service', service.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
+                  <button onClick={() => handleUpdateStatus('service', service.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
+                </div>
               </div>
-            </div>
-          )) : <p>No pending services.</p>}
+            )) : <p>No pending services.</p>}
           </>
         )}
 
         {view === 'reviews' && (
           <>
-          {pendingReviews.length>0 && (
-            <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem'}}>
-              <input type="checkbox" checked={selReviews.size===pendingReviews.length} onChange={e=> setSelReviews(e.target.checked? new Set(pendingReviews.map(s=>s.id)) : new Set())} />
-              <span>Select all</span>
-              <button className={styles.approveButton} disabled={selReviews.size===0} onClick={()=> bulkUpdate('review', Array.from(selReviews), 'APPROVED')}>Approve selected</button>
-              <button className={styles.rejectButton} disabled={selReviews.size===0} onClick={()=> bulkUpdate('review', Array.from(selReviews), 'REJECTED')}>Reject selected</button>
-            </div>
-          )}
-          {pendingReviews.length > 0 ? pendingReviews.map(review => (
-            <div key={review.id} className={styles.listItem}>
-              <div className={styles.info}>
-                <input type="checkbox" checked={selReviews.has(review.id)} onChange={e=> { const ns = new Set(selReviews); if(e.target.checked) ns.add(review.id); else ns.delete(review.id); setSelReviews(ns); }} />
-                <h4>"{review.comment}" ({review.rating} ★)</h4>
-                <p>By: {review.author.firstName} | For Salon: {review.salon.name}</p>
+            {pendingReviews.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <input type="checkbox" checked={selReviews.size === pendingReviews.length} onChange={e => setSelReviews(e.target.checked ? new Set(pendingReviews.map(s => s.id)) : new Set())} />
+                <span>Select all</span>
+                <button className={styles.approveButton} disabled={selReviews.size === 0} onClick={() => bulkUpdate('review', Array.from(selReviews), 'APPROVED')}>Approve selected</button>
+                <button className={styles.rejectButton} disabled={selReviews.size === 0} onClick={() => bulkUpdate('review', Array.from(selReviews), 'REJECTED')}>Reject selected</button>
               </div>
-              <div className={styles.actions}>
-                <button onClick={() => handleUpdateStatus('review', review.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
-                <button onClick={() => handleUpdateStatus('review', review.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
-              </div>
-            </div>
-          )) : <p>No pending reviews.</p>}
-          </>
-        )}
-        
-        {view === 'products' && (
-          <>
-          {pendingProducts.length>0 && (
-            <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem'}}>
-              <input type="checkbox" checked={selProducts.size===pendingProducts.length} onChange={e=> setSelProducts(e.target.checked? new Set(pendingProducts.map(s=>s.id)) : new Set())} />
-              <span>Select all</span>
-              <button className={styles.approveButton} disabled={selProducts.size===0} onClick={()=> bulkUpdate('product', Array.from(selProducts), 'APPROVED')}>Approve selected</button>
-              <button className={styles.rejectButton} disabled={selProducts.size===0} onClick={()=> bulkUpdate('product', Array.from(selProducts), 'REJECTED')}>Reject selected</button>
-            </div>
-          )}
-          {pendingProducts.length > 0 ? pendingProducts.map((product) => {
-            const sellerPlanCode = (product.seller.sellerPlanCode ?? 'STARTER') as PlanCode;
-            const plan = PLAN_BY_CODE[sellerPlanCode] ?? APP_PLANS[0];
-            const planAmount =
-              typeof product.seller.sellerPlanPriceCents === 'number'
-                ? formatRand(product.seller.sellerPlanPriceCents)
-                : plan.price;
-            const sellerStatus = (product.seller.sellerPlanPaymentStatus ??
-              'PENDING_SELECTION') as PlanPaymentStatus;
-            const proofSubmittedAt = product.seller.sellerPlanProofSubmittedAt
-              ? new Date(product.seller.sellerPlanProofSubmittedAt).toLocaleString('en-ZA')
-              : null;
-            const sellerVerifiedAt = product.seller.sellerPlanVerifiedAt
-              ? new Date(product.seller.sellerPlanVerifiedAt).toLocaleString('en-ZA')
-              : null;
-            const isSellerUpdating = updatingSellerPlanId === product.seller.id;
-            const sellerReference =
-              product.seller.sellerPlanPaymentReference ??
-              `${product.seller.firstName} ${product.seller.lastName}`.trim();
-            return (
-              <div key={product.id} className={styles.listItem}>
+            )}
+            {pendingReviews.length > 0 ? pendingReviews.map(review => (
+              <div key={review.id} className={styles.listItem}>
                 <div className={styles.info}>
-                  <input
-                    type="checkbox"
-                    checked={selProducts.has(product.id)}
-                    onChange={(e) => {
-                      const ns = new Set(selProducts);
-                      if (e.target.checked) ns.add(product.id);
-                      else ns.delete(product.id);
-                      setSelProducts(ns);
-                    }}
-                  />
-                  <h4>{product.name}</h4>
-                  <p>Seller: {product.seller.firstName} {product.seller.lastName}</p>
-                  <div className={styles.planInfo}>
-                    <div className={styles.planInfoRow}>
-                      <span><strong>Package:</strong> {plan.name}</span>
-                      <span><strong>Amount due:</strong> {planAmount}</span>
-                      <span>
-                        <strong>Status:</strong>{' '}
-                        <span className={`${styles.planBadge} ${styles[`planStatus_${sellerStatus.toLowerCase()}`]}`}>
-                          {PLAN_PAYMENT_LABELS[sellerStatus]}
-                        </span>
-                      </span>
-                    </div>
-                    <div className={styles.planInfoRow}>
-                      <span>
-                        <strong>Reference:</strong>{' '}
-                        <code className={styles.planReference}>{sellerReference}</code>
-                        <button
-                          type="button"
-                          className={styles.copyButton}
-                          onClick={() => copyToClipboard(sellerReference, 'Reference copied')}
-                        >
-                          Copy
-                        </button>
-                      </span>
-                      {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
-                      {sellerVerifiedAt && <span>Verified on: {sellerVerifiedAt}</span>}
-                    </div>
-                    <div className={styles.planAdminActions}>
-                      <button
-                        type="button"
-                        className={styles.approveButton}
-                        onClick={() => updateSellerPaymentStatus(product.seller.id, 'VERIFIED')}
-                        disabled={isSellerUpdating || sellerStatus === 'VERIFIED'}
-                      >
-                        {isSellerUpdating && sellerStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.approveButton}
-                        onClick={() => updateSellerPaymentStatus(product.seller.id, 'PROOF_SUBMITTED')}
-                        disabled={isSellerUpdating || sellerStatus === 'PROOF_SUBMITTED'}
-                      >
-                        {isSellerUpdating && sellerStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.rejectButton}
-                        onClick={() => updateSellerPaymentStatus(product.seller.id, 'AWAITING_PROOF')}
-                        disabled={isSellerUpdating || sellerStatus === 'AWAITING_PROOF'}
-                      >
-                        {isSellerUpdating && sellerStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
-                      </button>
-                    </div>
-                  </div>
+                  <input type="checkbox" checked={selReviews.has(review.id)} onChange={e => { const ns = new Set(selReviews); if (e.target.checked) ns.add(review.id); else ns.delete(review.id); setSelReviews(ns); }} />
+                  <h4>"{review.comment}" ({review.rating} ★)</h4>
+                  <p>By: {review.author.firstName} | For Salon: {review.salon.name}</p>
                 </div>
                 <div className={styles.actions}>
-                  <button onClick={() => handleUpdateStatus('product', product.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
-                  <button onClick={() => handleUpdateStatus('product', product.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
-                  <button onClick={() => openDeleteSellerModal(product.seller.id, `${product.seller.firstName} ${product.seller.lastName}`.trim() || product.seller.id)} className={styles.rejectButton} title="Delete seller">Delete Seller</button>
+                  <button onClick={() => handleUpdateStatus('review', review.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
+                  <button onClick={() => handleUpdateStatus('review', review.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
                 </div>
               </div>
-            );
-          }) : <p>No pending products.</p>}
+            )) : <p>No pending reviews.</p>}
+          </>
+        )}
+
+        {view === 'products' && (
+          <>
+            {pendingProducts.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <input type="checkbox" checked={selProducts.size === pendingProducts.length} onChange={e => setSelProducts(e.target.checked ? new Set(pendingProducts.map(s => s.id)) : new Set())} />
+                <span>Select all</span>
+                <button className={styles.approveButton} disabled={selProducts.size === 0} onClick={() => bulkUpdate('product', Array.from(selProducts), 'APPROVED')}>Approve selected</button>
+                <button className={styles.rejectButton} disabled={selProducts.size === 0} onClick={() => bulkUpdate('product', Array.from(selProducts), 'REJECTED')}>Reject selected</button>
+              </div>
+            )}
+            {pendingProducts.length > 0 ? pendingProducts.map((product) => {
+              const sellerPlanCode = (product.seller.sellerPlanCode ?? 'STARTER') as PlanCode;
+              const plan = PLAN_BY_CODE[sellerPlanCode] ?? APP_PLANS[0];
+              const planAmount =
+                typeof product.seller.sellerPlanPriceCents === 'number'
+                  ? formatRand(product.seller.sellerPlanPriceCents)
+                  : plan.price;
+              const sellerStatus = (product.seller.sellerPlanPaymentStatus ??
+                'PENDING_SELECTION') as PlanPaymentStatus;
+              const proofSubmittedAt = product.seller.sellerPlanProofSubmittedAt
+                ? new Date(product.seller.sellerPlanProofSubmittedAt).toLocaleString('en-ZA')
+                : null;
+              const sellerVerifiedAt = product.seller.sellerPlanVerifiedAt
+                ? new Date(product.seller.sellerPlanVerifiedAt).toLocaleString('en-ZA')
+                : null;
+              const isSellerUpdating = updatingSellerPlanId === product.seller.id;
+              const sellerReference =
+                product.seller.sellerPlanPaymentReference ??
+                `${product.seller.firstName} ${product.seller.lastName}`.trim();
+              return (
+                <div key={product.id} className={styles.listItem}>
+                  <div className={styles.info}>
+                    <input
+                      type="checkbox"
+                      checked={selProducts.has(product.id)}
+                      onChange={(e) => {
+                        const ns = new Set(selProducts);
+                        if (e.target.checked) ns.add(product.id);
+                        else ns.delete(product.id);
+                        setSelProducts(ns);
+                      }}
+                    />
+                    <h4>{product.name}</h4>
+                    <p>Seller: {product.seller.firstName} {product.seller.lastName}</p>
+                    <div className={styles.planInfo}>
+                      <div className={styles.planInfoRow}>
+                        <span><strong>Package:</strong> {plan.name}</span>
+                        <span><strong>Amount due:</strong> {planAmount}</span>
+                        <span>
+                          <strong>Status:</strong>{' '}
+                          <span className={`${styles.planBadge} ${styles[`planStatus_${sellerStatus.toLowerCase()}`]}`}>
+                            {PLAN_PAYMENT_LABELS[sellerStatus]}
+                          </span>
+                        </span>
+                      </div>
+                      <div className={styles.planInfoRow}>
+                        <span>
+                          <strong>Reference:</strong>{' '}
+                          <code className={styles.planReference}>{sellerReference}</code>
+                          <button
+                            type="button"
+                            className={styles.copyButton}
+                            onClick={() => copyToClipboard(sellerReference, 'Reference copied')}
+                          >
+                            Copy
+                          </button>
+                        </span>
+                        {proofSubmittedAt && <span>Proof submitted: {proofSubmittedAt}</span>}
+                        {sellerVerifiedAt && <span>Verified on: {sellerVerifiedAt}</span>}
+                      </div>
+                      <div className={styles.planAdminActions}>
+                        <button
+                          type="button"
+                          className={styles.approveButton}
+                          onClick={() => updateSellerPaymentStatus(product.seller.id, 'VERIFIED')}
+                          disabled={isSellerUpdating || sellerStatus === 'VERIFIED'}
+                        >
+                          {isSellerUpdating && sellerStatus !== 'VERIFIED' ? 'Saving…' : 'Mark verified'}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.approveButton}
+                          onClick={() => updateSellerPaymentStatus(product.seller.id, 'PROOF_SUBMITTED')}
+                          disabled={isSellerUpdating || sellerStatus === 'PROOF_SUBMITTED'}
+                        >
+                          {isSellerUpdating && sellerStatus === 'PROOF_SUBMITTED' ? 'Saving…' : 'Proof received'}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.rejectButton}
+                          onClick={() => updateSellerPaymentStatus(product.seller.id, 'AWAITING_PROOF')}
+                          disabled={isSellerUpdating || sellerStatus === 'AWAITING_PROOF'}
+                        >
+                          {isSellerUpdating && sellerStatus === 'AWAITING_PROOF' ? 'Saving…' : 'Awaiting proof'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.actions}>
+                    <button onClick={() => handleUpdateStatus('product', product.id, 'APPROVED')} className={styles.approveButton}>Approve</button>
+                    <button onClick={() => handleUpdateStatus('product', product.id, 'REJECTED')} className={styles.rejectButton}>Reject</button>
+                    <button onClick={() => openDeleteSellerModal(product.seller.id, `${product.seller.firstName} ${product.seller.lastName}`.trim() || product.seller.id)} className={styles.rejectButton} title="Delete seller">Delete Seller</button>
+                  </div>
+                </div>
+              );
+            }) : <p>No pending products.</p>}
           </>
         )}
 
         {view === 'promotions' && (
           <>
-          {pendingPromotions.length > 0 ? pendingPromotions.map((promo) => {
-            const isService = Boolean(promo.service);
-            const item = isService ? promo.service : promo.product;
-            const itemName = isService ? item?.title : item?.name;
-            const providerName = isService
-              ? promo.service?.salon?.name
-              : `${promo.product?.seller?.firstName || ''} ${promo.product?.seller?.lastName || ''}`.trim();
-            const endDate = new Date(promo.endDate);
-            const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+            {pendingPromotions.length > 0 ? pendingPromotions.map((promo) => {
+              const isService = Boolean(promo.service);
+              const item = isService ? promo.service : promo.product;
+              const itemName = isService ? item?.title : item?.name;
+              const providerName = isService
+                ? promo.service?.salon?.name
+                : `${promo.product?.seller?.firstName || ''} ${promo.product?.seller?.lastName || ''}`.trim();
+              const endDate = new Date(promo.endDate);
+              const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
-            return (
-              <div key={promo.id} className={styles.listItem}>
-                <div className={styles.info}>
-                  <h4>{itemName}</h4>
-                  <p>
-                    <strong>Provider:</strong> {providerName || 'Unknown'} | <strong>Type:</strong> {isService ? 'Service' : 'Product'}
-                  </p>
-                  <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                    <span>
-                      <strong>Original:</strong>{' '}
-                      <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>
-                        R{promo.originalPrice.toFixed(2)}
+              return (
+                <div key={promo.id} className={styles.listItem}>
+                  <div className={styles.info}>
+                    <h4>{itemName}</h4>
+                    <p>
+                      <strong>Provider:</strong> {providerName || 'Unknown'} | <strong>Type:</strong> {isService ? 'Service' : 'Product'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                      <span>
+                        <strong>Original:</strong>{' '}
+                        <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>
+                          R{promo.originalPrice.toFixed(2)}
+                        </span>
                       </span>
-                    </span>
-                    <span>
-                      <strong>Promotional:</strong>{' '}
-                      <span style={{ color: '#10b981', fontWeight: 600 }}>
-                        R{promo.promotionalPrice.toFixed(2)}
+                      <span>
+                        <strong>Promotional:</strong>{' '}
+                        <span style={{ color: '#10b981', fontWeight: 600 }}>
+                          R{promo.promotionalPrice.toFixed(2)}
+                        </span>
                       </span>
-                    </span>
-                    <span>
-                      <strong>Discount:</strong>{' '}
-                      <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-                        {promo.discountPercentage}% OFF
+                      <span>
+                        <strong>Discount:</strong>{' '}
+                        <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                          {promo.discountPercentage}% OFF
+                        </span>
                       </span>
-                    </span>
+                    </div>
+                    <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                      <strong>Duration:</strong> {new Date(promo.startDate).toLocaleDateString()} → {new Date(promo.endDate).toLocaleDateString()}
+                      {' '}({daysLeft > 0 ? `${daysLeft} days` : 'Expired'})
+                    </p>
                   </div>
-                  <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                    <strong>Duration:</strong> {new Date(promo.startDate).toLocaleDateString()} → {new Date(promo.endDate).toLocaleDateString()}
-                    {' '}({daysLeft > 0 ? `${daysLeft} days` : 'Expired'})
-                  </p>
+                  <div className={styles.actions}>
+                    <button
+                      onClick={() => handleApprovePromotion(promo.id)}
+                      className={styles.approveButton}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleRejectPromotion(promo.id)}
+                      className={styles.rejectButton}
+                    >
+                      Reject
+                    </button>
+                  </div>
                 </div>
-                <div className={styles.actions}>
-                  <button
-                    onClick={() => handleApprovePromotion(promo.id)}
-                    className={styles.approveButton}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleRejectPromotion(promo.id)}
-                    className={styles.rejectButton}
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            );
-          }) : <p>No pending promotions.</p>}
+              );
+            }) : <p>No pending promotions.</p>}
           </>
         )}
 
@@ -1625,7 +1625,7 @@ export default function AdminPage() {
         )}
 
         {view === 'deleted-sellers' && (
-          deletedSellers.length > 0 ? deletedSellers.map((row:any) => (
+          deletedSellers.length > 0 ? deletedSellers.map((row: any) => (
             <div key={row.id} className={styles.listItem}>
               <div className={styles.info}>
                 <h4>{row.seller?.firstName ? `${row.seller.firstName} ${row.seller.lastName ?? ''}`.trim() : 'Unknown seller'}</h4>
@@ -1639,7 +1639,7 @@ export default function AdminPage() {
         )}
 
         {view === 'audit' && (
-          auditLogs.length > 0 ? auditLogs.map((log:any)=> (
+          auditLogs.length > 0 ? auditLogs.map((log: any) => (
             <div key={log.id} className={styles.listItem}>
               <div className={styles.info}>
                 <h4>{log.action}</h4>
@@ -1654,16 +1654,16 @@ export default function AdminPage() {
         )}
       </div>
       {showDeleteModal && deleteMode === 'salon' && deletingSalon && (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'grid', placeItems:'center', zIndex:1000}}>
-          <div style={{background:'#fff', color:'#000', padding:'1rem', borderRadius:8, maxWidth:560, width:'96%', boxShadow:'0 10px 30px rgba(0,0,0,0.25)'}}>
-            <h3 style={{marginTop:0}}>Delete Provider Profile</h3>
-            <p style={{color:'#a00', fontWeight:600}}>Caution: This will remove the provider profile and all their listings from the platform. You can later restore it from Deleted Profiles.</p>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', color: '#000', padding: '1rem', borderRadius: 8, maxWidth: 560, width: '96%', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ marginTop: 0 }}>Delete Provider Profile</h3>
+            <p style={{ color: '#a00', fontWeight: 600 }}>Caution: This will remove the provider profile and all their listings from the platform. You can later restore it from Deleted Profiles.</p>
             <p><strong>Provider:</strong> {deletingSalon.name}</p>
-            <label style={{display:'block', margin:'0.5rem 0'}}>Reason (required)</label>
-            <textarea value={deleteReason} onChange={e=>setDeleteReason(e.target.value)} rows={4} style={{width:'100%', padding:'0.5rem', border:'1px solid var(--color-border)', borderRadius:6}} placeholder="Enter reason for deletion" />
-            <div style={{display:'flex', gap:'0.5rem', justifyContent:'flex-end', marginTop:'0.75rem'}}>
+            <label style={{ display: 'block', margin: '0.5rem 0' }}>Reason (required)</label>
+            <textarea value={deleteReason} onChange={e => setDeleteReason(e.target.value)} rows={4} style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 6 }} placeholder="Enter reason for deletion" />
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
               <button className={styles.approveButton} onClick={confirmDeleteSalon} disabled={isDeleting}>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</button>
-              <button className={styles.rejectButton} onClick={()=>{setShowDeleteModal(false); setDeletingSalon(null);}}>Cancel</button>
+              <button className={styles.rejectButton} onClick={() => { setShowDeleteModal(false); setDeletingSalon(null); }}>Cancel</button>
             </div>
           </div>
         </div>

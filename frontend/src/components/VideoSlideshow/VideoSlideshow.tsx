@@ -17,7 +17,6 @@ import 'swiper/css/navigation';
 interface ServiceVideo {
   id: string;
   videoUrl: string;
-  vimeoId: string;
   thumbnailUrl?: string;
   duration: number;
   caption?: string;
@@ -94,7 +93,56 @@ export default function VideoSlideshow() {
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Service Video Highlights</h2>
+      <div className={styles.header}>
+        <h2 className={styles.sectionTitle}>Service Video Highlights</h2>
+        <Link href="/videos" className={styles.viewAll}>View All</Link>
+      </div>
+
+      {/* Instagram Stories-style layout for mobile */}
+      <div className={styles.storiesContainer}>
+        <div className={styles.storiesRow}>
+          {videos.map((video) => (
+            <div
+              key={video.id}
+              className={styles.storyItem}
+              onClick={() => handleVideoClick(video)}
+            >
+              <div className={styles.storyCircle}>
+                <div className={styles.storyCircleInner}>
+                  {video.thumbnailUrl ? (
+                    <OptimizedImage
+                      src={video.thumbnailUrl}
+                      alt={video.salon.name}
+                      width={72}
+                      height={72}
+                      className={styles.storyThumbnail}
+                    />
+                  ) : (
+                    <div className={styles.storyThumbnail} style={{ background: 'linear-gradient(135deg, #F51957 0%, #d4144c 100%)' }} />
+                  )}
+                  <div className={styles.storyPlayIcon}>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.storyInfo}>
+                <p className={styles.storyName}>{video.salon.name}</p>
+                <p className={styles.storyLocation}>{video.salon.city}</p>
+                <p className={styles.storyViews}>
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                  </svg>
+                  {video.views.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Card layout for desktop */}
       <div className={styles.container}>
         <Swiper
           modules={isMobile ? [] : [Navigation]}
@@ -113,49 +161,52 @@ export default function VideoSlideshow() {
           }}
           spaceBetween={16}
           slidesPerView={'auto'}
-          style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
+          style={{
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            minHeight: isMobile ? '260px' : '280px',
+          }}
           onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
+          allowTouchMove={true}
+          simulateTouch={true}
+          touchRatio={1}
+          threshold={10}
+          longSwipesRatio={0.5}
           breakpoints={{
             320: {
               slidesPerView: 1.15,
             },
             769: {
-              slidesPerView: 5.1,
+              slidesPerView: 4.1,
             },
           }}
         >
           {videos.map((video) => {
-            const embedUrl = video.videoUrl.includes('player.vimeo.com')
-              ? video.videoUrl
-              : `https://player.vimeo.com/video/${video.vimeoId}`;
-
             return (
-              <SwiperSlide key={video.id}>
+              <SwiperSlide
+                key={video.id}
+                style={{
+                  width: isMobile ? 'calc(100% / 1.15)' : 'calc((100% - 48px) / 4.1)',
+                  minHeight: isMobile ? '260px' : '280px',
+                  flexShrink: 0,
+                }}
+              >
                 <div className={styles.card}>
                   <div className={styles.videoWrapper} onClick={() => handleVideoClick(video)}>
                     <div className={styles.videoBadge}>
                       <span className={styles.badgeLabel}>Video</span>
                     </div>
-                    {video.thumbnailUrl ? (
-                      <OptimizedImage
-                        src={video.thumbnailUrl}
-                        alt={video.caption || `Video by ${video.salon.name}`}
-                        className={styles.videoThumbnail}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 20vw, 200px"
-                        seoContext={{
-                          salonName: video.salon.name,
-                          city: video.salon.city,
-                          serviceName: video.service?.title
-                        }}
+                    {/* Always use video tag as we migrated to Cloudinary */}
+                    <div className={styles.videoElementWrapper}>
+                      <video
+                        src={video.videoUrl}
+                        className={styles.videoPlayer}
+                        controls
+                        playsInline
+                        poster={video.thumbnailUrl}
                       />
-                    ) : (
-                      <div className={styles.videoPlaceholder}>
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="white" opacity="0.9">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
-                    )}
+                    </div>
                     <div className={styles.playOverlay}>
                       <svg width="64" height="64" viewBox="0 0 24 24" fill="white">
                         <circle cx="12" cy="12" r="10" fill="rgba(245, 25, 87, 0.9)" />
@@ -174,6 +225,12 @@ export default function VideoSlideshow() {
                     {video.service && (
                       <p className={styles.cardMeta}>{video.service.title}</p>
                     )}
+                    <p className={styles.viewCount}>
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                      </svg>
+                      {video.views.toLocaleString()} views
+                    </p>
                   </div>
                 </div>
               </SwiperSlide>
@@ -220,7 +277,6 @@ export default function VideoSlideshow() {
       {selectedVideo && (
         <VideoLightbox
           videoUrl={selectedVideo.videoUrl}
-          vimeoId={selectedVideo.vimeoId}
           isOpen={isLightboxOpen}
           onClose={handleCloseLightbox}
           salonName={selectedVideo.salon.name}

@@ -67,8 +67,10 @@ export class CloudinaryService {
         {
           folder: 'salon-videos',
           resource_type: 'video',
+          // Remove auto format - ensure MP4 for browser compatibility
+          format: 'mp4',
           transformation: [
-            { quality: 'auto', fetch_format: 'auto' }
+            { quality: 'auto:good' }
           ]
         },
         (error, result) => {
@@ -95,6 +97,15 @@ export class CloudinaryService {
         }
       );
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
+  }
+
+  async deleteVideo(publicId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, { resource_type: 'video' }, (error, result) => {
+        if (error) return reject(error);
+        resolve();
+      });
     });
   }
 }

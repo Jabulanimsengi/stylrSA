@@ -49,6 +49,7 @@ async function getInitialData() {
       services: [] as ServiceWithSalon[],
       trends: {} as Record<TrendCategory, Trend[]>,
       featuredSalons: [] as any[],
+      beforeAfterPhotos: [] as any[],
       hasMore: false,
       totalPages: 1,
     };
@@ -56,7 +57,7 @@ async function getInitialData() {
 
   try {
     // Fetch all data in parallel for faster loading
-    const [servicesRes, trendsRes, featuredSalonsRes] = await Promise.all([
+    const [servicesRes, trendsRes, featuredSalonsRes, beforeAfterRes] = await Promise.all([
       // Fetch initial services - 1 hour revalidation
       fetch(`${apiUrl}/api/services/approved?page=1&pageSize=24`, {
         next: { revalidate: 3600 },
@@ -67,6 +68,10 @@ async function getInitialData() {
       }),
       // Fetch featured salons - 1 hour revalidation
       fetch(`${apiUrl}/api/salons/featured`, {
+        next: { revalidate: 3600 },
+      }),
+      // Fetch before/after photos - 1 hour revalidation
+      fetch(`${apiUrl}/api/before-after/approved?limit=20`, {
         next: { revalidate: 3600 },
       }),
     ]);
@@ -83,6 +88,10 @@ async function getInitialData() {
       ? await featuredSalonsRes.json()
       : [];
 
+    const beforeAfterData = beforeAfterRes.ok
+      ? await beforeAfterRes.json()
+      : [];
+
     // Sort trends by view count
     const sortedTrends: Record<TrendCategory, Trend[]> = {} as Record<TrendCategory, Trend[]>;
     Object.keys(trendsData).forEach((category) => {
@@ -95,6 +104,7 @@ async function getInitialData() {
       services: servicesData.services as ServiceWithSalon[],
       trends: sortedTrends,
       featuredSalons: Array.isArray(featuredSalonsData) ? featuredSalonsData : [],
+      beforeAfterPhotos: Array.isArray(beforeAfterData) ? beforeAfterData : [],
       hasMore: servicesData.currentPage < servicesData.totalPages,
       totalPages: servicesData.totalPages,
     };
@@ -104,6 +114,7 @@ async function getInitialData() {
       services: [] as ServiceWithSalon[],
       trends: {} as Record<TrendCategory, Trend[]>,
       featuredSalons: [] as any[],
+      beforeAfterPhotos: [] as any[],
       hasMore: false,
       totalPages: 1,
     };
@@ -221,6 +232,7 @@ export default async function HomePage() {
         initialServices={initialData.services}
         initialTrends={initialData.trends}
         initialFeaturedSalons={initialData.featuredSalons}
+        initialBeforeAfter={initialData.beforeAfterPhotos}
         initialHasMore={initialData.hasMore}
         initialTotalPages={initialData.totalPages}
       />

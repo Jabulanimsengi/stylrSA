@@ -4,16 +4,32 @@
   background: var(--color-surface);
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+  padding: 0 clamp(0.75rem, 3vw, 1.5rem);
+}
+
 .sectionTitle {
   font-size: clamp(0.95rem, 2vw, 1.4rem);
   font-weight: 600;
-  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+  margin: 0;
   color: var(--color-text-strong);
-  text-align: center;
-  padding: 0 1rem;
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
+  text-align: left;
+}
+
+.viewAll {
+  color: var(--muted-teal);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+
+.viewAll:hover {
+  color: var(--primary-pink);
 }
 
 /* Container with navigation */
@@ -33,7 +49,8 @@
   height: 44px;
   border-radius: 50%;
   border: none;
-  display: none; /* Hidden by default (mobile) */
+  display: none;
+  /* Hidden by default (mobile) */
   align-items: center;
   justify-content: center;
   background: var(--color-primary, #f51957);
@@ -72,6 +89,7 @@
 
 /* Explicitly hide navigation on mobile */
 @media (max-width: 768px) {
+
   .prevButton,
   .nextButton {
     display: none !important;
@@ -80,6 +98,7 @@
 
 /* Show navigation on desktop only */
 @media (min-width: 769px) {
+
   .prevButton,
   .nextButton {
     display: flex !important;
@@ -97,7 +116,7 @@
   border: 1px solid var(--color-border, #cdbfb3);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 240px;
+  height: 280px;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -107,7 +126,7 @@
 .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(245, 25, 87, 0.1),
-              0 4px 8px rgba(0, 0, 0, 0.06);
+    0 4px 8px rgba(0, 0, 0, 0.06);
   border-color: rgba(245, 25, 87, 0.2);
 }
 
@@ -208,6 +227,22 @@
   flex-direction: column;
 }
 
+/* View count badge */
+.viewCount {
+  font-size: 0.7rem;
+  color: var(--text-muted, #666);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.viewCount svg {
+  width: 12px;
+  height: 12px;
+}
+
 .cardTitle {
   font-size: 0.85rem;
   font-weight: 600;
@@ -267,12 +302,10 @@
   width: clamp(170px, 24vw, 210px);
   height: 280px;
   border-radius: 0.75rem;
-  background: linear-gradient(
-    90deg,
-    rgba(240, 240, 240, 0.8) 0%,
-    rgba(225, 225, 225, 0.9) 50%,
-    rgba(240, 240, 240, 0.8) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(240, 240, 240, 0.8) 0%,
+      rgba(225, 225, 225, 0.9) 50%,
+      rgba(240, 240, 240, 0.8) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
 }
@@ -281,23 +314,15 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
 }
 
-/* Mobile scroll indicators */
+/* Mobile scroll indicators - HIDDEN (peek effect is sufficient) */
 .scrollIndicators {
-  display: flex;
-  justify-content: space-between;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
-  pointer-events: none;
-  padding: 0 0.5rem;
-  z-index: 5;
+  display: none;
 }
 
 .scrollIndicatorLeft,
@@ -325,10 +350,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.7;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.1);
@@ -361,11 +389,9 @@
   letter-spacing: 0.02em;
 }
 
-/* Hide counter on desktop */
-@media (min-width: 768px) {
-  .slideCounter {
-    display: none;
-  }
+/* Hide counter on all devices */
+.slideCounter {
+  display: none;
 }
 
 /* Mobile responsive */
@@ -381,28 +407,32 @@
   }
 
   .card {
-    height: 200px;
+    height: 260px;
   }
 
   .videoWrapper {
-    height: 130px;
+    height: 150px;
   }
 
   .cardContent {
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem;
   }
 
   .cardTitle {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .cardLocation {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
   }
 
   .cardMeta {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
     margin-top: 0.15rem;
+  }
+
+  .viewCount {
+    font-size: 0.65rem;
   }
 
   .videoBadge {
@@ -423,54 +453,160 @@
   }
 }
 
-@media (max-width: 480px) {
-  .card {
-    height: 180px;
+/* ==========================================
+   INSTAGRAM STORIES STYLE - Mobile Layout
+   ========================================== */
+
+/* Story container - horizontal scroll */
+.storiesContainer {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  /* Hide card layout on mobile */
+  .container {
+    display: none;
   }
 
-  .videoWrapper {
-    height: 115px;
+  /* Show stories layout on mobile */
+  .storiesContainer {
+    display: block;
+    padding: 0 0.75rem;
   }
 
-  .cardContent {
-    padding: 0.35rem 0.4rem;
+  .storiesRow {
+    display: flex;
+    gap: 0.875rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0.25rem 0;
   }
 
-  .cardTitle {
-    font-size: 0.7rem;
-    line-height: 1.15;
+  .storiesRow::-webkit-scrollbar {
+    display: none;
   }
 
-  .cardLocation {
+  /* Individual story item */
+  .storyItem {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    cursor: pointer;
+    width: 76px;
+  }
+
+  /* Gradient ring around story circle */
+  .storyCircle {
+    width: 72px;
+    height: 72px;
+    padding: 2.5px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    transition: transform 0.2s ease;
+  }
+
+  .storyItem:hover .storyCircle {
+    transform: scale(1.05);
+  }
+
+  .storyItem:active .storyCircle {
+    transform: scale(0.95);
+  }
+
+  /* Inner circle with white border */
+  .storyCircleInner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #fff;
+    border: 2px solid white;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .storyThumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  /* Play indicator on story circle */
+  .storyPlayIcon {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    background: rgba(245, 25, 87, 0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid white;
+  }
+
+  .storyPlayIcon svg {
+    width: 8px;
+    height: 8px;
+    fill: white;
+    margin-left: 1px;
+  }
+
+  /* Story info below circle */
+  .storyInfo {
+    text-align: center;
+    width: 100%;
+  }
+
+  .storyName {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-text-strong);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 76px;
+    line-height: 1.2;
+  }
+
+  .storyLocation {
     font-size: 0.55rem;
-    margin-top: 0.15rem;
+    color: var(--text-muted, #666);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 76px;
   }
 
-  .cardMeta {
+  .storyViews {
     font-size: 0.5rem;
-    margin-top: 0.15rem;
+    color: var(--text-muted, #888);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin-top: 1px;
   }
 
-  .videoBadge {
-    top: 0.35rem;
-    left: 0.35rem;
-  }
-
-  .badgeLabel {
-    font-size: 0.5rem;
-  }
-
-  .duration {
-    font-size: 0.5rem;
+  .storyViews svg {
+    width: 8px;
+    height: 8px;
   }
 }
 
-@media (max-width: 400px) {
-  .card {
-    height: 165px;
+/* Hide stories on desktop, show container */
+@media (min-width: 769px) {
+  .storiesContainer {
+    display: none;
   }
 
-  .videoWrapper {
-    height: 105px;
+  .container {
+    display: block;
   }
 }

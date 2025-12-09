@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './MyBeforeAfter.module.css';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import ReactCompareImage from 'react-compare-image';
+import { FaTrash, FaTimes } from 'react-icons/fa';
 
 interface BeforeAfterPhoto {
   id: string;
@@ -17,10 +19,61 @@ interface BeforeAfterPhoto {
   service?: { id: string; title: string };
 }
 
+// Custom confirmation modal component - uses portal for proper centering
+function DeleteConfirmModal({
+  isOpen,
+  onConfirm,
+  onCancel,
+  isDeleting,
+}: {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isDeleting: boolean;
+}) {
+  if (!isOpen) return null;
+
+  // Use portal to render at document body level
+  if (typeof window === 'undefined') return null;
+
+  const modalContent = (
+    <div className={styles.modalOverlay} onClick={onCancel}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalIcon}>
+          <FaTrash />
+        </div>
+        <h3 className={styles.modalTitle}>Delete Photo?</h3>
+        <p className={styles.modalText}>
+          Are you sure you want to delete this before & after photo? This action cannot be undone.
+        </p>
+        <div className={styles.modalButtons}>
+          <button
+            className={styles.cancelButton}
+            onClick={onCancel}
+            disabled={isDeleting}
+          >
+            <FaTimes /> Cancel
+          </button>
+          <button
+            className={styles.confirmDeleteButton}
+            onClick={onConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : <><FaTrash /> Delete</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return createPortal(modalContent, document.body);
+}
+
 export default function MyBeforeAfter() {
   const [photos, setPhotos] = useState<BeforeAfterPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPhotos();
@@ -49,11 +102,18 @@ export default function MyBeforeAfter() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this before/after photo?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setConfirmDeleteId(id);
+  };
 
+  const handleCancelDelete = () => {
+    setConfirmDeleteId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteId) return;
+
+    const id = confirmDeleteId;
     setDeletingId(id);
 
     try {
@@ -65,6 +125,7 @@ export default function MyBeforeAfter() {
       if (res.ok) {
         toast.success('Photo deleted successfully');
         setPhotos(photos.filter((p) => p.id !== id));
+        setConfirmDeleteId(null);
       } else {
         toast.error('Failed to delete photo');
       }
@@ -119,6 +180,16 @@ export default function MyBeforeAfter() {
           const statusBadge = getStatusBadge(photo.approvalStatus);
           return (
             <div key={photo.id} className={styles.card}>
+              {/* Delete button overlaid on top right */}
+              <button
+                onClick={() => handleDeleteClick(photo.id)}
+                disabled={deletingId === photo.id}
+                className={styles.deleteButton}
+                aria-label="Delete photo"
+              >
+                {deletingId === photo.id ? '...' : '🗑️'}
+              </button>
+
               <div className={styles.comparisonWrapper}>
                 <ReactCompareImage
                   leftImage={photo.beforeImageUrl}
@@ -135,14 +206,6 @@ export default function MyBeforeAfter() {
                   <span className={`${styles.statusBadge} ${statusBadge.className}`}>
                     {statusBadge.text}
                   </span>
-                  <button
-                    onClick={() => handleDelete(photo.id)}
-                    disabled={deletingId === photo.id}
-                    className={styles.deleteButton}
-                    aria-label="Delete photo"
-                  >
-                    {deletingId === photo.id ? '...' : '🗑️'}
-                  </button>
                 </div>
 
                 {photo.service && (
@@ -161,6 +224,14 @@ export default function MyBeforeAfter() {
           );
         })}
       </div>
+
+      {/* Delete confirmation modal */}
+      <DeleteConfirmModal
+        isOpen={confirmDeleteId !== null}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDeleting={deletingId !== null}
+      />
     </div>
   );
 }

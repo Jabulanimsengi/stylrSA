@@ -8,7 +8,6 @@ import OptimizedImage from '@/components/OptimizedImage/OptimizedImage';
 interface ServiceVideo {
   id: string;
   videoUrl: string;
-  vimeoId: string;
   thumbnailUrl?: string;
   duration: number;
   caption?: string;
@@ -52,7 +51,7 @@ export default function MyVideos() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this video? This will also delete it from Vimeo.')) {
+    if (!confirm('Are you sure you want to delete this video?')) {
       return;
     }
 
@@ -119,7 +118,6 @@ export default function MyVideos() {
       <div className={styles.grid}>
         {videos.map((video) => {
           const statusBadge = getStatusBadge(video.approvalStatus);
-          const vimeoEmbedUrl = `https://player.vimeo.com/video/${video.vimeoId}`;
 
           return (
             <div key={video.id} className={styles.card}>
@@ -148,52 +146,48 @@ export default function MyVideos() {
                     <div className={styles.duration}>{video.duration}s</div>
                   </div>
                 ) : (
-                  <iframe
-                    src={vimeoEmbedUrl}
+                  <video
+                    src={video.videoUrl}
                     className={styles.videoIframe}
-                    frameBorder="0"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    title={video.caption || 'Service video'}
+                    controls
+                    playsInline
                   />
                 )}
               </div>
 
-              <div className={styles.cardContent}>
-                <div className={styles.cardHeader}>
-                  <span className={`${styles.statusBadge} ${statusBadge.className}`}>
-                    {statusBadge.text}
-                  </span>
-                  <button
-                    onClick={() => handleDelete(video.id)}
-                    disabled={deletingId === video.id}
-                    className={styles.deleteButton}
-                    aria-label="Delete video"
-                  >
-                    {deletingId === video.id ? '...' : '🗑️'}
-                  </button>
-                </div>
+              {video.service && (
+                <p className={styles.service}>{video.service.title}</p>
+              )}
 
-                {video.service && (
-                  <p className={styles.service}>{video.service.title}</p>
-                )}
+              {video.caption && (
+                <p className={styles.caption}>{video.caption}</p>
+              )}
 
-                {video.caption && (
-                  <p className={styles.caption}>{video.caption}</p>
-                )}
+              <div className={styles.stats}>
+                <span className={styles.stat}>
+                  👁 {video.views.toLocaleString()} views
+                </span>
+                <span className={styles.stat}>
+                  ⏱ {video.duration}s
+                </span>
+              </div>
 
-                <div className={styles.stats}>
-                  <span className={styles.stat}>
-                    👁 {video.views.toLocaleString()} views
-                  </span>
-                  <span className={styles.stat}>
-                    ⏱ {video.duration}s
-                  </span>
-                </div>
+              <p className={styles.date}>
+                Uploaded {new Date(video.createdAt).toLocaleDateString()}
+              </p>
 
-                <p className={styles.date}>
-                  Uploaded {new Date(video.createdAt).toLocaleDateString()}
-                </p>
+              <div className={styles.actions}>
+                <span className={`${styles.statusBadge} ${statusBadge.className}`}>
+                  {statusBadge.text}
+                </span>
+                <button
+                  onClick={() => handleDelete(video.id)}
+                  disabled={deletingId === video.id}
+                  className={styles.deleteButton}
+                  aria-label="Delete video"
+                >
+                  {deletingId === video.id ? '...' : '🗑️'}
+                </button>
               </div>
             </div>
           );

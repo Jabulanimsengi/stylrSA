@@ -6,20 +6,41 @@
   text-align: left;
 }
 
-.sectionTitle {
-  font-size: clamp(0.95rem, 2vw, 1.4rem);
-  font-weight: 600;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
-  color: var(--color-text-strong);
-  text-align: left;
   padding: 0 clamp(0.75rem, 3vw, 1.5rem);
 }
 
-/* Container with navigation */
+.sectionTitle {
+  font-size: clamp(0.95rem, 2vw, 1.4rem);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-strong);
+  text-align: left;
+}
+
+.viewAll {
+  color: var(--muted-teal);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+
+.viewAll:hover {
+  color: var(--primary-pink);
+}
+
+/* Container with navigation - fixed height to prevent CLS */
 .container {
   width: 100%;
   position: relative;
   padding: 0 1rem;
+  min-height: 280px;
+  /* Card height (240px) + padding to prevent CLS */
 }
 
 /* Navigation buttons - visible on desktop only */
@@ -117,15 +138,23 @@
   border-color: rgba(245, 25, 87, 0.2);
 }
 
+/* Image container - single image display */
 .imageWrapper {
   position: relative;
-  aspect-ratio: auto;
   height: 160px;
   width: 100%;
   flex-shrink: 0;
   background: var(--skeleton-bg, #f0f0f0);
   overflow: hidden;
+}
+
+/* Individual image slide - full size */
+.imageSlide {
+  position: relative;
+  width: 100%;
+  height: 100%;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .cardImage {
@@ -180,6 +209,7 @@
   line-height: 1.2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   flex-grow: 1;
   margin: 0;
@@ -252,48 +282,49 @@
   box-shadow: 0 2px 6px rgba(245, 25, 87, 0.4);
 }
 
-/* Card navigation arrows */
-.cardNav {
+/* Desktop-only carousel navigation arrows - transparent style matching ServiceCard */
+.carouselButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--color-text-inverse, #ffffff);
   border: none;
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, opacity 0.2s ease;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
-.cardNav:hover:not(:disabled) {
-  background: white;
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.carouselButton:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.65);
 }
 
-.cardNav:disabled {
-  opacity: 0.4;
+.carouselButton:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
-.cardNavPrev {
-  left: 8px;
+.carouselPrev {
+  left: 6px;
 }
 
-.cardNavNext {
-  right: 8px;
+.carouselNext {
+  right: 6px;
 }
 
-.cardNav svg {
-  width: 14px;
-  height: 14px;
+/* Hide carousel arrows on mobile - use peek/swipe instead */
+@media (max-width: 768px) {
+  .carouselButton {
+    display: none !important;
+  }
 }
 
 /* Salon name link */
@@ -407,30 +438,9 @@
   }
 }
 
-/* Slide counter */
+/* Slide counter - HIDDEN */
 .slideCounter {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: white;
-  padding: 0.375rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  z-index: 15;
-  pointer-events: none;
-  letter-spacing: 0.02em;
-}
-
-/* Hide counter on desktop */
-@media (min-width: 768px) {
-  .slideCounter {
-    display: none;
-  }
+  display: none;
 }
 
 /* Mobile responsive */

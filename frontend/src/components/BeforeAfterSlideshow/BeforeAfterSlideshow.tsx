@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -10,7 +10,6 @@ import ImageLightbox from '@/components/ImageLightbox';
 import Image from 'next/image';
 import { transformCloudinary } from '@/utils/cloudinary';
 import Link from 'next/link';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -58,52 +57,53 @@ function BeforeAfterCard({
 
   return (
     <div className={styles.card}>
-      {/* Image container with carousel */}
-      <div
-        className={styles.imageWrapper}
-        onClick={() => onImageClick(photo)}
-      >
-        <Image
-          src={transformCloudinary(images[currentImageIndex], {
-            width: 400,
-            height: 300,
-            crop: 'fill',
-            quality: 'auto',
-            format: 'auto'
-          })}
-          alt={`${labels[currentImageIndex]} - ${photo.service?.title || 'Transformation'}`}
-          fill
-          sizes="(max-width: 768px) 85vw, 280px"
-          className={styles.cardImage}
-        />
-
-        {/* Image counter badge */}
-        <div className={styles.imageCounter}>
-          {currentImageIndex + 1}/2
+      {/* Single image display - switch based on currentImageIndex */}
+      <div className={styles.imageWrapper}>
+        <div
+          className={styles.imageSlide}
+          onClick={() => onImageClick(photo)}
+        >
+          <Image
+            src={transformCloudinary(images[currentImageIndex], {
+              width: 400,
+              height: 300,
+              crop: 'fill',
+              quality: 'auto',
+              format: 'auto'
+            })}
+            alt={`${labels[currentImageIndex]} - ${photo.service?.title || 'Transformation'}`}
+            fill
+            sizes="(max-width: 768px) 85vw, 280px"
+            className={styles.cardImage}
+          />
+          {/* Before/After label on current image */}
+          <div className={styles.imageLabel}>
+            {labels[currentImageIndex]}
+          </div>
         </div>
 
-        {/* Before/After label */}
-        <div className={styles.imageLabel}>
-          {labels[currentImageIndex]}
-        </div>
-
-        {/* Navigation arrows */}
+        {/* Desktop navigation arrows - always show both, disabled based on position */}
         <button
-          className={`${styles.cardNav} ${styles.cardNavPrev}`}
+          className={`${styles.carouselButton} ${styles.carouselPrev}`}
           onClick={handlePrev}
           disabled={currentImageIndex === 0}
           aria-label="View before image"
         >
-          <FaChevronLeft />
+          ‹
         </button>
         <button
-          className={`${styles.cardNav} ${styles.cardNavNext}`}
+          className={`${styles.carouselButton} ${styles.carouselNext}`}
           onClick={handleNext}
           disabled={currentImageIndex === 1}
           aria-label="View after image"
         >
-          <FaChevronRight />
+          ›
         </button>
+      </div>
+
+      {/* Image counter badge */}
+      <div className={styles.imageCounter}>
+        {currentImageIndex + 1}/2
       </div>
 
       {/* Card content */}
@@ -124,9 +124,18 @@ function BeforeAfterCard({
   );
 }
 
-export default function BeforeAfterSlideshow() {
-  const [photos, setPhotos] = useState<BeforeAfterPhoto[]>([]);
-  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
+interface BeforeAfterSlideshowProps {
+  initialPhotos?: BeforeAfterPhoto[];
+}
+
+export default function BeforeAfterSlideshow({ initialPhotos = [] }: BeforeAfterSlideshowProps) {
+  // Use initial data if provided (server-side), otherwise start empty
+  const hasServerData = initialPhotos.length > 0;
+  const [photos, setPhotos] = useState<BeforeAfterPhoto[]>(initialPhotos);
+  // Start as 'done' if we have server data, otherwise 'pending'
+  const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>(
+    hasServerData ? 'done' : 'pending'
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -136,8 +145,11 @@ export default function BeforeAfterSlideshow() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
-    fetchPhotos();
-  }, []);
+    // Only fetch client-side if no server data was provided
+    if (!hasServerData) {
+      fetchPhotos();
+    }
+  }, [hasServerData]);
 
   const fetchPhotos = async () => {
     setLoadingState('loading');
@@ -171,7 +183,10 @@ export default function BeforeAfterSlideshow() {
   return (
     <>
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Before & After</h2>
+        <div className={styles.header}>
+          <h2 className={styles.sectionTitle}>Before & After</h2>
+          <Link href="/before-after" className={styles.viewAll}>View All</Link>
+        </div>
         <div className={styles.container}>
           <Swiper
             modules={isMobile ? [] : [Navigation]}
@@ -189,20 +204,37 @@ export default function BeforeAfterSlideshow() {
               }
             }}
             spaceBetween={16}
-            slidesPerView={'auto'}
-            style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
+            slidesPerView={1.15}
+            style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', height: '260px' }}
             onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
             breakpoints={{
               320: {
                 slidesPerView: 1.15,
+                spaceBetween: 16
               },
-              769: {
+              640: {
+                slidesPerView: 2.5,
+                spaceBetween: 16
+              },
+              768: {
+                slidesPerView: 3.2,
+                spaceBetween: 20
+              },
+              1024: {
                 slidesPerView: 4.1,
+                spaceBetween: 24
               },
             }}
           >
             {photos.map((photo) => (
-              <SwiperSlide key={photo.id}>
+              <SwiperSlide
+                key={photo.id}
+                style={{
+                  width: isMobile ? 'calc(100% / 1.15)' : 'calc((100% - 72px) / 4.1)',
+                  minHeight: isMobile ? '200px' : '240px',
+                  flexShrink: 0,
+                }}
+              >
                 <BeforeAfterCard
                   photo={photo}
                   onImageClick={handleImageClick}

@@ -281,29 +281,9 @@
 
 /* Keep scroll indicators hidden on all screen sizes */
 
-/* Slide counter - bottom left corner */
+/* Slide counter - bottom left corner - HIDDEN */
 .slideCounter {
-  position: absolute;
-  bottom: 8px;
-  left: 1rem;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 0.2rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.65rem;
-  font-weight: 500;
-  z-index: 15;
-  pointer-events: none;
-  letter-spacing: 0.02em;
-}
-
-/* Hide counter on desktop */
-@media (min-width: 768px) {
-  .slideCounter {
-    display: none;
-  }
+  display: none;
 }
 
 /* Mobile responsive */

@@ -19,16 +19,16 @@ const PLAN_FALLBACKS: Record<
   { visibilityWeight: number; maxListings: number; priceCents: number }
 > = {
   FREE: { visibilityWeight: 0, maxListings: 1, priceCents: 0 },
-  STARTER: { visibilityWeight: 1, maxListings: 3, priceCents: 4900 },
+  STARTER: { visibilityWeight: 2, maxListings: 10, priceCents: 22900 },
+  PRO: { visibilityWeight: 3, maxListings: 25, priceCents: 32900 },
+  ELITE: { visibilityWeight: 5, maxListings: 9999, priceCents: 49900 },
   ESSENTIAL: { visibilityWeight: 2, maxListings: 7, priceCents: 9900 },
   GROWTH: { visibilityWeight: 3, maxListings: 15, priceCents: 19900 },
-  PRO: { visibilityWeight: 4, maxListings: 27, priceCents: 29900 },
-  ELITE: { visibilityWeight: 5, maxListings: 9999, priceCents: 49900 },
 };
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   private async resolvePlanMeta(planCode: PlanCode) {
     try {
@@ -141,7 +141,7 @@ export class UsersService {
       `${seller.firstName} ${seller.lastName}`.trim() || 'Product Seller';
     const paymentReference =
       typeof paymentReferenceRaw === 'string' &&
-      paymentReferenceRaw.trim().length > 0
+        paymentReferenceRaw.trim().length > 0
         ? paymentReferenceRaw.trim()
         : defaultRef;
 

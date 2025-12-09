@@ -1,15 +1,15 @@
 import { Injectable, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { VimeoService } from './vimeo.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class VideosService {
   constructor(
     private prisma: PrismaService,
-    private vimeo: VimeoService,
+    private cloudinary: CloudinaryService, // Changed from VimeoService
     private notifications: NotificationsService,
-  ) {}
+  ) { }
 
   async uploadVideo(
     file: Express.Multer.File,
@@ -21,9 +21,9 @@ export class VideosService {
     // Verify salon ownership
     const salon = await this.prisma.salon.findUnique({
       where: { id: salonId },
-      select: { 
-        id: true, 
-        ownerId: true, 
+      select: {
+        id: true,
+        ownerId: true,
         planCode: true,
         name: true,
       },
@@ -42,34 +42,29 @@ export class VideosService {
     }
 
     // Validate video duration (max 60 seconds)
-    // Note: This is a basic check. In production, you'd use a library like fluent-ffmpeg
-    // to get the actual video duration before upload
-    if (file.size > 50 * 1024 * 1024) { // 50MB max
-      throw new BadRequestException('Video file size must be less than 50MB');
-    }
+    // Basic check happens in frontend, Cloudinary returns duration.
 
-    // Upload to Vimeo
-    const vimeoUpload = await this.vimeo.uploadVideo(file, {
-      name: caption || `Service video - ${salon.name}`,
-      description: caption,
-    });
-
-    // Get video duration from Vimeo
-    const videoDetails = await this.vimeo.getVideoDetails(vimeoUpload.videoId);
-
-    if (videoDetails.duration > 60) {
-      // Delete from Vimeo if exceeds 60 seconds
-      await this.vimeo.deleteVideo(vimeoUpload.videoId);
-      throw new BadRequestException('Video duration must be 60 seconds or less');
+    // Upload to Cloudinary
+    let videoData;
+    try {
+      const result = await this.cloudinary.uploadVideo(file);
+      videoData = {
+        videoUrl: result.secure_url,
+        videoId: result.public_id, // Storing Cloudinary public_id in vimeoId column
+        thumbnailUrl: result.secure_url.replace(/\.[^/.]+$/, ".jpg"),
+        duration: result.duration || 0,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to upload video');
     }
 
     // Create video record
     const video = await this.prisma.serviceVideo.create({
       data: {
-        videoUrl: vimeoUpload.videoUrl,
-        vimeoId: vimeoUpload.videoId,
-        thumbnailUrl: videoDetails.thumbnailUrl,
-        duration: videoDetails.duration,
+        videoUrl: videoData.videoUrl,
+        vimeoId: videoData.videoId,
+        thumbnailUrl: videoData.thumbnailUrl,
+        duration: videoData.duration,
         caption: caption,
         salonId: salonId,
         serviceId: serviceId || null,
@@ -97,13 +92,13 @@ export class VideosService {
       where: { role: 'ADMIN' },
       select: { id: true },
     });
-    
+
     await Promise.all(
       admins.map((admin) =>
         this.notifications.create(
           admin.id,
           `New video uploaded by ${video.salon.name} awaiting review.`,
-          { link: `/admin/videos-pending` },
+          { link: `/admin?tab=media` },
         ),
       ),
     );
@@ -171,8 +166,8 @@ export class VideosService {
       throw new ForbiddenException('You do not own this video');
     }
 
-    // Delete from Vimeo
-    await this.vimeo.deleteVideo(video.vimeoId);
+    // Delete from Cloudinary (using vimeoId column which now holds public_id)
+    await this.cloudinary.deleteVideo(video.vimeoId);
 
     // Delete from database
     await this.prisma.serviceVideo.delete({ where: { id } });

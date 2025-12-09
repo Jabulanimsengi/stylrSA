@@ -1,0 +1,338 @@
+/* Before/After Page Styles */
+.container {
+    min-height: 100vh;
+    background: var(--color-surface, #f9f6f1);
+    padding-bottom: 2rem;
+}
+
+.title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--color-text-strong);
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: var(--text-muted, #666);
+    margin-bottom: 1.5rem;
+}
+
+/* Photo Grid */
+.photoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Photo Card */
+.photoCard {
+    position: relative;
+    background: var(--color-surface-elevated, #fff);
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid var(--color-border, #e5e5e5);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.photoCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: var(--color-primary, #f51957);
+}
+
+.imageContainer {
+    display: flex;
+    height: 200px;
+}
+
+.imageHalf {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+}
+
+.imageHalf:first-child {
+    border-right: 2px solid white;
+}
+
+.image {
+    object-fit: cover;
+}
+
+.imageLabel {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 600;
+    border-radius: 4px;
+    z-index: 1;
+}
+
+/* Card Content */
+.cardContent {
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.cardTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-strong);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.cardTitle:hover {
+    color: var(--color-primary, #f51957);
+}
+
+.cardLocation {
+    font-size: 0.8rem;
+    color: var(--text-muted, #666);
+    margin: 0 0 0.25rem;
+}
+
+.cardMeta {
+    font-size: 0.75rem;
+    color: var(--text-muted, #666);
+    margin: 0;
+}
+
+/* Loading State */
+.loadingState {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    position: relative;
+    background: var(--color-surface-elevated, #fff);
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: auto;
+}
+
+.closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.closeButton:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Single image display in modal */
+.modalSingleImage {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    background: #000;
+}
+
+.modalImage {
+    object-fit: contain;
+}
+
+.modalLabel {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    z-index: 1;
+}
+
+/* Navigation arrows */
+.navArrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.2s;
+    color: #333;
+}
+
+.navArrow:hover:not(:disabled) {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.navArrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.navPrev {
+    left: 1rem;
+}
+
+.navNext {
+    right: 1rem;
+}
+
+/* Dots indicator */
+.dotsContainer {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    background: var(--color-surface-elevated, #fff);
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.dot:hover {
+    background: #999;
+}
+
+.dotActive {
+    background: var(--color-primary, #f51957);
+    width: 28px;
+    border-radius: 5px;
+}
+
+.modalInfo {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.modalTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-strong);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.modalTitle:hover {
+    color: var(--color-primary, #f51957);
+}
+
+.modalLocation {
+    font-size: 1rem;
+    color: var(--text-muted, #666);
+    margin: 0 0 0.5rem;
+}
+
+.modalCaption {
+    font-size: 0.9rem;
+    color: var(--text-muted, #666);
+    margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .title {
+        font-size: 1.25rem;
+        margin: 1rem 0 0.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .photoGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .imageContainer {
+        height: 160px;
+    }
+
+    .modalSingleImage {
+        height: 350px;
+    }
+
+    .navArrow {
+        width: 40px;
+        height: 40px;
+    }
+
+    .navPrev {
+        left: 0.5rem;
+    }
+
+    .navNext {
+        right: 0.5rem;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 400px) {
+    .modalSingleImage {
+        height: 300px;
+    }
+
+    .navArrow {
+        width: 36px;
+        height: 36px;
+    }
+}

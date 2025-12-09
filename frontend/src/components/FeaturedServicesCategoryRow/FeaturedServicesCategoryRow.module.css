@@ -64,20 +64,24 @@
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
   padding: 0.25rem 0;
 }
 
 /* Hide scrollbar for webkit browsers */
 .servicesGrid::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 /* Service cards - match SalonCard compact size */
-.servicesGrid > * {
+.servicesGrid>* {
   flex: 0 0 auto;
-  width: calc((100% - 48px) / 4.1); /* Match FeaturedSalons/Recommended width */
+  width: calc((100% - 48px) / 4.1);
+  /* Match FeaturedSalons/Recommended width */
   min-width: 220px;
   max-width: 280px;
 }
@@ -97,9 +101,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 20; /* Task 5.2: Proper z-index */
+  z-index: 20;
+  /* Task 5.2: Proper z-index */
   opacity: 0;
-  transition: all 0.2s ease; /* Task 5.2: Smooth transitions for hover and active states */
+  transition: all 0.2s ease;
+  /* Task 5.2: Smooth transitions for hover and active states */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   animation: fadeIn 0.3s ease forwards;
 }
@@ -108,6 +114,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 0.9;
   }
@@ -126,11 +133,13 @@
 }
 
 .scrollButton.desktop.left {
-  left: -22px; /* Half of button width for edge positioning */
+  left: -22px;
+  /* Half of button width for edge positioning */
 }
 
 .scrollButton.desktop.right {
-  right: -22px; /* Half of button width for edge positioning */
+  right: -22px;
+  /* Half of button width for edge positioning */
 }
 
 /* Task 5.2: Disabled state styling */
@@ -157,12 +166,14 @@
   .categorySection {
     margin-bottom: 1.25rem;
     padding: 0 clamp(0.5rem, 2vw, 1rem);
-    max-width: 100%; /* Task 5.5: Viewport overflow prevention */
+    max-width: 100%;
+    /* Task 5.5: Viewport overflow prevention */
   }
 
   .categoryHeader {
     margin-bottom: 0.35rem;
-    max-width: 100%; /* Task 5.5: Viewport overflow prevention */
+    max-width: 100%;
+    /* Task 5.5: Viewport overflow prevention */
   }
 
   .categoryTitle {
@@ -194,76 +205,26 @@
   }
 
   /* Mobile card size - match SalonCard compact mobile */
-  .servicesGrid > * {
+  .servicesGrid>* {
     flex: 0 0 auto;
-    width: calc(100% / 1.15 - 12px); /* Show 1.15 cards for peek effect */
+    width: calc(100% / 1.15 - 12px);
+    /* Show 1.15 cards for peek effect */
     min-width: 260px;
     max-width: 320px;
     scroll-snap-align: start;
   }
 
-  /* Mobile navigation arrows */
+  /* Mobile navigation arrows - HIDDEN (peek effect is sufficient) */
   .scrollButton.mobile {
-    display: flex;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    animation: fadeInMobile 0.3s ease forwards;
+    display: none !important;
   }
 
-  @keyframes fadeInMobile {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 0.8;
-    }
-  }
-
-  .scrollButton.mobile:hover {
-    opacity: 1;
-  }
-
-  .scrollButton.mobile.left {
-    left: 0.5rem;
-  }
-
-  .scrollButton.mobile.right {
-    right: 0.5rem;
-  }
-
-  /* Task 6.2: Mobile slide counter - bottom left corner */
+  /* Slide counter - HIDDEN */
   .slideCounter {
-    position: absolute;
-    bottom: 0.5rem;
-    left: 0.75rem;
-    background-color: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.65rem;
-    font-weight: 500;
-    padding: 0.2rem 0.5rem;
-    border-radius: 8px;
-    z-index: 15;
-    pointer-events: none;
-    user-select: none;
+    display: none;
   }
 }
 
-/* Task 5.5: Additional viewport overflow prevention for smaller screens */
 @media (max-width: 540px) {
   .categorySection {
     padding: 0 clamp(0.75rem, 3vw, 1rem);
@@ -293,4 +254,3 @@
     max-width: 100%;
   }
 }
-

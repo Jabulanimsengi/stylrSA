@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTop10RequestDto } from './dto/create-top10-request.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 import { Resend } from 'resend';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class Top10RequestsService {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    private notificationsService: NotificationsService,
   ) {
     const apiKey = this.config.get<string>('RESEND_API_KEY');
     this.resend = apiKey ? new Resend(apiKey) : null;
@@ -50,19 +52,42 @@ export class Top10RequestsService {
       this.logger.error('Failed to send admin notification email', error);
     }
 
+    // Send in-app notification to all admins
+    try {
+      await this.notifyAdmins(dto);
+    } catch (error) {
+      this.logger.error('Failed to send admin in-app notifications', error);
+    }
+
     return request;
+  }
+
+  private async notifyAdmins(dto: CreateTop10RequestDto) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+
+    const message = `🔔 New Top 10 Request: ${dto.category} from ${dto.fullName}`;
+    const link = '/admin/top10-requests'; // Adjust if your admin route differs
+
+    await Promise.all(
+      admins.map((admin) =>
+        this.notificationsService.create(admin.id, message, { link }),
+      ),
+    );
   }
 
   private async sendAdminNotification(dto: CreateTop10RequestDto) {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@stylrsa.co.za';
-    
+
     if (!this.resend) {
       this.logger.log(`[DEV] Top 10 request notification for admin: ${dto.category} - ${dto.fullName}`);
       return;
     }
-    
+
     const subject = `🔔 New Top 10 Request: ${dto.category}`;
-    
+
     const html = `
       <h2>New Top 10 Service Provider Request</h2>
       

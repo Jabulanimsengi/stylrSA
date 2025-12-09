@@ -5,7 +5,6 @@ import styles from './VideoLightbox.module.css';
 
 interface VideoLightboxProps {
   videoUrl: string;
-  vimeoId: string;
   isOpen: boolean;
   onClose: () => void;
   salonName?: string;
@@ -14,7 +13,6 @@ interface VideoLightboxProps {
 
 export default function VideoLightbox({
   videoUrl,
-  vimeoId,
   isOpen,
   onClose,
   salonName,
@@ -40,22 +38,6 @@ export default function VideoLightbox({
 
   if (!isOpen) return null;
 
-  // Build Vimeo embed URL with privacy parameters
-  let embedUrl = videoUrl.includes('player.vimeo.com')
-    ? videoUrl
-    : `https://player.vimeo.com/video/${vimeoId}`;
-  
-  // Add privacy and autoplay parameters
-  const params = new URLSearchParams({
-    autoplay: '1',
-    title: '0',      // Hide video title
-    byline: '0',     // Hide "by [your name]"
-    portrait: '0',   // Hide profile picture
-    dnt: '1'         // Enable Do Not Track
-  });
-  
-  embedUrl = `${embedUrl.split('?')[0]}?${params.toString()}`;
-
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.content} onClick={(e) => e.stopPropagation()}>
@@ -76,13 +58,12 @@ export default function VideoLightbox({
         </button>
 
         <div className={styles.videoWrapper}>
-          <iframe
-            src={embedUrl}
+          <video
+            src={videoUrl}
             className={styles.video}
-            frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            title={caption || salonName || 'Service video'}
+            controls
+            autoPlay
+            playsInline
           />
         </div>
 

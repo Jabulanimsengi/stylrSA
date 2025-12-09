@@ -42,6 +42,7 @@ import VerificationBadge from '@/components/VerificationBadge/VerificationBadge'
 import Breadcrumbs from '@/components/Breadcrumbs';
 import TeamMembers from '@/components/TeamMembers/TeamMembers';
 import AdSense from '@/components/AdSense';
+import BeforeAfterStories from '@/components/BeforeAfterStories/BeforeAfterStories';
 
 type Props = {
   initialSalon: Salon | null;
@@ -108,8 +109,6 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
 
     if (initialSalon) {
       applySalon(initialSalon);
-      // Fetch salon-specific before/after photos and videos
-      fetchSalonMedia();
       return () => {
         isActive = false;
       };
@@ -133,8 +132,8 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
         }
         const data: Salon = await res.json();
         applySalon(data);
-        // Fetch salon-specific before/after photos and videos after main data loads
-        fetchSalonMedia();
+        // Note: Salon media (before/after photos, videos) is fetched by a separate useEffect
+        // that triggers when salon.id becomes available
       } catch (error: any) {
         clearTimeout(timeoutId);
 
@@ -240,6 +239,35 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
     void fetchPromotions();
   }, [salonId]);
 
+  // Fetch salon media (before/after photos, videos)
+  // Use salon.id (UUID) instead of salonId (could be slug) for API queries
+  useEffect(() => {
+    if (!salon?.id) return;
+
+    const fetchSalonMedia = async () => {
+      try {
+        // Fetch before/after photos for this salon using the actual UUID
+        const beforeAfterRes = await fetch(`/api/before-after/approved?salonId=${salon.id}&limit=50`);
+        if (beforeAfterRes.ok) {
+          const beforeAfterData = await beforeAfterRes.json();
+          setBeforeAfterPhotos(beforeAfterData);
+        }
+
+        // Fetch videos for this salon using the actual UUID
+        const videosRes = await fetch(`/api/videos/approved?salonId=${salon.id}&limit=50`);
+        if (videosRes.ok) {
+          const videosData = await videosRes.json();
+          setSalonVideos(videosData);
+        }
+      } catch (error) {
+        logger.error('Failed to fetch salon media', error);
+        // Silently fail - media is not critical
+      }
+    };
+
+    void fetchSalonMedia();
+  }, [salon?.id]);
+
   // Refetch salon data when page becomes visible (fixes operating hours not updating)
   useEffect(() => {
     let isActive = true;
@@ -291,27 +319,6 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
     setIsLightboxOpen(false);
     setLightboxImages([]);
     setLightboxStartIndex(0);
-  };
-
-  const fetchSalonMedia = async () => {
-    try {
-      // Fetch before/after photos for this salon
-      const beforeAfterRes = await fetch(`/api/before-after/approved?salonId=${salonId}&limit=50`);
-      if (beforeAfterRes.ok) {
-        const beforeAfterData = await beforeAfterRes.json();
-        setBeforeAfterPhotos(beforeAfterData);
-      }
-
-      // Fetch videos for this salon
-      const videosRes = await fetch(`/api/videos/approved?salonId=${salonId}&limit=50`);
-      if (videosRes.ok) {
-        const videosData = await videosRes.json();
-        setSalonVideos(videosData);
-      }
-    } catch (error) {
-      logger.error('Failed to fetch salon media', error);
-      // Silently fail - media is not critical
-    }
   };
 
   const openVideoLightbox = (video: any) => {
@@ -577,8 +584,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
 
       {isVideoLightboxOpen && selectedVideo && (
         <VideoLightbox
-          videoUrl={selectedVideo.vimeoUrl}
-          vimeoId={selectedVideo.vimeoUrl}
+          videoUrl={selectedVideo.videoUrl}
           isOpen={isVideoLightboxOpen}
           onClose={closeVideoLightbox}
         />
@@ -742,6 +748,15 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                   </p>
                 </section>
               )}
+
+              {/* Before & After Stories - Instagram style circles */}
+              {beforeAfterPhotos.length > 0 && (
+                <BeforeAfterStories
+                  photos={beforeAfterPhotos}
+                  salonName={salon.name}
+                />
+              )}
+
               {(galleryImages.length > 0 || beforeAfterPhotos.length > 0 || salonVideos.length > 0) && (
                 <section id="gallery-section">
                   <h2 className={styles.sectionTitle}>Gallery</h2>

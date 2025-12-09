@@ -13,6 +13,7 @@ import { Service, Trend, TrendCategory } from '@/types';
 import { ServiceRowSkeleton } from '@/components/Skeleton/Skeleton';
 import dynamic from 'next/dynamic';
 import FeaturedSalons from '@/components/FeaturedSalons';
+import BeforeAfterSlideshow from '@/components/BeforeAfterSlideshow/BeforeAfterSlideshow';
 import FeaturedServicesCategoryRow from '@/components/FeaturedServicesCategoryRow/FeaturedServicesCategoryRow';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
@@ -21,10 +22,7 @@ import { getCategorySlug } from '@/utils/categorySlug';
 import AdSense from '@/components/AdSense';
 
 // Lazy load below-the-fold components for better LCP
-const BeforeAfterSlideshow = dynamic(() => import('@/components/BeforeAfterSlideshow/BeforeAfterSlideshow'), {
-  loading: () => null,
-  ssr: false
-});
+
 const VideoSlideshow = dynamic(() => import('@/components/VideoSlideshow/VideoSlideshow'), {
   loading: () => null,
   ssr: false
@@ -49,6 +47,7 @@ interface HomePageClientProps {
   initialServices: ServiceWithSalon[];
   initialTrends: Record<TrendCategory, Trend[]>;
   initialFeaturedSalons: any[];
+  initialBeforeAfter: any[];
   initialHasMore: boolean;
   initialTotalPages: number;
 }
@@ -57,6 +56,7 @@ export default function HomePageClient({
   initialServices,
   initialTrends,
   initialFeaturedSalons,
+  initialBeforeAfter,
   initialHasMore,
   initialTotalPages
 }: HomePageClientProps) {
@@ -371,7 +371,7 @@ export default function HomePageClient({
 
       <ForYouRecommendations />
 
-      <BeforeAfterSlideshow />
+      <BeforeAfterSlideshow initialPhotos={initialBeforeAfter} />
 
       {/* Ad placement 2: After slideshow - engaged users scrolling */}
       <AdSense slot="6873445391" format="auto" />

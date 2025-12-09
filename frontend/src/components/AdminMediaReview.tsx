@@ -28,7 +28,6 @@ interface BeforeAfterPhoto {
 interface ServiceVideo {
   id: string;
   videoUrl: string;
-  vimeoId: string;
   thumbnailUrl?: string;
   duration: number;
   caption?: string;
@@ -64,14 +63,14 @@ export default function AdminMediaReview() {
   const fetchPendingMedia = async () => {
     setIsLoading(true);
     try {
-      const endpoint = mediaType === 'photos' 
+      const endpoint = mediaType === 'photos'
         ? '/api/admin/before-after/pending'
         : '/api/admin/videos/pending';
-      
-      const authHeaders: Record<string, string> = session?.backendJwt 
-        ? { Authorization: `Bearer ${session.backendJwt}` } 
+
+      const authHeaders: Record<string, string> = session?.backendJwt
+        ? { Authorization: `Bearer ${session.backendJwt}` }
         : {};
-      
+
       const response = await fetch(endpoint, {
         credentials: 'include',
         headers: authHeaders,
@@ -84,7 +83,7 @@ export default function AdminMediaReview() {
       }
 
       const data = await response.json();
-      
+
       if (mediaType === 'photos') {
         setPhotos(data);
       } else {
@@ -103,11 +102,11 @@ export default function AdminMediaReview() {
       const endpoint = mediaType === 'photos'
         ? `/api/admin/before-after/${id}/approve`
         : `/api/admin/videos/${id}/approve`;
-      
-      const authHeaders: Record<string, string> = session?.backendJwt 
-        ? { Authorization: `Bearer ${session.backendJwt}` } 
+
+      const authHeaders: Record<string, string> = session?.backendJwt
+        ? { Authorization: `Bearer ${session.backendJwt}` }
         : {};
-      
+
       const response = await fetch(endpoint, {
         method: 'PATCH',
         credentials: 'include',
@@ -138,11 +137,11 @@ export default function AdminMediaReview() {
       const endpoint = mediaType === 'photos'
         ? `/api/admin/before-after/${id}/reject`
         : `/api/admin/videos/${id}/reject`;
-      
-      const authHeaders: Record<string, string> = session?.backendJwt 
-        ? { Authorization: `Bearer ${session.backendJwt}` } 
+
+      const authHeaders: Record<string, string> = session?.backendJwt
+        ? { Authorization: `Bearer ${session.backendJwt}` }
         : {};
-      
+
       const response = await fetch(endpoint, {
         method: 'PATCH',
         credentials: 'include',
@@ -269,61 +268,56 @@ export default function AdminMediaReview() {
           ))}
 
           {mediaType === 'videos' && videos.map((video) => {
-            const embedUrl = video.videoUrl.includes('player.vimeo.com') 
-              ? video.videoUrl 
-              : `https://player.vimeo.com/video/${video.vimeoId}`;
-            
             return (
               <div key={video.id} className={styles.card}>
-              <div className={styles.videoWrapper}>
-                <iframe
-                  src={embedUrl}
-                  className={styles.video}
-                  frameBorder="0"
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-              <div className={styles.info}>
-                <h3>{video.salon.name}</h3>
-                <p className={styles.location}>{video.salon.city}, {video.salon.province}</p>
-                {video.service && <p className={styles.service}>Service: {video.service.title}</p>}
-                {video.caption && <p className={styles.caption}>{video.caption}</p>}
-                <p className={styles.duration}>Duration: {video.duration}s</p>
-                <p className={styles.date}>Uploaded: {new Date(video.createdAt).toLocaleDateString()}</p>
-              </div>
-              <div className={styles.actions}>
-                {rejectingId === video.id ? (
-                  <div className={styles.rejectForm}>
-                    <textarea
-                      placeholder="Rejection reason..."
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      className={styles.textarea}
-                    />
-                    <div className={styles.rejectActions}>
-                      <button onClick={() => handleReject(video.id)} className={styles.confirmReject}>
-                        Confirm Reject
-                      </button>
-                      <button onClick={() => {
-                        setRejectingId(null);
-                        setRejectionReason('');
-                      }} className={styles.cancel}>
-                        Cancel
-                      </button>
+                <div className={styles.videoWrapper}>
+                  <video
+                    src={video.videoUrl}
+                    className={styles.video}
+                    controls
+                    playsInline
+                  />
+                </div>
+                <div className={styles.info}>
+                  <h3>{video.salon.name}</h3>
+                  <p className={styles.location}>{video.salon.city}, {video.salon.province}</p>
+                  {video.service && <p className={styles.service}>Service: {video.service.title}</p>}
+                  {video.caption && <p className={styles.caption}>{video.caption}</p>}
+                  <p className={styles.duration}>Duration: {video.duration}s</p>
+                  <p className={styles.date}>Uploaded: {new Date(video.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div className={styles.actions}>
+                  {rejectingId === video.id ? (
+                    <div className={styles.rejectForm}>
+                      <textarea
+                        placeholder="Rejection reason..."
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        className={styles.textarea}
+                      />
+                      <div className={styles.rejectActions}>
+                        <button onClick={() => handleReject(video.id)} className={styles.confirmReject}>
+                          Confirm Reject
+                        </button>
+                        <button onClick={() => {
+                          setRejectingId(null);
+                          setRejectionReason('');
+                        }} className={styles.cancel}>
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <>
-                    <button onClick={() => handleApprove(video.id)} className={styles.approve}>
-                      Approve
-                    </button>
-                    <button onClick={() => setRejectingId(video.id)} className={styles.reject}>
-                      Reject
-                    </button>
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <>
+                      <button onClick={() => handleApprove(video.id)} className={styles.approve}>
+                        Approve
+                      </button>
+                      <button onClick={() => setRejectingId(video.id)} className={styles.reject}>
+                        Reject
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             );
           })}

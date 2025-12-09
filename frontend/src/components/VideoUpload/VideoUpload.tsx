@@ -96,14 +96,14 @@ export default function VideoUpload({ salonId, services, planCode, onUploadCompl
 
       const data = await res.json();
       toast.success(data.message || 'Video uploaded successfully! Awaiting admin approval.');
-      
+
       // Reset form
       setVideoFile(null);
       setVideoPreview(null);
       setCaption('');
       setServiceId('');
       setUploadProgress(0);
-      
+
       onUploadComplete();
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -230,7 +230,7 @@ export default function VideoUpload({ salonId, services, planCode, onUploadCompl
             disabled={!videoFile || isUploading}
             className={styles.submitButton}
           >
-            {isUploading ? 'Uploading to Vimeo...' : 'Upload Video'}
+            {isUploading ? 'Uploading...' : 'Upload Video'}
           </button>
         </div>
       )}

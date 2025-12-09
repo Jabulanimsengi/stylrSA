@@ -83,6 +83,7 @@
 
 /* Explicitly hide navigation on mobile */
 @media (max-width: 768px) {
+
   .prevButton,
   .nextButton {
     display: none !important;
@@ -91,6 +92,7 @@
 
 /* Show navigation on desktop only */
 @media (min-width: 769px) {
+
   .prevButton,
   .nextButton {
     display: flex !important;
@@ -98,12 +100,12 @@
     visibility: visible;
     pointer-events: auto;
   }
-  
+
   .container {
     position: relative;
     z-index: 1;
   }
-  
+
   .prevButton,
   .nextButton {
     position: absolute;
@@ -155,12 +157,10 @@
   content: '';
   /* Image placeholder - matches .imageWrapper height: 160px */
   height: 160px;
-  background: linear-gradient(
-    90deg,
-    rgba(200, 200, 200, 0.3) 0%,
-    rgba(180, 180, 180, 0.5) 50%,
-    rgba(200, 200, 200, 0.3) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(200, 200, 200, 0.3) 0%,
+      rgba(180, 180, 180, 0.5) 50%,
+      rgba(200, 200, 200, 0.3) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
 }
@@ -169,12 +169,10 @@
   content: '';
   flex: 1;
   margin: 0.5rem 0.625rem;
-  background: linear-gradient(
-    90deg,
-    rgba(200, 200, 200, 0.2) 0%,
-    rgba(180, 180, 180, 0.35) 50%,
-    rgba(200, 200, 200, 0.2) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(200, 200, 200, 0.2) 0%,
+      rgba(180, 180, 180, 0.35) 50%,
+      rgba(200, 200, 200, 0.2) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
   border-radius: 4px;
@@ -184,34 +182,15 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
 }
 
-/* Slide counter - bottom left corner */
+/* Slide counter - HIDDEN */
 .slideCounter {
-  position: absolute;
-  bottom: 8px;
-  left: 1rem;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 0.2rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.65rem;
-  font-weight: 500;
-  z-index: 15;
-  pointer-events: none;
-  letter-spacing: 0.02em;
-}
-
-/* Hide counter on desktop */
-@media (min-width: 768px) {
-  .slideCounter {
-    display: none;
-  }
+  display: none;
 }
 
 /* Mobile responsive */

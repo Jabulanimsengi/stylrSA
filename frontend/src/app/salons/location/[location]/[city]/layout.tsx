@@ -384,9 +384,12 @@ const CITY_DATA: Record<string, Record<string, {
 
 // Generate static params for all city pages
 export async function generateStaticParams() {
-  // Return empty array to disable static generation at build time
-  // Pages will be generated on-demand (ISR)
-  return [];
+  // Generate static pages for all salon location city pages
+  const { getAllSalonCityParams } = await import('@/lib/seo-generation');
+  return getAllSalonCityParams().map(({ province, city }) => ({
+    location: province,
+    city,
+  }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

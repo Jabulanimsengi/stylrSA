@@ -13,9 +13,9 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  // Return empty array to disable static generation at build time
-  // Pages will be generated on-demand (ISR)
-  return [];
+  // Generate static pages for all salon city pages (~48 pages)
+  const { getAllSalonCityParams } = await import('@/lib/seo-generation');
+  return getAllSalonCityParams();
 }
 
 export default async function SalonCityNearYouPage({ params }: Props) {

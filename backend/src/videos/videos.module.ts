@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { VideosController } from './videos.controller';
 import { VideosService } from './videos.service';
-import { VimeoService } from './vimeo.service';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [NotificationsModule],
+  imports: [NotificationsModule, CloudinaryModule],
   controllers: [VideosController],
-  providers: [VideosService, VimeoService],
-  exports: [VideosService, VimeoService],
+  providers: [VideosService],
+  exports: [VideosService],
 })
-export class VideosModule {}
+export class VideosModule { }

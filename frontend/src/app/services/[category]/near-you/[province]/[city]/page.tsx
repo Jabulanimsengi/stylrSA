@@ -13,9 +13,22 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  // Return empty array to disable static generation at build time
-  // Pages will be generated on-demand (ISR)
-  return [];
+  // Generate static pages for all service category + province + city combinations
+  // This generates ~768 pages (16 categories × ~48 cities)
+  const { getAllCategorySlugs } = await import('@/lib/nearYouContent');
+  const { getAllServiceCityParams } = await import('@/lib/seo-generation');
+
+  const categories = getAllCategorySlugs();
+  const cityParams = getAllServiceCityParams();
+
+  const params = [];
+  for (const category of categories) {
+    for (const { province, city } of cityParams) {
+      params.push({ category, province, city });
+    }
+  }
+
+  return params;
 }
 
 export default async function ServiceCityNearYouPage({ params }: Props) {

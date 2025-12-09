@@ -20,9 +20,9 @@ export const revalidate = 86400;
  * Other pages will be generated on-demand via ISR
  */
 export async function generateStaticParams() {
-  // Return empty array to disable static generation at build time
-  // Pages will be generated on-demand (ISR)
-  return [];
+  // Generate static pages for all 16 service categories
+  const { getAllStaticKeywordParams } = await import('@/lib/seo-generation');
+  return getAllStaticKeywordParams();
 }
 
 /**

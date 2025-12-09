@@ -1,0 +1,488 @@
+/**
+ * SEO Static Generation Utilities
+ * 
+ * This module provides functions to generate static params for SEO pages
+ * using local data (no backend API calls during build time).
+ * 
+ * This enables 10K+ static pages to be generated at build time for better SEO.
+ */
+
+import { PROVINCES, getAllCities } from './locationData';
+import { CATEGORY_INFO } from './nearYouContent';
+
+// All service category slugs (16 original categories from CATEGORY_INFO)
+export const ORIGINAL_CATEGORIES = Object.keys(CATEGORY_INFO);
+
+// Extended SEO keywords - specific high-volume services
+export const EXTENDED_KEYWORDS = [
+    // Braiding Styles (High Volume)
+    'knotless-braids',
+    'faux-locs',
+    'passion-twists',
+    'goddess-locs',
+    'butterfly-locs',
+    'soft-locs',
+    'spring-twists',
+    'senegalese-twists',
+    'marley-twists',
+    'tribal-braids',
+    'fulani-braids',
+    'feed-in-braids',
+    'stitch-braids',
+    'jumbo-braids',
+    'micro-braids',
+
+    // Locs/Dreadlocks (High Demand)
+    'dreadlocks',
+    'locs',
+    'loc-retwist',
+    'starter-locs',
+    'loc-maintenance',
+    'sisterlocks',
+    'interlocking-locs',
+
+    // Weaves & Installations (Critical)
+    'sew-in-weave',
+    'quick-weave',
+    'frontal-installation',
+    'closure-installation',
+    'tape-in-extensions',
+    'ponytail-installation',
+
+    // Nail Types (Popular)
+    'dip-powder-nails',
+    'sns-nails',
+    'polygel-nails',
+    'gel-extensions',
+    'french-tips',
+    'coffin-nails',
+    'stiletto-nails',
+
+    // Spa & Massage (High Intent)
+    'day-spa',
+    'spa-packages',
+    'couples-massage',
+    'full-body-massage',
+    'thai-massage',
+    'sports-massage',
+    'prenatal-massage',
+    'foot-massage',
+    'back-massage',
+    'aromatherapy-massage',
+
+    // Facials (Premium Services)
+    'hydrafacial',
+    'deep-cleansing-facial',
+    'anti-aging-facial',
+    'acne-facial',
+    'microdermabrasion',
+
+    // Barber (Men's High Volume)
+    'fade-haircut',
+    'taper-fade',
+    'skin-fade',
+    'line-up',
+    'shape-up',
+    'beard-grooming',
+    'boys-haircut',
+
+    // Lash & Brow Specifics
+    'classic-lashes',
+    'lash-fill',
+    'lash-tint',
+    'eyebrow-threading',
+    'eyebrow-waxing',
+    'eyebrow-tinting',
+    'ombre-brows',
+    'powder-brows',
+
+    // Aesthetics (Premium)
+    'lip-fillers',
+    'cheek-fillers',
+    'anti-wrinkle-injections',
+    'fat-freezing',
+    'body-contouring',
+
+    // Hair Treatments
+    'brazilian-blowout',
+    'hair-relaxer',
+    'silk-press',
+    'dominican-blowout',
+
+    // Waxing Specifics
+    'bikini-wax',
+    'hollywood-wax',
+    'leg-waxing',
+    'full-body-wax',
+    'mens-waxing',
+
+    // Additional High-Value
+    'afro-hair-salon',
+    'curly-hair-specialist',
+    'black-owned-salon',
+    'walk-in-salon',
+    'mobile-hairstylist',
+];
+
+// All SEO keywords combined (16 original + ~100 extended)
+export const SEO_KEYWORDS = [...ORIGINAL_CATEGORIES, ...EXTENDED_KEYWORDS];
+
+// HIGH PRIORITY keywords for static generation (most searched)
+// These get pre-rendered at build time, others use ISR fallback
+export const HIGH_PRIORITY_KEYWORDS = [
+    // Original categories (16) - always statically generate
+    ...ORIGINAL_CATEGORIES,
+    // Top searched extended keywords (add ~15 high-volume)
+    'knotless-braids',
+    'faux-locs',
+    'dreadlocks',
+    'sew-in-weave',
+    'gel-extensions',
+    'hydrafacial',
+    'fade-haircut',
+    'classic-lashes',
+    'brazilian-blowout',
+    'frontal-installation',
+    'loc-retwist',
+    'couples-massage',
+    'full-body-massage',
+    'afro-hair-salon',
+    'day-spa',
+];
+
+// Use this for static generation to keep build times reasonable
+// Full SEO_KEYWORDS are still valid at runtime via ISR
+export const STATIC_BUILD_KEYWORDS = HIGH_PRIORITY_KEYWORDS;
+
+// Job role keywords for SEO pages (expanded)
+export const JOB_ROLES = [
+    'hairdresser',
+    'nail-tech',
+    'makeup-artist',
+    'barber',
+    'massage-therapist',
+    'esthetician',
+    'lash-technician',
+    'brow-artist',
+    'braider',
+    'wig-specialist',
+    'beauty-professional',
+    // New job roles
+    'loctician',
+    'colorist',
+    'spa-therapist',
+    'beauty-therapist',
+    'wax-specialist',
+    'salon-manager',
+    'salon-receptionist',
+    'freelance-stylist',
+    'mobile-beautician',
+];
+
+// Get all province slugs
+export function getAllProvinces() {
+    return Object.keys(PROVINCES);
+}
+
+// Get all cities with their province slugs
+export function getAllCitiesWithProvinces() {
+    return getAllCities().map(city => ({
+        citySlug: city.slug,
+        provinceSlug: PROVINCES[
+            Object.keys(PROVINCES).find(
+                p => PROVINCES[p].cities.some(c => c.slug === city.slug)
+            ) || 'gauteng'
+        ]?.slug || 'gauteng',
+    }));
+}
+
+/**
+ * Generate static params for keyword-only pages
+ * Uses HIGH_PRIORITY_KEYWORDS for build, full SEO_KEYWORDS valid at runtime via ISR
+ */
+export function getAllStaticKeywordParams(): { keyword: string }[] {
+    return STATIC_BUILD_KEYWORDS.map(keyword => ({ keyword }));
+}
+
+/**
+ * Generate static params for keyword + province pages
+ * e.g., /haircuts-styling/gauteng, /knotless-braids/western-cape
+ */
+export function getAllKeywordProvinceParams(): { keyword: string; province: string }[] {
+    const provinces = getAllProvinces();
+    const params: { keyword: string; province: string }[] = [];
+
+    for (const keyword of STATIC_BUILD_KEYWORDS) {
+        for (const province of provinces) {
+            params.push({ keyword, province });
+        }
+    }
+
+    return params;
+}
+
+/**
+ * Generate static params for keyword + province + city pages
+ * e.g., /haircuts-styling/gauteng/johannesburg
+ */
+export function getAllKeywordCityParams(): { keyword: string; province: string; city: string }[] {
+    const params: { keyword: string; province: string; city: string }[] = [];
+
+    for (const keyword of STATIC_BUILD_KEYWORDS) {
+        for (const provinceSlug of Object.keys(PROVINCES)) {
+            const province = PROVINCES[provinceSlug];
+            for (const city of province.cities) {
+                params.push({
+                    keyword,
+                    province: provinceSlug,
+                    city: city.slug,
+                });
+            }
+        }
+    }
+
+    return params;
+}
+
+/**
+ * Generate static params for candidate location pages
+ * e.g., /candidates/gauteng, /candidates/gauteng/johannesburg
+ */
+export function getAllCandidateLocationParams(): { location: string[] }[] {
+    const params: { location: string[] }[] = [];
+
+    // Province-level pages
+    for (const provinceSlug of Object.keys(PROVINCES)) {
+        params.push({ location: [provinceSlug] });
+    }
+
+    // City-level pages
+    for (const provinceSlug of Object.keys(PROVINCES)) {
+        const province = PROVINCES[provinceSlug];
+        for (const city of province.cities) {
+            params.push({ location: [provinceSlug, city.slug] });
+        }
+    }
+
+    return params;
+}
+
+/**
+ * Generate static params for job pages
+ * e.g., /jobs/hairdresser/gauteng, /jobs/loctician/johannesburg
+ */
+export function getAllJobParams(): { slug: string[] }[] {
+    const params: { slug: string[] }[] = [];
+
+    for (const role of JOB_ROLES) {
+        // Role + Province
+        for (const provinceSlug of Object.keys(PROVINCES)) {
+            params.push({ slug: [role, provinceSlug] });
+        }
+
+        // Role + City
+        for (const provinceSlug of Object.keys(PROVINCES)) {
+            const province = PROVINCES[provinceSlug];
+            for (const city of province.cities) {
+                params.push({ slug: [role, city.slug] });
+            }
+        }
+    }
+
+    return params;
+}
+
+/**
+ * Generate static params for salon city pages
+ * e.g., /salons/near-you/gauteng/johannesburg
+ */
+export function getAllSalonCityParams(): { province: string; city: string }[] {
+    const params: { province: string; city: string }[] = [];
+
+    for (const provinceSlug of Object.keys(PROVINCES)) {
+        const province = PROVINCES[provinceSlug];
+        for (const city of province.cities) {
+            params.push({
+                province: provinceSlug,
+                city: city.slug,
+            });
+        }
+    }
+
+    return params;
+}
+
+/**
+ * Generate static params for service category + province pages
+ * e.g., /services/haircuts-styling/near-you/gauteng
+ */
+export function getAllServiceProvinceParams(): { province: string }[] {
+    const params: { province: string }[] = [];
+
+    for (const provinceSlug of Object.keys(PROVINCES)) {
+        params.push({ province: provinceSlug });
+    }
+
+    return params;
+}
+
+/**
+ * Generate static params for service category + province + city pages
+ * e.g., /services/haircuts-styling/near-you/gauteng/johannesburg
+ */
+export function getAllServiceCityParams(): { province: string; city: string }[] {
+    const params: { province: string; city: string }[] = [];
+
+    for (const provinceSlug of Object.keys(PROVINCES)) {
+        const province = PROVINCES[provinceSlug];
+        for (const city of province.cities) {
+            params.push({
+                province: provinceSlug,
+                city: city.slug,
+            });
+        }
+    }
+
+    return params;
+}
+
+// Log stats for debugging
+export function getStaticGenerationStats() {
+    return {
+        originalCategories: ORIGINAL_CATEGORIES.length,
+        extendedKeywords: EXTENDED_KEYWORDS.length,
+        totalKeywords: SEO_KEYWORDS.length,
+        jobRoles: JOB_ROLES.length,
+        provinces: Object.keys(PROVINCES).length,
+        cities: getAllCities().length,
+        totalKeywordPages: getAllStaticKeywordParams().length,
+        totalKeywordProvincePages: getAllKeywordProvinceParams().length,
+        totalKeywordCityPages: getAllKeywordCityParams().length,
+        totalCandidatePages: getAllCandidateLocationParams().length,
+        totalJobPages: getAllJobParams().length,
+        totalSalonCityPages: getAllSalonCityParams().length,
+        totalServiceProvincePages: getAllServiceProvinceParams().length * ORIGINAL_CATEGORIES.length,
+        totalServiceCityPages: getAllServiceCityParams().length * ORIGINAL_CATEGORIES.length,
+    };
+}
+
+/**
+ * Convert a slug to a human-readable name
+ * e.g., 'knotless-braids' -> 'Knotless Braids'
+ */
+export function slugToName(slug: string): string {
+    return slug
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+/**
+ * Get location info from local data
+ */
+export function getLocalLocationInfo(provinceSlug: string, citySlug?: string) {
+    const province = PROVINCES[provinceSlug];
+    if (!province) return null;
+
+    if (citySlug) {
+        const city = province.cities.find(c => c.slug === citySlug);
+        if (!city) return null;
+        return {
+            province: province.name,
+            provinceSlug: province.slug,
+            name: city.name,
+            slug: city.slug,
+            description: city.description || `${city.name}, ${province.name}`,
+        };
+    }
+
+    return {
+        province: province.name,
+        provinceSlug: province.slug,
+        name: province.name,
+        slug: province.slug,
+        description: province.description || `${province.name}, South Africa`,
+    };
+}
+
+/**
+ * Generate local SEO page content for keyword/province/city pages
+ * This is used as fallback when the backend API doesn't have the page
+ */
+export function generateLocalSeoPageContent(
+    keyword: string,
+    province: string,
+    city?: string
+) {
+    const keywordName = slugToName(keyword);
+    const location = getLocalLocationInfo(province, city);
+
+    if (!location) return null;
+
+    const locationName = location.name;
+    const provinceName = location.province;
+
+    // Generate H1 heading
+    const h1 = `${keywordName} in ${locationName}${city ? `, ${provinceName}` : ''}`;
+
+    // Generate meta title and description
+    const metaTitle = `${keywordName} in ${locationName} | Book Online | Stylr SA`;
+    const metaDescription = `Find the best ${keywordName.toLowerCase()} services in ${locationName}. Browse verified salons, compare prices, read reviews and book your appointment online. Stylr SA - South Africa's beauty marketplace.`;
+
+    // Generate intro text
+    const introText = `Looking for professional ${keywordName.toLowerCase()} services in ${locationName}? Stylr SA connects you with verified beauty professionals and salons offering ${keywordName.toLowerCase()} in ${locationName} and surrounding areas.
+
+Whether you need a quick appointment or want to browse multiple options, our platform makes it easy to find, compare, and book ${keywordName.toLowerCase()} services. All providers are verified and reviewed by real customers.`;
+
+    // Generate H2 headings
+    const h2Headings = [
+        `Why Choose ${keywordName} Services in ${locationName}?`,
+        `How to Book ${keywordName} Near You`,
+        `Popular ${keywordName} Styles and Options`,
+        `${keywordName} Prices in ${locationName}`,
+    ];
+
+    // Generate schema markup
+    const schemaMarkup = {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: `${keywordName} in ${locationName}`,
+        description: metaDescription,
+        areaServed: {
+            '@type': 'City',
+            name: locationName,
+            containedInPlace: {
+                '@type': 'AdministrativeArea',
+                name: provinceName,
+            },
+        },
+        provider: {
+            '@type': 'Organization',
+            name: 'Stylr SA',
+            url: 'https://www.stylrsa.co.za',
+        },
+    };
+
+    return {
+        h1,
+        metaTitle,
+        metaDescription,
+        introText,
+        h2Headings,
+        schemaMarkup,
+        serviceCount: 0,
+        salonCount: 0,
+        avgPrice: null,
+        keyword: {
+            keyword: keywordName,
+            slug: keyword,
+        },
+        location: {
+            name: locationName,
+            province: provinceName,
+            slug: city || province,
+        },
+        relatedServices: [],
+        nearbyLocations: [],
+    };
+}
