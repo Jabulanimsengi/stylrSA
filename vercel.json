@@ -4,9 +4,6 @@
     "installCommand": "npm install",
     "buildCommand": "npm run build",
     "outputDirectory": "frontend/.next",
-    "regions": [
-        "jnb1"
-    ],
     "headers": [
         {
             "source": "/sitemap(.*)xml",
