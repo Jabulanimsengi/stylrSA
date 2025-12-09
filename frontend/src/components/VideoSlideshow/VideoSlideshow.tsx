@@ -10,6 +10,10 @@ import OptimizedImage from '@/components/OptimizedImage/OptimizedImage';
 import styles from './VideoSlideshow.module.css';
 import { getSalonUrl } from '@/utils/salonUrl';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthModal } from '@/context/AuthModalContext';
+import { toast } from 'react-toastify';
+import { FaHeart, FaRegHeart } from 'react-icons/fa';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -41,9 +45,12 @@ export default function VideoSlideshow() {
   const [loadingState, setLoadingState] = useState<'pending' | 'loading' | 'done'>('pending');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<ServiceVideo | null>(null);
+  const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { authStatus } = useAuth();
+  const { openModal } = useAuthModal();
 
   useEffect(() => {
     fetchVideos();
@@ -72,6 +79,56 @@ export default function VideoSlideshow() {
   const handleCloseLightbox = () => {
     setIsLightboxOpen(false);
     setSelectedVideo(null);
+  };
+
+  const handleLikeClick = async (e: React.MouseEvent, videoId: string) => {
+    e.stopPropagation();
+
+    if (authStatus !== 'authenticated') {
+      toast.info('Please log in to like videos');
+      openModal('login');
+      return;
+    }
+
+    const isCurrentlyLiked = likedVideos.has(videoId);
+
+    // Optimistic update
+    setLikedVideos(prev => {
+      const newSet = new Set(prev);
+      if (isCurrentlyLiked) {
+        newSet.delete(videoId);
+      } else {
+        newSet.add(videoId);
+      }
+      return newSet;
+    });
+
+    try {
+      const endpoint = isCurrentlyLiked
+        ? `/api/videos/${videoId}/unlike`
+        : `/api/videos/${videoId}/like`;
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update like status');
+      }
+    } catch (error) {
+      // Revert on error
+      setLikedVideos(prev => {
+        const newSet = new Set(prev);
+        if (isCurrentlyLiked) {
+          newSet.add(videoId);
+        } else {
+          newSet.delete(videoId);
+        }
+        return newSet;
+      });
+      toast.error('Failed to update like. Please try again.');
+    }
   };
 
   // Don't render anything until we've started fetching
@@ -197,7 +254,15 @@ export default function VideoSlideshow() {
                     <div className={styles.videoBadge}>
                       <span className={styles.badgeLabel}>Video</span>
                     </div>
-                    {/* Always use video tag as we migrated to Cloudinary */}
+                    {/* Like button - top right */}
+                    <button
+                      className={`${styles.likeButton} ${likedVideos.has(video.id) ? styles.liked : ''}`}
+                      onClick={(e) => handleLikeClick(e, video.id)}
+                      aria-label={likedVideos.has(video.id) ? 'Unlike' : 'Like'}
+                    >
+                      {likedVideos.has(video.id) ? <FaHeart /> : <FaRegHeart />}
+                    </button>
+                    {/* Video player with proper aspect ratio */}
                     <div className={styles.videoElementWrapper}>
                       <video
                         src={video.videoUrl}

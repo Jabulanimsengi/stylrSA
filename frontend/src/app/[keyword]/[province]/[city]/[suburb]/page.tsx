@@ -14,13 +14,17 @@ interface PageProps {
   }>;
 }
 
-// Revalidate every 24 hours to reduce ISR writes
-export const revalidate = 86400;
+// Fully static - no ISR writes
+// Suburb pages are disabled for now to prevent ISR writes
+// They will return 404 until we add generateStaticParams
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+export const revalidate = false;
 
-/**
- * No static generation for suburbs - on-demand only
- * This route uses ISR to generate pages as they are requested
- */
+// Return empty array - no suburb pages generated at build time
+export async function generateStaticParams() {
+    return [];
+}
 
 /**
  * Generate metadata from cached SEO data

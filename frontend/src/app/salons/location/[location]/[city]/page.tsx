@@ -10,7 +10,12 @@ interface PageProps {
     }>;
 }
 
-// Fetch initial salons on server for better LCP
+// Fully static - no ISR writes
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+export const revalidate = false;
+
+// Fetch initial salons on server for better LCP (only at build time)
 async function getInitialSalons(cityName: string) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stylrsa.co.za';
     const isBuildPhase = process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build';
@@ -21,13 +26,19 @@ async function getInitialSalons(cityName: string) {
     }
     try {
         const res = await fetch(`${apiUrl}/api/salons/approved?city=${encodeURIComponent(cityName)}&limit=12`, {
-            next: { revalidate: 3600 }, // Cache for 1 hour to reduce ISR writes
+            cache: 'force-cache', // Static cache - no ISR
         });
         if (!res.ok) return [];
         return res.json();
     } catch {
         return [];
     }
+}
+
+// Generate all city pages at build time
+export async function generateStaticParams() {
+    const { getAllLocationCityParams } = await import('@/lib/seo-generation');
+    return getAllLocationCityParams();
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

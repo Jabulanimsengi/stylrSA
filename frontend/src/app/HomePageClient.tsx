@@ -20,6 +20,7 @@ import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { getCategorySlug } from '@/utils/categorySlug';
 import AdSense from '@/components/AdSense';
+import ServiceCategoryCircles from '@/components/ServiceCategoryCircles/ServiceCategoryCircles';
 
 // Lazy load below-the-fold components for better LCP
 
@@ -319,7 +320,10 @@ export default function HomePageClient({
 
       <FeaturedSalons initialSalons={initialFeaturedSalons} />
 
-      {/* Ad placement 1: After featured salons - user has seen main content */}
+      {/* Service Category Circles - Browse by category */}
+      <ServiceCategoryCircles />
+
+      {/* Ad placement 1: After categories - user has seen main content */}
       <AdSense slot="6873445391" format="auto" />
 
       {Object.keys(trendsData).length > 0 && (

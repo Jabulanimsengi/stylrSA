@@ -1,13 +1,17 @@
 import 'next-auth';
-import { DefaultSession } from 'next-auth';
 
 declare module 'next-auth' {
   interface Session {
     backendJwt?: string;
-    user: {
+    user?: {
       id?: string;
+      email?: string;
+      name?: string;
       role?: string;
-    } & DefaultSession['user'];
+    };
   }
 }
 
+declare module 'next-auth/react' {
+  export * from 'next-auth/react';
+}

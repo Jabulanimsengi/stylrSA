@@ -13,9 +13,10 @@ interface PageProps {
   }>;
 }
 
-// Use dynamic rendering with ISR - 24 hour revalidation to reduce writes
-export const dynamicParams = true;
-export const revalidate = 86400;
+// Fully static - no ISR, no runtime regeneration
+export const dynamic = 'force-static';
+export const dynamicParams = false; // Return 404 for unknown params
+export const revalidate = false; // Never revalidate - fully static
 
 /**
  * Generate static params for top 10 keywords × 3 major provinces only

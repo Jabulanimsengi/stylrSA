@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -31,11 +31,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    // Delay socket connection to not block initial page render
-    const connectionDelay = setTimeout(() => {
+    // Dynamically import socket.io-client to reduce initial bundle size
+    const connectionDelay = setTimeout(async () => {
+      const { io } = await import('socket.io-client');
+      
       const WS_URL = process.env.NEXT_PUBLIC_WS_URL || undefined;
       
-      const socketOptions: any = { 
+      const socketOptions: Parameters<typeof io>[1] = { 
         withCredentials: true,
         query: authStatus === 'authenticated' && userId ? { userId } : {},
         reconnection: true,
@@ -62,7 +64,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       newSocket.on('connect_error', () => {
-        // Silently handle - don't spam console in production
         reconnectAttempts.current++;
         setStatus({ isConnected: false, isRegistered: false });
       });

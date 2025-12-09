@@ -19,7 +19,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { useSession } from 'next-auth/react';
 import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 import { toFriendlyMessage } from '@/lib/errors';
@@ -432,14 +432,16 @@ export default function AdminPage() {
     // load saved views
     try { const raw = localStorage.getItem('admin-saved-views'); if (raw) setSavedViews(JSON.parse(raw)); } catch { }
 
-    // Realtime updates
+    // Realtime updates - dynamically import socket.io to reduce bundle size
     let socket: Socket | null = null;
-    try {
-      socket = io('/', { transports: ['websocket'], withCredentials: true });
-      const getAuthHeaders = (): Record<string, string> => {
-        return session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
-      };
-      socket.on('salon:deleted', async () => {
+    const initSocket = async () => {
+      try {
+        const { io } = await import('socket.io-client');
+        socket = io('/', { transports: ['websocket'], withCredentials: true });
+        const getAuthHeaders = (): Record<string, string> => {
+          return session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
+        };
+        socket.on('salon:deleted', async () => {
         try {
           const authHeaders = getAuthHeaders();
           const [allRes, sellersRes, delRes, deletedSellerRes] = await Promise.all([
@@ -486,7 +488,9 @@ export default function AdminPage() {
           if (sellerRes.ok) setDeletedSellers(ensureArray<any>(await sellerRes.json()));
         } catch { }
       });
-    } catch { }
+      } catch { }
+    };
+    initSocket();
 
     return () => { try { socket?.disconnect(); } catch { } };
   }, [authStatus, user, router, session?.backendJwt]);

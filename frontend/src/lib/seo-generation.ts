@@ -5,127 +5,22 @@
  * using local data (no backend API calls during build time).
  * 
  * This enables 10K+ static pages to be generated at build time for better SEO.
+ * 
+ * SEO_KEYWORDS is imported from seo-keywords.generated.ts which is auto-generated
+ * from the database using: npx ts-node scripts/sync-keywords-to-frontend.ts
  */
 
 import { PROVINCES, getAllCities } from './locationData';
 import { CATEGORY_INFO } from './nearYouContent';
+// Import synced keywords from database
+import { SEO_KEYWORDS as DB_KEYWORDS, SEO_KEYWORDS_SET, isValidKeyword } from './seo-keywords.generated';
+
+// Re-export the database synced keywords
+export const SEO_KEYWORDS = DB_KEYWORDS;
+export { SEO_KEYWORDS_SET, isValidKeyword };
 
 // All service category slugs (16 original categories from CATEGORY_INFO)
 export const ORIGINAL_CATEGORIES = Object.keys(CATEGORY_INFO);
-
-// Extended SEO keywords - specific high-volume services
-export const EXTENDED_KEYWORDS = [
-    // Braiding Styles (High Volume)
-    'knotless-braids',
-    'faux-locs',
-    'passion-twists',
-    'goddess-locs',
-    'butterfly-locs',
-    'soft-locs',
-    'spring-twists',
-    'senegalese-twists',
-    'marley-twists',
-    'tribal-braids',
-    'fulani-braids',
-    'feed-in-braids',
-    'stitch-braids',
-    'jumbo-braids',
-    'micro-braids',
-
-    // Locs/Dreadlocks (High Demand)
-    'dreadlocks',
-    'locs',
-    'loc-retwist',
-    'starter-locs',
-    'loc-maintenance',
-    'sisterlocks',
-    'interlocking-locs',
-
-    // Weaves & Installations (Critical)
-    'sew-in-weave',
-    'quick-weave',
-    'frontal-installation',
-    'closure-installation',
-    'tape-in-extensions',
-    'ponytail-installation',
-
-    // Nail Types (Popular)
-    'dip-powder-nails',
-    'sns-nails',
-    'polygel-nails',
-    'gel-extensions',
-    'french-tips',
-    'coffin-nails',
-    'stiletto-nails',
-
-    // Spa & Massage (High Intent)
-    'day-spa',
-    'spa-packages',
-    'couples-massage',
-    'full-body-massage',
-    'thai-massage',
-    'sports-massage',
-    'prenatal-massage',
-    'foot-massage',
-    'back-massage',
-    'aromatherapy-massage',
-
-    // Facials (Premium Services)
-    'hydrafacial',
-    'deep-cleansing-facial',
-    'anti-aging-facial',
-    'acne-facial',
-    'microdermabrasion',
-
-    // Barber (Men's High Volume)
-    'fade-haircut',
-    'taper-fade',
-    'skin-fade',
-    'line-up',
-    'shape-up',
-    'beard-grooming',
-    'boys-haircut',
-
-    // Lash & Brow Specifics
-    'classic-lashes',
-    'lash-fill',
-    'lash-tint',
-    'eyebrow-threading',
-    'eyebrow-waxing',
-    'eyebrow-tinting',
-    'ombre-brows',
-    'powder-brows',
-
-    // Aesthetics (Premium)
-    'lip-fillers',
-    'cheek-fillers',
-    'anti-wrinkle-injections',
-    'fat-freezing',
-    'body-contouring',
-
-    // Hair Treatments
-    'brazilian-blowout',
-    'hair-relaxer',
-    'silk-press',
-    'dominican-blowout',
-
-    // Waxing Specifics
-    'bikini-wax',
-    'hollywood-wax',
-    'leg-waxing',
-    'full-body-wax',
-    'mens-waxing',
-
-    // Additional High-Value
-    'afro-hair-salon',
-    'curly-hair-specialist',
-    'black-owned-salon',
-    'walk-in-salon',
-    'mobile-hairstylist',
-];
-
-// All SEO keywords combined (16 original + ~100 extended)
-export const SEO_KEYWORDS = [...ORIGINAL_CATEGORIES, ...EXTENDED_KEYWORDS];
 
 // HIGH PRIORITY keywords for static generation (most searched)
 // These get pre-rendered at build time, others use ISR fallback
@@ -293,6 +188,36 @@ export function getAllJobParams(): { slug: string[] }[] {
 }
 
 /**
+ * Generate static params for province pages
+ * e.g., /salons/location/gauteng
+ */
+export function getAllProvinceParams(): { location: string }[] {
+    return Object.keys(PROVINCES).map(provinceSlug => ({
+        location: provinceSlug,
+    }));
+}
+
+/**
+ * Generate static params for location city pages
+ * e.g., /salons/location/gauteng/johannesburg
+ */
+export function getAllLocationCityParams(): { location: string; city: string }[] {
+    const params: { location: string; city: string }[] = [];
+
+    for (const provinceSlug of Object.keys(PROVINCES)) {
+        const province = PROVINCES[provinceSlug];
+        for (const city of province.cities) {
+            params.push({
+                location: provinceSlug,
+                city: city.slug,
+            });
+        }
+    }
+
+    return params;
+}
+
+/**
  * Generate static params for salon city pages
  * e.g., /salons/near-you/gauteng/johannesburg
  */
@@ -350,8 +275,7 @@ export function getAllServiceCityParams(): { province: string; city: string }[] 
 export function getStaticGenerationStats() {
     return {
         originalCategories: ORIGINAL_CATEGORIES.length,
-        extendedKeywords: EXTENDED_KEYWORDS.length,
-        totalKeywords: SEO_KEYWORDS.length,
+        totalKeywords: SEO_KEYWORDS.length, // All keywords from database
         jobRoles: JOB_ROLES.length,
         provinces: Object.keys(PROVINCES).length,
         cities: getAllCities().length,
