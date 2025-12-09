@@ -68,6 +68,7 @@ export interface SeoPageCache {
 
 /**
  * Fetch cached SEO page data by URL
+ * Returns null on any error to allow local fallback generation
  */
 export async function getSeoPageByUrl(url: string): Promise<SeoPageCache | null> {
   if (shouldSkipFetch()) return null;
@@ -78,15 +79,13 @@ export async function getSeoPageByUrl(url: string): Promise<SeoPageCache | null>
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`Failed to fetch SEO page: ${response.statusText}`);
+      // Return null for any error (404, 500, etc.) to allow local fallback
+      return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching SEO page:', error);
+    // Silently return null to allow fallback - don't log during build
     return null;
   }
 }
@@ -172,6 +171,7 @@ export async function getTopCities(limit: number = 100): Promise<{ slug: string;
 
 /**
  * Get location by ID
+ * Returns null on any error to allow fallback
  */
 export async function getLocationById(id: number): Promise<SeoLocation | null> {
   if (shouldSkipFetch()) return null;
@@ -182,21 +182,18 @@ export async function getLocationById(id: number): Promise<SeoLocation | null> {
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`Failed to fetch location: ${response.statusText}`);
+      return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching location:', error);
     return null;
   }
 }
 
 /**
  * Get first cached page for a keyword (any location)
+ * Returns null on any error to allow fallback
  */
 export async function getFirstPageForKeyword(slug: string): Promise<SeoPageCache | null> {
   if (shouldSkipFetch()) return null;
@@ -207,21 +204,18 @@ export async function getFirstPageForKeyword(slug: string): Promise<SeoPageCache
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`Failed to fetch keyword page: ${response.statusText}`);
+      return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching keyword page:', error);
     return null;
   }
 }
 
 /**
  * Get keyword by slug
+ * Returns null on any error to allow fallback
  */
 export async function getKeywordBySlug(slug: string): Promise<SeoKeyword | null> {
   if (shouldSkipFetch()) return null;
@@ -232,15 +226,11 @@ export async function getKeywordBySlug(slug: string): Promise<SeoKeyword | null>
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`Failed to fetch keyword: ${response.statusText}`);
+      return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching keyword:', error);
     return null;
   }
 }
