@@ -40,6 +40,7 @@ export default function ChatWidget() {
   const socketStatus = useSocketStatus();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [launcherCollapsed, setLauncherCollapsed] = useState(false);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<MessageView[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -101,7 +102,7 @@ export default function ChatWidget() {
       });
       if (!res.ok) {
         let err: any = null;
-        try { err = await res.json(); } catch {}
+        try { err = await res.json(); } catch { }
         throw err || new Error("Failed to open chat");
       }
       const convo: Conversation = await res.json();
@@ -124,7 +125,7 @@ export default function ChatWidget() {
         console.error("Error fetching messages:", msgError);
         setMessages([]);
       }
-      
+
       setTimeout(() => scrollToBottom("auto"), 50);
       refreshConversations();
       if (convo.id) {
@@ -150,9 +151,9 @@ export default function ChatWidget() {
         setRecipient(
           other
             ? {
-                id: other.id,
-                name: `${other.firstName ?? ""} ${other.lastName ?? ""}`.trim() || other.email,
-              }
+              id: other.id,
+              name: `${other.firstName ?? ""} ${other.lastName ?? ""}`.trim() || other.email,
+            }
             : null,
         );
         setMessages(Array.isArray(msgs) ? msgs.map((m) => ({ ...m, pending: false, error: undefined })) : []);
@@ -339,12 +340,12 @@ export default function ChatWidget() {
   // Ensure messages are loaded when conversation is active
   useEffect(() => {
     if (!conversation?.id || !isOpen || isMinimized) return;
-    
+
     // Check if we've already loaded messages for this conversation
     if (loadedConversationRef.current === conversation.id && messages.length > 0) {
       return;
     }
-    
+
     const loadMessages = async () => {
       try {
         const msgs = await apiJson<ChatMessage[]>(`/api/chat/conversations/${conversation.id}`, {
@@ -394,10 +395,10 @@ export default function ChatWidget() {
     const recipientId = otherParticipant?.id || recipient?.id;
     if (!recipientId) return;
     if (!socket.connected) {
-      try { socket.connect(); } catch {}
+      try { socket.connect(); } catch { }
     }
     if (!socketStatus.isRegistered && userId) {
-      try { socket.emit("register", userId); } catch {}
+      try { socket.emit("register", userId); } catch { }
     }
     const tempId = `tmp-${Date.now()}`;
     const optimistic: MessageView = {
@@ -420,18 +421,46 @@ export default function ChatWidget() {
 
   if (!isOpen)
     return (
-      <button
-        className={styles.launcher}
-        onClick={() => {
-          if (authStatus !== "authenticated") {
-            toast.info("Please log in to view your messages.");
-          }
-          setIsOpen(true);
-          setIsMinimized(false);
-        }}
-      >
-        Messages
-      </button>
+      <div className={`${styles.launcher} ${launcherCollapsed ? styles.launcherCollapsed : ''}`}>
+        {launcherCollapsed ? (
+          <button
+            className={styles.launcherIconBtn}
+            onClick={() => {
+              setLauncherCollapsed(false);
+            }}
+            aria-label="Expand messages"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+        ) : (
+          <>
+            <button
+              className={styles.launcherMainBtn}
+              onClick={() => {
+                if (authStatus !== "authenticated") {
+                  toast.info("Please log in to view your messages.");
+                }
+                setIsOpen(true);
+                setIsMinimized(false);
+              }}
+            >
+              Messages
+            </button>
+            <button
+              className={styles.launcherCloseBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setLauncherCollapsed(true);
+              }}
+              aria-label="Collapse messages"
+            >
+              <FaTimes size={12} />
+            </button>
+          </>
+        )}
+      </div>
     );
 
   return (

@@ -46,18 +46,9 @@
 }
 
 .imageContainer {
-    display: flex;
-    height: 200px;
-}
-
-.imageHalf {
     position: relative;
-    flex: 1;
+    aspect-ratio: 4/3;
     overflow: hidden;
-}
-
-.imageHalf:first-child {
-    border-right: 2px solid white;
 }
 
 .image {
@@ -68,13 +59,57 @@
     position: absolute;
     top: 0.5rem;
     left: 0.5rem;
-    padding: 0.2rem 0.5rem;
-    background: rgba(0, 0, 0, 0.7);
+    padding: 0.25rem 0.6rem;
+    background: rgba(0, 0, 0, 0.75);
     color: white;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 600;
     border-radius: 4px;
-    z-index: 1;
+    z-index: 3;
+}
+
+/* Card navigation arrows */
+.navArrowCard {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.2s;
+    color: #333;
+    font-size: 1.25rem;
+    font-weight: bold;
+    opacity: 0;
+}
+
+.photoCard:hover .navArrowCard {
+    opacity: 1;
+}
+
+.navArrowCard:hover:not(:disabled) {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.navArrowCard:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.navPrevCard {
+    left: 0.5rem;
+}
+
+.navNextCard {
+    right: 0.5rem;
 }
 
 /* Card Content */
@@ -298,13 +333,16 @@
     }
 
     .photoGrid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
         padding: 1rem;
     }
 
-    .imageContainer {
-        height: 160px;
+    .navArrowCard {
+        opacity: 1;
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
     }
 
     .modalSingleImage {

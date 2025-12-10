@@ -38,6 +38,75 @@ interface BeforeAfterPhoto {
 
 type PhotoFilters = Partial<FilterValues> & { q?: string };
 
+// PhotoCard component - matches homepage BeforeAfterCard design
+function PhotoCard({
+    photo,
+    onFullView
+}: {
+    photo: BeforeAfterPhoto;
+    onFullView: (photo: BeforeAfterPhoto) => void;
+}) {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const images = [photo.beforeImageUrl, photo.afterImageUrl];
+    const labels = ['Before', 'After'];
+
+    const handlePrev = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImageIndex(0);
+    };
+
+    const handleNext = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImageIndex(1);
+    };
+
+    return (
+        <div className={styles.photoCard}>
+            <div className={styles.imageContainer} onClick={() => onFullView(photo)}>
+                <Image
+                    src={images[currentImageIndex]}
+                    alt={`${labels[currentImageIndex]} - ${photo.service?.title || 'Transformation'}`}
+                    fill
+                    className={styles.image}
+                    sizes="(max-width: 768px) 85vw, 280px"
+                />
+                <span className={styles.imageLabel}>{labels[currentImageIndex]}</span>
+
+                {/* Navigation arrows */}
+                <button
+                    className={`${styles.navArrowCard} ${styles.navPrevCard}`}
+                    onClick={handlePrev}
+                    disabled={currentImageIndex === 0}
+                    aria-label="View before image"
+                >
+                    ‹
+                </button>
+                <button
+                    className={`${styles.navArrowCard} ${styles.navNextCard}`}
+                    onClick={handleNext}
+                    disabled={currentImageIndex === 1}
+                    aria-label="View after image"
+                >
+                    ›
+                </button>
+            </div>
+            <div className={styles.cardContent}>
+                <Link href={getSalonUrl(photo.salon)} className={styles.cardTitle} onClick={(e) => e.stopPropagation()}>
+                    {photo.salon.name}
+                </Link>
+                <p className={styles.cardLocation}>
+                    {photo.salon.city}, {photo.salon.province}
+                </p>
+                {photo.service && (
+                    <p className={styles.cardMeta}>{photo.service.title}</p>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function BeforeAfterPageClient() {
     const [photos, setPhotos] = useState<BeforeAfterPhoto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -109,7 +178,7 @@ export default function BeforeAfterPageClient() {
         setCurrentImageIndex(1);
     };
 
-    const currentImage = selectedPhoto 
+    const currentImage = selectedPhoto
         ? (currentImageIndex === 0 ? selectedPhoto.beforeImageUrl : selectedPhoto.afterImageUrl)
         : '';
     const currentLabel = currentImageIndex === 0 ? 'Before' : 'After';
@@ -149,45 +218,11 @@ export default function BeforeAfterPageClient() {
             ) : (
                 <div className={styles.photoGrid}>
                     {photos.map((photo) => (
-                        <div
+                        <PhotoCard
                             key={photo.id}
-                            className={styles.photoCard}
-                            onClick={() => handlePhotoClick(photo)}
-                        >
-                            <div className={styles.imageContainer}>
-                                <div className={styles.imageHalf}>
-                                    <span className={styles.imageLabel}>Before</span>
-                                    <Image
-                                        src={photo.beforeImageUrl}
-                                        alt="Before"
-                                        fill
-                                        className={styles.image}
-                                        sizes="(max-width: 768px) 50vw, 200px"
-                                    />
-                                </div>
-                                <div className={styles.imageHalf}>
-                                    <span className={styles.imageLabel}>After</span>
-                                    <Image
-                                        src={photo.afterImageUrl}
-                                        alt="After"
-                                        fill
-                                        className={styles.image}
-                                        sizes="(max-width: 768px) 50vw, 200px"
-                                    />
-                                </div>
-                            </div>
-                            <div className={styles.cardContent}>
-                                <Link href={getSalonUrl(photo.salon)} className={styles.cardTitle}>
-                                    {photo.salon.name}
-                                </Link>
-                                <p className={styles.cardLocation}>
-                                    {photo.salon.city}, {photo.salon.province}
-                                </p>
-                                {photo.service && (
-                                    <p className={styles.cardMeta}>{photo.service.title}</p>
-                                )}
-                            </div>
-                        </div>
+                            photo={photo}
+                            onFullView={handlePhotoClick}
+                        />
                     ))}
                 </div>
             )}
@@ -202,7 +237,7 @@ export default function BeforeAfterPageClient() {
                                 <line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
                         </button>
-                        
+
                         {/* Single image display */}
                         <div className={styles.modalSingleImage}>
                             <span className={styles.modalLabel}>{currentLabel}</span>
@@ -213,9 +248,9 @@ export default function BeforeAfterPageClient() {
                                 className={styles.modalImage}
                                 sizes="90vw"
                             />
-                            
+
                             {/* Navigation arrows */}
-                            <button 
+                            <button
                                 className={`${styles.navArrow} ${styles.navPrev}`}
                                 onClick={handlePrevImage}
                                 disabled={currentImageIndex === 0}
@@ -225,7 +260,7 @@ export default function BeforeAfterPageClient() {
                                     <path d="M15 18l-6-6 6-6" />
                                 </svg>
                             </button>
-                            <button 
+                            <button
                                 className={`${styles.navArrow} ${styles.navNext}`}
                                 onClick={handleNextImage}
                                 disabled={currentImageIndex === 1}
@@ -239,12 +274,12 @@ export default function BeforeAfterPageClient() {
 
                         {/* Dots indicator */}
                         <div className={styles.dotsContainer}>
-                            <button 
+                            <button
                                 className={`${styles.dot} ${currentImageIndex === 0 ? styles.dotActive : ''}`}
                                 onClick={handlePrevImage}
                                 aria-label="Before"
                             />
-                            <button 
+                            <button
                                 className={`${styles.dot} ${currentImageIndex === 1 ? styles.dotActive : ''}`}
                                 onClick={handleNextImage}
                                 aria-label="After"

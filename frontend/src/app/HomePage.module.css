@@ -120,6 +120,7 @@
   background: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
+  border-radius: 0 40px 40px 0;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
@@ -369,16 +370,23 @@
   .heroSearchBox {
     max-width: 100%;
     border-radius: 28px;
+    flex-wrap: nowrap;
+    overflow: visible;
   }
 
   .heroSearchInput {
-    padding: 0.5rem 0.85rem;
+    padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
+    min-width: 0;
+    flex: 1;
   }
 
   .heroSearchButton {
-    padding: 0.5rem 0.85rem;
+    padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+    border-radius: 0 28px 28px 0;
   }
 
   .quickCategories {
@@ -453,13 +461,14 @@
   }
 
   .heroSearchInput {
-    padding: 0.45rem 0.7rem;
+    padding: 0.45rem 0.65rem;
     font-size: 0.75rem;
   }
 
   .heroSearchButton {
-    padding: 0.45rem 0.7rem;
+    padding: 0.45rem 0.65rem;
     font-size: 0.7rem;
+    flex-shrink: 0;
   }
 
   .quickCategoryBtn {
@@ -515,13 +524,14 @@
   }
 
   .heroSearchInput {
-    padding: 0.4rem 0.6rem;
+    padding: 0.4rem 0.55rem;
     font-size: 0.7rem;
   }
 
   .heroSearchButton {
-    padding: 0.4rem 0.6rem;
+    padding: 0.4rem 0.55rem;
     font-size: 0.65rem;
+    flex-shrink: 0;
   }
 
   .quickCategoryBtn {

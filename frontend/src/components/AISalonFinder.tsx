@@ -33,6 +33,7 @@ interface Message {
 export default function AISalonFinder() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [launcherCollapsed, setLauncherCollapsed] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -107,7 +108,7 @@ export default function AISalonFinder() {
 
   const fetchSalons = async (filters: Partial<FilterValues>) => {
     const params = new URLSearchParams();
-    
+
     if (filters.city) params.append('city', filters.city);
     if (filters.province) params.append('province', filters.province);
     if (filters.service) params.append('service', filters.service);
@@ -116,7 +117,7 @@ export default function AISalonFinder() {
     if (filters.priceMax) params.append('priceMax', filters.priceMax);
     if (filters.openNow) params.append('openNow', 'true');
     if (filters.offersMobile) params.append('offersMobile', 'true');
-    
+
     // Add location-based filtering if available
     if (filters.lat !== undefined && filters.lat !== null) {
       params.append('latitude', filters.lat.toString());
@@ -142,7 +143,7 @@ export default function AISalonFinder() {
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
-    
+
     // Pass user location context to chatbot
     const context = userLocation ? { userLocation } : undefined;
 
@@ -157,16 +158,16 @@ export default function AISalonFinder() {
 
     // Show typing indicator
     setIsTyping(true);
-    
+
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     // Parse intent with location context
     const intent = parseEnhancedInput(text, context);
-    
+
     // Add bot response
     addBotMessage(intent);
     setIsTyping(false);
-    
+
     // If we have filters, fetch and show salons
     if (intent.filters && Object.values(intent.filters).some(v => v && v !== '')) {
       // Add loading message
@@ -177,13 +178,13 @@ export default function AISalonFinder() {
         isLoading: true
       };
       setMessages(prev => [...prev, loadingMessage]);
-      
+
       // Fetch salons
       const salons = await fetchSalons(intent.filters);
-      
+
       // Remove loading message and add results
       setMessages(prev => prev.filter(m => m.id !== loadingMessage.id));
-      
+
       if (salons.length > 0) {
         const salonMessage: Message = {
           id: `salons-${Date.now()}`,
@@ -214,7 +215,7 @@ export default function AISalonFinder() {
 
     // Build search URL based on filters
     const params = new URLSearchParams();
-    
+
     if (filters.city) params.append('city', filters.city);
     if (filters.province) params.append('province', filters.province);
     if (filters.service) params.append('service', filters.service);
@@ -227,7 +228,7 @@ export default function AISalonFinder() {
     // Navigate to salons page with filters
     const searchUrl = `/salons?${params.toString()}`;
     router.push(searchUrl);
-    
+
     // Close chat
     setIsOpen(false);
   };
@@ -239,14 +240,37 @@ export default function AISalonFinder() {
 
   if (!isOpen) {
     return (
-      <button
-        className={styles.launcher}
-        onClick={() => setIsOpen(true)}
-        aria-label="Open AI Assistant"
-      >
-        <FaRobot className={styles.launcherIcon} />
-        <span className={styles.launcherText}>AI Assistant</span>
-      </button>
+      <div className={`${styles.launcher} ${launcherCollapsed ? styles.launcherCollapsed : ''}`}>
+        {launcherCollapsed ? (
+          <button
+            className={styles.launcherIconBtn}
+            onClick={() => setLauncherCollapsed(false)}
+            aria-label="Expand AI Assistant"
+          >
+            <FaRobot />
+          </button>
+        ) : (
+          <>
+            <button
+              className={styles.launcherMainBtn}
+              onClick={() => setIsOpen(true)}
+            >
+              <FaRobot className={styles.launcherIcon} />
+              <span className={styles.launcherText}>AI Assistant</span>
+            </button>
+            <button
+              className={styles.launcherCloseBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setLauncherCollapsed(true);
+              }}
+              aria-label="Collapse AI Assistant"
+            >
+              <FaTimes size={12} />
+            </button>
+          </>
+        )}
+      </div>
     );
   }
 
@@ -347,7 +371,7 @@ export default function AISalonFinder() {
                         <p key={i} className={styles.messageLine}>{line}</p>
                       ))}
                     </div>
-                    
+
                     {message.quickActions && message.quickActions.length > 0 && (
                       <div className={styles.quickActions}>
                         {message.quickActions.map((action, index) => (
@@ -371,7 +395,7 @@ export default function AISalonFinder() {
                 )}
               </div>
             ))}
-            
+
             {isTyping && (
               <div className={styles.messageWrapper}>
                 <div className={`${styles.message} ${styles.bot}`}>
@@ -383,7 +407,7 @@ export default function AISalonFinder() {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 

@@ -47,8 +47,7 @@
 
 .videoWrapper {
     position: relative;
-    aspect-ratio: 9/16;
-    max-height: 280px;
+    aspect-ratio: 16/9;
     background: #000;
     overflow: hidden;
 }
@@ -178,9 +177,7 @@
         padding: 1rem;
     }
 
-    .videoWrapper {
-        max-height: 200px;
-    }
+
 
     .cardContent {
         padding: 0.5rem;
@@ -201,7 +198,5 @@
         gap: 1rem;
     }
 
-    .videoWrapper {
-        max-height: 300px;
-    }
+
 }

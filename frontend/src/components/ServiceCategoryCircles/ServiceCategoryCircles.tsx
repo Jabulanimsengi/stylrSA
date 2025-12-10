@@ -5,20 +5,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import styles from './ServiceCategoryCircles.module.css';
 
-// Service categories with Unsplash images
+// Service categories with local images from public folder
 const HOMEPAGE_CATEGORIES = [
-    { name: 'Hair', slug: 'haircuts-styling', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=200&h=200&fit=crop', color: '#D4A574' },
-    { name: 'Braids', slug: 'braiding-weaving', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=200&h=200&fit=crop', color: '#8B4513' },
-    { name: 'Nails', slug: 'nail-care', image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=200&h=200&fit=crop', color: '#FF69B4' },
-    { name: 'Spa', slug: 'massage-body-treatments', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=200&h=200&fit=crop', color: '#20B2AA' },
-    { name: 'Makeup', slug: 'makeup-beauty', image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=200&h=200&fit=crop', color: '#C71585' },
-    { name: 'Facials', slug: 'skin-care-facials', image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=200&h=200&fit=crop', color: '#87CEEB' },
-    { name: 'Barber', slug: 'mens-grooming', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200&h=200&fit=crop', color: '#2F4F4F' },
+    { name: 'Hair', slug: 'haircuts-styling', image: '/hair.jpg', color: '#D4A574' },
+    { name: 'Braids', slug: 'braiding-weaving', image: '/braids.jpg', color: '#8B4513' },
+    { name: 'Nails', slug: 'nail-care', image: '/nails.jpg', color: '#FF69B4' },
+    { name: 'Spa', slug: 'massage-body-treatments', image: '/spa.jpg', color: '#20B2AA' },
+    { name: 'Makeup', slug: 'makeup-beauty', image: '/make_up.jpg', color: '#C71585' },
+    { name: 'Facials', slug: 'skin-care-facials', image: '/facials.jpg', color: '#87CEEB' },
+    { name: 'Barber', slug: 'mens-grooming', image: '/barber.jpg', color: '#2F4F4F' },
     { name: 'Waxing', slug: 'waxing-hair-removal', image: 'https://images.unsplash.com/photo-1519824145371-296894a0daa9?w=200&h=200&fit=crop', color: '#DDA0DD' },
-    { name: 'Bridal', slug: 'bridal-services', image: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=200&h=200&fit=crop', color: '#FFD700' },
-    { name: 'Wigs', slug: 'wig-installations', image: 'https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?w=200&h=200&fit=crop', color: '#CD853F' },
-    { name: 'Natural Hair', slug: 'natural-hair-specialists', image: 'https://images.unsplash.com/photo-1522337094846-8a818192de1f?w=200&h=200&fit=crop', color: '#228B22' },
-    { name: 'Lashes', slug: 'lashes-brows', image: 'https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=200&h=200&fit=crop', color: '#9370DB' },
+    { name: 'Bridal', slug: 'bridal-services', image: '/bridal.jpg', color: '#FFD700' },
+    { name: 'Wigs', slug: 'wig-installations', image: '/wig.jpg', color: '#CD853F' },
+    { name: 'Natural Hair', slug: 'natural-hair-specialists', image: '/natural_hair.jpg', color: '#228B22' },
+    { name: 'Lashes', slug: 'lashes-brows', image: '/lashes.jpg', color: '#9370DB' },
     { name: 'Aesthetics', slug: 'aesthetics-advanced-skin', image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=200&h=200&fit=crop', color: '#00CED1' },
     { name: 'Tattoos', slug: 'tattoos-piercings', image: 'https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=200&h=200&fit=crop', color: '#2F4F4F' },
     { name: 'Wellness', slug: 'wellness-holistic-spa', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=200&h=200&fit=crop', color: '#9370DB' },
@@ -92,7 +92,7 @@ export default function ServiceCategoryCircles() {
                                         width={90}
                                         height={90}
                                         className={styles.categoryImage}
-                                        unoptimized
+                                        quality={75}
                                     />
                                 </div>
                                 <p className={styles.categoryName}>{category.name}</p>
