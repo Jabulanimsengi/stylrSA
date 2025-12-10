@@ -78,7 +78,7 @@ export default function HomePageClient({
 
   // Hero search autocomplete state
   const [heroSearchQuery, setHeroSearchQuery] = useState('');
-  const [heroSuggestions, setHeroSuggestions] = useState<{ id: string; title: string; salon?: string }[]>([]);
+  const [heroSuggestions, setHeroSuggestions] = useState<{ id: string; title: string; salon?: string; type: 'service' | 'category'; slug?: string }[]>([]);
   const [showHeroSuggestions, setShowHeroSuggestions] = useState(false);
   const [isHeroSearching, setIsHeroSearching] = useState(false);
   const heroSearchRef = useRef<HTMLDivElement>(null);
@@ -124,9 +124,29 @@ export default function HomePageClient({
     }
   }, []);
 
+  // Categories for search autocomplete
+  const SEARCHABLE_CATEGORIES = [
+    { name: 'Hair', slug: 'haircuts-styling' },
+    { name: 'Braids', slug: 'braiding-weaving' },
+    { name: 'Nails', slug: 'nail-care' },
+    { name: 'Spa', slug: 'massage-body-treatments' },
+    { name: 'Makeup', slug: 'makeup-beauty' },
+    { name: 'Facials', slug: 'skin-care-facials' },
+    { name: 'Barber', slug: 'mens-grooming' },
+    { name: 'Waxing', slug: 'waxing-hair-removal' },
+    { name: 'Bridal', slug: 'bridal-services' },
+    { name: 'Wigs', slug: 'wig-installations' },
+    { name: 'Natural Hair', slug: 'natural-hair-specialists' },
+    { name: 'Lashes', slug: 'lashes-brows' },
+    { name: 'Aesthetics', slug: 'aesthetics-advanced-skin' },
+    { name: 'Tattoos', slug: 'tattoos-piercings' },
+    { name: 'Wellness', slug: 'wellness-holistic-spa' },
+    { name: 'Color', slug: 'hair-color-treatments' },
+  ];
+
   // Hero search autocomplete effect
   useEffect(() => {
-    const query = heroSearchQuery.trim();
+    const query = heroSearchQuery.trim().toLowerCase();
     if (query.length < 2) {
       setHeroSuggestions([]);
       setShowHeroSuggestions(false);
@@ -137,19 +157,37 @@ export default function HomePageClient({
     const timeoutId = setTimeout(async () => {
       setIsHeroSearching(true);
       try {
+        // Filter matching categories
+        const matchingCategories = SEARCHABLE_CATEGORIES
+          .filter(cat => cat.name.toLowerCase().includes(query))
+          .slice(0, 3)
+          .map(cat => ({
+            id: `cat-${cat.slug}`,
+            title: cat.name,
+            type: 'category' as const,
+            slug: cat.slug
+          }));
+
+        // Fetch matching services
         const res = await fetch(`/api/services/autocomplete?q=${encodeURIComponent(query)}`, {
           signal: controller.signal
         });
+
+        let serviceSuggestions: typeof heroSuggestions = [];
         if (res.ok) {
           const data = await res.json();
-          const suggestions = (data || []).map((item: any) => ({
+          serviceSuggestions = (data || []).slice(0, 5).map((item: any) => ({
             id: item.id || `suggestion-${Math.random()}`,
             title: item.title || '',
-            salon: item.salon?.name || item.salonName || undefined
+            salon: item.salon?.name || item.salonName || undefined,
+            type: 'service' as const
           })).filter((s: any) => s.title);
-          setHeroSuggestions(suggestions);
-          setShowHeroSuggestions(suggestions.length > 0);
         }
+
+        // Combine categories first, then services
+        const allSuggestions = [...matchingCategories, ...serviceSuggestions];
+        setHeroSuggestions(allSuggestions);
+        setShowHeroSuggestions(allSuggestions.length > 0);
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
           console.error('Autocomplete error:', error);
@@ -359,15 +397,22 @@ export default function HomePageClient({
                   {heroSuggestions.map((suggestion) => (
                     <li
                       key={suggestion.id}
-                      className={styles.heroSuggestionItem}
+                      className={`${styles.heroSuggestionItem} ${suggestion.type === 'category' ? styles.categorySuggestion : ''}`}
                       onMouseDown={(e) => {
                         e.preventDefault();
                         setHeroSearchQuery(suggestion.title);
                         setShowHeroSuggestions(false);
-                        router.push(`/services?service=${encodeURIComponent(suggestion.title)}`);
+                        if (suggestion.type === 'category' && suggestion.slug) {
+                          router.push(`/services/${suggestion.slug}`);
+                        } else {
+                          router.push(`/services?service=${encodeURIComponent(suggestion.title)}`);
+                        }
                       }}
                     >
                       <span className={styles.heroSuggestionTitle}>{suggestion.title}</span>
+                      {suggestion.type === 'category' && (
+                        <span className={styles.categoryBadge}>Category</span>
+                      )}
                     </li>
                   ))}
                 </ul>

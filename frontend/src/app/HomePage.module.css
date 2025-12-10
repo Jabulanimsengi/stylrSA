@@ -172,6 +172,25 @@
   color: var(--color-text-muted);
 }
 
+.categorySuggestion {
+  background: var(--soft-pastel-teal, #e6f9f9);
+}
+
+.categorySuggestion:hover {
+  background: var(--soft-pastel-teal, #d0f4f4);
+}
+
+.categoryBadge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--muted-teal, #3d9a9a);
+  background: rgba(61, 154, 154, 0.15);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Quick Category Buttons */
 .quickCategories {
   display: flex;

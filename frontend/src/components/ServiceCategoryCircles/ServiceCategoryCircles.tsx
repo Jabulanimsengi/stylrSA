@@ -22,7 +22,7 @@ const HOMEPAGE_CATEGORIES = [
     { name: 'Aesthetics', slug: 'aesthetics-advanced-skin', image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=200&h=200&fit=crop', color: '#00CED1' },
     { name: 'Tattoos', slug: 'tattoos-piercings', image: 'https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=200&h=200&fit=crop', color: '#2F4F4F' },
     { name: 'Wellness', slug: 'wellness-holistic-spa', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=200&h=200&fit=crop', color: '#9370DB' },
-    { name: 'Color', slug: 'hair-color-treatments', image: 'https://images.unsplash.com/photo-1562322140-8baeacacf67c?w=200&h=200&fit=crop', color: '#FF6347' },
+    { name: 'Color', slug: 'hair-color-treatments', image: '/hair_color.jpg', color: '#FF6347' },
 ];
 
 export default function ServiceCategoryCircles() {
