@@ -32,6 +32,7 @@ import SkipToContent from '@/components/SkipToContent/SkipToContent';
 import DevTools from '@/components/DevTools/DevTools';
 import BackendStatus from '@/components/DevTools/BackendStatus';
 import RequestTop10Button from '@/components/RequestTop10/RequestTop10Button';
+import EmailVerificationBannerWrapper from '@/components/EmailVerificationBannerWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -153,6 +154,7 @@ export default function RootLayout({
                       <div className="app-shell">
                         <TopNav />
                         <Navbar />
+                        <EmailVerificationBannerWrapper />
                         <MobileNavIcons />
                         <div className="app-content">
                           <main className="main-content" id="main-content">{children}</main>

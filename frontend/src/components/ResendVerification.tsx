@@ -5,6 +5,7 @@ import styles from '../app/auth.module.css';
 import { toast } from 'react-toastify';
 import { apiFetch } from '@/lib/api';
 import VerifyEmailCode from './VerifyEmailCode';
+import { FaCheckCircle } from 'react-icons/fa';
 
 interface ResendVerificationProps {
   onClose?: () => void;
@@ -15,11 +16,13 @@ export default function ResendVerification({ onClose }: ResendVerificationProps)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showVerification, setShowVerification] = useState(false);
+  const [alreadyVerified, setAlreadyVerified] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setAlreadyVerified(false);
 
     try {
       const res = await apiFetch('/api/auth/resend-verification', {
@@ -33,17 +36,23 @@ export default function ResendVerification({ onClose }: ResendVerificationProps)
       setShowVerification(true);
     } catch (err: any) {
       console.error('Resend verification error:', err);
-      
+
       let msg = 'Failed to resend verification code.';
-      
+
       if (err?.message) {
         msg = err.message;
       } else if (typeof err === 'string') {
         msg = err;
       }
-      
-      setError(msg);
-      toast.error(msg);
+
+      // Check if already verified
+      if (msg.toLowerCase().includes('already verified')) {
+        setAlreadyVerified(true);
+        toast.success('Your email is already verified!');
+      } else {
+        setError(msg);
+        toast.error(msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +70,28 @@ export default function ResendVerification({ onClose }: ResendVerificationProps)
     setEmail('');
   };
 
+  // Show success message if already verified
+  if (alreadyVerified) {
+    return (
+      <div className={styles.card} style={{ textAlign: 'center' }}>
+        <FaCheckCircle style={{ fontSize: '4rem', color: '#10b981', marginBottom: '1rem' }} />
+        <h1 className={styles.title}>Email Already Verified!</h1>
+        <p style={{ marginBottom: '1.5rem', color: '#4D4952' }}>
+          Your email address is already verified. You can log in now.
+        </p>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-primary"
+          >
+            Go to Login
+          </button>
+        )}
+      </div>
+    );
+  }
+
   if (showVerification) {
     return <VerifyEmailCode email={email} onVerified={handleVerified} onCancel={handleCancelVerification} />;
   }
@@ -71,14 +102,14 @@ export default function ResendVerification({ onClose }: ResendVerificationProps)
       <p style={{ marginBottom: '1.5rem', color: '#4D4952', textAlign: 'center' }}>
         Enter your email address and we&apos;ll send you a new 6-digit verification code.
       </p>
-      
+
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.inputGroup}>
           <label htmlFor="email" className={styles.label}>Email address</label>
-          <input 
-            id="email" 
-            type="email" 
-            required 
+          <input
+            id="email"
+            type="email"
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={styles.input}

@@ -29,12 +29,14 @@ export default function ForgotPasswordPage() {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to send reset instructions.');
       }
-      
+
       const data = await res.json();
 
-      setSuccess('If an account with that email exists, a reset token has been generated. Please check the console for the token.');
-      // In a real application, you would not log this to the console.
-      console.log('Password Reset Token:', data.token);
+      setSuccess('If an account with that email exists, we\'ve sent password reset instructions. Please check your inbox (and spam folder).');
+      // Reset token is sent via email - console log is for dev debugging only
+      if (data.token) {
+        console.log('[DEV] Password Reset Token:', data.token);
+      }
 
     } catch (err: any) {
       setError(err.message);
@@ -47,6 +49,9 @@ export default function ForgotPasswordPage() {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>Forgot Password</h1>
+        <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#666', fontSize: '0.9rem' }}>
+          Enter your email address and we'll send you a link to reset your password.
+        </p>
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputGroup}>
             <label htmlFor="email" className={styles.label}>
@@ -56,9 +61,10 @@ export default function ForgotPasswordPage() {
               id="email" type="email" required value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={styles.input}
+              placeholder="your.email@example.com"
             />
           </div>
-          
+
           {error && <p className={styles.errorMessage}>{error}</p>}
           {success && <p className={styles.successMessage}>{success}</p>}
 
@@ -67,8 +73,9 @@ export default function ForgotPasswordPage() {
               type="submit"
               disabled={isLoading}
               className="btn btn-primary"
+              style={{ width: '100%' }}
             >
-              {isLoading ? 'Sending...' : 'Send Reset Instructions'}
+              {isLoading ? 'Sending...' : 'Send Reset Link'}
             </button>
           </div>
         </form>

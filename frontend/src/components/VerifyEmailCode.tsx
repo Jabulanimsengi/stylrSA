@@ -67,7 +67,7 @@ export default function VerifyEmailCode({ email, onVerified, onCancel }: VerifyE
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const verificationCode = code.join('');
-    
+
     if (verificationCode.length !== 6) {
       setError('Please enter all 6 digits');
       return;
@@ -128,11 +128,14 @@ export default function VerifyEmailCode({ email, onVerified, onCancel }: VerifyE
       <div className={styles.iconWrapper}>
         <div className={styles.icon}>📧</div>
       </div>
-      
+
       <h2 className={styles.title}>Verify Your Email</h2>
       <p className={styles.description}>
         We've sent a 6-digit verification code to<br />
         <strong>{email}</strong>
+      </p>
+      <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: '1.25rem' }}>
+        Can't find it? Check your spam or junk folder.
       </p>
 
       <form onSubmit={handleSubmit} className={styles.form}>

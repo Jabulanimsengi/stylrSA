@@ -24,6 +24,8 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   profileImage?: string;
+  emailVerified?: boolean;
+  salonId?: string | null;
   sellerPlanCode?: PlanCode | null;
   sellerPlanPriceCents?: number | null;
   sellerPlanPaymentStatus?: PlanPaymentStatus | null;

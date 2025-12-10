@@ -447,12 +447,12 @@
 @media (max-width: 768px) {
   .section {
     padding-inline: 0.5rem;
-    padding-block: 0.5rem;
+    padding-block: 0.35rem;
   }
 
   .sectionTitle {
     font-size: 0.95rem;
-    margin-bottom: 0.625rem;
+    margin-bottom: 0.5rem;
   }
 
   .card {
