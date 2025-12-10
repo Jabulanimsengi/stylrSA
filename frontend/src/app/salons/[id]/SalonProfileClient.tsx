@@ -41,7 +41,7 @@ import SocialShare from '@/components/SocialShare/SocialShare';
 import VerificationBadge from '@/components/VerificationBadge/VerificationBadge';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import TeamMembers from '@/components/TeamMembers/TeamMembers';
-import AdSense from '@/components/AdSense';
+
 import BeforeAfterStories from '@/components/BeforeAfterStories/BeforeAfterStories';
 
 type Props = {
@@ -938,8 +938,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 <TeamMembers salonId={salon.id} isEditable={false} />
               </section>
 
-              {/* Ad placement: After team members, before details */}
-              <AdSense slot="6873445391" format="auto" />
+
 
               <section>
                 <h2 className={styles.sectionTitle}>Details</h2>

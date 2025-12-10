@@ -19,7 +19,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { getCategorySlug } from '@/utils/categorySlug';
-import AdSense from '@/components/AdSense';
+
 import ServiceCategoryCircles from '@/components/ServiceCategoryCircles/ServiceCategoryCircles';
 
 // Lazy load below-the-fold components for better LCP
@@ -428,8 +428,7 @@ export default function HomePageClient({
       {/* Service Category Circles - Browse by category */}
       <ServiceCategoryCircles />
 
-      {/* Ad placement 1: After categories - user has seen main content */}
-      <AdSense slot="6873445391" format="auto" />
+
 
       {Object.keys(trendsData).length > 0 && (
         <>
@@ -482,8 +481,7 @@ export default function HomePageClient({
 
       <BeforeAfterSlideshow initialPhotos={initialBeforeAfter} />
 
-      {/* Ad placement 2: After slideshow - engaged users scrolling */}
-      <AdSense slot="6873445391" format="auto" />
+
 
       <VideoSlideshow />
 

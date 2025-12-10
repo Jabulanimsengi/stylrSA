@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuthModal } from "@/context/AuthModalContext";
 import EmptyState from "@/components/EmptyState/EmptyState";
 import { getCategoryNameFromSlug } from "@/utils/categorySlug";
-import AdSense from "@/components/AdSense";
+
 
 const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
 
@@ -322,8 +322,7 @@ function ServicesPageContent() {
         )}
       </div>
 
-      {/* Ad placement: After services grid */}
-      {services.length > 0 && <AdSense slot="6873445391" format="auto" />}
+
 
       {lightboxOpen && (
         <ImageLightbox

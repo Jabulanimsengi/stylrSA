@@ -25,7 +25,7 @@ import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import ReviewBadge from '@/components/ReviewBadge/ReviewBadge';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import EmptyState from '@/components/EmptyState/EmptyState';
-import AdSense from '@/components/AdSense';
+
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
@@ -327,9 +327,6 @@ export default function SalonsPageClient() {
                     })}
                 </div>
             )}
-
-            {/* Ad placement: After salons grid */}
-            {salons.length > 0 && <AdSense slot="6873445391" format="auto" />}
         </div>
     );
 }
