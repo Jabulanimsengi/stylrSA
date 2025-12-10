@@ -20,7 +20,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
   const [service, setService] = useState('');
   const [offersMobile, setOffersMobile] = useState(false);
   const fetchedLocationsRef = useRef(false);
-  
+
   // Use geolocation hook
   const { coordinates, locationName, isLoading: isGeoLoading, isReverseGeocoding, requestLocation } = useGeolocation();
 
@@ -29,11 +29,11 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
     // Store original values
     const originalOverflow = document.documentElement.style.overflow;
     const originalBodyOverflow = document.body.style.overflow;
-    
+
     // Prevent scrolling
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    
+
     // Cleanup
     return () => {
       document.documentElement.style.overflow = originalOverflow;
@@ -57,6 +57,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
   }, []);
 
   const handleSearch = () => {
+    console.log('[MobileFilter] handleSearch called');
     const filters: FilterValues = {
       province,
       city,
@@ -70,6 +71,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
       lat: coordinates?.latitude ?? null,
       lon: coordinates?.longitude ?? null,
     };
+    console.log('[MobileFilter] Calling onSearch with filters:', filters);
     onSearch(filters);
     onClose();
   };
@@ -79,7 +81,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
       alert('Geolocation is not supported by your browser.');
       return;
     }
-    
+
     // Track usage analytics
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'geolocation_requested', {
@@ -88,7 +90,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
         page_location: window.location.pathname
       });
     }
-    
+
     requestLocation();
   };
 
@@ -100,7 +102,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
 
   return (
     <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={styles.container}>
+      <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <button onClick={onClose} className={styles.closeButton}>
             &times;
@@ -174,13 +176,14 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
         </div>
 
         <div className={styles.footer}>
-          <button 
-            onClick={handleNearMe} 
+          <button
+            type="button"
+            onClick={handleNearMe}
             disabled={isGeoLoading}
             className={styles.nearMeButton}
-            style={{ 
-              marginBottom: '0.75rem', 
-              backgroundColor: '#28a745', 
+            style={{
+              marginBottom: '0.75rem',
+              backgroundColor: '#28a745',
               color: 'white',
               padding: '0.75rem',
               border: 'none',
@@ -200,7 +203,7 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
               '📍 Near Me'
             )}
           </button>
-          <button onClick={handleSearch} className={styles.searchButton}>
+          <button type="button" onClick={handleSearch} className={styles.searchButton}>
             Search
           </button>
         </div>

@@ -14,16 +14,14 @@ interface PageProps {
   }>;
 }
 
-// Fully static - no ISR writes
-// Suburb pages are disabled for now to prevent ISR writes
-// They will return 404 until we add generateStaticParams
-export const dynamic = 'force-static';
-export const dynamicParams = false;
-export const revalidate = false;
+// ISR - suburb pages generated on-demand only
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache for 24 hours
 
-// Return empty array - no suburb pages generated at build time
+// No suburb pages pre-built - all generated on-demand
 export async function generateStaticParams() {
-    return [];
+  return [];
 }
 
 /**

@@ -9,23 +9,17 @@ interface PageProps {
     }>;
 }
 
-// Fully static - no ISR writes
-export const dynamic = 'force-static';
-export const dynamicParams = false;
-export const revalidate = false;
+// ISR - generate crucial pages at build, rest on-demand
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache for 24 hours
 
 // Fetch initial salons on server for better LCP (only at build time)
 async function getInitialSalons(provinceName: string) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stylrsa.co.za';
-    const isBuildPhase = process.env.IS_BUILD_PHASE === 'true' || process.env.NEXT_PHASE === 'phase-production-build';
-    
-    // Only skip fetching during build time when API is localhost
-    if (isBuildPhase && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
-        return [];
-    }
     try {
         const res = await fetch(`${apiUrl}/api/salons/approved?province=${encodeURIComponent(provinceName)}&limit=12`, {
-            cache: 'force-cache', // Static cache - no ISR
+            next: { revalidate: 3600 },
         });
         if (!res.ok) return [];
         return res.json();
@@ -34,10 +28,11 @@ async function getInitialSalons(provinceName: string) {
     }
 }
 
-// Generate all province pages at build time
+// Pre-build only 9 province pages
+const PROVINCES = ['gauteng', 'western-cape', 'kwazulu-natal', 'eastern-cape', 'mpumalanga', 'limpopo', 'north-west', 'free-state', 'northern-cape'];
+
 export async function generateStaticParams() {
-    const { getAllProvinceParams } = await import('@/lib/seo-generation');
-    return getAllProvinceParams();
+    return PROVINCES.map(location => ({ location }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

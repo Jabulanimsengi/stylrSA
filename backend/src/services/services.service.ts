@@ -284,6 +284,8 @@ export class ServicesService {
 
     const where: any = {
       approvalStatus: 'APPROVED',
+      // Only include services with images (exclude menu-style listings)
+      images: { isEmpty: false },
     };
 
     if (q) {

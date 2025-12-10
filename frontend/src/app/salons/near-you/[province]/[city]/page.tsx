@@ -5,19 +5,18 @@ import { getAllProvinceSlugs } from '@/lib/nearYouContent';
 import { getCitiesByProvince } from '@/lib/locationData';
 import styles from '@/app/salons/SalonsPage.module.css';
 
-// Fully static - no ISR writes
-export const dynamic = 'force-static';
-export const dynamicParams = false;
-export const revalidate = false;
+// ISR - all pages generated on-demand
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache for 24 hours
 
 type Props = {
   params: Promise<{ province: string; city: string }>;
 };
 
+// No pre-built pages - all generated on-demand
 export async function generateStaticParams() {
-  // Generate static pages for all salon city pages (~48 pages)
-  const { getAllSalonCityParams } = await import('@/lib/seo-generation');
-  return getAllSalonCityParams();
+  return [];
 }
 
 export default async function SalonCityNearYouPage({ params }: Props) {

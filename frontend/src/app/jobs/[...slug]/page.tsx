@@ -25,9 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-    // Generate static pages for all job role + location combinations (~627 pages)
-    const { getAllJobParams } = await import('@/lib/seo-generation');
-    return getAllJobParams();
+    // All job pages generated on-demand for faster builds
+    return [];
 }
 
 export default function DynamicJobPage({ params }: Props) {

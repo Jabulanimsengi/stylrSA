@@ -49,12 +49,12 @@ function ServicesPageContent() {
   const derivedFilters = useMemo<FilterValues>(() => {
     const categoryParam = params.get("category") ?? "";
     // Convert category slug to category name if it looks like a slug
-    const categoryValue = categoryParam && categoryParam.includes('-') 
+    const categoryValue = categoryParam && categoryParam.includes('-')
       ? (getCategoryNameFromSlug(categoryParam) ?? categoryParam)
       : categoryParam;
-    
+
     console.log('[ServicesPage] Category param:', categoryParam, '-> Category value:', categoryValue);
-    
+
     return {
       province: params.get("province") ?? "",
       city: params.get("city") ?? "",
@@ -133,13 +133,13 @@ function ServicesPageContent() {
         isFetchingRef.current = false;
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const newKey = filtersToKey(derivedFilters);
     const currentKey = filtersToKey(activeFilters);
-    
+
     // Only update if filters actually changed
     if (newKey !== currentKey) {
       setActiveFilters(derivedFilters);
@@ -148,7 +148,7 @@ function ServicesPageContent() {
 
   useEffect(() => {
     void fetchServices(activeFilters);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFiltersKey]); // Use the memoized key instead of the object
 
   useEffect(() => {
@@ -156,7 +156,7 @@ function ServicesPageContent() {
     const handler = () => { void fetchServices(activeFilters); };
     socket.on('visibility:updated', handler);
     return () => { socket.off('visibility:updated', handler); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, activeFiltersKey]); // Use the memoized key to prevent unnecessary re-subscriptions
 
   const handleSearch = (nextFilters: FilterValues) => {
@@ -282,6 +282,7 @@ function ServicesPageContent() {
           onSearch={handleSearch}
           initialFilters={activeFilters}
           showSearchButton
+          autoSearch={false}
           isSearching={isLoading}
         />
       )}

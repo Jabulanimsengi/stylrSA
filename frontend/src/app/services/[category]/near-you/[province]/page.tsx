@@ -4,30 +4,23 @@ import ServiceProvinceNearYouClient from './ServiceProvinceNearYouClient';
 import { getAllCategorySlugs, getAllProvinceSlugs } from '@/lib/nearYouContent';
 import styles from '../../../../salons/SalonsPage.module.css';
 
-// ISR: Revalidate every 24 hours to reduce ISR writes
-export const revalidate = 86400;
+// ISR - all pages generated on-demand
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache for 24 hours
 
 type Props = {
   params: Promise<{ category: string; province: string }>;
 };
 
+// No pre-built pages - all generated on-demand
 export async function generateStaticParams() {
-  const categories = getAllCategorySlugs();
-  const provinces = getAllProvinceSlugs();
-  
-  const params = [];
-  for (const category of categories) {
-    for (const province of provinces) {
-      params.push({ category, province });
-    }
-  }
-  
-  return params;
+  return [];
 }
 
 export default async function ServiceProvinceNearYouPage({ params }: Props) {
   const { category, province } = await params;
-  
+
   return (
     <Suspense
       fallback={

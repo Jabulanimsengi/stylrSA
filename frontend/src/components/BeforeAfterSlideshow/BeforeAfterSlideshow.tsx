@@ -189,13 +189,13 @@ export default function BeforeAfterSlideshow({ initialPhotos = [] }: BeforeAfter
         </div>
         <div className={styles.container}>
           <Swiper
-            modules={isMobile ? [] : [Navigation]}
-            navigation={isMobile ? false : {
+            modules={[Navigation]}
+            navigation={{
               prevEl: prevRef.current,
               nextEl: nextRef.current,
             }}
             onBeforeInit={(swiper) => {
-              if (!isMobile && typeof swiper.params.navigation !== 'boolean') {
+              if (typeof swiper.params.navigation !== 'boolean') {
                 const navigation = swiper.params.navigation;
                 if (navigation) {
                   navigation.prevEl = prevRef.current;
@@ -243,21 +243,19 @@ export default function BeforeAfterSlideshow({ initialPhotos = [] }: BeforeAfter
             ))}
           </Swiper>
 
-          {/* Swiper navigation buttons */}
-          {!isMobile && (
-            <>
-              <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-              <button ref={nextRef} className={styles.nextButton} aria-label="Next">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
-            </>
-          )}
+          {/* Swiper navigation buttons - visible on all screen sizes */}
+          <>
+            <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button ref={nextRef} className={styles.nextButton} aria-label="Next">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </>
 
           {/* Slide counter for mobile */}
           <div className={styles.slideCounter}>

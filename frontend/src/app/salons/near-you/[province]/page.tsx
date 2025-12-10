@@ -4,15 +4,16 @@ import SalonProvinceNearYouClient from './SalonProvinceNearYouClient';
 import { getAllProvinceSlugs } from '@/lib/nearYouContent';
 import styles from '@/app/salons/SalonsPage.module.css';
 
-// Fully static - no ISR writes
-export const dynamic = 'force-static';
-export const dynamicParams = false;
-export const revalidate = false;
+// ISR - generate crucial pages at build, rest on-demand
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache for 24 hours
 
 type Props = {
   params: Promise<{ province: string }>;
 };
 
+// Pre-build all 9 provinces
 export async function generateStaticParams() {
   const provinces = getAllProvinceSlugs();
   return provinces.map(province => ({ province }));
@@ -20,7 +21,7 @@ export async function generateStaticParams() {
 
 export default async function SalonProvinceNearYouPage({ params }: Props) {
   const { province } = await params;
-  
+
   return (
     <Suspense
       fallback={

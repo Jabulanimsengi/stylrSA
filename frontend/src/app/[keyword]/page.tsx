@@ -12,19 +12,20 @@ interface PageProps {
   }>;
 }
 
-// Fully static - no ISR, no runtime regeneration
-export const dynamic = 'force-static';
-export const dynamicParams = false; // Return 404 for unknown params
-export const revalidate = false; // Never revalidate - fully static
+// ISR - generate crucial pages at build, rest on-demand
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true; // Allow any params (ISR)
+export const revalidate = 86400; // Cache for 24 hours
+
+// Top priority keywords to pre-build
+const PRIORITY_KEYWORDS = ['hair-salon', 'nail-salon', 'braiding', 'barbershop', 'spa', 'makeup', 'waxing', 'massage'];
 
 /**
- * Generate static params for top 20 keywords only
+ * Generate static params for crucial keyword pages only (~8 pages)
  * Other pages will be generated on-demand via ISR
  */
 export async function generateStaticParams() {
-  // Generate static pages for all 16 service categories
-  const { getAllStaticKeywordParams } = await import('@/lib/seo-generation');
-  return getAllStaticKeywordParams();
+  return PRIORITY_KEYWORDS.map(keyword => ({ keyword }));
 }
 
 /**

@@ -13,19 +13,27 @@ interface PageProps {
   }>;
 }
 
-// Fully static - no ISR, no runtime regeneration
-export const dynamic = 'force-static';
-export const dynamicParams = false; // Return 404 for unknown params
-export const revalidate = false; // Never revalidate - fully static
+// ISR - generate crucial pages at build, rest on-demand
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true; // Allow any params (ISR)
+export const revalidate = 86400; // Cache for 24 hours
+
+// Top priority keywords and provinces to pre-build
+const PRIORITY_KEYWORDS = ['hair-salon', 'nail-salon', 'braiding', 'barbershop', 'spa'];
+const PRIORITY_PROVINCES = ['gauteng', 'western-cape', 'kwazulu-natal'];
 
 /**
- * Generate static params for top 10 keywords × 3 major provinces only
+ * Generate static params for crucial pages only (~15 pages)
  * Other pages will be generated on-demand via ISR
  */
 export async function generateStaticParams() {
-  // Generate static pages for all keywords × all provinces (144 pages)
-  const { getAllKeywordProvinceParams } = await import('@/lib/seo-generation');
-  return getAllKeywordProvinceParams();
+  const params = [];
+  for (const keyword of PRIORITY_KEYWORDS) {
+    for (const province of PRIORITY_PROVINCES) {
+      params.push({ keyword, province });
+    }
+  }
+  return params;
 }
 
 /**

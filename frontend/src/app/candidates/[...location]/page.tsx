@@ -32,9 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-    // Generate static pages for all candidate location pages (~57 pages)
-    const { getAllCandidateLocationParams } = await import('@/lib/seo-generation');
-    return getAllCandidateLocationParams();
+    // All candidate location pages generated on-demand for faster builds
+    return [];
 }
 
 export default function CandidatesLocationPage({ params }: Props) {

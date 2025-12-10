@@ -382,14 +382,9 @@ const CITY_DATA: Record<string, Record<string, {
   }
 };
 
-// Generate static params for all city pages
+// All city layout pages generated on-demand
 export async function generateStaticParams() {
-  // Generate static pages for all salon location city pages
-  const { getAllSalonCityParams } = await import('@/lib/seo-generation');
-  return getAllSalonCityParams().map(({ province, city }) => ({
-    location: province,
-    city,
-  }));
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -76,6 +76,13 @@ export default function HomePageClient({
   const socket = useSocket();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  // Hero search autocomplete state
+  const [heroSearchQuery, setHeroSearchQuery] = useState('');
+  const [heroSuggestions, setHeroSuggestions] = useState<{ id: string; title: string; salon?: string }[]>([]);
+  const [showHeroSuggestions, setShowHeroSuggestions] = useState(false);
+  const [isHeroSearching, setIsHeroSearching] = useState(false);
+  const heroSearchRef = useRef<HTMLDivElement>(null);
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
   const fetchServices = useCallback(async (pageNum: number) => {
@@ -116,6 +123,47 @@ export default function HomePageClient({
       setHasInitiallyLoaded(true);
     }
   }, []);
+
+  // Hero search autocomplete effect
+  useEffect(() => {
+    const query = heroSearchQuery.trim();
+    if (query.length < 2) {
+      setHeroSuggestions([]);
+      setShowHeroSuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      setIsHeroSearching(true);
+      try {
+        const res = await fetch(`/api/services/autocomplete?q=${encodeURIComponent(query)}`, {
+          signal: controller.signal
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const suggestions = (data || []).map((item: any) => ({
+            id: item.id || `suggestion-${Math.random()}`,
+            title: item.title || '',
+            salon: item.salon?.name || item.salonName || undefined
+          })).filter((s: any) => s.title);
+          setHeroSuggestions(suggestions);
+          setShowHeroSuggestions(suggestions.length > 0);
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Autocomplete error:', error);
+        }
+      } finally {
+        setIsHeroSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [heroSearchQuery]);
 
   // Define the specific categories to display in order (excluding "Other Services")
   const FEATURED_CATEGORIES = [
@@ -267,15 +315,24 @@ export default function HomePageClient({
           </h1>
 
           <div className={styles.heroSearchContainer}>
-            <div className={styles.heroSearchBox}>
+            <div className={styles.heroSearchBox} ref={heroSearchRef}>
               <input
                 type="text"
                 placeholder="Search for a service or location..."
                 className={styles.heroSearchInput}
+                value={heroSearchQuery}
+                onChange={(e) => setHeroSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (heroSuggestions.length > 0) setShowHeroSuggestions(true);
+                }}
+                onBlur={() => {
+                  setTimeout(() => setShowHeroSuggestions(false), 150);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    const value = (e.target as HTMLInputElement).value.trim();
+                    const value = heroSearchQuery.trim();
                     if (value) {
+                      setShowHeroSuggestions(false);
                       router.push(`/services?service=${encodeURIComponent(value)}`);
                     }
                   }
@@ -284,8 +341,8 @@ export default function HomePageClient({
               <button
                 className={styles.heroSearchButton}
                 onClick={() => {
-                  const input = document.querySelector(`.${styles.heroSearchInput}`) as HTMLInputElement;
-                  const value = input?.value.trim();
+                  const value = heroSearchQuery.trim();
+                  setShowHeroSuggestions(false);
                   if (value) {
                     router.push(`/services?service=${encodeURIComponent(value)}`);
                   } else {
@@ -295,25 +352,28 @@ export default function HomePageClient({
               >
                 Search
               </button>
+
+              {/* Autocomplete Dropdown */}
+              {showHeroSuggestions && heroSuggestions.length > 0 && (
+                <ul className={styles.heroSuggestionsList}>
+                  {heroSuggestions.map((suggestion) => (
+                    <li
+                      key={suggestion.id}
+                      className={styles.heroSuggestionItem}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setHeroSearchQuery(suggestion.title);
+                        setShowHeroSuggestions(false);
+                        router.push(`/services?service=${encodeURIComponent(suggestion.title)}`);
+                      }}
+                    >
+                      <span className={styles.heroSuggestionTitle}>{suggestion.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            <div className={styles.quickCategories}>
-              <Link href="/services/haircuts-styling" className={styles.quickCategoryBtn}>
-                Hair
-              </Link>
-              <Link href="/services/nail-care" className={styles.quickCategoryBtn}>
-                Nails
-              </Link>
-              <Link href="/services/massage-body-treatments" className={styles.quickCategoryBtn}>
-                Spa
-              </Link>
-              <Link href="/services/makeup-beauty" className={styles.quickCategoryBtn}>
-                Makeup
-              </Link>
-              <Link href="/salons" className={styles.quickCategoryBtn}>
-                Near Me
-              </Link>
-            </div>
           </div>
         </div>
       </section>
@@ -382,29 +442,7 @@ export default function HomePageClient({
 
       <VideoSlideshow />
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Browse by Service Category</h2>
-        <div className={styles.serviceCategoryRow}>
-          <Link href="/services/braiding-weaving" className={styles.serviceCategoryBtn}>
-            Braiding & Weaving
-          </Link>
-          <Link href="/services/nail-care" className={styles.serviceCategoryBtn}>
-            Nail Care
-          </Link>
-          <Link href="/services/makeup-beauty" className={styles.serviceCategoryBtn}>
-            Makeup & Beauty
-          </Link>
-          <Link href="/services/haircuts-styling" className={styles.serviceCategoryBtn}>
-            Haircuts & Styling
-          </Link>
-          <Link href="/services/massage-body-treatments" className={styles.serviceCategoryBtn}>
-            Massage & Spa
-          </Link>
-          <Link href="/services/mens-grooming" className={styles.serviceCategoryBtn}>
-            Men's Grooming
-          </Link>
-        </div>
-      </section>
+
 
       {/* Only show Featured Services section if there's content or still loading initial data */}
       {(Object.keys(groupedServices).length > 0 || !hasInitiallyLoaded) && (

@@ -749,13 +749,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 </section>
               )}
 
-              {/* Before & After Stories - Instagram style circles */}
-              {beforeAfterPhotos.length > 0 && (
-                <BeforeAfterStories
-                  photos={beforeAfterPhotos}
-                  salonName={salon.name}
-                />
-              )}
+
 
               {(galleryImages.length > 0 || beforeAfterPhotos.length > 0 || salonVideos.length > 0) && (
                 <section id="gallery-section">
