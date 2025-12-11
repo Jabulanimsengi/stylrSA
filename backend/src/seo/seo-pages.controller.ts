@@ -1,8 +1,49 @@
-import { Controller, Get, Param, Query, NotFoundException, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Query, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SEOPageGeneratorService } from './page-generator.service';
 import { KeywordService } from './keyword.service';
 import { LocationService } from './location.service';
+
+// Blocklist of patterns commonly used in security probes/scans
+const BLOCKED_PATH_PATTERNS = [
+  '.git',
+  '.env',
+  '.htaccess',
+  '.htpasswd',
+  '.svn',
+  '.hg',
+  'wp-admin',
+  'wp-login',
+  'wp-content',
+  'wp-includes',
+  'phpmyadmin',
+  'admin',
+  'config',
+  'backup',
+  '.php',
+  '.asp',
+  '.aspx',
+  '.jsp',
+  '.sql',
+  '.bak',
+  '.old',
+  '.log',
+  '.xml',
+  '.json',
+  '.yml',
+  '.yaml',
+  'node_modules',
+  'package.json',
+  'composer.json',
+  '.well-known',
+  'api/v1',
+  'graphql',
+  'debug',
+  'test',
+  'shell',
+  'cmd',
+  'exec',
+];
 
 @Controller('seo-pages')
 export class SeoPagesController {
@@ -16,6 +57,14 @@ export class SeoPagesController {
   ) { }
 
   /**
+   * Check if URL matches blocked security probe patterns
+   */
+  private isBlockedPath(url: string): boolean {
+    const lowerUrl = url.toLowerCase();
+    return BLOCKED_PATH_PATTERNS.some(pattern => lowerUrl.includes(pattern));
+  }
+
+  /**
    * Get SEO page data by URL - generates on-demand
    * NO DATABASE CACHING - Uses in-memory cache only
    */
@@ -24,11 +73,17 @@ export class SeoPagesController {
     try {
       // Validate input
       if (!url || typeof url !== 'string') {
-        throw new Error('URL parameter is required');
+        throw new BadRequestException('URL parameter is required');
+      }
+
+      // Early security check - block common probe patterns
+      if (this.isBlockedPath(url)) {
+        this.logger.warn(`Blocked security probe attempt: ${url}`);
+        throw new BadRequestException('Invalid request');
       }
 
       if (url.length > 500) {
-        throw new Error('URL is too long');
+        throw new BadRequestException('URL is too long');
       }
 
       // Normalize URL
@@ -37,7 +92,7 @@ export class SeoPagesController {
       // Validate URL format: /keyword/province or /keyword/province/city or /keyword/province/city/suburb
       const urlRegex = /^\/([a-z0-9-]+)(\/[a-z0-9-]+){1,3}$/;
       if (!urlRegex.test(normalizedUrl)) {
-        throw new Error(`Invalid URL format: ${url}`);
+        throw new BadRequestException(`Invalid URL format: ${url}`);
       }
 
       // Parse URL to extract keyword and location slugs
@@ -47,7 +102,7 @@ export class SeoPagesController {
       const [keywordSlug, provinceSlug, citySlug, suburbSlug] = urlParts;
 
       if (!keywordSlug || !provinceSlug) {
-        throw new Error(`Invalid URL structure: ${url}`);
+        throw new BadRequestException(`Invalid URL structure: ${url}`);
       }
 
       // Find keyword
@@ -56,7 +111,7 @@ export class SeoPagesController {
       });
 
       if (!keyword) {
-        throw new Error(`Keyword not found: ${keywordSlug}`);
+        throw new NotFoundException(`Keyword not found: ${keywordSlug}`);
       }
 
       // Find location (most specific available)
@@ -87,7 +142,7 @@ export class SeoPagesController {
       }
 
       if (!location) {
-        throw new Error(`Location not found for URL: ${url}`);
+        throw new NotFoundException(`Location not found for URL: ${url}`);
       }
 
       // Generate page data (uses in-memory cache)
@@ -98,8 +153,13 @@ export class SeoPagesController {
       // Return generated data directly - NO DATABASE CACHING
       return pageData;
     } catch (error) {
+      // Re-throw HTTP exceptions as-is (BadRequest, NotFound, etc.)
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      // Only log actual application errors
       this.logger.error(`Error generating page for ${url}:`, error.message);
-      throw new Error(`Failed to generate SEO page: ${error.message}`);
+      throw new BadRequestException(`Failed to generate SEO page: ${error.message}`);
     }
   }
 
