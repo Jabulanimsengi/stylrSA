@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import AuthModal from '@/components/AuthModal';
 
-type AuthModalView = 'login' | 'register' | 'resend-verification';
+type AuthModalView = 'login' | 'register' | 'resend-verification' | 'verify-email';
 
 interface AuthModalContextType {
   openModal: (view: AuthModalView) => void;
@@ -11,6 +11,8 @@ interface AuthModalContextType {
   switchToLogin: () => void;
   switchToRegister: () => void;
   switchToResendVerification: () => void;
+  switchToVerifyEmail: (email: string) => void;
+  pendingVerificationEmail: string | null;
 }
 
 const AuthModalContext = createContext<AuthModalContextType | undefined>(undefined);
@@ -26,6 +28,7 @@ export const useAuthModal = () => {
 export const AuthModalProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [view, setView] = useState<AuthModalView>('login');
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
 
   const openModal = (view: AuthModalView) => {
     setView(view);
@@ -36,9 +39,21 @@ export const AuthModalProvider = ({ children }: { children: ReactNode }) => {
   const switchToLogin = () => setView('login');
   const switchToRegister = () => setView('register');
   const switchToResendVerification = () => setView('resend-verification');
+  const switchToVerifyEmail = (email: string) => {
+    setPendingVerificationEmail(email);
+    setView('verify-email');
+  };
 
   return (
-    <AuthModalContext.Provider value={{ openModal, closeModal, switchToLogin, switchToRegister, switchToResendVerification }}>
+    <AuthModalContext.Provider value={{
+      openModal,
+      closeModal,
+      switchToLogin,
+      switchToRegister,
+      switchToResendVerification,
+      switchToVerifyEmail,
+      pendingVerificationEmail
+    }}>
       {children}
       {isOpen && <AuthModal view={view} onClose={closeModal} />}
     </AuthModalContext.Provider>

@@ -6,6 +6,7 @@ import styles from './AuthModal.redesign.module.css';
 import Login from './Login';
 import Register from './Register';
 import ResendVerification from './ResendVerification';
+import VerifyEmailCode from './VerifyEmailCode';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { useAuth } from '@/hooks/useAuth';
 import { FaTimes } from 'react-icons/fa';
@@ -14,13 +15,13 @@ import Image from 'next/image';
 
 // This component is rendered by AuthModalProvider and receives props
 interface AuthModalProps {
-  view: 'login' | 'register' | 'resend-verification';
+  view: 'login' | 'register' | 'resend-verification' | 'verify-email';
   onClose: () => void;
 }
 
 export default function AuthModal({ view: initialView, onClose }: AuthModalProps) {
   const { login } = useAuth(); // Get the login function from our global context
-  const { switchToLogin, switchToRegister, switchToResendVerification } = useAuthModal();
+  const { switchToLogin, switchToRegister, switchToResendVerification, switchToVerifyEmail, pendingVerificationEmail } = useAuthModal();
   const [view, setView] = useState(initialView);
   const router = useRouter();
 
@@ -48,7 +49,13 @@ export default function AuthModal({ view: initialView, onClose }: AuthModalProps
     }
   };
 
-  const handleRegisterSuccess = () => {
+  const handleRegisterSuccess = (email: string) => {
+    // After registration, switch to email verification view
+    switchToVerifyEmail(email);
+  };
+
+  const handleVerificationSuccess = () => {
+    // After verification, switch to login
     switchToLogin();
   };
 
@@ -56,7 +63,7 @@ export default function AuthModal({ view: initialView, onClose }: AuthModalProps
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
-        {view !== 'resend-verification' && (
+        {view !== 'resend-verification' && view !== 'verify-email' && (
           <div className={styles.tabs}>
             <button
               className={`${styles.tab} ${view === 'login' ? styles.active : ''}`}
@@ -76,6 +83,13 @@ export default function AuthModal({ view: initialView, onClose }: AuthModalProps
           {view === 'login' && <Login onLoginSuccess={handleLoginSuccess} />}
           {view === 'register' && <Register onRegisterSuccess={handleRegisterSuccess} />}
           {view === 'resend-verification' && <ResendVerification onClose={onClose} />}
+          {view === 'verify-email' && pendingVerificationEmail && (
+            <VerifyEmailCode
+              email={pendingVerificationEmail}
+              onVerified={handleVerificationSuccess}
+              onCancel={switchToLogin}
+            />
+          )}
         </div>
       </div>
     </div>

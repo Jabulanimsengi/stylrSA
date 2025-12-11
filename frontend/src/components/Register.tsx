@@ -11,7 +11,7 @@ import { FaGoogle } from 'react-icons/fa';
 
 // Define the props that this component will accept
 interface RegisterProps {
-  onRegisterSuccess: () => void;
+  onRegisterSuccess: (email: string) => void;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -50,13 +50,13 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
       if (response.message) {
         toast.success(response.message);
       } else {
-        toast.success('Registration successful! You can now log in.');
+        toast.success('Registration successful! Check your email for the verification code.');
       }
 
-      // Call success handler to switch to login after a short delay
+      // Call success handler to switch to email verification view
       // This gives the user time to see the success toast
       setTimeout(() => {
-        onRegisterSuccess();
+        onRegisterSuccess(email);
       }, 1500);
 
     } catch (err: any) {
@@ -93,7 +93,7 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
     if (typeof document !== 'undefined') {
       // Set the role cookie before OAuth redirect (expires in 10 minutes)
       document.cookie = `oauth_signup_role=${role}; path=/; max-age=600; SameSite=Lax`;
-      
+
       const callbackUrl = role === 'SALON_OWNER'
         ? '/create-salon'
         : role === 'PRODUCT_SELLER'
