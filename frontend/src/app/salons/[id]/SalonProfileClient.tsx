@@ -14,6 +14,7 @@ import {
   FaRegCopy,
   FaExternalLinkAlt,
   FaEnvelope,
+  FaPlay,
 } from 'react-icons/fa';
 import { Salon, Service, GalleryImage, Review } from '@/types';
 import BookingModal from '@/components/BookingModal/BookingModal';
@@ -844,7 +845,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                               color: 'white',
                               fontSize: '20px',
                             }}>
-                              Γû╢
+                              <FaPlay />
                             </div>
                           </div>
                         ))}
