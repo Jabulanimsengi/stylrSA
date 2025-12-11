@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const backendOrigin = process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
+        const backendOrigin = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
 
         const backendRes = await fetch(`${backendOrigin}/api/auth/reset-password`, {
             method: 'POST',
