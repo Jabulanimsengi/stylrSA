@@ -270,11 +270,75 @@
 
  @media (max-width: 768px) {
    .launcher {
-     padding: 0.625rem 1.25rem;
-     font-size: 0.9rem;
-     /* Position above AI Salon Finder on mobile (which is at bottom: 80px) */
-     bottom: 140px;
+     /* Position above AI Salon Finder on mobile (which is at bottom: 80px, height 52px) */
+     bottom: 145px;
      right: 16px;
+     padding: 0;
+     border-radius: 50%;
+     width: 52px;
+     height: 52px;
+     min-width: 52px;
+     min-height: 52px;
+     justify-content: center;
+     align-items: center;
+     font-size: 0;
+     /* Prevent layout shifts and ensure smooth rendering */
+     will-change: transform;
+     transform: translateZ(0);
+     -webkit-backface-visibility: hidden;
+     backface-visibility: hidden;
+   }
+
+   /* Disable hover transform on touch devices to prevent unsteady behavior */
+   .launcher:hover {
+     transform: translateZ(0);
+   }
+
+   .launcher:active {
+     transform: scale(0.95) translateZ(0);
+   }
+
+   .launcherMainBtn {
+     padding: 0;
+     width: 100%;
+     height: 100%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     border-radius: 50%;
+     font-size: 0;
+   }
+
+   /* Show icon instead of text on mobile */
+   .launcherMainBtn::before {
+     content: '💬';
+     font-size: 20px;
+     line-height: 1;
+   }
+
+   /* Hide close button on mobile when in icon mode */
+   .launcherCloseBtn {
+     display: none;
+   }
+
+   /* For collapsed state on mobile */
+   .launcherCollapsed {
+     width: 52px;
+     height: 52px;
+   }
+
+   .launcherIconBtn {
+     width: 100%;
+     height: 100%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     border-radius: 50%;
+   }
+
+   .launcherIconBtn svg {
+     width: 22px;
+     height: 22px;
    }
 
    .container {
@@ -285,11 +349,17 @@
 
  @media (max-width: 400px) {
    .launcher {
-     padding: 0.5rem 1rem;
-     font-size: 0.8rem;
-     /* Position above AI Salon Finder on small mobile */
-     bottom: 140px;
-     right: 16px;
+     /* Keep circular icon style, just ensure position is consistent */
+     bottom: 145px;
+     right: 12px;
+     width: 48px;
+     height: 48px;
+     min-width: 48px;
+     min-height: 48px;
+   }
+
+   .launcherMainBtn::before {
+     font-size: 18px;
    }
 
    .container {

@@ -4,6 +4,19 @@
     "installCommand": "npm install",
     "buildCommand": "npm run build",
     "outputDirectory": "frontend/.next",
+    "redirects": [
+        {
+            "source": "/:path*",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "stylrsa.co.za"
+                }
+            ],
+            "destination": "https://www.stylrsa.co.za/:path*",
+            "permanent": true
+        }
+    ],
     "headers": [
         {
             "source": "/sitemap(.*)xml",
@@ -11,6 +24,15 @@
                 {
                     "key": "Cache-Control",
                     "value": "public, max-age=3600, s-maxage=3600"
+                }
+            ]
+        },
+        {
+            "source": "/robots.txt",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=86400, s-maxage=86400"
                 }
             ]
         },

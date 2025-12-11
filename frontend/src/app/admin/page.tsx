@@ -442,52 +442,52 @@ export default function AdminPage() {
           return session?.backendJwt ? { Authorization: `Bearer ${session.backendJwt}` } : {};
         };
         socket.on('salon:deleted', async () => {
-        try {
-          const authHeaders = getAuthHeaders();
-          const [allRes, sellersRes, delRes, deletedSellerRes] = await Promise.all([
-            fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-            fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-            fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-            fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-          ]);
-          if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
-          if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
-          if (delRes.ok) setDeletedSalons(ensureArray<PendingSalon>(await delRes.json()));
-          if (deletedSellerRes.ok) setDeletedSellers(ensureArray<any>(await deletedSellerRes.json()));
-        } catch { }
-      });
-      socket.on('seller:deleted', async () => {
-        try {
-          const authHeaders = getAuthHeaders();
-          const [pendingProductsRes, sellersRes, archivedRes] = await Promise.all([
-            fetch(`/api/admin/products/pending?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-            fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-            fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-          ]);
-          if (pendingProductsRes.ok) {
-            setPendingProducts(ensureArray<PendingProduct>(await pendingProductsRes.json()));
-          }
-          if (sellersRes.ok) {
-            setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
-          }
-          if (archivedRes.ok) {
-            setDeletedSellers(ensureArray<any>(await archivedRes.json()));
-          }
-        } catch { }
-      });
-      socket.on('visibility:updated', async () => {
-        try {
-          const authHeaders = getAuthHeaders();
-          const [allRes, sellersRes, sellerRes] = await Promise.all([
-            fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-            fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-            fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
-          ]);
-          if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
-          if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
-          if (sellerRes.ok) setDeletedSellers(ensureArray<any>(await sellerRes.json()));
-        } catch { }
-      });
+          try {
+            const authHeaders = getAuthHeaders();
+            const [allRes, sellersRes, delRes, deletedSellerRes] = await Promise.all([
+              fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+              fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+              fetch(`/api/admin/salons/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+              fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            ]);
+            if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
+            if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
+            if (delRes.ok) setDeletedSalons(ensureArray<PendingSalon>(await delRes.json()));
+            if (deletedSellerRes.ok) setDeletedSellers(ensureArray<any>(await deletedSellerRes.json()));
+          } catch { }
+        });
+        socket.on('seller:deleted', async () => {
+          try {
+            const authHeaders = getAuthHeaders();
+            const [pendingProductsRes, sellersRes, archivedRes] = await Promise.all([
+              fetch(`/api/admin/products/pending?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+              fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+              fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            ]);
+            if (pendingProductsRes.ok) {
+              setPendingProducts(ensureArray<PendingProduct>(await pendingProductsRes.json()));
+            }
+            if (sellersRes.ok) {
+              setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
+            }
+            if (archivedRes.ok) {
+              setDeletedSellers(ensureArray<any>(await archivedRes.json()));
+            }
+          } catch { }
+        });
+        socket.on('visibility:updated', async () => {
+          try {
+            const authHeaders = getAuthHeaders();
+            const [allRes, sellersRes, sellerRes] = await Promise.all([
+              fetch(`/api/admin/salons/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+              fetch(`/api/admin/sellers/all?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+              fetch(`/api/admin/sellers/deleted?ts=${Date.now()}`, { credentials: 'include', cache: 'no-store' as any, headers: authHeaders }),
+            ]);
+            if (allRes.ok) setAllSalons(ensureArray<PendingSalon>(await allRes.json()));
+            if (sellersRes.ok) setAllSellers(ensureArray<SellerRow>(await sellersRes.json()));
+            if (sellerRes.ok) setDeletedSellers(ensureArray<any>(await sellerRes.json()));
+          } catch { }
+        });
       } catch { }
     };
     initSocket();
@@ -880,6 +880,13 @@ export default function AdminPage() {
         >
           Activity Log
         </button>
+        <Link
+          href="/admin/candidates"
+          className={styles.tabButton}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+        >
+          📄 Candidates / CVs
+        </Link>
       </div>
 
       <div className={styles.list}>

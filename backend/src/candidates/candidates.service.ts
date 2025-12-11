@@ -3,14 +3,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCandidateDto } from './dto/create-candidate.dto';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
 import { CandidateProfession } from '@prisma/client';
-
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { MailService } from '../mail/mail.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CandidatesService {
     constructor(
         private prisma: PrismaService,
         private cloudinary: CloudinaryService,
+        private mailService: MailService,
+        private notificationsService: NotificationsService,
     ) { }
 
     async create(userId: string, createCandidateDto: CreateCandidateDto) {
@@ -153,6 +156,15 @@ export class CandidatesService {
     async uploadCv(userId: string, file: Express.Multer.File) {
         const candidate = await this.prisma.candidate.findUnique({
             where: { userId },
+            include: {
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                    }
+                }
+            }
         });
 
         if (!candidate) {
@@ -161,12 +173,55 @@ export class CandidatesService {
 
         const result = await this.cloudinary.uploadFile(file, 'candidate-cvs');
 
-        return this.prisma.candidate.update({
+        const updatedCandidate = await this.prisma.candidate.update({
             where: { id: candidate.id },
             data: {
                 cvUrl: result.secure_url,
             },
         });
+
+        // Send admin notifications
+        const candidateName = `${candidate.user.firstName} ${candidate.user.lastName}`.trim() || 'Unknown';
+        const candidateEmail = candidate.user.email;
+
+        // 1. Send email notification to admin
+        try {
+            await this.mailService.notifyAdminNewCandidateCv(
+                candidateName,
+                candidateEmail,
+                candidate.profession,
+                `${candidate.city}, ${candidate.province}`,
+                result.secure_url,
+                candidate.id,
+            );
+        } catch (error) {
+            console.error('[CV UPLOAD] Failed to send admin email notification:', error);
+        }
+
+        // 2. Send dashboard notification to all admins
+        try {
+            await this.notifyAdminsCvUpload(candidateName, candidate.profession, candidate.id);
+        } catch (error) {
+            console.error('[CV UPLOAD] Failed to send admin dashboard notifications:', error);
+        }
+
+        return updatedCandidate;
+    }
+
+    private async notifyAdminsCvUpload(candidateName: string, profession: string, candidateId: string) {
+        const admins = await this.prisma.user.findMany({
+            where: { role: 'ADMIN' },
+            select: { id: true },
+        });
+
+        const message = `📄 New CV uploaded: ${candidateName} (${profession})`;
+        const link = `/admin/candidates/${candidateId}`;
+
+        await Promise.all(
+            admins.map((admin) =>
+                this.notificationsService.create(admin.id, message, { link }),
+            ),
+        );
     }
 
     async findAllAdmin(query: any) {
