@@ -210,6 +210,11 @@
   display: block;
 }
 
+.salonName:visited,
+.salonName:active {
+  color: white;
+}
+
 .salonName:hover {
   color: #ffb3c6;
   text-decoration: underline;
