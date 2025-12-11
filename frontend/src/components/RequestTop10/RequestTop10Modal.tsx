@@ -40,7 +40,7 @@ interface RequestTop10ModalProps {
 const MAX_IMAGES = 5;
 
 export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10ModalProps) {
-  const { user, status: authStatus } = useAuth();
+  const { user, authStatus } = useAuth();
   const { openModal } = useAuthModal();
 
   const [step, setStep] = useState<'category' | 'form'>('category');
@@ -80,10 +80,6 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
       const userName = [user.firstName, user.lastName].filter(Boolean).join(' ');
       if (userName) setFullName(userName);
       if (user.email) setEmail(user.email);
-      if (user.phoneNumber) {
-        setPhone(user.phoneNumber);
-        setWhatsapp(user.phoneNumber);
-      }
     }
   }, [user, isOpen]);
 
