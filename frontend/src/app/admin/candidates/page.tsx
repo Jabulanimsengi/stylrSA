@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { apiFetch } from '@/lib/api';
+import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { FaEye, FaFilePdf, FaSearch } from 'react-icons/fa';
 
 export default function AdminCandidatesPage() {
     const { user, authStatus } = useAuth();
+    const { data: session } = useSession();
     const router = useRouter();
     const [candidates, setCandidates] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -24,16 +25,26 @@ export default function AdminCandidatesPage() {
             }
             fetchCandidates();
         }
-    }, [authStatus, user, router]);
+    }, [authStatus, user, router, session?.backendJwt]);
 
     const fetchCandidates = async () => {
         try {
-            const res = await apiFetch('/api/candidates/admin/all');
+            const authHeaders: Record<string, string> = session?.backendJwt
+                ? { Authorization: `Bearer ${session.backendJwt}` }
+                : {};
+
+            const res = await fetch('/api/candidates/admin/all', {
+                credentials: 'include',
+                headers: authHeaders,
+            });
+
             if (res.ok) {
                 const data = await res.json();
                 setCandidates(data);
             } else {
-                toast.error('Failed to fetch candidates');
+                const errText = await res.text().catch(() => '');
+                console.error('Failed to fetch candidates:', res.status, errText);
+                toast.error(`Failed to fetch candidates (${res.status})`);
             }
         } catch (error) {
             console.error('Error fetching candidates:', error);
@@ -42,6 +53,7 @@ export default function AdminCandidatesPage() {
             setLoading(false);
         }
     };
+
 
     const filteredCandidates = candidates.filter(c =>
         c.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -240,7 +240,6 @@ export class CandidatesService {
                         firstName: true,
                         lastName: true,
                         email: true,
-                        phoneNumber: true,
                     }
                 }
             },

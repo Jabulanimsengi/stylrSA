@@ -348,10 +348,10 @@ export default function TopNav() {
                             <div className={`${styles.dropdown} ${activeDropdown === 'discover' ? styles.dropdownVisible : ''}`}>
                                 {renderDropdownItem('/', 'Home Feed', FaHome)}
                                 {renderDropdownItem('/salons', 'Salons', FaCut)}
-                                {renderDropdownItem('/salons?offersMobile=true', 'Mobile Salons', FaCut)}
                                 {renderDropdownItem('/services', 'Services', FaMagic)}
                                 {renderDropdownItem('/products', 'Products', FaBoxOpen)}
                                 {renderDropdownItem('/promotions', 'Promotions', FaMagic)}
+                                {renderDropdownItem('/candidates', 'Find Talent', FaUser)}
                             </div>
                         </li>
 
@@ -378,8 +378,8 @@ export default function TopNav() {
                             </Link>
                         </li>
                         <li className={styles.navItem}>
-                            <Link href="/candidates" className={styles.navButton}>
-                                Find Talent
+                            <Link href="/salons?offersMobile=true" className={styles.navButton}>
+                                Mobile Salons
                             </Link>
                         </li>
                     </ul>

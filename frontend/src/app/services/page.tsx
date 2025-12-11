@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import ServiceCard from "@/components/ServiceCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import FilterBar, { type FilterValues } from "@/components/FilterBar/FilterBar";
 import { SkeletonGroup, SkeletonCard } from "@/components/Skeleton/Skeleton";
-import styles from "../salons/SalonsPage.module.css";
+import styles from "./ServicesPage.module.css";
 import { Service, Salon, Booking } from "@/types";
 import { toast } from "react-toastify";
 import ImageLightbox from "@/components/ImageLightbox";
-import { useStartConversation } from "@/hooks/useStartConversation";
 import { useSocket } from "@/context/SocketContext";
 import PageNav from "@/components/PageNav";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -21,9 +21,122 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuthModal } from "@/context/AuthModalContext";
 import EmptyState from "@/components/EmptyState/EmptyState";
 import { getCategoryNameFromSlug } from "@/utils/categorySlug";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 
 const filtersToKey = (filters: FilterValues) => JSON.stringify(filters);
+
+interface ProvinceGroup {
+  province: string;
+  services: Service[];
+}
+
+// Province row component with horizontal scrolling
+function ProvinceRow({
+  province,
+  services,
+  onBook,
+  onImageClick,
+  isMobile
+}: {
+  province: string;
+  services: Service[];
+  onBook: (service: Service) => void;
+  onImageClick: (images: string[], index: number) => void;
+  isMobile: boolean;
+}) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollButtons = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setCanScrollLeft(scrollLeft > 5);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
+  }, []);
+
+  useEffect(() => {
+    checkScrollButtons();
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScrollButtons);
+      window.addEventListener('resize', checkScrollButtons);
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', checkScrollButtons);
+      }
+      window.removeEventListener('resize', checkScrollButtons);
+    };
+  }, [checkScrollButtons, services]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const cardWidth = isMobile ? 180 : 280;
+    const scrollAmount = cardWidth * 2;
+
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
+  return (
+    <section className={styles.provinceSection}>
+      <div className={styles.provinceHeader}>
+        <h2 className={styles.provinceTitle}>
+          {province}
+          <span className={styles.serviceCount}>({services.length} {services.length === 1 ? 'service' : 'services'})</span>
+        </h2>
+        <Link href={`/services?province=${encodeURIComponent(province)}`} className={styles.viewAllLink}>
+          View all →
+        </Link>
+      </div>
+
+      <div className={styles.scrollWrapper}>
+        {!isMobile && canScrollLeft && (
+          <button
+            className={`${styles.scrollButton} ${styles.scrollButtonLeft}`}
+            onClick={() => scroll('left')}
+            aria-label="Scroll left"
+          >
+            <FaChevronLeft />
+          </button>
+        )}
+
+        <div
+          ref={scrollContainerRef}
+          className={styles.horizontalScroll}
+        >
+          {services.map((service) => (
+            <div key={service.id} className={styles.serviceCardWrapper}>
+              <ServiceCard
+                service={service}
+                onBook={onBook}
+                onImageClick={onImageClick}
+              />
+            </div>
+          ))}
+        </div>
+
+        {!isMobile && canScrollRight && (
+          <button
+            className={`${styles.scrollButton} ${styles.scrollButtonRight}`}
+            onClick={() => scroll('right')}
+            aria-label="Scroll right"
+          >
+            <FaChevronRight />
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
 
 function ServicesPageContent() {
   const params = useSearchParams();
@@ -38,7 +151,6 @@ function ServicesPageContent() {
   const [pendingBookingService, setPendingBookingService] = useState<Service | null>(null);
   const [pendingSalon, setPendingSalon] = useState<Salon | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const { startConversation } = useStartConversation();
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
   const socket = useSocket();
@@ -48,12 +160,9 @@ function ServicesPageContent() {
 
   const derivedFilters = useMemo<FilterValues>(() => {
     const categoryParam = params.get("category") ?? "";
-    // Convert category slug to category name if it looks like a slug
     const categoryValue = categoryParam && categoryParam.includes('-')
       ? (getCategoryNameFromSlug(categoryParam) ?? categoryParam)
       : categoryParam;
-
-    console.log('[ServicesPage] Category param:', categoryParam, '-> Category value:', categoryValue);
 
     return {
       province: params.get("province") ?? "",
@@ -71,58 +180,61 @@ function ServicesPageContent() {
   const [activeFilters, setActiveFilters] = useState<FilterValues>(derivedFilters);
   const activeFiltersKey = useMemo(() => filtersToKey(activeFilters), [activeFilters]);
 
+  // Group services by province and sort by count
+  const provinceGroups = useMemo((): ProvinceGroup[] => {
+    const groups: Record<string, Service[]> = {};
+
+    services.forEach(service => {
+      const province = (service.salon as any)?.province || 'Other';
+      if (!groups[province]) {
+        groups[province] = [];
+      }
+      groups[province].push(service);
+    });
+
+    // Sort provinces by number of services (descending)
+    return Object.entries(groups)
+      .map(([province, serviceList]) => ({ province, services: serviceList }))
+      .filter(group => group.services.length > 0)
+      .sort((a, b) => b.services.length - a.services.length);
+  }, [services]);
+
+  // Check if filtering by specific province
+  const isFilteredByProvince = Boolean(params.get('province'));
+
   const fetchServices = useCallback(async (filtersToUse: FilterValues) => {
-    // Prevent concurrent fetches
-    if (isFetchingRef.current) {
-      console.log('[ServicesPage] Fetch already in progress, skipping');
-      return;
-    }
+    if (isFetchingRef.current) return;
 
     requestControllerRef.current?.abort();
     const controller = new AbortController();
     requestControllerRef.current = controller;
     const requestId = ++latestRequestIdRef.current;
 
-    console.log('[ServicesPage] Fetching with filters:', filtersToUse);
     isFetchingRef.current = true;
     setIsLoading(true);
     try {
       const query = new URLSearchParams();
       if (filtersToUse.province) query.append("province", filtersToUse.province);
       if (filtersToUse.city) query.append("city", filtersToUse.city);
-      if (filtersToUse.category) {
-        query.append("category", filtersToUse.category);
-        console.log('[ServicesPage] Category filter:', filtersToUse.category);
-      }
-      if (filtersToUse.service) {
-        query.append("q", filtersToUse.service);
-        console.log('[ServicesPage] Service search:', filtersToUse.service);
-      }
+      if (filtersToUse.category) query.append("category", filtersToUse.category);
+      if (filtersToUse.service) query.append("q", filtersToUse.service);
       if (filtersToUse.offersMobile) query.append("offersMobile", "true");
       if (filtersToUse.sortBy) query.append("sortBy", filtersToUse.sortBy);
       if (filtersToUse.openNow) query.append("openNow", "true");
       if (filtersToUse.priceMin) query.append("priceMin", filtersToUse.priceMin);
       if (filtersToUse.priceMax) query.append("priceMax", filtersToUse.priceMax);
 
+      // Limit results for faster loading
+      query.append("limit", "100");
+
       const url = `/api/services/search${query.toString() ? `?${query.toString()}` : ""}`;
-      console.log('[ServicesPage] API URL:', url);
       const res = await fetch(url, { credentials: "include", signal: controller.signal });
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('[ServicesPage] API error:', res.status, errorText);
-        throw new Error("Failed to search services");
-      }
+      if (!res.ok) throw new Error("Failed to search services");
       const data = await res.json();
-      console.log('[ServicesPage] Received data:', data.length, 'services');
-      if (requestId !== latestRequestIdRef.current) {
-        return;
-      }
+      if (requestId !== latestRequestIdRef.current) return;
       setServices(Array.isArray(data) ? data : []);
     } catch (error) {
-      if (controller.signal.aborted) {
-        return;
-      }
-      console.error('[ServicesPage] Fetch error:', error);
+      if (controller.signal.aborted) return;
       const message = error instanceof Error ? error.message : "Search failed";
       toast.error(message);
       setServices([]);
@@ -133,14 +245,11 @@ function ServicesPageContent() {
         isFetchingRef.current = false;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const newKey = filtersToKey(derivedFilters);
     const currentKey = filtersToKey(activeFilters);
-
-    // Only update if filters actually changed
     if (newKey !== currentKey) {
       setActiveFilters(derivedFilters);
     }
@@ -148,16 +257,14 @@ function ServicesPageContent() {
 
   useEffect(() => {
     void fetchServices(activeFilters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFiltersKey]); // Use the memoized key instead of the object
+  }, [activeFiltersKey, fetchServices]);
 
   useEffect(() => {
     if (!socket) return;
     const handler = () => { void fetchServices(activeFilters); };
     socket.on('visibility:updated', handler);
     return () => { socket.off('visibility:updated', handler); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, activeFiltersKey]); // Use the memoized key to prevent unnecessary re-subscriptions
+  }, [socket, activeFiltersKey, fetchServices, activeFilters]);
 
   const handleSearch = (nextFilters: FilterValues) => {
     const nextKey = filtersToKey(nextFilters);
@@ -188,7 +295,6 @@ function ServicesPageContent() {
       return;
     }
 
-    // Fetch salon details if not already available
     let salonData: Salon;
     if (!service.salon || !service.salon.name) {
       try {
@@ -207,7 +313,6 @@ function ServicesPageContent() {
         return;
       }
     } else {
-      // If we have partial salon data, fetch full details to check for bookingMessage
       try {
         const res = await fetch(`/api/salons/${service.salonId}`, { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch salon details');
@@ -218,14 +323,11 @@ function ServicesPageContent() {
       }
     }
 
-    // Check if salon has a booking message
     if (salonData.bookingMessage) {
-      // Show confirmation modal first
       setPendingBookingService(service);
       setPendingSalon(salonData);
       setShowBookingConfirmation(true);
     } else {
-      // Open booking modal directly
       setSelectedService(service);
       setBookingModalOpen(true);
     }
@@ -253,27 +355,20 @@ function ServicesPageContent() {
     toast.success('Booking confirmed!');
   };
 
-  // Generate page title based on active filters
   const pageTitle = useMemo(() => {
-    if (activeFilters.category) {
-      return `${activeFilters.category} Services`;
-    }
-    if (activeFilters.service) {
-      return `Search: ${activeFilters.service}`;
-    }
-    if (activeFilters.city && activeFilters.province) {
-      return `Services in ${activeFilters.city}, ${activeFilters.province}`;
-    }
-    if (activeFilters.province) {
-      return `Services in ${activeFilters.province}`;
-    }
-    return 'Services';
+    if (activeFilters.category) return `${activeFilters.category} Services`;
+    if (activeFilters.service) return `Search: ${activeFilters.service}`;
+    if (activeFilters.city && activeFilters.province) return `Services in ${activeFilters.city}, ${activeFilters.province}`;
+    if (activeFilters.province) return `Services in ${activeFilters.province}`;
+    return 'Explore Services';
   }, [activeFilters]);
 
   return (
     <div className={styles.container}>
       <PageNav />
-      <h1 className={styles.title}>{pageTitle}</h1>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
+        <h1 className={styles.title}>{pageTitle}</h1>
+      </div>
 
       {isMobile ? (
         <MobileSearch onSearch={handleSearch} />
@@ -287,42 +382,43 @@ function ServicesPageContent() {
         />
       )}
 
-      <div className={styles.resultsShell}>
-        {isLoading && services.length === 0 ? (
-          // Initial load - show skeletons
-          <SkeletonGroup count={6} className={styles.servicesGrid}>
-            {() => <SkeletonCard hasImage lines={3} />}
-          </SkeletonGroup>
-        ) : services.length === 0 ? (
-          // No results found
-          <EmptyState
-            variant="no-results"
-            title="No Services Found"
-            description="Try adjusting your filters or exploring other categories to find what you're looking for."
-          />
-        ) : (
-          // Show services with optional loading overlay
-          <>
-            <div className={styles.servicesGrid} style={{ opacity: isLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
-              {services.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  onBook={handleBookService}
-                  onImageClick={handleOpenLightbox}
-                />
-              ))}
-            </div>
-            {isLoading && (
-              <div className={styles.loadingOverlay}>
-                <LoadingSpinner />
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-
+      {isLoading && services.length === 0 ? (
+        <SkeletonGroup count={6} className={styles.servicesGrid}>
+          {() => <SkeletonCard hasImage lines={3} />}
+        </SkeletonGroup>
+      ) : services.length === 0 ? (
+        <EmptyState
+          variant="no-results"
+          title="No Services Found"
+          description="Try adjusting your filters or exploring other categories to find what you're looking for."
+        />
+      ) : isFilteredByProvince ? (
+        // If filtered by province, show traditional grid
+        <div className={styles.servicesGrid}>
+          {services.map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              onBook={handleBookService}
+              onImageClick={handleOpenLightbox}
+            />
+          ))}
+        </div>
+      ) : (
+        // Otherwise, show grouped by province with horizontal scrolling
+        <div className={styles.provinceGroupsContainer}>
+          {provinceGroups.map((group) => (
+            <ProvinceRow
+              key={group.province}
+              province={group.province}
+              services={group.services}
+              onBook={handleBookService}
+              onImageClick={handleOpenLightbox}
+              isMobile={isMobile}
+            />
+          ))}
+        </div>
+      )}
 
       {lightboxOpen && (
         <ImageLightbox
@@ -371,4 +467,3 @@ export default function ServicesPage() {
     </Suspense>
   );
 }
-

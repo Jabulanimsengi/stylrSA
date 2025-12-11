@@ -21,7 +21,7 @@ import { OptionalJwtAuthGuard } from 'src/auth/guard/optional-jwt.guard';
 
 @Controller('api/services')
 export class ServicesController {
-  constructor(private readonly servicesService: ServicesService) {}
+  constructor(private readonly servicesService: ServicesService) { }
 
   @UseGuards(JwtGuard)
   @Post()
@@ -55,6 +55,7 @@ export class ServicesController {
     @Query('province') province?: string,
     @Query('city') city?: string,
     @Query('sortBy') sortBy?: string,
+    @Query('limit') limit?: string,
     @GetUser() user?: any,
   ) {
     return this.servicesService.search({
@@ -66,6 +67,7 @@ export class ServicesController {
       province,
       city,
       sortBy,
+      limit: limit ? parseInt(limit, 10) : 100,
     }, user);
   }
 

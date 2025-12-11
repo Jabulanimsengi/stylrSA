@@ -369,7 +369,7 @@
   }
 
   .hero {
-    margin-top: 52px;
+    margin-top: 62px;
     min-height: clamp(200px, 35vh, 260px);
     width: 100%;
     margin-left: 0;
@@ -469,7 +469,7 @@
 
   .hero {
     min-height: clamp(180px, 32vh, 220px);
-    margin-top: 50px;
+    margin-top: 58px;
     margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
     width: 100%;
     margin-left: 0;
@@ -528,7 +528,7 @@
 
   .hero {
     min-height: clamp(160px, 28vh, 200px);
-    margin-top: 48px;
+    margin-top: 56px;
     margin-bottom: 0.5rem;
     width: 100%;
     margin-left: 0;

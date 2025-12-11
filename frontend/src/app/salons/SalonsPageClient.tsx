@@ -1,7 +1,7 @@
 // frontend/src/app/salons/SalonsPageClient.tsx
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { Salon } from '@/types';
 import styles from './SalonsPage.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
-import { FaHeart } from 'react-icons/fa';
+import { FaHeart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import FilterBar, { type FilterValues } from '@/components/FilterBar/FilterBar';
 import { SkeletonGroup, SkeletonCard } from '@/components/Skeleton/Skeleton';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +29,157 @@ import EmptyState from '@/components/EmptyState/EmptyState';
 
 type SalonWithFavorite = Salon & { isFavorited?: boolean };
 type SalonPageFilters = Partial<FilterValues> & { q?: string; lat?: string | null; lon?: string | null };
+
+interface ProvinceGroup {
+    province: string;
+    salons: SalonWithFavorite[];
+}
+
+// Province row component with horizontal scrolling
+function ProvinceRow({
+    province,
+    salons,
+    onToggleFavorite,
+    onNavigate,
+    navigatingSalonId,
+    isMobile
+}: {
+    province: string;
+    salons: SalonWithFavorite[];
+    onToggleFavorite: (e: React.MouseEvent, salonId: string) => void;
+    onNavigate: (salon: SalonWithFavorite) => void;
+    navigatingSalonId: string | null;
+    isMobile: boolean;
+}) {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const checkScrollButtons = useCallback(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const { scrollLeft, scrollWidth, clientWidth } = container;
+        setCanScrollLeft(scrollLeft > 5);
+        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
+    }, []);
+
+    useEffect(() => {
+        checkScrollButtons();
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', checkScrollButtons);
+            window.addEventListener('resize', checkScrollButtons);
+        }
+        return () => {
+            if (container) {
+                container.removeEventListener('scroll', checkScrollButtons);
+            }
+            window.removeEventListener('resize', checkScrollButtons);
+        };
+    }, [checkScrollButtons, salons]);
+
+    const scroll = (direction: 'left' | 'right') => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const cardWidth = isMobile ? 160 : 280;
+        const scrollAmount = cardWidth * 2;
+
+        container.scrollBy({
+            left: direction === 'left' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth'
+        });
+    };
+
+    return (
+        <section className={styles.provinceSection}>
+            <div className={styles.provinceHeader}>
+                <h2 className={styles.provinceTitle}>
+                    {province}
+                    <span className={styles.salonCount}>({salons.length} {salons.length === 1 ? 'salon' : 'salons'})</span>
+                </h2>
+                <Link href={`/salons?province=${encodeURIComponent(province)}`} className={styles.viewAllLink}>
+                    View all →
+                </Link>
+            </div>
+
+            <div className={styles.scrollWrapper}>
+                {!isMobile && canScrollLeft && (
+                    <button
+                        className={`${styles.scrollButton} ${styles.scrollButtonLeft}`}
+                        onClick={() => scroll('left')}
+                        aria-label="Scroll left"
+                    >
+                        <FaChevronLeft />
+                    </button>
+                )}
+
+                <div
+                    ref={scrollContainerRef}
+                    className={styles.horizontalScroll}
+                >
+                    {salons.map((salon) => {
+                        const isNavigating = navigatingSalonId === salon.id;
+
+                        return (
+                            <div
+                                key={salon.id}
+                                className={`${styles.salonCard} ${isNavigating ? styles.navigating : ''}`}
+                                onClick={(e) => {
+                                    if ((e.target as HTMLElement).closest('button')) return;
+                                    onNavigate(salon);
+                                }}
+                            >
+                                {isNavigating && (
+                                    <div className={styles.cardLoadingOverlay}>
+                                        <LoadingSpinner size="medium" color="white" />
+                                    </div>
+                                )}
+                                <button
+                                    onClick={(e) => onToggleFavorite(e, salon.id)}
+                                    className={`${styles.favoriteButton} ${salon.isFavorited ? styles.favorited : ''}`}
+                                    aria-label={salon.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                                >
+                                    <FaHeart />
+                                </button>
+                                <div className={styles.salonLink}>
+                                    <div className={styles.imageWrapper}>
+                                        <ReviewBadge
+                                            reviewCount={salon.reviews?.length || 0}
+                                            avgRating={salon.avgRating || 0}
+                                        />
+                                        <Image
+                                            src={transformCloudinary(getImageWithFallback(salon.backgroundImage, 'wide'), { width: 600, quality: 'auto', format: 'auto', crop: 'fill' })}
+                                            alt={`A photo of ${salon.name}`}
+                                            className={styles.cardImage}
+                                            fill
+                                            sizes="(max-width: 768px) 160px, 280px"
+                                        />
+                                    </div>
+                                    <div className={styles.cardContent}>
+                                        <h3 className={styles.cardTitle}>{salon.name}</h3>
+                                        <p className={styles.cardLocation}>{salon.city}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {!isMobile && canScrollRight && (
+                    <button
+                        className={`${styles.scrollButton} ${styles.scrollButtonRight}`}
+                        onClick={() => scroll('right')}
+                        aria-label="Scroll right"
+                    >
+                        <FaChevronRight />
+                    </button>
+                )}
+            </div>
+        </section>
+    );
+}
 
 export default function SalonsPageClient() {
     const [salons, setSalons] = useState<SalonWithFavorite[]>([]);
@@ -79,6 +230,25 @@ export default function SalonsPageClient() {
 
     const [initialFilters] = useState<SalonPageFilters>(getInitialFilters);
 
+    // Group salons by province and sort by count
+    const provinceGroups = useMemo((): ProvinceGroup[] => {
+        const groups: Record<string, SalonWithFavorite[]> = {};
+
+        salons.forEach(salon => {
+            const province = salon.province || 'Other';
+            if (!groups[province]) {
+                groups[province] = [];
+            }
+            groups[province].push(salon);
+        });
+
+        // Sort provinces by number of salons (descending)
+        return Object.entries(groups)
+            .map(([province, salonList]) => ({ province, salons: salonList }))
+            .filter(group => group.salons.length > 0)
+            .sort((a, b) => b.salons.length - a.salons.length);
+    }, [salons]);
+
     const fetchSalons = useCallback(async (
         filters: Partial<FilterValues> & { q?: string; lat?: number | string | null; lon?: number | string | null }
     ) => {
@@ -115,7 +285,6 @@ export default function SalonsPageClient() {
             const res = await fetch(url, { credentials: 'include', cache: 'no-store' as any });
             if (!res.ok) throw new Error('Failed to fetch salons');
             const data = await res.json();
-            console.log('📋 Salons loaded:', data.map((s: any) => ({ name: s.name, hasLogo: !!s.logo })));
             setSalons(data);
         } catch (error) {
             logger.error('Failed to fetch salons:', error);
@@ -147,7 +316,6 @@ export default function SalonsPageClient() {
     useEffect(() => {
         if (geoError) {
             logger.debug('Geolocation error:', geoError);
-            // Don't show toast for permission denied, as it's user choice
             if (!geoError.includes('denied')) {
                 toast.warn('Unable to get your location. Showing all salons instead.');
             }
@@ -156,8 +324,7 @@ export default function SalonsPageClient() {
 
     // Listen for salon updates from EditSalonModal
     useEffect(() => {
-        const handleSalonUpdate = (event: any) => {
-            console.log('🔄 SalonsPage: Salon updated event received, refetching...');
+        const handleSalonUpdate = () => {
             setTimeout(() => {
                 fetchSalons(getInitialFilters());
             }, 500);
@@ -166,7 +333,6 @@ export default function SalonsPageClient() {
         window.addEventListener('salon-updated', handleSalonUpdate);
         return () => window.removeEventListener('salon-updated', handleSalonUpdate);
     }, [fetchSalons, getInitialFilters]);
-
 
     const handleToggleFavorite = async (e: React.MouseEvent, salonId: string) => {
         e.preventDefault();
@@ -189,7 +355,7 @@ export default function SalonsPageClient() {
         try {
             const res = await fetch(`/api/favorites/toggle/${salonId}`, {
                 method: 'POST',
-                credentials: 'include', // This sends the required authentication cookie
+                credentials: 'include',
             });
 
             if (!res.ok) {
@@ -202,18 +368,29 @@ export default function SalonsPageClient() {
 
         } catch (error) {
             toast.error('Could not update favorites. Please try again.');
-            // Revert UI on error
             setSalons(originalSalons);
         }
     };
 
+    const handleNavigate = (salon: SalonWithFavorite) => {
+        const salonUrl = `/salons/${salon.slug || salon.id}`;
+        setNavigatingSalonId(salon.id);
+        router.push(salonUrl);
+        setTimeout(() => setNavigatingSalonId(null), 5000);
+    };
+
+    // Check if filtering by specific province
+    const isFilteredByProvince = Boolean(searchParams.get('province'));
+    const pageTitle = searchParams.get('offersMobile') === 'true'
+        ? 'Mobile Salons'
+        : 'Explore Salons';
 
     return (
         <div className={styles.container}>
             <PageNav />
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
-                <h1 className={styles.title}>Explore Salons</h1>
-                <p style={{ fontSize: '1rem', marginBottom: '1rem', color: '#666' }}>
+                <h1 className={styles.title}>{pageTitle}</h1>
+                <p style={{ fontSize: '1rem', marginBottom: '1rem', color: '#666', textAlign: 'center' }}>
                     <Link href="/salons/near-me" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
                         Find salons near you →
                     </Link>
@@ -242,29 +419,20 @@ export default function SalonsPageClient() {
                     title="No Salons Found"
                     description="Try adjusting your filters or search terms to find salons near you."
                 />
-            ) : (
+            ) : isFilteredByProvince ? (
+                // If filtered by province, show traditional grid
                 <div className={styles.salonGrid}>
                     {salons.map((salon) => {
                         const isNavigating = navigatingSalonId === salon.id;
-                        const salonUrl = `/salons/${salon.slug || salon.id}`;
-
-                        const handleCardClick = (e: React.MouseEvent) => {
-                            // Don't navigate if clicking on favorite button
-                            if ((e.target as HTMLElement).closest('button')) {
-                                return;
-                            }
-                            e.preventDefault();
-                            setNavigatingSalonId(salon.id);
-                            router.push(salonUrl);
-                            // Reset after timeout in case navigation fails
-                            setTimeout(() => setNavigatingSalonId(null), 5000);
-                        };
 
                         return (
                             <div
                                 key={salon.id}
-                                className={`${styles.salonCard} ${isNavigating ? styles.navigating : ''}`}
-                                onClick={handleCardClick}
+                                className={`${styles.salonCard} ${styles.gridCard} ${isNavigating ? styles.navigating : ''}`}
+                                onClick={(e) => {
+                                    if ((e.target as HTMLElement).closest('button')) return;
+                                    handleNavigate(salon);
+                                }}
                                 style={{ cursor: 'pointer' }}
                             >
                                 {isNavigating && (
@@ -296,35 +464,26 @@ export default function SalonsPageClient() {
                                     <div className={styles.cardContent}>
                                         <h2 className={styles.cardTitle}>{salon.name}</h2>
                                         <p className={styles.cardLocation}>{salon.city}, {salon.province}</p>
-                                        {(() => {
-                                            const oh = salon.operatingHours as unknown;
-                                            let hoursRecord: Record<string, string> | null = null;
-                                            if (Array.isArray(oh)) {
-                                                const derived: Record<string, string> = {};
-                                                oh.forEach((entry: { day?: string; open?: string; close?: string }) => {
-                                                    const day = entry?.day;
-                                                    if (!day) return;
-                                                    const open = entry.open;
-                                                    const close = entry.close;
-                                                    if (!open && !close) return;
-                                                    derived[day] = `${open ?? ''} - ${close ?? ''}`.trim();
-                                                });
-                                                hoursRecord = Object.keys(derived).length > 0 ? derived : null;
-                                            } else if (oh && typeof oh === 'object') {
-                                                hoursRecord = oh as Record<string, string>;
-                                            }
-                                            if (!hoursRecord) return null;
-                                            const entries = Object.entries(hoursRecord);
-                                            if (entries.length === 0) return null;
-                                            const samples = entries.slice(0, 2).map(([day, hrs]) => `${day.substring(0, 3)} ${hrs}`);
-                                            const extra = entries.length > 2 ? ` +${entries.length - 2} more` : '';
-                                            return <p className={styles.cardMeta}>Hours: {samples.join(' • ')}{extra}</p>;
-                                        })()}
                                     </div>
                                 </div>
                             </div>
                         );
                     })}
+                </div>
+            ) : (
+                // Otherwise, show grouped by province with horizontal scrolling
+                <div className={styles.provinceGroupsContainer}>
+                    {provinceGroups.map((group) => (
+                        <ProvinceRow
+                            key={group.province}
+                            province={group.province}
+                            salons={group.salons}
+                            onToggleFavorite={handleToggleFavorite}
+                            onNavigate={handleNavigate}
+                            navigatingSalonId={navigatingSalonId}
+                            isMobile={isMobile}
+                        />
+                    ))}
                 </div>
             )}
         </div>

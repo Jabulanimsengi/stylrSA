@@ -288,6 +288,7 @@ export class ServicesService {
       province,
       city,
       sortBy,
+      limit = 100,
     } = filters || {};
 
     console.log('[ServicesService] Search filters:', filters);
@@ -356,6 +357,7 @@ export class ServicesService {
         },
         category: { select: { id: true, name: true } },
       },
+      take: Math.min(limit, 200), // Limit results to prevent slow queries
     });
 
     console.log('[ServicesService] Found', items.length, 'services');

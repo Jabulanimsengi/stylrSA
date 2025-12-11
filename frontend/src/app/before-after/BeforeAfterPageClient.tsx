@@ -1,7 +1,7 @@
 // frontend/src/app/before-after/BeforeAfterPageClient.tsx
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -16,6 +16,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MobileSearch from '@/components/MobileSearch/MobileSearch';
 import EmptyState from '@/components/EmptyState/EmptyState';
 import { getSalonUrl } from '@/utils/salonUrl';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface BeforeAfterPhoto {
     id: string;
@@ -34,6 +35,11 @@ interface BeforeAfterPhoto {
         id: string;
         title: string;
     };
+}
+
+interface ProvinceGroup {
+    province: string;
+    photos: BeforeAfterPhoto[];
 }
 
 type PhotoFilters = Partial<FilterValues> & { q?: string };
@@ -70,7 +76,7 @@ function PhotoCard({
                     alt={`${labels[currentImageIndex]} - ${photo.service?.title || 'Transformation'}`}
                     fill
                     className={styles.image}
-                    sizes="(max-width: 768px) 85vw, 280px"
+                    sizes="(max-width: 768px) 160px, 240px"
                 />
                 <span className={styles.imageLabel}>{labels[currentImageIndex]}</span>
 
@@ -97,13 +103,116 @@ function PhotoCard({
                     {photo.salon.name}
                 </Link>
                 <p className={styles.cardLocation}>
-                    {photo.salon.city}, {photo.salon.province}
+                    {photo.salon.city}
                 </p>
                 {photo.service && (
                     <p className={styles.cardMeta}>{photo.service.title}</p>
                 )}
             </div>
         </div>
+    );
+}
+
+// Province row component with horizontal scrolling
+function ProvinceRow({
+    province,
+    photos,
+    onPhotoClick,
+    isMobile
+}: {
+    province: string;
+    photos: BeforeAfterPhoto[];
+    onPhotoClick: (photo: BeforeAfterPhoto) => void;
+    isMobile: boolean;
+}) {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const checkScrollButtons = useCallback(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const { scrollLeft, scrollWidth, clientWidth } = container;
+        setCanScrollLeft(scrollLeft > 5);
+        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
+    }, []);
+
+    useEffect(() => {
+        checkScrollButtons();
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', checkScrollButtons);
+            window.addEventListener('resize', checkScrollButtons);
+        }
+        return () => {
+            if (container) {
+                container.removeEventListener('scroll', checkScrollButtons);
+            }
+            window.removeEventListener('resize', checkScrollButtons);
+        };
+    }, [checkScrollButtons, photos]);
+
+    const scroll = (direction: 'left' | 'right') => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const cardWidth = isMobile ? 160 : 240;
+        const scrollAmount = cardWidth * 2;
+
+        container.scrollBy({
+            left: direction === 'left' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth'
+        });
+    };
+
+    return (
+        <section className={styles.provinceSection}>
+            <div className={styles.provinceHeader}>
+                <h2 className={styles.provinceTitle}>
+                    {province}
+                    <span className={styles.photoCount}>({photos.length} {photos.length === 1 ? 'photo' : 'photos'})</span>
+                </h2>
+                <Link href={`/before-after?province=${encodeURIComponent(province)}`} className={styles.viewAllLink}>
+                    View all →
+                </Link>
+            </div>
+
+            <div className={styles.scrollWrapper}>
+                {!isMobile && canScrollLeft && (
+                    <button
+                        className={`${styles.scrollButton} ${styles.scrollButtonLeft}`}
+                        onClick={() => scroll('left')}
+                        aria-label="Scroll left"
+                    >
+                        <FaChevronLeft />
+                    </button>
+                )}
+
+                <div
+                    ref={scrollContainerRef}
+                    className={styles.horizontalScroll}
+                >
+                    {photos.map((photo) => (
+                        <PhotoCard
+                            key={photo.id}
+                            photo={photo}
+                            onFullView={onPhotoClick}
+                        />
+                    ))}
+                </div>
+
+                {!isMobile && canScrollRight && (
+                    <button
+                        className={`${styles.scrollButton} ${styles.scrollButtonRight}`}
+                        onClick={() => scroll('right')}
+                        aria-label="Scroll right"
+                    >
+                        <FaChevronRight />
+                    </button>
+                )}
+            </div>
+        </section>
     );
 }
 
@@ -127,6 +236,28 @@ export default function BeforeAfterPageClient() {
 
     const [initialFilters] = useState<PhotoFilters>(getInitialFilters);
 
+    // Group photos by province and sort by count
+    const provinceGroups = useMemo((): ProvinceGroup[] => {
+        const groups: Record<string, BeforeAfterPhoto[]> = {};
+
+        photos.forEach(photo => {
+            const province = photo.salon?.province || 'Other';
+            if (!groups[province]) {
+                groups[province] = [];
+            }
+            groups[province].push(photo);
+        });
+
+        // Sort provinces by number of photos (descending)
+        return Object.entries(groups)
+            .map(([province, photoList]) => ({ province, photos: photoList }))
+            .filter(group => group.photos.length > 0)
+            .sort((a, b) => b.photos.length - a.photos.length);
+    }, [photos]);
+
+    // Check if filtering by specific province
+    const isFilteredByProvince = Boolean(searchParams.get('province'));
+
     const fetchPhotos = useCallback(async (
         filters: Partial<FilterValues> & { q?: string }
     ) => {
@@ -134,7 +265,7 @@ export default function BeforeAfterPageClient() {
         const query = new URLSearchParams();
 
         query.append('_t', String(Date.now()));
-        query.append('limit', '50');
+        query.append('limit', '100');
 
         if (filters.province) query.append('province', filters.province);
         if (filters.city) query.append('city', filters.city);
@@ -215,13 +346,27 @@ export default function BeforeAfterPageClient() {
                     title="No Transformations Found"
                     description="Try adjusting your filters to see more results."
                 />
-            ) : (
+            ) : isFilteredByProvince ? (
+                // If filtered by province, show traditional grid
                 <div className={styles.photoGrid}>
                     {photos.map((photo) => (
                         <PhotoCard
                             key={photo.id}
                             photo={photo}
                             onFullView={handlePhotoClick}
+                        />
+                    ))}
+                </div>
+            ) : (
+                // Otherwise, show grouped by province with horizontal scrolling
+                <div className={styles.provinceGroupsContainer}>
+                    {provinceGroups.map((group) => (
+                        <ProvinceRow
+                            key={group.province}
+                            province={group.province}
+                            photos={group.photos}
+                            onPhotoClick={handlePhotoClick}
+                            isMobile={isMobile}
                         />
                     ))}
                 </div>

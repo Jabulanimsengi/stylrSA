@@ -620,11 +620,11 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 title="Click to view full logo"
               >
                 <Image
-                  src={transformCloudinary(salon.logo, { width: 120, quality: 'auto', format: 'auto' })}
+                  src={transformCloudinary(salon.logo, { width: 176, quality: 'auto', format: 'auto' })}
                   alt={`${salon.name} logo`}
                   className={styles.salonLogo}
-                  width={60}
-                  height={60}
+                  width={88}
+                  height={88}
                   onError={() => setLogoError(true)}
                 />
               </div>

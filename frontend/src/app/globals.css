@@ -533,14 +533,15 @@
     /* Performance optimizations for INP */
     text-rendering: optimizeSpeed;
   }
-  
+
   /* Optimize images for LCP */
   img {
     content-visibility: auto;
   }
-  
+
   /* Reduce layout shifts */
-  img, video {
+  img,
+  video {
     max-width: 100%;
     height: auto;
   }
@@ -720,6 +721,13 @@
     --cards-per-view: 6;
     --card-gap: 12px;
     --card-height: 300px;
+  }
+}
+
+/* Desktop: TopNav is 70px fixed */
+@media (min-width: 1024px) {
+  :root {
+    --app-shell-top-gap: 70px;
   }
 }
 
@@ -909,9 +917,9 @@ a.btn-secondary:visited {
 }
 
 /* Ensure first heading in main content has proper spacing from navbar */
-.main-content > *:first-child,
-.main-content > div:first-child > h1:first-child,
-.main-content > div:first-child > h2:first-child {
+.main-content>*:first-child,
+.main-content>div:first-child>h1:first-child,
+.main-content>div:first-child>h2:first-child {
   margin-top: 0;
   padding-top: 0;
 }
