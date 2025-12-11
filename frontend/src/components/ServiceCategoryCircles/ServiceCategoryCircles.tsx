@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './ServiceCategoryCircles.module.css';
@@ -30,13 +30,13 @@ export default function ServiceCategoryCircles() {
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
 
-    const checkScroll = () => {
+    const checkScroll = useCallback(() => {
         if (scrollRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
             setCanScrollLeft(scrollLeft > 0);
             setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
         }
-    };
+    }, []);
 
     useEffect(() => {
         const el = scrollRef.current;
@@ -45,17 +45,27 @@ export default function ServiceCategoryCircles() {
             checkScroll();
             return () => el.removeEventListener('scroll', checkScroll);
         }
-    }, []);
+    }, [checkScroll]);
 
-    const scroll = (direction: 'left' | 'right') => {
+    const handleScrollLeft = useCallback(() => {
         if (scrollRef.current) {
-            const scrollAmount = 300;
-            scrollRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
+            const container = scrollRef.current;
+            container.scrollTo({
+                left: container.scrollLeft - 300,
                 behavior: 'smooth'
             });
         }
-    };
+    }, []);
+
+    const handleScrollRight = useCallback(() => {
+        if (scrollRef.current) {
+            const container = scrollRef.current;
+            container.scrollTo({
+                left: container.scrollLeft + 300,
+                behavior: 'smooth'
+            });
+        }
+    }, []);
 
     return (
         <section className={styles.section}>
@@ -66,16 +76,17 @@ export default function ServiceCategoryCircles() {
                 {/* Left Arrow */}
                 <button
                     className={`${styles.scrollArrow} ${styles.scrollArrowLeft} ${!canScrollLeft ? styles.hidden : ''}`}
-                    onClick={() => scroll('left')}
+                    onClick={handleScrollLeft}
                     aria-label="Scroll left"
+                    type="button"
                 >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M15 18l-6-6 6-6" />
                     </svg>
                 </button>
 
-                <div className={styles.categoriesContainer}>
-                    <div className={styles.categoriesRow} ref={scrollRef}>
+                <div className={styles.categoriesContainer} ref={scrollRef}>
+                    <div className={styles.categoriesRow}>
                         {HOMEPAGE_CATEGORIES.map((category) => (
                             <Link
                                 key={category.slug}
@@ -104,8 +115,9 @@ export default function ServiceCategoryCircles() {
                 {/* Right Arrow */}
                 <button
                     className={`${styles.scrollArrow} ${styles.scrollArrowRight} ${!canScrollRight ? styles.hidden : ''}`}
-                    onClick={() => scroll('right')}
+                    onClick={handleScrollRight}
                     aria-label="Scroll right"
+                    type="button"
                 >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M9 18l6-6-6-6" />

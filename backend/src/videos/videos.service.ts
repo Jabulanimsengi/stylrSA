@@ -2,13 +2,15 @@ import { Injectable, ForbiddenException, NotFoundException, BadRequestException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class VideosService {
   constructor(
     private prisma: PrismaService,
-    private cloudinary: CloudinaryService, // Changed from VimeoService
+    private cloudinary: CloudinaryService,
     private notifications: NotificationsService,
+    private mailService: MailService,
   ) { }
 
   async uploadVideo(
@@ -101,6 +103,17 @@ export class VideosService {
           { link: `/admin?tab=media` },
         ),
       ),
+    );
+
+    // Send admin email notification
+    const uploader = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true, email: true },
+    });
+    await this.mailService.notifyAdminNewVideo(
+      video.salon.name,
+      caption || 'Service Video',
+      uploader ? `${uploader.firstName} ${uploader.lastName} (${uploader.email})` : userId,
     );
 
     return {

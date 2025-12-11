@@ -1,38 +1,46 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 
 @Injectable()
 export class MailService {
-  private resend: Resend;
+  private isConfigured: boolean = false;
   private fromEmail: string;
+  private adminEmail: string;
 
   constructor(private config: ConfigService) {
-    const apiKey = this.config.get<string>('RESEND_API_KEY');
+    const apiKey = this.config.get<string>('SENDGRID_API_KEY');
+    console.log(`[MAIL] SENDGRID_API_KEY loaded: ${apiKey ? 'YES (starts with ' + apiKey.substring(0, 5) + '...)' : 'NO'}`);
     if (!apiKey) {
-      console.warn('RESEND_API_KEY not configured. Email sending will be disabled.');
-      this.resend = null as any;
+      console.warn('[MAIL] SENDGRID_API_KEY not configured. Email sending will be disabled.');
+      this.isConfigured = false;
     } else {
-      this.resend = new Resend(apiKey);
+      sgMail.setApiKey(apiKey);
+      this.isConfigured = true;
+      console.log('[MAIL] SendGrid configured successfully');
     }
-    this.fromEmail = this.config.get<string>('FROM_EMAIL') || 'onboarding@resend.dev';
+    this.fromEmail = this.config.get<string>('FROM_EMAIL') || 'noreply@stylrsa.co.za';
+    this.adminEmail = this.config.get<string>('ADMIN_EMAIL') || 'jbmsengi@gmail.com';
+    console.log(`[MAIL] FROM_EMAIL: ${this.fromEmail}`);
+    console.log(`[MAIL] ADMIN_EMAIL: ${this.adminEmail}`);
   }
 
   async sendVerificationEmail(email: string, code: string, firstName: string) {
-    if (!this.resend) {
+    if (!this.isConfigured) {
       console.log(`[DEV] Verification email for ${email}: ${code}`);
       return;
     }
 
     try {
       console.log(`[EMAIL] Attempting to send verification email to ${email} from ${this.fromEmail}`);
-      const result = await this.resend.emails.send({
-        from: this.fromEmail,
+      const msg = {
         to: email,
+        from: this.fromEmail,
         subject: 'Verify your email - Stylr SA',
         html: this.getVerificationEmailTemplate(firstName, code),
-      });
-      console.log(`[EMAIL] Verification email sent successfully to ${email}. ID: ${result.data?.id}`);
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Verification email sent successfully to ${email}`);
     } catch (error) {
       console.error('[EMAIL] Failed to send verification email:', error);
       console.error('[EMAIL] Error details:', JSON.stringify(error, null, 2));
@@ -41,25 +49,26 @@ export class MailService {
   }
 
   async sendWelcomeEmail(email: string, firstName: string) {
-    if (!this.resend) {
+    if (!this.isConfigured) {
       console.log(`[DEV] Welcome email for ${email}`);
       return;
     }
 
     try {
-      await this.resend.emails.send({
-        from: this.fromEmail,
+      const msg = {
         to: email,
-        subject: 'Welcome to The Salon Hub!',
+        from: this.fromEmail,
+        subject: 'Welcome to Stylr SA!',
         html: this.getWelcomeEmailTemplate(firstName),
-      });
+      };
+      await sgMail.send(msg);
     } catch (error) {
       console.error('Failed to send welcome email:', error);
     }
   }
 
   async sendPasswordResetEmail(email: string, token: string, firstName: string) {
-    if (!this.resend) {
+    if (!this.isConfigured) {
       console.log(`[DEV] Password reset for ${email}: ${token}`);
       return;
     }
@@ -67,12 +76,13 @@ export class MailService {
     const resetUrl = `${this.config.get('FRONTEND_URL') || 'http://localhost:3001'}/reset-password?token=${token}`;
 
     try {
-      await this.resend.emails.send({
-        from: this.fromEmail,
+      const msg = {
         to: email,
-        subject: 'Reset your password - The Salon Hub',
+        from: this.fromEmail,
+        subject: 'Reset your password - Stylr SA',
         html: this.getPasswordResetTemplate(firstName, resetUrl),
-      });
+      };
+      await sgMail.send(msg);
     } catch (error) {
       console.error('Failed to send password reset email:', error);
       throw error;
@@ -80,36 +90,38 @@ export class MailService {
   }
 
   async sendAccountLockedEmail(email: string, firstName: string, unlockTime: Date) {
-    if (!this.resend) {
+    if (!this.isConfigured) {
       console.log(`[DEV] Account locked email for ${email}`);
       return;
     }
 
     try {
-      await this.resend.emails.send({
-        from: this.fromEmail,
+      const msg = {
         to: email,
-        subject: 'Account Temporarily Locked - The Salon Hub',
+        from: this.fromEmail,
+        subject: 'Account Temporarily Locked - Stylr SA',
         html: this.getAccountLockedTemplate(firstName, unlockTime),
-      });
+      };
+      await sgMail.send(msg);
     } catch (error) {
       console.error('Failed to send account locked email:', error);
     }
   }
 
   async send2FASetupEmail(email: string, firstName: string) {
-    if (!this.resend) {
+    if (!this.isConfigured) {
       console.log(`[DEV] 2FA setup email for ${email}`);
       return;
     }
 
     try {
-      await this.resend.emails.send({
-        from: this.fromEmail,
+      const msg = {
         to: email,
-        subject: 'Two-Factor Authentication Enabled - The Salon Hub',
+        from: this.fromEmail,
+        subject: 'Two-Factor Authentication Enabled - Stylr SA',
         html: this.get2FASetupTemplate(firstName),
-      });
+      };
+      await sgMail.send(msg);
     } catch (error) {
       console.error('Failed to send 2FA setup email:', error);
     }
@@ -120,39 +132,33 @@ export class MailService {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #43414A; margin: 0; padding: 0; background-color: #f9f6f1; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #F51957 0%, #d4144c 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; }
-            .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-            .content { background: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-            .content h2 { color: #43414A; margin-top: 0; font-size: 22px; }
-            .content p { color: #4D4952; font-size: 16px; line-height: 1.7; }
-            .code-box { background: linear-gradient(135deg, #F51957 0%, #d4144c 100%); color: white; font-size: 42px; font-weight: 700; letter-spacing: 12px; text-align: center; padding: 30px 20px; border-radius: 12px; margin: 32px 0; font-family: 'Courier New', monospace; box-shadow: 0 4px 12px rgba(245, 25, 87, 0.3); }
-            .info-box { background: #fff4d6; border-left: 4px solid #f9a825; padding: 16px; border-radius: 6px; margin: 24px 0; }
-            .footer { text-align: center; margin-top: 30px; color: #4D4952; font-size: 13px; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
+            .container { max-width: 480px; margin: 40px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+            .content { padding: 40px 32px; text-align: center; }
+            .logo { font-size: 24px; font-weight: 700; color: #F51957; margin-bottom: 32px; }
+            .greeting { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px; }
+            .text { font-size: 15px; color: #555; margin-bottom: 24px; }
+            .code-box { font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #F51957; background: #fff5f7; padding: 20px; border-radius: 8px; margin: 24px 0; font-family: 'Courier New', monospace; }
+            .divider { height: 1px; background: #eee; margin: 24px 0; }
+            .footer { text-align: center; font-size: 13px; color: #888; padding: 0 32px 32px; }
+            .small { font-size: 13px; color: #888; }
           </style>
         </head>
         <body>
           <div class="container">
-            <div class="header">
-              <h1>✨ Welcome to Stylr SA!</h1>
-            </div>
             <div class="content">
-              <h2>Hi ${firstName},</h2>
-              <p>Thank you for joining Stylr SA! We're excited to have you on board.</p>
-              <p>To complete your registration, please enter this verification code in the app:</p>
+              <div class="logo">Stylr SA</div>
+              <p class="greeting">Hi ${firstName},</p>
+              <p class="text">Enter this code to verify your email:</p>
               <div class="code-box">${verificationCode}</div>
-              <p style="text-align: center; color: #4D4952; font-size: 14px; margin-top: 8px;">Enter this code to verify your email address</p>
-              <div class="info-box">
-                <p style="margin: 0; font-weight: 600; color: #b7791f;">⏱️ Important</p>
-                <p style="margin: 8px 0 0 0; font-size: 14px; color: #4D4952;">This verification code will expire in <strong>15 minutes</strong>. If you didn't create an account, please ignore this email.</p>
-              </div>
-              <p style="font-size: 14px; color: #4D4952; margin-top: 24px;">Need a new code? Simply click "Resend Code" in the app.</p>
+              <p class="small">This code expires in 15 minutes.</p>
             </div>
+            <div class="divider"></div>
             <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Stylr SA. All rights reserved.</p>
-              <p>Your one-stop platform for discovering and booking salon services.</p>
+              <p>© ${new Date().getFullYear()} Stylr SA</p>
             </div>
           </div>
         </body>
@@ -212,43 +218,33 @@ export class MailService {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #43414A; margin: 0; padding: 0; background-color: #f9f6f1; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #F51957 0%, #d4144c 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; }
-            .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-            .content { background: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-            .content h2 { color: #43414A; margin-top: 0; font-size: 22px; }
-            .content p { color: #4D4952; font-size: 16px; line-height: 1.7; }
-            .button { display: inline-block; padding: 14px 32px; background: #F51957; color: white !important; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; transition: background 0.3s ease; }
-            .button:hover { background: #ff2d6f; }
-            .link-text { word-break: break-all; color: #F51957; font-size: 14px; background: #ffd1dd; padding: 12px; border-radius: 6px; display: block; margin: 16px 0; }
-            .warning { background: #fff4d6; border-left: 4px solid #b7791f; padding: 16px; border-radius: 6px; margin: 24px 0; }
-            .footer { text-align: center; margin-top: 30px; color: #4D4952; font-size: 13px; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
+            .container { max-width: 480px; margin: 40px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+            .content { padding: 40px 32px; }
+            .logo { font-size: 24px; font-weight: 700; color: #F51957; text-align: center; margin-bottom: 32px; }
+            .greeting { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px; }
+            .text { font-size: 15px; color: #555; margin-bottom: 24px; }
+            .button { display: block; width: fit-content; margin: 0 auto 24px; padding: 14px 40px; background: #F51957; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; text-align: center; }
+            .divider { height: 1px; background: #eee; margin: 24px 0; }
+            .footer { text-align: center; font-size: 13px; color: #888; padding: 0 32px 32px; }
+            .small { font-size: 13px; color: #888; }
           </style>
         </head>
         <body>
           <div class="container">
-            <div class="header">
-              <h1>🔐 Reset Your Password</h1>
-            </div>
             <div class="content">
-              <h2>Hi ${firstName},</h2>
-              <p>We received a request to reset your password. Click the button below to create a new password:</p>
-              <div style="text-align: center;">
-                <a href="${resetUrl}" class="button">Reset Password</a>
-              </div>
-              <p>Or copy and paste this link into your browser:</p>
-              <span class="link-text">${resetUrl}</span>
-              <p style="font-size: 14px; color: #4D4952; margin-top: 24px;">⏱️ This link will expire in 1 hour.</p>
-              <div class="warning">
-                <p style="margin: 0; font-weight: 600; color: #b7791f;">⚠️ Security Notice</p>
-                <p style="margin: 8px 0 0 0; font-size: 14px; color: #4D4952;">If you didn't request a password reset, please ignore this email and your password will remain unchanged. Consider changing your password if you suspect unauthorized access.</p>
-              </div>
+              <div class="logo">Stylr SA</div>
+              <p class="greeting">Hi ${firstName},</p>
+              <p class="text">We received a request to reset your password. Click the button below to create a new one:</p>
+              <a href="${resetUrl}" class="button">Reset Password</a>
+              <p class="small">This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
             </div>
+            <div class="divider"></div>
             <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Stylr SA. All rights reserved.</p>
-              <p>Your one-stop platform for discovering and booking salon services.</p>
+              <p>© ${new Date().getFullYear()} Stylr SA</p>
             </div>
           </div>
         </body>
@@ -363,4 +359,332 @@ export class MailService {
       </html>
     `;
   }
+
+  // ===== ADMIN NOTIFICATION METHODS =====
+
+  async notifyAdminNewVideo(salonName: string, videoTitle: string, uploadedBy: string) {
+    await this.sendAdminNotification(
+      '🎬 New Video Uploaded - Needs Review',
+      `A new video has been uploaded and requires your review.`,
+      [
+        { label: 'Salon', value: salonName },
+        { label: 'Video Title', value: videoTitle || 'Untitled' },
+        { label: 'Uploaded By', value: uploadedBy },
+      ],
+      'Video'
+    );
+  }
+
+  async notifyAdminNewService(salonName: string, serviceName: string, price: string, createdBy: string) {
+    await this.sendAdminNotification(
+      '💇 New Service Added - Needs Review',
+      `A new service has been added and requires your review.`,
+      [
+        { label: 'Salon', value: salonName },
+        { label: 'Service', value: serviceName },
+        { label: 'Price', value: price },
+        { label: 'Created By', value: createdBy },
+      ],
+      'Service'
+    );
+  }
+
+  async notifyAdminNewSalon(salonName: string, ownerName: string, ownerEmail: string, location: string) {
+    await this.sendAdminNotification(
+      '🏪 New Salon Registered - Needs Review',
+      `A new salon has been registered and requires your approval.`,
+      [
+        { label: 'Salon Name', value: salonName },
+        { label: 'Owner', value: ownerName },
+        { label: 'Email', value: ownerEmail },
+        { label: 'Location', value: location },
+      ],
+      'Salon'
+    );
+  }
+
+  async notifyAdminNewBeforeAfter(salonName: string, uploadedBy: string) {
+    await this.sendAdminNotification(
+      '📸 New Before/After Uploaded - Needs Review',
+      `A new before/after image has been uploaded.`,
+      [
+        { label: 'Salon', value: salonName },
+        { label: 'Uploaded By', value: uploadedBy },
+      ],
+      'Before/After'
+    );
+  }
+
+  private async sendAdminNotification(
+    subject: string,
+    description: string,
+    details: { label: string; value: string }[],
+    type: string
+  ) {
+    if (!this.isConfigured) {
+      console.log(`[DEV] Admin notification: ${subject}`);
+      return;
+    }
+
+    try {
+      const detailsHtml = details
+        .map(d => `<tr><td style="padding: 8px 0; color: #666; width: 120px;">${d.label}:</td><td style="padding: 8px 0; color: #1a1a1a; font-weight: 500;">${d.value}</td></tr>`)
+        .join('');
+
+      const msg = {
+        to: this.adminEmail,
+        from: this.fromEmail,
+        subject: `[Stylr SA] ${subject}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
+                .container { max-width: 500px; margin: 40px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+                .header { padding: 24px 32px; border-bottom: 1px solid #eee; }
+                .header h1 { margin: 0; font-size: 18px; color: #1a1a1a; }
+                .content { padding: 24px 32px; }
+                .badge { display: inline-block; background: #F51957; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+                .details { width: 100%; border-collapse: collapse; }
+                .footer { padding: 16px 32px; background: #f9fafb; border-radius: 0 0 8px 8px; text-align: center; font-size: 12px; color: #888; }
+                .cta { display: inline-block; margin-top: 16px; padding: 10px 24px; background: #F51957; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>${subject}</h1>
+                </div>
+                <div class="content">
+                  <span class="badge">${type}</span>
+                  <p style="margin: 0 0 16px; color: #666;">${description}</p>
+                  <table class="details">
+                    ${detailsHtml}
+                  </table>
+                  <a href="https://stylrsa.co.za/admin" class="cta">View in Admin Panel</a>
+                </div>
+                <div class="footer">
+                  <p style="margin: 0;">Stylr SA Admin Notification</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `,
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Admin notification sent: ${subject}`);
+    } catch (error) {
+      console.error('[EMAIL] Failed to send admin notification:', error);
+    }
+  }
+
+  // ===== BOOKING EMAIL METHODS =====
+
+  async sendBookingConfirmation(
+    userEmail: string,
+    userName: string,
+    salonName: string,
+    serviceName: string,
+    date: string,
+    time: string,
+  ) {
+    if (!this.isConfigured) {
+      console.log(`[DEV] Booking confirmation for ${userEmail}`);
+      return;
+    }
+
+    try {
+      const msg = {
+        to: userEmail,
+        from: this.fromEmail,
+        subject: `Booking Request Received - ${salonName}`,
+        html: this.getSimpleEmailTemplate(
+          `Hi ${userName},`,
+          `Your booking request has been submitted and is awaiting confirmation from the salon.`,
+          [
+            { label: 'Salon', value: salonName },
+            { label: 'Service', value: serviceName },
+            { label: 'Date', value: date },
+            { label: 'Time', value: time },
+          ],
+          `You'll receive an email once the salon confirms your appointment.`,
+        ),
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Booking confirmation sent to ${userEmail}`);
+    } catch (error) {
+      console.error('[EMAIL] Failed to send booking confirmation:', error);
+    }
+  }
+
+  async notifySalonNewBooking(
+    salonOwnerEmail: string,
+    salonOwnerName: string,
+    salonName: string,
+    customerName: string,
+    customerEmail: string,
+    serviceName: string,
+    date: string,
+    time: string,
+  ) {
+    if (!this.isConfigured) {
+      console.log(`[DEV] Salon booking notification for ${salonOwnerEmail}`);
+      return;
+    }
+
+    try {
+      const msg = {
+        to: salonOwnerEmail,
+        from: this.fromEmail,
+        subject: `📅 New Booking Request - ${serviceName}`,
+        html: this.getSimpleEmailTemplate(
+          `Hi ${salonOwnerName},`,
+          `You have a new booking request for ${salonName}. Please review and confirm.`,
+          [
+            { label: 'Customer', value: customerName },
+            { label: 'Email', value: customerEmail },
+            { label: 'Service', value: serviceName },
+            { label: 'Date', value: date },
+            { label: 'Time', value: time },
+          ],
+          null,
+          'View Booking',
+          'https://stylrsa.co.za/dashboard/bookings',
+        ),
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Salon booking notification sent to ${salonOwnerEmail}`);
+    } catch (error) {
+      console.error('[EMAIL] Failed to send salon booking notification:', error);
+    }
+  }
+
+  async sendBookingApproved(
+    userEmail: string,
+    userName: string,
+    salonName: string,
+    serviceName: string,
+    date: string,
+    time: string,
+    salonAddress?: string,
+  ) {
+    if (!this.isConfigured) {
+      console.log(`[DEV] Booking approved for ${userEmail}`);
+      return;
+    }
+
+    try {
+      const details = [
+        { label: 'Salon', value: salonName },
+        { label: 'Service', value: serviceName },
+        { label: 'Date', value: date },
+        { label: 'Time', value: time },
+      ];
+      if (salonAddress) {
+        details.push({ label: 'Address', value: salonAddress });
+      }
+
+      const msg = {
+        to: userEmail,
+        from: this.fromEmail,
+        subject: `✅ Booking Confirmed - ${salonName}`,
+        html: this.getSimpleEmailTemplate(
+          `Great news, ${userName}!`,
+          `Your booking has been confirmed. We look forward to seeing you!`,
+          details,
+          `Please arrive 5-10 minutes before your appointment time.`,
+        ),
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Booking approved email sent to ${userEmail}`);
+    } catch (error) {
+      console.error('[EMAIL] Failed to send booking approved email:', error);
+    }
+  }
+
+  async sendBookingRejected(
+    userEmail: string,
+    userName: string,
+    salonName: string,
+    serviceName: string,
+    reason?: string,
+  ) {
+    if (!this.isConfigured) {
+      console.log(`[DEV] Booking rejected for ${userEmail}`);
+      return;
+    }
+
+    try {
+      const msg = {
+        to: userEmail,
+        from: this.fromEmail,
+        subject: `Booking Update - ${salonName}`,
+        html: this.getSimpleEmailTemplate(
+          `Hi ${userName},`,
+          `Unfortunately, your booking request for ${serviceName} at ${salonName} could not be confirmed.`,
+          [],
+          reason ? `Reason: ${reason}` : `The salon was unable to accommodate this booking. Please try a different time or contact the salon directly.`,
+          'Find Another Time',
+          `https://stylrsa.co.za/salons`,
+        ),
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Booking rejected email sent to ${userEmail}`);
+    } catch (error) {
+      console.error('[EMAIL] Failed to send booking rejected email:', error);
+    }
+  }
+
+  private getSimpleEmailTemplate(
+    greeting: string,
+    message: string,
+    details: { label: string; value: string }[],
+    footer?: string | null,
+    ctaText?: string,
+    ctaUrl?: string,
+  ): string {
+    const detailsHtml = details.length > 0
+      ? `<table style="width: 100%; margin: 20px 0; border-collapse: collapse;">
+          ${details.map(d => `<tr><td style="padding: 8px 0; color: #666; width: 100px;">${d.label}:</td><td style="padding: 8px 0; color: #1a1a1a; font-weight: 500;">${d.value}</td></tr>`).join('')}
+        </table>`
+      : '';
+
+    const ctaHtml = ctaText && ctaUrl
+      ? `<a href="${ctaUrl}" style="display: inline-block; margin-top: 16px; padding: 12px 28px; background: #F51957; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">${ctaText}</a>`
+      : '';
+
+    const footerHtml = footer
+      ? `<p style="font-size: 13px; color: #888; margin-top: 20px;">${footer}</p>`
+      : '';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5;">
+          <div style="max-width: 480px; margin: 40px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="padding: 32px;">
+              <div style="font-size: 24px; font-weight: 700; color: #F51957; text-align: center; margin-bottom: 24px;">Stylr SA</div>
+              <p style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px;">${greeting}</p>
+              <p style="font-size: 15px; color: #555; margin-bottom: 16px;">${message}</p>
+              ${detailsHtml}
+              ${ctaHtml}
+              ${footerHtml}
+            </div>
+            <div style="height: 1px; background: #eee;"></div>
+            <div style="text-align: center; padding: 16px; font-size: 12px; color: #888;">
+              <p style="margin: 0;">© ${new Date().getFullYear()} Stylr SA</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
 }
+
+

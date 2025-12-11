@@ -37,68 +37,7 @@ vercel-env-vars.txt
 
 # Ignore test coverage reports
 /backend/coverage/
-
-
-# --- Frontend - Next.js ---
-# Ignore build output
-/.next/
-/frontend/.next/
-/frontend/out/
-
-# Ignore Vercel deployment-specific folder
-/frontend/.vercel/
-
-# Ignore Next.js build cache
-/frontend/.swc/
-
-# Ignore test coverage reports
-/frontend/coverage/
-
-# --- Local test data & credentials ---
-admin-login.json
-login.json
-admin.txt
-client.txt
-cookie.txt
-# --- General / Workspace ---
-# Ignore dependency directories
-node_modules/
-
-# Ignore environment variables
-# These files contain secrets and should never be committed.
-.env
-.env.*
-!.env.example
-
-# Ignore log files, crash reports, and temporary files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-*.log
-
-# Ignore OS-specific files
-.DS_Store
-Thumbs.db
-
-# Ignore IDE/editor configuration files
-.vscode/
-.idea/
-
-# Ignore PowerShell scripts (local automation only)
-*.ps1
-
-# Ignore environment variable exports
-vercel-env-vars.txt
-
-
-# --- Backend - NestJS ---
-# Ignore compiled TypeScript output
-/backend/dist/
-/backend/*.tsbuildinfo
-
-# Ignore test coverage reports
-/backend/coverage/
+backend/migration-data.json
 
 
 # --- Frontend - Next.js ---
@@ -126,9 +65,34 @@ booking.json
 review.json
 approve.json
 .vercel
+
+# --- Markdown files (keep only important docs) ---
 *.md
 !README.md
 !MOBILE_CONNECTION_FIX.md
 !DEPLOY.md
 !DEPLOY_NETLIFY.md
-backend/migration-data.json
+
+# --- Development/SEO/Test files ---
+BING_URLS_TOP_100.txt
+COMPLETION_SUMMARY.txt
+FINAL_STATUS.txt
+GOOGLE_SEARCH_CONSOLE_URLS.txt
+GOOGLE_SEARCH_CONSOLE_URLS_COMPLETE.txt
+GOOGLE_URLS_EXTENDED.txt
+IMPLEMENTATION_COMPLETE.txt
+LOCATION_SPECIFIC_SERVICE_URLS.txt
+SEO_CODE_AUDIT_REPORT.txt
+SEO_FINAL_STATUS.txt
+SEO_QUICK_REFERENCE.txt
+TEST_RESULTS_REPORT.txt
+
+# --- Executables & Scripts ---
+acli.exe
+export-render.js
+migrate-db.js
+render_data.json
+test-build-offline.js
+test-logo-display.js
+test-seo-implementation.sh
+test-seo.js

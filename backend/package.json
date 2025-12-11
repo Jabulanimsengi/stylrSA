@@ -41,6 +41,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.3.10",
     "@prisma/client": "^6.17.1",
+    "@sendgrid/mail": "^8.1.6",
     "@socket.io/redis-adapter": "^8.3.0",
     "@types/express": "^5.0.5",
     "@types/streamifier": "^0.1.2",

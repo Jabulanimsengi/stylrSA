@@ -9,6 +9,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EventsGateway } from '../events/events.gateway';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class ServicesService {
@@ -16,6 +17,7 @@ export class ServicesService {
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
     private eventsGateway: EventsGateway,
+    private mailService: MailService,
   ) { }
 
   async create(user: any, dto: CreateServiceDto) {
@@ -74,6 +76,14 @@ export class ServicesService {
         notification,
       );
     }
+
+    // Send admin email notification
+    await this.mailService.notifyAdminNewService(
+      salon.name,
+      service.title,
+      `R${service.price}`,
+      `${user.firstName || ''} ${user.lastName || ''} (${user.email})`.trim(),
+    );
 
     return service;
   }

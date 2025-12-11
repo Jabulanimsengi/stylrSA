@@ -14,6 +14,8 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Response } from 'express';
 import { JwtGuard } from './guard/jwt.guard';
 import { GetUser } from './decorator/get-user.decorator';
@@ -26,7 +28,7 @@ export class AuthController {
     private authService: AuthService,
     private twoFactorService: TwoFactorService,
     private mailService: MailService,
-  ) {}
+  ) { }
 
   @Throttle({ auth: { limit: 5, ttl: 900000 } }) // 5 attempts per 15 minutes
   @Post('register')
@@ -45,7 +47,7 @@ export class AuthController {
     const { accessToken, user } = await this.authService.login(dto);
     // Only set secure cookies if actually running on HTTPS
     // This allows local testing with `npm run start` on http://localhost
-    const isSecure = process.env.NODE_ENV === 'production' && 
+    const isSecure = process.env.NODE_ENV === 'production' &&
       (process.env.COOKIE_DOMAIN?.includes('.') || false); // Has a real domain = production
     // Set cookie domain if explicitly configured (for deployed environments)
     // If not set, undefined allows cookies to work on localhost
@@ -70,7 +72,7 @@ export class AuthController {
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     // Only set secure cookies if actually running on HTTPS
-    const isSecure = process.env.NODE_ENV === 'production' && 
+    const isSecure = process.env.NODE_ENV === 'production' &&
       (process.env.COOKIE_DOMAIN?.includes('.') || false);
     // Set cookie domain if explicitly configured (for deployed environments)
     // Must match the domain used when setting the cookie
@@ -113,6 +115,19 @@ export class AuthController {
     return this.authService.resendVerificationEmail(email);
   }
 
+  @Throttle({ auth: { limit: 3, ttl: 900000 } }) // 3 attempts per 15 minutes
+  @HttpCode(HttpStatus.OK)
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
+
   // ====== 2FA ENDPOINTS ======
 
   @UseGuards(JwtGuard)
@@ -130,7 +145,7 @@ export class AuthController {
     }
 
     const { secret, qrCodeUrl } = await this.twoFactorService.generateSecret(user.id);
-    
+
     return {
       secret,
       qrCodeUrl,
@@ -148,7 +163,7 @@ export class AuthController {
 
     // Get the temporary secret from the user's session (stored in setup step)
     const { secret } = await this.twoFactorService.generateSecret(user.id);
-    
+
     // Verify the token
     const isValid = this.twoFactorService.verifyToken(secret, token);
     if (!isValid) {
@@ -201,7 +216,7 @@ export class AuthController {
         throw new UnauthorizedException('Invalid backup code');
       }
 
-      return { 
+      return {
         message: '2FA verified successfully',
         warning: 'Backup code has been used and is no longer valid',
       };

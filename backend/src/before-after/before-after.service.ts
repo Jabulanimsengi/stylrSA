@@ -2,6 +2,7 @@ import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class BeforeAfterService {
@@ -9,7 +10,8 @@ export class BeforeAfterService {
     private prisma: PrismaService,
     private cloudinary: CloudinaryService,
     private notifications: NotificationsService,
-  ) {}
+    private mailService: MailService,
+  ) { }
 
   async uploadBeforeAfter(
     files: Express.Multer.File[],
@@ -63,7 +65,7 @@ export class BeforeAfterService {
       where: { role: 'ADMIN' },
       select: { id: true },
     });
-    
+
     await Promise.all(
       admins.map((admin) =>
         this.notifications.create(
@@ -72,6 +74,16 @@ export class BeforeAfterService {
           { link: `/admin/before-after-pending` },
         ),
       ),
+    );
+
+    // Send admin email notification
+    const uploader = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true, email: true },
+    });
+    await this.mailService.notifyAdminNewBeforeAfter(
+      beforeAfterPhoto.salon.name,
+      uploader ? `${uploader.firstName} ${uploader.lastName} (${uploader.email})` : userId,
     );
 
     return {

@@ -27,7 +27,7 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
     private mailService: MailService,
-  ) {}
+  ) { }
 
   // Helper method to generate 6-digit verification code
   private generateVerificationCode(): string {
@@ -45,7 +45,7 @@ export class AuthService {
       if (!existingUser.emailVerified) {
         // Check if verification token has expired
         const isExpired = existingUser.verificationExpires && existingUser.verificationExpires < new Date();
-        
+
         if (isExpired) {
           // Generate new 6-digit verification code
           const verificationCode = this.generateVerificationCode();
@@ -93,11 +93,10 @@ export class AuthService {
 
     // generate the password hash
     const hash = await argon2.hash(dto.password);
-    
-    // TEMPORARILY DISABLED: Email verification (waiting for email domain to propagate)
+
     // Generate 6-digit verification code
-    // const verificationCode = this.generateVerificationCode();
-    // const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const verificationCode = this.generateVerificationCode();
+    const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     // save the new user in the db
     try {
@@ -108,23 +107,22 @@ export class AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           role: dto.role,
-          // TEMPORARILY DISABLED: Email verification
-          // verificationToken: verificationCode,
-          // verificationExpires,
-          emailVerified: true, // TEMPORARILY SET TO TRUE - Re-enable when email is working
+          verificationToken: verificationCode,
+          verificationExpires,
+          emailVerified: false,
         },
       });
 
-      // TEMPORARILY DISABLED: Send verification email with code
-      // await this.mailService.sendVerificationEmail(
-      //   user.email,
-      //   verificationCode,
-      //   user.firstName,
-      // );
+      // Send verification email with code
+      await this.mailService.sendVerificationEmail(
+        user.email,
+        verificationCode,
+        user.firstName,
+      );
 
-      return { 
-        message: 'Registration successful! You can now log in.',
-        requiresVerification: false, // TEMPORARILY DISABLED - Verification not required
+      return {
+        message: 'Registration successful! Please check your email for a verification code.',
+        requiresVerification: true,
         isExisting: false,
       };
     } catch (error) {
@@ -144,19 +142,19 @@ export class AuthService {
       where: {
         email: dto.email,
       },
-      include: { 
+      include: {
         salons: true,
         oauthAccounts: true,
       },
     });
-    
+
     // if user does not exist throw exception
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     // Check if account is locked
     if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
-      const unlockTime = user.accountLockedUntil.toLocaleString('en-ZA', { 
-        timeZone: 'Africa/Johannesburg' 
+      const unlockTime = user.accountLockedUntil.toLocaleString('en-ZA', {
+        timeZone: 'Africa/Johannesburg'
       });
       throw new UnauthorizedException(
         `Account locked due to multiple failed login attempts. Try again after ${unlockTime}`
@@ -165,53 +163,53 @@ export class AuthService {
 
     // compare password using argon2
     const pwMatches = await argon2.verify(user.password, dto.password);
-    
+
     // if password incorrect, increment failed attempts
     if (!pwMatches) {
       const failedAttempts = user.failedLoginAttempts + 1;
       const updateData: any = { failedLoginAttempts: failedAttempts };
-      
+
       // Lock account after 5 failed attempts (15 minutes)
       if (failedAttempts >= 5) {
         const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
         updateData.accountLockedUntil = lockUntil;
         updateData.failedLoginAttempts = 0; // Reset counter
-        
+
         await this.prisma.user.update({
           where: { id: user.id },
           data: updateData,
         });
-        
+
         // Send account locked email
         await this.mailService.sendAccountLockedEmail(
           user.email,
           user.firstName,
           lockUntil,
         );
-        
+
         throw new UnauthorizedException(
           'Account locked due to multiple failed login attempts. Check your email for details.'
         );
       }
-      
+
       await this.prisma.user.update({
         where: { id: user.id },
         data: updateData,
       });
-      
+
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // TEMPORARILY DISABLED: EMAIL VERIFICATION ENFORCEMENT
-    // Waiting for email domain to propagate - will re-enable once email is working
-    // const isNewUser = user.createdAt >= this.VERIFICATION_ENFORCEMENT_DATE;
-    // const isManualSignup = !user.oauthAccounts || user.oauthAccounts.length === 0;
-    // 
-    // if (isNewUser && !user.emailVerified && isManualSignup) {
-    //   throw new UnauthorizedException(
-    //     'Please verify your email address before logging in. Check your inbox for the verification code.'
-    //   );
-    // }
+    // Email verification enforcement
+    // Users created after the enforcement date must verify email before login
+    const isNewUser = user.createdAt >= this.VERIFICATION_ENFORCEMENT_DATE;
+    const isManualSignup = !user.oauthAccounts || user.oauthAccounts.length === 0;
+
+    if (isNewUser && !user.emailVerified && isManualSignup) {
+      throw new UnauthorizedException(
+        'Please verify your email address before logging in. Check your inbox for the verification code.'
+      );
+    }
 
     // Reset failed login attempts on successful login
     await this.prisma.user.update({
@@ -425,7 +423,7 @@ export class AuthService {
         //     'Please verify your email address before using OAuth login. Check your inbox for the verification link.'
         //   );
         // }
-        
+
         await this.prisma.oAuthAccount.create({
           data: {
             userId: user.id,
@@ -443,12 +441,12 @@ export class AuthService {
       const lastName = rest.join(' ') || 'Account';
       const tempPassword = randomBytes(16).toString('hex');
       const passwordHash = await argon2.hash(tempPassword);
-      
+
       // Validate role or default to CLIENT
       const validRoles = ['CLIENT', 'SALON_OWNER', 'PRODUCT_SELLER'];
       const userRole = role && validRoles.includes(role.toUpperCase()) ? role.toUpperCase() : 'CLIENT';
       console.log('[SSO] Creating new user with role:', userRole);
-      
+
       user = await this.prisma.user.create({
         data: {
           email: email ?? `${provider}-${providerAccountId}@example.local`,

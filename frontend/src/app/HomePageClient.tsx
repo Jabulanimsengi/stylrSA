@@ -423,69 +423,20 @@ export default function HomePageClient({
         </div>
       </section>
 
-      <FeaturedSalons initialSalons={initialFeaturedSalons} />
-
-      {/* Service Category Circles - Browse by category */}
+      {/* Service Category Circles - Quick navigation */}
       <ServiceCategoryCircles />
 
+      {/* Featured Salons - Trust building */}
+      <FeaturedSalons initialSalons={initialFeaturedSalons} />
 
-
-      {Object.keys(trendsData).length > 0 && (
-        <>
-          {trendsData.HAIRSTYLE && trendsData.HAIRSTYLE.length > 0 && (
-            <TrendRow
-              title="Trending Hairstyles"
-              category="HAIRSTYLE"
-              trends={trendsData.HAIRSTYLE}
-            />
-          )}
-          {trendsData.BRAIDS && trendsData.BRAIDS.length > 0 && (
-            <TrendRow
-              title="Trending Braids"
-              category="BRAIDS"
-              trends={trendsData.BRAIDS}
-            />
-          )}
-          {trendsData.NAILS && trendsData.NAILS.length > 0 && (
-            <TrendRow
-              title="Trending Nails"
-              category="NAILS"
-              trends={trendsData.NAILS}
-            />
-          )}
-          {trendsData.SPA && trendsData.SPA.length > 0 && (
-            <TrendRow
-              title="Trending Spa"
-              category="SPA"
-              trends={trendsData.SPA}
-            />
-          )}
-          {trendsData.MAKEUP && trendsData.MAKEUP.length > 0 && (
-            <TrendRow
-              title="Trending Makeup"
-              category="MAKEUP"
-              trends={trendsData.MAKEUP}
-            />
-          )}
-          {trendsData.BARBERING && trendsData.BARBERING.length > 0 && (
-            <TrendRow
-              title="Trending Barbering"
-              category="BARBERING"
-              trends={trendsData.BARBERING}
-            />
-          )}
-        </>
-      )}
-
-      <ForYouRecommendations />
-
+      {/* Before/After - Social proof */}
       <BeforeAfterSlideshow initialPhotos={initialBeforeAfter} />
 
+      {/* For You Recommendations - Personalized */}
+      <ForYouRecommendations />
 
-
+      {/* Video Slideshow - High engagement */}
       <VideoSlideshow />
-
-
 
       {/* Only show Featured Services section if there's content or still loading initial data */}
       {(Object.keys(groupedServices).length > 0 || !hasInitiallyLoaded) && (
@@ -532,6 +483,54 @@ export default function HomePageClient({
             <p className={styles.endOfList}>You've reached the end!</p>
           )}
         </section>
+      )}
+
+      {/* Trending Styles - Discovery */}
+      {Object.keys(trendsData).length > 0 && (
+        <>
+          {trendsData.HAIRSTYLE && trendsData.HAIRSTYLE.length > 0 && (
+            <TrendRow
+              title="Trending Hairstyles"
+              category="HAIRSTYLE"
+              trends={trendsData.HAIRSTYLE}
+            />
+          )}
+          {trendsData.BRAIDS && trendsData.BRAIDS.length > 0 && (
+            <TrendRow
+              title="Trending Braids"
+              category="BRAIDS"
+              trends={trendsData.BRAIDS}
+            />
+          )}
+          {trendsData.NAILS && trendsData.NAILS.length > 0 && (
+            <TrendRow
+              title="Trending Nails"
+              category="NAILS"
+              trends={trendsData.NAILS}
+            />
+          )}
+          {trendsData.SPA && trendsData.SPA.length > 0 && (
+            <TrendRow
+              title="Trending Spa"
+              category="SPA"
+              trends={trendsData.SPA}
+            />
+          )}
+          {trendsData.MAKEUP && trendsData.MAKEUP.length > 0 && (
+            <TrendRow
+              title="Trending Makeup"
+              category="MAKEUP"
+              trends={trendsData.MAKEUP}
+            />
+          )}
+          {trendsData.BARBERING && trendsData.BARBERING.length > 0 && (
+            <TrendRow
+              title="Trending Barbering"
+              category="BARBERING"
+              trends={trendsData.BARBERING}
+            />
+          )}
+        </>
       )}
 
       <Script

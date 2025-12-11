@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { MailService } from 'src/mail/mail.service';
 
 type ServiceWithSalon = any;
 type BookingWithServiceAndSalon = any;
@@ -29,7 +30,8 @@ export class BookingsService {
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
-  ) {}
+    private mailService: MailService,
+  ) { }
 
   /**
    * Get available time slots for a service on a specific date
@@ -104,7 +106,7 @@ export class BookingsService {
         slots: [],
       };
     }
-    
+
     // Parse open and close times
     const [openHour, openMinute] = open.split(':').map(Number);
     const [closeHour, closeMinute] = close.split(':').map(Number);
@@ -142,7 +144,7 @@ export class BookingsService {
     // Generate time slots
     while (currentTime < endTime) {
       const slotEndTime = new Date(currentTime.getTime() + serviceDuration * 60000);
-      
+
       // Check if slot end time exceeds closing time
       if (slotEndTime > endTime) {
         break;
@@ -152,7 +154,7 @@ export class BookingsService {
       const isBooked = existingBookings.some(booking => {
         const bookingStart = new Date(booking.bookingTime);
         const bookingEnd = new Date(bookingStart.getTime() + serviceDuration * 60000);
-        
+
         // Check for overlap
         return (
           (currentTime >= bookingStart && currentTime < bookingEnd) ||
@@ -198,7 +200,7 @@ export class BookingsService {
     const bookingDate = new Date(dto.bookingTime);
     const dateString = bookingDate.toISOString().split('T')[0];
     const availability = await this.getAvailability(dto.serviceId, dateString);
-    
+
     const requestedSlot = availability.slots.find(slot => {
       const slotTime = new Date(slot.time);
       return Math.abs(slotTime.getTime() - bookingDate.getTime()) < 60000; // Within 1 minute
@@ -239,6 +241,38 @@ export class BookingsService {
       'newNotification',
       notification,
     );
+
+    // Send email notifications
+    const bookingDateFormatted = bookingDate.toLocaleDateString('en-ZA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const bookingTimeFormatted = bookingDate.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+
+    // Email to user confirming booking request
+    await this.mailService.sendBookingConfirmation(
+      user.email,
+      user.firstName,
+      service.salon.name,
+      service.title,
+      bookingDateFormatted,
+      bookingTimeFormatted,
+    );
+
+    // Email to salon owner about new booking
+    const salonOwner = await this.prisma.user.findUnique({
+      where: { id: service.salon.ownerId },
+      select: { email: true, firstName: true },
+    });
+    if (salonOwner) {
+      await this.mailService.notifySalonNewBooking(
+        salonOwner.email,
+        salonOwner.firstName,
+        service.salon.name,
+        `${user.firstName} ${user.lastName || ''}`.trim(),
+        user.email,
+        service.title,
+        bookingDateFormatted,
+        bookingTimeFormatted,
+      );
+    }
 
     return booking;
   }
@@ -342,6 +376,30 @@ export class BookingsService {
       'newNotification',
       notification,
     );
+
+    // Send email notification based on status
+    const bookingDateFormatted = booking.bookingTime.toLocaleDateString('en-ZA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const bookingTimeFormatted = booking.bookingTime.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+
+    if (status === 'CONFIRMED') {
+      const salonAddress = booking.service.salon.address || '';
+      await this.mailService.sendBookingApproved(
+        booking.user.email,
+        booking.user.firstName,
+        booking.service.salon.name,
+        booking.service.title,
+        bookingDateFormatted,
+        bookingTimeFormatted,
+        salonAddress,
+      );
+    } else if (status === 'CANCELLED') {
+      await this.mailService.sendBookingRejected(
+        booking.user.email,
+        booking.user.firstName,
+        booking.service.salon.name,
+        booking.service.title,
+      );
+    }
 
     return updatedBooking;
   }

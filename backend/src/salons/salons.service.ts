@@ -15,6 +15,7 @@ import {
 import { NotificationsService } from '../notifications/notifications.service';
 import { EventsGateway } from '../events/events.gateway';
 import { generateSalonSlug, isUUID } from '../common/slug.util';
+import { MailService } from '../mail/mail.service';
 
 type PlanCode = 'FREE' | 'STARTER' | 'ESSENTIAL' | 'GROWTH' | 'PRO' | 'ELITE';
 type PlanPaymentStatus =
@@ -41,6 +42,7 @@ export class SalonsService {
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
     private eventsGateway: EventsGateway,
+    private mailService: MailService,
   ) { }
 
   /**
@@ -49,17 +51,17 @@ export class SalonsService {
    */
   private async generateUniqueSlug(name: string, city: string): Promise<string> {
     const baseSlug = generateSalonSlug(name, city);
-    
+
     // Check if base slug exists
     const existing = await this.prisma.salon.findUnique({
       where: { slug: baseSlug },
       select: { id: true },
     });
-    
+
     if (!existing) {
       return baseSlug;
     }
-    
+
     // Find all slugs that start with the base slug
     const similarSlugs = await this.prisma.salon.findMany({
       where: {
@@ -69,7 +71,7 @@ export class SalonsService {
       },
       select: { slug: true },
     });
-    
+
     // Extract numbers from existing slugs and find the next available
     const numbers = similarSlugs
       .map(s => {
@@ -77,7 +79,7 @@ export class SalonsService {
         return match ? parseInt(match[1], 10) : 0;
       })
       .filter(n => n > 0);
-    
+
     const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 2;
     return `${baseSlug}-${nextNumber}`;
   }
@@ -239,6 +241,15 @@ export class SalonsService {
           notification,
         );
       }
+
+      // Send admin email notification
+      const location = [(dto as any).city, (dto as any).province].filter(Boolean).join(', ');
+      await this.mailService.notifyAdminNewSalon(
+        salon.name,
+        `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown',
+        user.email,
+        location || 'Not specified',
+      );
     } catch (notifyErr) {
       console.error('Failed to send notifications after salon creation:', notifyErr);
       // Do not fail the request if notifications fail
@@ -406,9 +417,9 @@ export class SalonsService {
   async findOne(idOrSlug: string, user?: any, ipAddress?: string) {
     // Determine if we're looking up by UUID or slug
     const isId = isUUID(idOrSlug);
-    
+
     const salon = await this.prisma.salon.findFirst({
-      where: isId 
+      where: isId
         ? { id: idOrSlug }
         : { slug: idOrSlug },
       include: {
