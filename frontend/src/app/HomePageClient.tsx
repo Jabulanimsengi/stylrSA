@@ -403,7 +403,7 @@ export default function HomePageClient({
                         setHeroSearchQuery(suggestion.title);
                         setShowHeroSuggestions(false);
                         if (suggestion.type === 'category' && suggestion.slug) {
-                          router.push(`/services/${suggestion.slug}`);
+                          router.push(`/services?category=${suggestion.slug}`);
                         } else {
                           router.push(`/services?service=${encodeURIComponent(suggestion.title)}`);
                         }

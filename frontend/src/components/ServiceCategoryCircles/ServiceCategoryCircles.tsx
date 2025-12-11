@@ -90,7 +90,7 @@ export default function ServiceCategoryCircles() {
                         {HOMEPAGE_CATEGORIES.map((category) => (
                             <Link
                                 key={category.slug}
-                                href={`/services/${category.slug}`}
+                                href={`/services?category=${category.slug}`}
                                 className={styles.categoryItem}
                             >
                                 <div

@@ -71,7 +71,7 @@ export default function Footer() {
             <span className={styles.trustBadge}>✓ Secure Booking</span>
             <span className={styles.trustBadge}>✓ Free to Use</span>
           </div>
-          
+
           {/* Business Address */}
           <div className={styles.contactInfo}>
             <p className={styles.contactDetail}>
@@ -86,7 +86,7 @@ export default function Footer() {
               08:00 - 17:00
             </p>
             <p className={styles.contactDetail}>
-              <strong>📧 Email:</strong> 
+              <strong>📧 Email:</strong>
               <a href="mailto:info@stylrsa.co.za" className={styles.contactLink}>info@stylrsa.co.za</a>
             </p>
           </div>
@@ -96,15 +96,15 @@ export default function Footer() {
         <div className={styles.footerSection}>
           <h3 className={styles.sectionTitle}>Beauty Services</h3>
           <ul className={styles.links}>
-            <li><Link href="/services/braiding-weaving" title="Braids, knotless braids, weaves in South Africa">Hair Braiding & Extensions</Link></li>
-            <li><Link href="/services/haircuts-styling" title="Professional haircuts and styling services">Haircuts & Styling</Link></li>
-            <li><Link href="/services/nail-care" title="Gel nails, acrylic nails, nail art">Nail Services</Link></li>
-            <li><Link href="/services/makeup-beauty" title="Bridal makeup, event makeup, special occasions">Makeup Artist</Link></li>
-            <li><Link href="/services/massage-body-treatments" title="Swedish massage, deep tissue massage">Massage & Wellness</Link></li>
-            <li><Link href="/services/skin-care-facials" title="Facials, skincare treatments, beauty products">Skincare & Facials</Link></li>
-            <li><Link href="/services/mens-grooming" title="Barber services, fades, beard grooming">Men's Grooming</Link></li>
-            <li><Link href="/services/waxing-hair-removal" title="Waxing services and hair removal">Waxing & Hair Removal</Link></li>
-            <li><Link href="/services/bridal-services" title="Wedding preparation, bridal packages">Bridal & Events</Link></li>
+            <li><Link href="/services?category=braiding-weaving" title="Braids, knotless braids, weaves in South Africa">Hair Braiding & Extensions</Link></li>
+            <li><Link href="/services?category=haircuts-styling" title="Professional haircuts and styling services">Haircuts & Styling</Link></li>
+            <li><Link href="/services?category=nail-care" title="Gel nails, acrylic nails, nail art">Nail Services</Link></li>
+            <li><Link href="/services?category=makeup-beauty" title="Bridal makeup, event makeup, special occasions">Makeup Artist</Link></li>
+            <li><Link href="/services?category=massage-body-treatments" title="Swedish massage, deep tissue massage">Massage & Wellness</Link></li>
+            <li><Link href="/services?category=skin-care-facials" title="Facials, skincare treatments, beauty products">Skincare & Facials</Link></li>
+            <li><Link href="/services?category=mens-grooming" title="Barber services, fades, beard grooming">Men's Grooming</Link></li>
+            <li><Link href="/services?category=waxing-hair-removal" title="Waxing services and hair removal">Waxing & Hair Removal</Link></li>
+            <li><Link href="/services?category=bridal-services" title="Wedding preparation, bridal packages">Bridal & Events</Link></li>
           </ul>
         </div>
 
@@ -130,10 +130,10 @@ export default function Footer() {
             <li><Link href="/services/braiding-weaving/location/western-cape/cape-town" title="Best braiding services in Cape Town">Braids Cape Town</Link></li>
             <li><Link href="/services/nail-care/location/gauteng/johannesburg" title="Professional nail artists in Johannesburg">Nail Artist Johannesburg</Link></li>
             <li><Link href="/services/mens-grooming/location/kwazulu-natal/durban" title="Best barber shops in Durban">Barber Durban</Link></li>
-            <li><Link href="/services/makeup-beauty" title="Wedding and special event makeup artists">Wedding Makeup</Link></li>
-            <li><Link href="/services/massage-body-treatments" title="Relaxing and therapeutic massage services">Massage Therapy</Link></li>
-            <li><Link href="/services/braiding-weaving" title="Hair extension specialists and services">Hair Extensions</Link></li>
-            <li><Link href="/services/nail-care" title="Gel nails and acrylic nail services near me">Gel Nails Near Me</Link></li>
+            <li><Link href="/services?category=makeup-beauty" title="Wedding and special event makeup artists">Wedding Makeup</Link></li>
+            <li><Link href="/services?category=massage-body-treatments" title="Relaxing and therapeutic massage services">Massage Therapy</Link></li>
+            <li><Link href="/services?category=braiding-weaving" title="Hair extension specialists and services">Hair Extensions</Link></li>
+            <li><Link href="/services?category=nail-care" title="Gel nails and acrylic nail services near me">Gel Nails Near Me</Link></li>
             <li><Link href="/salons" title="Professional and verified salons in SA">Professional Salon</Link></li>
             <li><Link href="/products" title="South African beauty products and supplies">Beauty Products SA</Link></li>
           </ul>
@@ -214,7 +214,7 @@ export default function Footer() {
           <Link href="/blog/local-beauty-products" className={styles.featuredLink} title="Local SA beauty products">Local Beauty Products</Link>
         </div>
       </div>
-      
+
       <div className={styles.mobileAppAnnouncement}>
         <div className={styles.announcementContent}>
           <div className={styles.announcementIcon}>📱</div>
