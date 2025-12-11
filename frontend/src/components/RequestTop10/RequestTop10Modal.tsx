@@ -1,7 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import styles from './RequestTop10.module.css';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthModal } from '@/context/AuthModalContext';
+import { FaCloudUploadAlt, FaTrash, FaSpinner } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const SERVICE_CATEGORIES = [
   { id: 'hair-salon', name: 'Hair Salon', icon: '💇' },
@@ -32,13 +37,18 @@ interface RequestTop10ModalProps {
   onClose: () => void;
 }
 
+const MAX_IMAGES = 5;
+
 export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10ModalProps) {
+  const { user, status: authStatus } = useAuth();
+  const { openModal } = useAuthModal();
+
   const [step, setStep] = useState<'category' | 'form'>('category');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Form fields
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -52,12 +62,30 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
   const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [preferredDate, setPreferredDate] = useState('');
   const [preferredTime, setPreferredTime] = useState('');
-  
+
+  // Image upload
+  const [images, setImages] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Location autocomplete
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const locationInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Auto-populate user fields when logged in
+  useEffect(() => {
+    if (user && isOpen) {
+      const userName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+      if (userName) setFullName(userName);
+      if (user.email) setEmail(user.email);
+      if (user.phoneNumber) {
+        setPhone(user.phoneNumber);
+        setWhatsapp(user.phoneNumber);
+      }
+    }
+  }, [user, isOpen]);
 
   // Reset form when modal closes
   useEffect(() => {
@@ -71,10 +99,7 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
   }, [isOpen]);
 
   const resetForm = () => {
-    setFullName('');
-    setPhone('');
-    setWhatsapp('');
-    setEmail('');
+    // Only reset non-user fields, keep user data
     setServiceNeeded('');
     setStyleOrLook('');
     setBudget('');
@@ -83,13 +108,14 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
     setLocationCoords(null);
     setPreferredDate('');
     setPreferredTime('');
+    setImages([]);
   };
 
   // Location autocomplete using OpenStreetMap Nominatim (free)
   const handleLocationChange = async (value: string) => {
     setLocation(value);
     setLocationCoords(null);
-    
+
     if (value.length < 3) {
       setLocationSuggestions([]);
       setShowSuggestions(false);
@@ -120,10 +146,10 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
       addr?.state,
     ].filter(Boolean);
     const displayName = parts.length > 0 ? parts.join(', ') : suggestion.display_name.split(',').slice(0, 2).join(',');
-    
+
     setLocation(displayName);
     setShowSuggestions(false);
-    
+
     // Set coordinates directly from Nominatim response
     if (suggestion.lat && suggestion.lon) {
       setLocationCoords({
@@ -149,7 +175,81 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Image upload handler
+  const handleImageUpload = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = MAX_IMAGES - images.length;
+    if (remainingSlots <= 0) {
+      toast.warning(`Maximum ${MAX_IMAGES} images allowed`);
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    setIsUploading(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of filesToUpload) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} is not an image`);
+          continue;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large (max 5MB)`);
+          continue;
+        }
+
+        // Upload to Cloudinary via our API
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'urgent-requests');
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url) {
+            uploadedUrls.push(data.url);
+          }
+        } else {
+          toast.error(`Failed to upload ${file.name}`);
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        setImages(prev => [...prev, ...uploadedUrls]);
+        toast.success(`${uploadedUrls.length} image(s) uploaded`);
+      }
+    } catch (err) {
+      toast.error('Failed to upload images');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [images.length]);
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleCategorySelect = (categoryId: string) => {
+    // Check if user is logged in
+    if (authStatus !== 'authenticated') {
+      toast.info('Please log in to submit an urgent request');
+      openModal('login');
+      return;
+    }
+
     setSelectedCategory(categoryId);
     setStep('form');
   };
@@ -162,6 +262,7 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
     const categoryName = SERVICE_CATEGORIES.find(c => c.id === selectedCategory)?.name || selectedCategory;
 
     const requestData = {
+      userId: user?.id,
       fullName,
       phone,
       whatsapp: whatsapp || undefined,
@@ -175,6 +276,7 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
       locationCoords,
       preferredDate,
       preferredTime: preferredTime || undefined,
+      images: images.length > 0 ? images : undefined,
     };
 
     try {
@@ -210,10 +312,10 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
         {submitSuccess ? (
           <div className={styles.successMessage}>
             <div className={styles.successIcon}>✅</div>
-            <h2>Request Submitted!</h2>
+            <h2>Urgent Request Submitted!</h2>
             <p>
-              You will be contacted by the Top 10 {getCategoryName()} providers near you.
-              Our admin team will match you within minutes.
+              Our admin team will match you with top {getCategoryName()} providers near you within minutes.
+              You will be contacted shortly.
             </p>
             <div className={styles.contactInfo}>
               <p>Need faster assistance?</p>
@@ -227,10 +329,18 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
         ) : step === 'category' ? (
           <>
             <div className={styles.header}>
-              <h2>Request Top 10 Providers</h2>
+              <h2>🚨 Urgent Request</h2>
               <p className={styles.tagline}>
-                Get Matched With the Top 10 Best Service Providers in Your Area
+                Get Matched With Top Service Providers in Your Area - Fast!
               </p>
+              {authStatus !== 'authenticated' && (
+                <p className={styles.loginNotice}>
+                  <button onClick={() => openModal('login')} className={styles.loginLink}>
+                    Log in
+                  </button>
+                  {' '}to submit an urgent request
+                </p>
+              )}
             </div>
             <div className={styles.categoryGrid}>
               {SERVICE_CATEGORIES.map((cat) => (
@@ -251,9 +361,9 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
               <button className={styles.backButton} onClick={() => setStep('category')}>
                 ← Back
               </button>
-              <h2>Request Top 10 {getCategoryName()}</h2>
+              <h2>🚨 Urgent {getCategoryName()} Request</h2>
               <p className={styles.tagline}>
-                Fill in your details and we&apos;ll match you with the best providers
+                Fill in your details and we&apos;ll match you with top providers
               </p>
             </div>
 
@@ -298,7 +408,7 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
                     />
                   </div>
                   <div className={styles.field}>
-                    <label htmlFor="email">Email (optional)</label>
+                    <label htmlFor="email">Email</label>
                     <input
                       id="email"
                       type="email"
@@ -371,6 +481,60 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Image Upload Section */}
+              <div className={styles.section}>
+                <h3>Reference Photos (Optional)</h3>
+                <p className={styles.imageHint}>
+                  Upload up to {MAX_IMAGES} photos of the style you want
+                </p>
+
+                <div className={styles.imageUploadArea}>
+                  {images.length < MAX_IMAGES && (
+                    <div
+                      className={styles.uploadBox}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {isUploading ? (
+                        <FaSpinner className={styles.spinner} />
+                      ) : (
+                        <>
+                          <FaCloudUploadAlt className={styles.uploadIcon} />
+                          <span>Click to upload</span>
+                        </>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => handleImageUpload(e.target.files)}
+                        hidden
+                      />
+                    </div>
+                  )}
+
+                  {images.map((img, idx) => (
+                    <div key={idx} className={styles.imagePreview}>
+                      <Image
+                        src={img}
+                        alt={`Reference ${idx + 1}`}
+                        fill
+                        className={styles.previewImg}
+                      />
+                      <button
+                        type="button"
+                        className={styles.removeImageBtn}
+                        onClick={() => removeImage(idx)}
+                        aria-label="Remove image"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className={styles.imageCount}>{images.length} / {MAX_IMAGES} images</p>
               </div>
 
               <div className={styles.section}>
@@ -449,11 +613,11 @@ export default function RequestTop10Modal({ isOpen, onClose }: RequestTop10Modal
                 className={styles.submitButton}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Request My Top 10 Providers'}
+                {isSubmitting ? 'Submitting...' : '🚨 Submit Urgent Request'}
               </button>
 
               <p className={styles.disclaimer}>
-                You will be contacted by the Top 10 providers near you. Our admin team will match you within minutes.
+                Our admin team will match you with top providers within minutes.
               </p>
             </form>
           </>

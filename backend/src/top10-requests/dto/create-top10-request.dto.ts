@@ -1,6 +1,10 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsArray, IsObject } from 'class-validator';
 
 export class CreateTop10RequestDto {
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
   @IsString()
   fullName: string;
 
@@ -46,6 +50,12 @@ export class CreateTop10RequestDto {
   preferredTime?: string;
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
   @IsString()
   formattedMessage?: string;
 }
+

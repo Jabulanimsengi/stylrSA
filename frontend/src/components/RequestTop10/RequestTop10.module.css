@@ -41,6 +41,7 @@
   justify-content: center;
   transition: all 0.2s;
 }
+
 .closeButton:hover {
   background: var(--color-border);
   color: var(--color-text-strong);
@@ -51,16 +52,19 @@
   text-align: center;
   margin-bottom: 1.5rem;
 }
+
 .header h2 {
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
   font-weight: 700;
 }
+
 .tagline {
   color: var(--color-text-soft);
   font-size: 0.95rem;
   margin: 0;
 }
+
 .backButton {
   position: absolute;
   left: 1rem;
@@ -72,6 +76,7 @@
   cursor: pointer;
   font-size: 0.9rem;
 }
+
 .backButton:hover {
   text-decoration: underline;
 }
@@ -82,6 +87,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
 }
+
 @media (min-width: 480px) {
   .categoryGrid {
     grid-template-columns: repeat(3, 1fr);
@@ -100,14 +106,17 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .categoryCard:hover {
   border-color: var(--color-primary);
   background: rgba(245, 25, 87, 0.05);
   transform: translateY(-2px);
 }
+
 .categoryIcon {
   font-size: 2rem;
 }
+
 .categoryName {
   font-weight: 600;
   font-size: 0.9rem;
@@ -126,6 +135,7 @@
   flex-direction: column;
   gap: 0.75rem;
 }
+
 .section h3 {
   margin: 0;
   font-size: 1rem;
@@ -140,6 +150,7 @@
   grid-template-columns: 1fr;
   gap: 0.75rem;
 }
+
 @media (min-width: 480px) {
   .fieldGroup {
     grid-template-columns: 1fr 1fr;
@@ -151,11 +162,13 @@
   flex-direction: column;
   gap: 0.35rem;
 }
+
 .field label {
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--color-text-soft);
 }
+
 .field input,
 .field select,
 .field textarea {
@@ -167,6 +180,7 @@
   color: var(--color-text-strong);
   transition: border-color 0.2s;
 }
+
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
@@ -180,6 +194,7 @@
   gap: 1rem;
   padding-top: 0.25rem;
 }
+
 .radioLabel {
   display: flex;
   align-items: center;
@@ -187,6 +202,7 @@
   cursor: pointer;
   font-size: 0.9rem;
 }
+
 .radioLabel input {
   accent-color: var(--color-primary);
 }
@@ -195,6 +211,7 @@
 .locationWrapper {
   position: relative;
 }
+
 .suggestions {
   position: absolute;
   top: 100%;
@@ -209,6 +226,7 @@
   overflow-y: auto;
   margin-top: 4px;
 }
+
 .suggestionItem {
   display: flex;
   flex-direction: column;
@@ -221,14 +239,17 @@
   text-align: left;
   transition: background 0.15s;
 }
+
 .suggestionItem:hover {
   background: var(--color-surface-elevated);
 }
+
 .suggestionMain {
   font-weight: 500;
   color: var(--color-text-strong);
   font-size: 0.9rem;
 }
+
 .suggestionSecondary {
   font-size: 0.8rem;
   color: var(--color-text-soft);
@@ -241,13 +262,16 @@
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
 }
+
 .contactInfo p {
   margin: 0.25rem 0;
 }
+
 .contactInfo a {
   color: var(--color-primary);
   text-decoration: none;
 }
+
 .contactInfo a:hover {
   text-decoration: underline;
 }
@@ -265,10 +289,12 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .submitButton:hover:not(:disabled) {
   filter: brightness(1.1);
   transform: translateY(-1px);
 }
+
 .submitButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -284,6 +310,7 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .primaryButton:hover {
   filter: brightness(1.1);
 }
@@ -309,21 +336,148 @@
   text-align: center;
   padding: 1rem 0;
 }
+
 .successIcon {
   font-size: 3rem;
   margin-bottom: 1rem;
 }
+
 .successMessage h2 {
   margin: 0 0 0.75rem;
   font-size: 1.5rem;
 }
-.successMessage > p {
+
+.successMessage>p {
   color: var(--color-text-soft);
   margin: 0 0 1.5rem;
   line-height: 1.5;
 }
+
 .successMessage .contactInfo {
   margin-bottom: 1.5rem;
+}
+
+/* Login Notice */
+.loginNotice {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-text-soft);
+}
+
+.loginLink {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.loginLink:hover {
+  color: var(--primary-pink-dark, #d4144c);
+}
+
+/* Image Upload Section */
+.imageHint {
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+.imageUploadArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.uploadBox {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed var(--color-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--color-surface-elevated);
+}
+
+.uploadBox:hover {
+  border-color: var(--color-primary);
+  background: rgba(245, 25, 87, 0.05);
+}
+
+.uploadIcon {
+  font-size: 1.5rem;
+  color: var(--color-text-soft);
+}
+
+.uploadBox span {
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+}
+
+.imagePreview {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+}
+
+.previewImg {
+  object-fit: cover;
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.9);
+  border: none;
+  color: white;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeImageBtn:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.imageCount {
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Floating Button (Mobile) */
@@ -346,10 +500,12 @@
   transition: all 0.3s ease;
   overflow: hidden;
 }
+
 .floatingButton:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(34, 197, 94, 0.45);
 }
+
 .floatingButton:active {
   transform: scale(0.98);
 }
@@ -367,10 +523,23 @@
 }
 
 @keyframes labelFade {
-  0%, 100% { opacity: 1; }
-  40% { opacity: 1; }
-  50% { opacity: 0.3; }
-  60% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+
+  60% {
+    opacity: 1;
+  }
 }
 
 /* Desktop Button */
@@ -388,6 +557,7 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .desktopButton:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
@@ -404,6 +574,7 @@
     display: none;
   }
 }
+
 @media (min-width: 769px) {
   .floatingButton {
     display: none;
@@ -420,9 +591,11 @@
     border-radius: 18px;
     gap: 0.25rem;
   }
+
   .floatingIcon {
     font-size: 0.9rem;
   }
+
   .floatingLabel {
     font-size: 0.7rem;
   }

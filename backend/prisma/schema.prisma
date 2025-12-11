@@ -863,6 +863,7 @@ enum JobApplicationStatus {
 
 model Top10Request {
   id            String   @id @default(uuid())
+  userId        String?
   fullName      String
   phone         String
   whatsapp      String?
@@ -877,6 +878,7 @@ model Top10Request {
   longitude     Float?
   preferredDate DateTime
   preferredTime String?
+  images        String[] @default([])
   status        String   @default("PENDING")
   adminNotes    String?
   createdAt     DateTime @default(now())
@@ -885,4 +887,5 @@ model Top10Request {
   @@index([status])
   @@index([category])
   @@index([createdAt])
+  @@index([userId])
 }
