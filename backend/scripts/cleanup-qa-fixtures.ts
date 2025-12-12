@@ -36,22 +36,9 @@ async function main() {
   });
   const productIds = products.map((product) => product.id);
 
-  const conversations = await prisma.conversation.findMany({
-    where: {
-      OR: [{ user1Id: { in: qaUserIds } }, { user2Id: { in: qaUserIds } }],
-    },
-  });
-  const conversationIds = conversations.map((conversation) => conversation.id);
-
   await prisma.notification.deleteMany({
     where: { userId: { in: qaUserIds } },
   });
-
-  if (conversationIds.length > 0) {
-    await prisma.message.deleteMany({
-      where: { conversationId: { in: conversationIds } },
-    });
-  }
 
   await prisma.review.deleteMany({
     where: {
@@ -94,11 +81,7 @@ async function main() {
     },
   });
 
-  if (conversationIds.length > 0) {
-    await prisma.conversation.deleteMany({
-      where: { id: { in: conversationIds } },
-    });
-  }
+
 
   if (productIds.length > 0) {
     await prisma.productOrder.deleteMany({

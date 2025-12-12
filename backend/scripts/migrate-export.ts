@@ -53,7 +53,7 @@ async function exportData() {
     // Dependent on users + salons
     await exportModel('favorites', prisma.favorite);
     await exportModel('bookings', prisma.booking);
-    await exportModel('conversations', prisma.conversation);
+    // await exportModel('conversations', prisma.conversation); // Model removed
     await exportModel('notifications', prisma.notification);
 
     // Dependent on services
@@ -64,7 +64,7 @@ async function exportData() {
     await exportModel('reviews', prisma.review);
 
     // Dependent on conversations
-    await exportModel('messages', prisma.message);
+    // await exportModel('messages', prisma.message); // Model removed
 
     // Dependent on products
     await exportModel('productOrders', prisma.productOrder);

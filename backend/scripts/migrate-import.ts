@@ -73,14 +73,14 @@ async function importData() {
         console.log('\n📦 PHASE 4: Interaction models\n');
         await importModel('favorites', data.favorites, prisma.favorite);
         await importModel('bookings', data.bookings, prisma.booking);
-        await importModel('conversations', data.conversations, prisma.conversation);
+        // await importModel('conversations', data.conversations, prisma.conversation); // Model removed
         await importModel('notifications', data.notifications, prisma.notification);
         await importModel('serviceLikes', data.serviceLikes, prisma.serviceLike);
         await importModel('promotions', data.promotions, prisma.promotion);
 
         console.log('\n📦 PHASE 5: Deeply nested models\n');
         await importModel('reviews', data.reviews, prisma.review);
-        await importModel('messages', data.messages, prisma.message);
+        // await importModel('messages', data.messages, prisma.message); // Model removed
         await importModel('productOrders', data.productOrders, prisma.productOrder);
         await importModel('trendLikes', data.trendLikes, prisma.trendLike);
         await importModel('trendViews', data.trendViews, prisma.trendView);
