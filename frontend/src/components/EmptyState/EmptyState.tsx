@@ -5,7 +5,6 @@ import {
   FaSearch, 
   FaHeart, 
   FaCalendarAlt, 
-  FaInbox, 
   FaExclamationCircle,
   FaShoppingBag,
   FaImages,
@@ -19,7 +18,6 @@ export type EmptyStateVariant =
   | 'no-favorites' 
   | 'no-bookings' 
   | 'no-orders'
-  | 'no-messages'
   | 'no-promotions'
   | 'no-gallery'
   | 'no-services'
@@ -57,11 +55,6 @@ const variantConfig: Record<EmptyStateVariant, { icon: ReactNode; defaultTitle: 
     icon: <FaShoppingBag />,
     defaultTitle: 'No Orders Yet',
     defaultDescription: 'Browse our product catalog and place your first order to get started.'
-  },
-  'no-messages': {
-    icon: <FaInbox />,
-    defaultTitle: 'No Messages',
-    defaultDescription: 'Your conversations with salon owners will appear here.'
   },
   'no-promotions': {
     icon: <FaExclamationCircle />,

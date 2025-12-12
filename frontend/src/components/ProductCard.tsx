@@ -9,7 +9,6 @@ import ProductOrderModal from './ProductOrderModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toast } from 'react-toastify';
-import { useStartConversation } from '@/hooks/useStartConversation';
 import { getPlaceholder } from '@/lib/placeholders';
 import { sanitizeText } from '@/lib/sanitize';
 
@@ -30,7 +29,6 @@ export default function ProductCard({
   const { openModal } = useAuthModal();
   const [isOrderOpen, setIsOrderOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const { startConversation } = useStartConversation();
 
   const images = useMemo(() => {
     const unique = Array.isArray(product.images)
@@ -47,21 +45,6 @@ export default function ProductCard({
       return;
     }
     setIsOrderOpen(true);
-  };
-
-  const handleMessageSeller = () => {
-    if (!product.sellerId) {
-      toast.error('Seller information is unavailable.');
-      return;
-    }
-    const sellerName = `${product.seller?.firstName ?? ''} ${product.seller?.lastName ?? ''}`.trim();
-    if (product.sellerId === user?.id) {
-      toast.info('This is your product listing.');
-      return;
-    }
-    void startConversation(product.sellerId, {
-      recipientName: sellerName || product.name,
-    });
   };
 
   const handleImageClick = () => {
@@ -143,13 +126,6 @@ export default function ProductCard({
           )}
           <div className={styles.footer}>
             <div className={styles.actions}>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={(event) => { event.stopPropagation(); handleMessageSeller(); }}
-              >
-                Message
-              </button>
               <button
                 type="button"
                 className="btn btn-primary"

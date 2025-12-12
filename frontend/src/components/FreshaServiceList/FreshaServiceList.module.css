@@ -76,20 +76,28 @@
 .mainLayout {
     display: flex;
     gap: 2rem;
+    align-items: flex-start;
+    /* Enable sticky positioning for children */
 }
 
 .servicesColumn {
     flex: 1;
     min-width: 0;
+    /* No margin-right needed - cart is fixed positioned */
 }
 
 .cartColumn {
     width: 340px;
     flex-shrink: 0;
-    position: sticky;
-    top: 80px;
+    position: fixed;
+    top: 100px;
+    /* Account for navbar height */
+    right: calc((100vw - 1280px) / 2 + 1.5rem);
+    /* Align with max-width container */
     height: fit-content;
-    max-height: calc(100vh - 100px);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    z-index: 50;
 }
 
 /* Category Sections */

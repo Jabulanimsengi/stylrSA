@@ -66,3 +66,18 @@ export {
     PopoverAnchor,
     PopoverClose,
 } from './Popover';
+
+// Sheet - For slide-in drawers/panels (mobile navigation)
+export {
+    Sheet,
+    SheetPortal,
+    SheetOverlay,
+    SheetTrigger,
+    SheetClose,
+    SheetContent,
+    SheetHeader,
+    SheetBody,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from './Sheet';

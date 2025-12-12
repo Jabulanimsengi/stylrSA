@@ -12,7 +12,6 @@ import {
   FaBars,
   FaTimes,
   FaBell,
-  FaCommentDots,
   FaHome,
   FaCut,
   FaMagic,
@@ -39,6 +38,7 @@ import { Notification, PaginatedNotifications } from '@/types';
 import { toast } from 'react-toastify';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './Navbar.module.css';
+import { Sheet, SheetContent, SheetHeader, SheetBody, SheetFooter, SheetTitle } from './ui';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 
@@ -152,23 +152,6 @@ export default function Navbar() {
       setIsLogoutModalOpen(false);
       setIsMobileOpen(false);
     }
-  };
-
-  const handleChatClick = () => {
-    if (authStatus !== 'authenticated') {
-      toast.error('Please log in to access messages.');
-      openModal('login');
-      setIsMobileOpen(false);
-      return;
-    }
-
-    if (typeof window !== 'undefined' && typeof window.showChatWidget === 'function') {
-      window.showChatWidget();
-    } else {
-      toast.error('Chat widget is not available. Please refresh the page.');
-    }
-
-    setIsMobileOpen(false);
   };
 
   const fetchNotifications = useCallback(
@@ -306,15 +289,7 @@ export default function Navbar() {
       }
       setIsNotificationsOpen(false);
 
-      // Handle chat notifications by opening the ChatWidget directly
-      if (notification.link?.startsWith('/chat/')) {
-        const conversationId = notification.link.replace('/chat/', '');
-        if (typeof window !== 'undefined' && typeof window.showChatWidget === 'function') {
-          window.showChatWidget(conversationId);
-        } else {
-          toast.error('Chat widget is not available. Please refresh the page.');
-        }
-      } else if (notification.link) {
+      if (notification.link) {
         router.push(notification.link);
       }
     } catch (error) {
@@ -575,19 +550,6 @@ export default function Navbar() {
       )
   );
 
-  const messagesButton = (
-    <button
-      type="button"
-      onClick={handleChatClick}
-      className={`${styles.navItem} ${styles.navButton}`}
-    >
-      <span className={styles.navIcon} aria-hidden>
-        <FaCommentDots />
-      </span>
-      <span className={styles.navLabel}>Messages</span>
-    </button>
-  );
-
   const signOutButton = (
     <button
       type="button"
@@ -629,14 +591,6 @@ export default function Navbar() {
   return (
     <>
       <header className={styles.mobileBar}>
-        <button
-          type="button"
-          className={styles.iconOnlyButton}
-          onClick={() => setIsMobileOpen((prev) => !prev)}
-          aria-label="Toggle navigation"
-        >
-          {isMobileOpen ? <FaTimes /> : <FaBars />}
-        </button>
         <Link
           href="/"
           className={styles.brand}
@@ -646,46 +600,32 @@ export default function Navbar() {
           <Image src="/logo-transparent.png" alt="Stylr SA" width={124} height={32} priority />
         </Link>
         <div className={styles.mobileActions}>
-          {authStatus === 'authenticated' ? (
-            <>
-              <button
-                type="button"
-                className={styles.iconOnlyButton}
-                onClick={handleChatClick}
-                aria-label="Messages"
-              >
-                <FaCommentDots />
-              </button>
-              <button
-                type="button"
-                className={`${styles.iconOnlyButton} ${styles.notificationButton}`}
-                onClick={() => setIsNotificationsOpen((prev) => !prev)}
-                aria-label="Notifications"
-              >
-                <FaBell />
-                {unreadCount > 0 && <span className={styles.mobileBadge}>{unreadCount}</span>}
-              </button>
-            </>
-          ) : (
+          {authStatus === 'authenticated' && (
             <button
               type="button"
-              className="btn btn-primary text-sm lowercase"
-              onClick={() => openModal('login')}
+              className={`${styles.iconOnlyButton} ${styles.notificationButton}`}
+              onClick={() => setIsNotificationsOpen((prev) => !prev)}
+              aria-label="Notifications"
             >
-              Sign in
+              <FaBell />
+              {unreadCount > 0 && <span className={styles.mobileBadge}>{unreadCount}</span>}
             </button>
           )}
+          <button
+            type="button"
+            className={styles.iconOnlyButton}
+            onClick={() => setIsMobileOpen((prev) => !prev)}
+            aria-label="Toggle navigation"
+          >
+            {isMobileOpen ? <FaTimes /> : <FaBars />}
+          </button>
         </div>
       </header>
 
-      <div
-        className={`${styles.sidebarBackdrop} ${isMobileOpen ? styles.sidebarBackdropVisible : ''}`.trim()}
-        onClick={() => setIsMobileOpen(false)}
-      />
-
-      <aside className={`${styles.sidebar} ${isMobileOpen ? styles.sidebarOpen : ''}`.trim()}>
-        <div className={styles.sidebarContent}>
-          <div className={styles.logoRow}>
+      {/* Mobile Navigation Sheet */}
+      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+        <SheetContent side="right" showCloseButton={true}>
+          <SheetHeader>
             <Link
               href="/"
               className={styles.brand}
@@ -694,77 +634,68 @@ export default function Navbar() {
             >
               <Image src="/logo-transparent.png" alt="Stylr SA" width={140} height={36} priority />
             </Link>
-            <button
-              type="button"
-              className={styles.closeButton}
-              onClick={() => setIsMobileOpen(false)}
-              aria-label="Close navigation"
-            >
-              <FaTimes />
-            </button>
-          </div>
+          </SheetHeader>
 
-          <div className={styles.topControls}>
-            <div className={styles.themeToggleShell}>
-              <ThemeToggle />
-            </div>
-          </div>
-
-          <nav>
-            <p className={styles.sectionLabel}>Discover</p>
-            <ul className={styles.navList}>{discoverLinks.map(renderNavLink)}</ul>
-          </nav>
-
-          {/* Company Info Section with Expandable Menu */}
-          <div className={styles.companySection}>
-            <button
-              type="button"
-              className={`${styles.sectionLabelButton} ${isCompanyMenuOpen ? styles.sectionLabelButtonOpen : ''}`}
-              onClick={() => setIsCompanyMenuOpen(!isCompanyMenuOpen)}
-            >
-              <span className={styles.sectionLabelContent}>
-                <FaBuilding className={styles.sectionIcon} />
-                <span>Company</span>
-              </span>
-              <span className={styles.expandIcon}>
-                {isCompanyMenuOpen ? <FaChevronUp /> : <FaChevronDown />}
-              </span>
-            </button>
-
-            <div className={`${styles.companyMenu} ${isCompanyMenuOpen ? styles.companyMenuOpen : ''}`}>
-              <ul className={styles.navList}>
-                {companyLinks.map(renderNavLink)}
-              </ul>
-            </div>
-          </div>
-
-          {authStatus === 'authenticated' && (
-            <div>
-              <p className={styles.sectionLabel}>Account</p>
-              <div className={styles.supportActions}>
-                <div className={styles.desktopOnlyActions}>
-                  {notificationsButton}
-                  {messagesButton}
-                </div>
-                {signOutButton}
+          <SheetBody>
+            <div className={styles.topControls}>
+              <div className={styles.themeToggleShell}>
+                <ThemeToggle />
               </div>
             </div>
-          )}
 
-          {authStatus === 'authenticated' && personalLinks.length > 0 && (
             <nav>
-              <p className={styles.sectionLabel}>My Hub</p>
-              <ul className={styles.navList}>{personalLinks.map(renderNavLink)}</ul>
+              <p className={styles.sectionLabel}>Discover</p>
+              <ul className={styles.navList}>{discoverLinks.map(renderNavLink)}</ul>
             </nav>
-          )}
 
-          <div className={styles.sidebarFooter}>
-            {authStatus === 'authenticated' ? null : (
-              authButtons
+            {/* Company Info Section with Expandable Menu */}
+            <div className={styles.companySection}>
+              <button
+                type="button"
+                className={`${styles.sectionLabelButton} ${isCompanyMenuOpen ? styles.sectionLabelButtonOpen : ''}`}
+                onClick={() => setIsCompanyMenuOpen(!isCompanyMenuOpen)}
+              >
+                <span className={styles.sectionLabelContent}>
+                  <FaBuilding className={styles.sectionIcon} />
+                  <span>Company</span>
+                </span>
+                <span className={styles.expandIcon}>
+                  {isCompanyMenuOpen ? <FaChevronUp /> : <FaChevronDown />}
+                </span>
+              </button>
+
+              <div className={`${styles.companyMenu} ${isCompanyMenuOpen ? styles.companyMenuOpen : ''}`}>
+                <ul className={styles.navList}>
+                  {companyLinks.map(renderNavLink)}
+                </ul>
+              </div>
+            </div>
+
+            {authStatus === 'authenticated' && (
+              <div>
+                <p className={styles.sectionLabel}>Account</p>
+                <div className={styles.supportActions}>
+                  <div className={styles.desktopOnlyActions}>
+                    {notificationsButton}
+                  </div>
+                  {signOutButton}
+                </div>
+              </div>
             )}
-          </div>
-        </div>
-      </aside>
+
+            {authStatus === 'authenticated' && personalLinks.length > 0 && (
+              <nav>
+                <p className={styles.sectionLabel}>My Hub</p>
+                <ul className={styles.navList}>{personalLinks.map(renderNavLink)}</ul>
+              </nav>
+            )}
+          </SheetBody>
+
+          <SheetFooter>
+            {authStatus !== 'authenticated' && authButtons}
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {notificationsPanel}
 

@@ -7,9 +7,6 @@ import styles from './SellerProfile.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'react-toastify';
-import { useStartConversation } from '@/hooks/useStartConversation';
 import { getPlaceholder } from '@/lib/placeholders';
 
 interface SellerProfile {
@@ -28,7 +25,6 @@ export default function SellerProfilePage() {
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { startConversation } = useStartConversation();
 
   const fetchSeller = useCallback(async () => {
     const sellerId = params?.id;
@@ -112,19 +108,6 @@ export default function SellerProfilePage() {
     sellerId: product.sellerId ?? seller.id,
   }));
 
-  const handleMessageSeller = () => {
-    if (!seller) {
-      return;
-    }
-    if (user && user.id === seller.id) {
-      toast.info('This is your seller profile.');
-      return;
-    }
-    void startConversation(seller.id, {
-      recipientName: sellerName,
-    });
-  };
-
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
@@ -186,11 +169,7 @@ export default function SellerProfilePage() {
             <h1 className={styles.heroName}>{sellerName}</h1>
             <p className={styles.heroSubtitle}>{seller.email}</p>
             <p className={styles.heroMeta}>Selling on HairPros since {establishedDate}</p>
-            <div className={styles.heroActions}>
-              <button type="button" className="btn btn-primary" onClick={handleMessageSeller}>
-                Message seller
-              </button>
-            </div>
+
           </div>
         </div>
       </div>

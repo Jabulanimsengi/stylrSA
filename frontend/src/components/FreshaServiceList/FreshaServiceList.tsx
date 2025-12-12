@@ -129,8 +129,35 @@ export default function FreshaServiceList({
 }: FreshaServiceListProps) {
     const [selectedServices, setSelectedServices] = useState<Service[]>([]);
     const [activeCategory, setActiveCategory] = useState<string>('all');
+    const [isCartVisible, setIsCartVisible] = useState(false);
     const tabsRef = useRef<HTMLDivElement>(null);
     const categoryRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Intersection Observer to track when services section is in view
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                // Show cart when any part of the container is visible
+                const isVisible = entries[0].isIntersecting;
+                setIsCartVisible(isVisible);
+            },
+            {
+                root: null, // viewport
+                rootMargin: '-100px 0px -20% 0px', // Offset for navbar and bottom margin
+                threshold: 0 // Trigger when any part is visible
+            }
+        );
+
+        observer.observe(container);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
 
     // Group services by category - only using valid categories from SERVICE_CATEGORIES
     const groupedServices = useMemo<CategoryService[]>(() => {
@@ -297,7 +324,7 @@ export default function FreshaServiceList({
     };
 
     return (
-        <div className={styles.container}>
+        <div className={styles.container} ref={containerRef}>
             {/* Category Tabs */}
             <div className={styles.categoryTabs} ref={tabsRef}>
                 <button
@@ -415,105 +442,108 @@ export default function FreshaServiceList({
                     ))}
                 </div>
 
-                {/* Cart Sidebar (Desktop) */}
-                <div className={styles.cartColumn}>
-                    <div className={styles.cartSidebar}>
-                        {/* Salon Info */}
-                        <div className={styles.cartHeader}>
-                            {salon.logo && (
-                                <Image
-                                    src={transformCloudinary(salon.logo, { width: 96, quality: 'auto', format: 'auto' })}
-                                    alt={salon.name}
-                                    width={48}
-                                    height={48}
-                                    className={styles.cartSalonImage}
-                                />
-                            )}
-                            <div className={styles.cartSalonInfo}>
-                                <h4 className={styles.cartSalonName}>{salon.name}</h4>
-                                {salon.avgRating && salon.avgRating > 0 && (
-                                    <div className={styles.cartSalonRating}>
-                                        <FaStar /> {salon.avgRating.toFixed(1)}
-                                        {salon.reviewCount && ` (${salon.reviewCount})`}
-                                    </div>
+
+                {/* Cart Sidebar (Desktop) - Only visible when services section is in view */}
+                {isCartVisible && (
+                    <div className={styles.cartColumn}>
+                        <div className={styles.cartSidebar}>
+                            {/* Salon Info */}
+                            <div className={styles.cartHeader}>
+                                {salon.logo && (
+                                    <Image
+                                        src={transformCloudinary(salon.logo, { width: 96, quality: 'auto', format: 'auto' })}
+                                        alt={salon.name}
+                                        width={48}
+                                        height={48}
+                                        className={styles.cartSalonImage}
+                                    />
                                 )}
-                                <p className={styles.cartSalonLocation}>
-                                    {[salon.town, salon.city].filter(Boolean).join(', ')}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className={styles.cartDivider} />
-
-                        {/* Cart Items */}
-                        {selectedServices.length > 0 ? (
-                            <>
-                                <div className={styles.cartItems}>
-                                    {selectedServices.map(service => (
-                                        <div key={service.id} className={styles.cartItem}>
-                                            <div className={styles.cartItemInfo}>
-                                                <p className={styles.cartItemName}>
-                                                    {service.title || service.name}
-                                                </p>
-                                                <p className={styles.cartItemDetails}>
-                                                    {formatDuration(service)} • with any professional
-                                                </p>
-                                            </div>
-                                            <span className={styles.cartItemPrice}>
-                                                R {service.price.toFixed(0)}
-                                            </span>
-                                            <button
-                                                className={styles.cartItemRemove}
-                                                onClick={() => toggleService(service)}
-                                                aria-label="Remove service"
-                                            >
-                                                <FaTimes />
-                                            </button>
+                                <div className={styles.cartSalonInfo}>
+                                    <h4 className={styles.cartSalonName}>{salon.name}</h4>
+                                    {salon.avgRating && salon.avgRating > 0 && (
+                                        <div className={styles.cartSalonRating}>
+                                            <FaStar /> {salon.avgRating.toFixed(1)}
+                                            {salon.reviewCount && ` (${salon.reviewCount})`}
                                         </div>
-                                    ))}
+                                    )}
+                                    <p className={styles.cartSalonLocation}>
+                                        {[salon.town, salon.city].filter(Boolean).join(', ')}
+                                    </p>
                                 </div>
-
-                                <div className={styles.cartTotal}>
-                                    <span className={styles.cartTotalLabel}>Total</span>
-                                    <span className={styles.cartTotalPrice}>R {totalPrice.toFixed(0)}</span>
-                                </div>
-
-                                <button
-                                    className={styles.continueButton}
-                                    onClick={handleContinue}
-                                >
-                                    Continue
-                                </button>
-                            </>
-                        ) : (
-                            <div className={styles.emptyCart}>
-                                <FaShoppingCart />
-                                <p>Select services to book</p>
                             </div>
-                        )}
-                    </div>
-                </div>
-            </div>
 
-            {/* Mobile Sticky Footer Cart */}
-            {selectedServices.length > 0 && (
-                <div className={styles.mobileCartFooter}>
-                    <div className={styles.mobileCartContent}>
-                        <div className={styles.mobileCartInfo}>
-                            <p className={styles.mobileCartCount}>
-                                {selectedServices.length} service{selectedServices.length > 1 ? 's' : ''} • {formatTotalDuration(totalDuration)}
-                            </p>
-                            <p className={styles.mobileCartTotal}>R {totalPrice.toFixed(0)}</p>
+                            <div className={styles.cartDivider} />
+
+                            {/* Cart Items */}
+                            {selectedServices.length > 0 ? (
+                                <>
+                                    <div className={styles.cartItems}>
+                                        {selectedServices.map(service => (
+                                            <div key={service.id} className={styles.cartItem}>
+                                                <div className={styles.cartItemInfo}>
+                                                    <p className={styles.cartItemName}>
+                                                        {service.title || service.name}
+                                                    </p>
+                                                    <p className={styles.cartItemDetails}>
+                                                        {formatDuration(service)} • with any professional
+                                                    </p>
+                                                </div>
+                                                <span className={styles.cartItemPrice}>
+                                                    R {service.price.toFixed(0)}
+                                                </span>
+                                                <button
+                                                    className={styles.cartItemRemove}
+                                                    onClick={() => toggleService(service)}
+                                                    aria-label="Remove service"
+                                                >
+                                                    <FaTimes />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className={styles.cartTotal}>
+                                        <span className={styles.cartTotalLabel}>Total</span>
+                                        <span className={styles.cartTotalPrice}>R {totalPrice.toFixed(0)}</span>
+                                    </div>
+
+                                    <button
+                                        className={styles.continueButton}
+                                        onClick={handleContinue}
+                                    >
+                                        Continue
+                                    </button>
+                                </>
+                            ) : (
+                                <div className={styles.emptyCart}>
+                                    <FaShoppingCart />
+                                    <p>Select services to book</p>
+                                </div>
+                            )}
                         </div>
-                        <button
-                            className={styles.mobileCartButton}
-                            onClick={handleContinue}
-                        >
-                            Continue
-                        </button>
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Mobile Sticky Footer Cart */}
+                {selectedServices.length > 0 && (
+                    <div className={styles.mobileCartFooter}>
+                        <div className={styles.mobileCartContent}>
+                            <div className={styles.mobileCartInfo}>
+                                <p className={styles.mobileCartCount}>
+                                    {selectedServices.length} service{selectedServices.length > 1 ? 's' : ''} • {formatTotalDuration(totalDuration)}
+                                </p>
+                                <p className={styles.mobileCartTotal}>R {totalPrice.toFixed(0)}</p>
+                            </div>
+                            <button
+                                className={styles.mobileCartButton}
+                                onClick={handleContinue}
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -13,7 +13,6 @@ import {
   FaBolt,
   FaRegCopy,
   FaExternalLinkAlt,
-  FaEnvelope,
   FaPlay,
   FaPhone,
   FaChevronDown,
@@ -38,7 +37,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
 import { toFriendlyMessage } from '@/lib/errors';
 import { logger } from '@/lib/logger';
-import { useStartConversation } from '@/hooks/useStartConversation';
+
 import SalonProfileSkeleton from '@/components/Skeleton/SalonProfileSkeleton';
 import { sanitizeText } from '@/lib/sanitize';
 import PageNav from '@/components/PageNav';
@@ -51,6 +50,8 @@ import VerificationBadge from '@/components/VerificationBadge/VerificationBadge'
 import Breadcrumbs from '@/components/Breadcrumbs';
 import TeamMembers from '@/components/TeamMembers/TeamMembers';
 import BooksySidebar, { HeroGallery, SalonInfoHeader, BooksyReviewsSection } from './BooksyComponents';
+import MobileSalonProfile from './MobileSalonProfile';
+import mobileStyles from './MobileSalonProfile.module.css';
 
 import BeforeAfterStories from '@/components/BeforeAfterStories/BeforeAfterStories';
 
@@ -72,7 +73,6 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
   const { authStatus, user } = useAuth();
   const { openModal } = useAuthModal();
   const socket = useSocket();
-  const { startConversation } = useStartConversation();
 
   const [salon, setSalon] = useState<Salon | null>(initialSalon);
   const [services, setServices] = useState<Service[]>(initialSalon?.services ?? []);
@@ -430,15 +430,6 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
     setPendingBookingService(null);
   };
 
-  const handleSendMessageClick = async () => {
-    if (!salon) return;
-    if (user && user.id === salon.ownerId) {
-      toast.error('You cannot message your own salon.');
-      return;
-    }
-    void startConversation(salon.ownerId, { recipientName: salon.name });
-  };
-
   const handleToggleFavorite = async () => {
     if (authStatus !== 'authenticated') {
       toast.info('Please log in to add to favorites.');
@@ -655,7 +646,31 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
         message={salon?.bookingMessage || ''}
       />
 
-      <div>
+      {/* Mobile Layout */}
+      <MobileSalonProfile
+        salon={salon}
+        services={services}
+        galleryImages={galleryImages}
+        reviews={reviews}
+        hoursRecord={hoursRecord}
+        todayLabel={todayLabel}
+        orderedOperatingDays={orderedOperatingDays}
+        mapSrc={mapSrc}
+        mapsHref={mapsHref}
+        onOpenLightbox={openLightbox}
+        onBookService={handleBookClick}
+        onBookNow={() => {
+          if (authStatus !== 'authenticated') {
+            openModal('login');
+          } else if (services.length > 0) {
+            setSelectedService(null);
+            setShowBookingModal(true);
+          }
+        }}
+      />
+
+      {/* Desktop Layout */}
+      <div className={mobileStyles.desktopProfile}>
         <PageNav />
         <div className={styles.stickyHeaderContent}>
           <div className={styles.headerLeftSection}>
@@ -689,11 +704,6 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
             </div>
           </div>
           <div className={styles.headerSpacer}>
-            {authStatus === 'authenticated' && user?.id !== salon.ownerId && (
-              <button type="button" onClick={handleSendMessageClick} className={styles.navButton} title="Message salon owner">
-                <FaEnvelope /> Message
-              </button>
-            )}
             <SocialShare
               url={`${typeof window !== 'undefined' ? window.location.origin : ''}/salons/${salon.slug || salon.id}`}
               title={salon.name}

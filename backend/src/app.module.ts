@@ -16,7 +16,6 @@ import { AdminModule } from './admin/admin.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { LikesModule } from './likes/likes.module';
 import { GalleryModule } from './gallery/gallery.module';
-import { ChatModule } from './chat/chat.module';
 import { EventsModule } from './events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
@@ -74,7 +73,6 @@ import { TasksModule } from './tasks/tasks.module';
     FavoritesModule,
     LikesModule,
     GalleryModule,
-    ChatModule,
     EventsModule,
     NotificationsModule,
     CloudinaryModule,

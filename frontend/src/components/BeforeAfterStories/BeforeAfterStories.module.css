@@ -1,15 +1,15 @@
 /* BeforeAfterStories - Instagram Stories Style Component */
 
 .storiesContainer {
-    padding: 1rem 0;
-    margin-bottom: 1.5rem;
+    padding: 0.5rem 0;
+    margin-bottom: 0;
 }
 
 .label {
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--color-text-strong);
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 0.5rem 0;
     padding: 0 1rem;
     display: flex;
     align-items: center;

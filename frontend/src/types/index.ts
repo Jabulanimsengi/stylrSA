@@ -192,30 +192,6 @@ export interface PaginatedNotifications {
   unreadCount: number;
 }
 
-export interface Conversation {
-  id: string;
-  user1Id: string;
-  user2Id: string;
-  user1: User;
-  user2: User;
-  updatedAt: string;
-  createdAt: string;
-  participants?: User[];
-  lastMessage?: ChatMessage | null;
-  messages?: ChatMessage[];
-  unreadCount?: number;
-}
-
-export interface ChatMessage {
-  id: string;
-  content: string;
-  senderId: string;
-  conversationId: string;
-  createdAt: string;
-  deliveredAt?: string | null;
-  readAt?: string | null;
-}
-
 export interface GalleryImage {
   id: string;
   imageUrl: string;

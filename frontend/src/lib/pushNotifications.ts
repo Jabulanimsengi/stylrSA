@@ -198,7 +198,6 @@ export const NotificationTypes = {
   NEW_BOOKING: 'new_booking',
   BOOKING_CONFIRMED: 'booking_confirmed',
   BOOKING_CANCELLED: 'booking_cancelled',
-  NEW_MESSAGE: 'new_message',
   NEW_REVIEW: 'new_review',
   PROMOTION: 'promotion',
   REMINDER: 'reminder',
@@ -249,20 +248,6 @@ export async function showNotificationByType(
         badge: '/icon-96x96.svg',
         tag: 'booking',
         data: { url: '/my-bookings' },
-      },
-    }),
-    [NotificationTypes.NEW_MESSAGE]: (data) => ({
-      title: 'New Message',
-      options: {
-        body: `${data.senderName}: ${data.messagePreview}`,
-        icon: '/icon-192x192.svg',
-        badge: '/icon-96x96.svg',
-        tag: 'message',
-        data: { url: `/chat/${data.conversationId}` },
-        actions: [
-          { action: 'reply', title: 'Reply' },
-          { action: 'view', title: 'View' },
-        ],
       },
     }),
     [NotificationTypes.NEW_REVIEW]: (data) => ({

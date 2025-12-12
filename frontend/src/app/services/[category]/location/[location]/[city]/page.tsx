@@ -11,7 +11,6 @@ import styles from "../../../../../salons/SalonsPage.module.css";
 import { Service, Salon, Booking } from "@/types";
 import { toast } from "react-toastify";
 import ImageLightbox from "@/components/ImageLightbox";
-import { useStartConversation } from "@/hooks/useStartConversation";
 import { useSocket } from "@/context/SocketContext";
 import PageNav from "@/components/PageNav";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -129,7 +128,6 @@ function ServiceLocationContent() {
   const [pendingSalon, setPendingSalon] = useState<Salon | null>(null);
   const [categoryName, setCategoryName] = useState<string | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const { startConversation } = useStartConversation();
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
   const socket = useSocket();

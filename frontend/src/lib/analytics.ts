@@ -201,22 +201,6 @@ export const analytics = {
     });
   },
 
-  // Chat Actions
-  startConversation: (recipientId: string) => {
-    event({
-      action: 'start_conversation',
-      category: 'engagement',
-      label: recipientId,
-    });
-  },
-
-  sendMessage: () => {
-    event({
-      action: 'send_message',
-      category: 'engagement',
-    });
-  },
-
   // Error Tracking
   error: (errorMessage: string, errorType: string) => {
     event({

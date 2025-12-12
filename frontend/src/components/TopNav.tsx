@@ -10,7 +10,6 @@ import { useAuthModal } from '@/context/AuthModalContext';
 import {
     FaChevronDown,
     FaBell,
-    FaCommentDots,
     FaUser,
     FaHome,
     FaCut,
@@ -119,20 +118,6 @@ export default function TopNav() {
         }
     };
 
-    const handleChatClick = () => {
-        if (authStatus !== 'authenticated') {
-            toast.error('Please log in to access messages.');
-            openModal('login');
-            return;
-        }
-
-        if (typeof window !== 'undefined' && typeof window.showChatWidget === 'function') {
-            window.showChatWidget();
-        } else {
-            toast.error('Chat widget is not available. Please refresh the page.');
-        }
-    };
-
     // --- Notifications Logic (Simplified from Navbar.tsx) ---
 
     const updateNotificationsCache = useCallback((items: Notification[], unread: number, cursor: string | null, userId?: string) => {
@@ -197,12 +182,7 @@ export default function TopNav() {
             }
             setIsNotificationsOpen(false);
 
-            if (notification.link?.startsWith('/chat/')) {
-                const conversationId = notification.link.replace('/chat/', '');
-                if (typeof window !== 'undefined' && typeof window.showChatWidget === 'function') {
-                    window.showChatWidget(conversationId);
-                }
-            } else if (notification.link) {
+            if (notification.link) {
                 router.push(notification.link);
             }
         } catch (error) {
@@ -429,14 +409,6 @@ export default function TopNav() {
 
                     {authStatus === 'authenticated' ? (
                         <>
-                            <button
-                                className={styles.iconButton}
-                                onClick={handleChatClick}
-                                aria-label="Messages"
-                            >
-                                <FaCommentDots />
-                            </button>
-
                             <button
                                 className={styles.iconButton}
                                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
