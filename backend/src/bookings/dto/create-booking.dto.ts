@@ -22,4 +22,12 @@ export class CreateBookingDto {
   @IsString()
   @IsOptional()
   clientPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  teamMemberId?: string; // Optional: selected professional/stylist
+
+  @IsString()
+  @IsOptional()
+  clientNotes?: string; // Optional: notes/preferences for the appointment
 }

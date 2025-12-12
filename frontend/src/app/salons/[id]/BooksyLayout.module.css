@@ -1,0 +1,888 @@
+/* Booksy-style Salon Profile Layout */
+
+/* Main Two-Column Layout */
+.booksyLayout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--page-inline-padding, 1.5rem);
+}
+
+@media (max-width: 1024px) {
+    .booksyLayout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .booksySidebar {
+        order: 2;
+    }
+}
+
+/* Left Column - Main Content */
+.booksyMain {
+    min-width: 0;
+}
+
+/* Hero Photo Gallery */
+.heroGallery {
+    position: relative;
+    margin-bottom: 1rem;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.heroMainImage {
+    position: relative;
+    width: 100%;
+    height: clamp(280px, 45vw, 420px);
+    cursor: pointer;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.heroMainImage img {
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.heroMainImage:hover img {
+    transform: scale(1.02);
+}
+
+.showAllPhotosBtn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    padding: 0.625rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1a1a1a;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.showAllPhotosBtn:hover {
+    background: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Thumbnails Row */
+.thumbnailsRow {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    margin: 0 -0.25rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.thumbnailsRow::-webkit-scrollbar {
+    display: none;
+}
+
+.thumbnailItem {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.thumbnailItem:hover,
+.thumbnailItem.active {
+    border-color: var(--color-primary, #f51957);
+    transform: translateY(-2px);
+}
+
+.thumbnailItem img {
+    object-fit: cover;
+}
+
+.thumbnailMore {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Salon Info Header (Below Photos) */
+.salonInfoHeader {
+    padding: 1rem 0 1.5rem;
+}
+
+.salonBadges {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.mobileBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--color-surface-elevated, #f5f5f5);
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    color: var(--color-text, #333);
+}
+
+.salonNameLarge {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-strong, #1a1a1a);
+    margin: 0 0 0.35rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.salonAddress {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #666);
+    margin: 0 0 0.5rem 0;
+}
+
+.salonRatingReviews {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ratingDisplay {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.ratingDisplay svg {
+    color: #f59e0b;
+}
+
+.reviewsLink {
+    color: var(--color-primary, #0891b2);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.promotedTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary, #666);
+}
+
+/* Right Sidebar */
+.booksySidebar {
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .booksySidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+/* Sidebar Card */
+.sidebarCard {
+    background: var(--color-surface-elevated, #fff);
+    border: 1px solid var(--color-border, #eee);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.sidebarCardTitle {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary, #888);
+    margin: 0 0 0.75rem 0;
+}
+
+/* Map Card */
+.mapCard {
+    padding: 0;
+    overflow: hidden;
+}
+
+.sidebarMap {
+    width: 100%;
+    height: 140px;
+    position: relative;
+}
+
+.sidebarMap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.mapOverlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mapOverlay strong {
+    font-size: 0.875rem;
+}
+
+.mapOverlay span {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.mapDirectionsBtn {
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mapDirectionsBtn:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* About Card */
+.aboutText {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text, #333);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.aboutText.expanded {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+}
+
+.showMoreBtn {
+    background: none;
+    border: none;
+    color: var(--color-primary, #0891b2);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0;
+    margin-top: 0.5rem;
+    cursor: pointer;
+}
+
+/* Contact & Hours Card */
+.contactRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border, #eee);
+}
+
+.contactRow:last-child {
+    border-bottom: none;
+}
+
+.contactInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contactInfo svg {
+    color: var(--color-text-secondary, #666);
+    font-size: 1rem;
+}
+
+.contactInfo span {
+    font-size: 0.9375rem;
+    color: var(--color-text, #333);
+}
+
+.callBtn {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--color-border, #ddd);
+    background: var(--color-surface, #fff);
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text, #333);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.callBtn:hover {
+    border-color: var(--color-primary, #f51957);
+    color: var(--color-primary, #f51957);
+}
+
+.todayHours {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.todayLabel {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #666);
+}
+
+.todayValue {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text, #333);
+}
+
+.showFullWeekBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    color: var(--color-primary, #0891b2);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.showFullWeekBtn svg {
+    transition: transform 0.2s;
+}
+
+.showFullWeekBtn.expanded svg {
+    transform: rotate(180deg);
+}
+
+.weeklyHoursList {
+    margin-top: 0.75rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--color-border, #eee);
+}
+
+.weeklyHoursList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.weeklyHoursList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0;
+    font-size: 0.875rem;
+}
+
+.weeklyHoursList li.today {
+    font-weight: 600;
+    color: var(--color-primary, #f51957);
+}
+
+.weeklyHoursList li span:last-child {
+    color: var(--color-text-secondary, #666);
+}
+
+.weeklyHoursList li.today span:last-child {
+    color: var(--color-text, #333);
+}
+
+.closedText {
+    color: var(--color-error, #dc2626);
+}
+
+/* WhatsApp Button in Sidebar */
+.sidebarWhatsapp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.875rem;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.sidebarWhatsapp:hover {
+    background: #20bd5a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+}
+
+/* Book Now Button - Sticky on Mobile */
+.sidebarBookBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-primary, #f51957);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sidebarBookBtn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(245, 25, 87, 0.35);
+}
+
+/* Mobile Sticky Book Button */
+.mobileBookSticky {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.875rem 1rem;
+    background: var(--color-surface, #fff);
+    border-top: 1px solid var(--color-border, #eee);
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1024px) {
+    .mobileBookSticky {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .mobileBookBtn {
+        flex: 1;
+        padding: 1rem;
+        background: var(--color-primary, #f51957);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .mobileWhatsappBtn {
+        width: 56px;
+        height: 56px;
+        background: #25D366;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    /* Add bottom padding to content for sticky footer */
+    .booksyLayout {
+        padding-bottom: 100px;
+    }
+}
+
+/* Social Media Links */
+.socialLinks {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.socialLink {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border, #ddd);
+    background: var(--color-surface, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary, #666);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.socialLink:hover {
+    border-color: var(--color-primary, #f51957);
+    color: var(--color-primary, #f51957);
+}
+
+/* Service count badge */
+.serviceCountBadge {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary, #666);
+    font-weight: 400;
+}
+
+/* ===================== */
+/* Booksy-Style Reviews Section */
+/* ===================== */
+
+.reviewsSection {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border, #eee);
+}
+
+.reviewsSectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-strong, #1a1a1a);
+    margin: 0 0 1rem 0;
+}
+
+.reviewsHeader {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.reviewsDescription {
+    flex: 1;
+    min-width: 250px;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary, #666);
+}
+
+/* Rating Summary Card */
+.ratingSummaryCard {
+    background: var(--color-surface-elevated, #fff);
+    border: 1px solid var(--color-border, #eee);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    min-width: 280px;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.ratingScoreSection {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.ratingScore {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary, #f59e0b);
+    line-height: 1;
+}
+
+.ratingScore span {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary, #666);
+    font-weight: 400;
+}
+
+.ratingStars {
+    display: flex;
+    gap: 0.15rem;
+    margin: 0.5rem 0;
+    color: #f59e0b;
+    font-size: 1.25rem;
+}
+
+.ratingCount {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary, #666);
+}
+
+/* Rating Breakdown Bars */
+.ratingBreakdown {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    justify-content: center;
+}
+
+.ratingBar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+}
+
+.ratingBarLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 24px;
+    color: var(--color-text-secondary, #666);
+}
+
+.ratingBarLabel svg {
+    color: #f59e0b;
+    font-size: 0.75rem;
+}
+
+.ratingBarTrack {
+    flex: 1;
+    height: 8px;
+    background: var(--color-border, #e5e5e5);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ratingBarFill {
+    height: 100%;
+    background: #f59e0b;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.ratingBarCount {
+    min-width: 24px;
+    text-align: right;
+    color: var(--color-text-secondary, #666);
+}
+
+/* Client Photos */
+.clientPhotos {
+    margin: 1.5rem 0;
+}
+
+.clientPhotosTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-strong, #1a1a1a);
+    margin: 0 0 0.75rem 0;
+}
+
+.clientPhotosGrid {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.clientPhotosGrid::-webkit-scrollbar {
+    display: none;
+}
+
+.clientPhotoItem {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+}
+
+.clientPhotoItem img {
+    object-fit: cover;
+    transition: transform 0.2s;
+}
+
+.clientPhotoItem:hover img {
+    transform: scale(1.05);
+}
+
+/* Individual Review Cards */
+.reviewsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.reviewCard {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border, #eee);
+}
+
+.reviewCard:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.reviewCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.reviewRatingStars {
+    display: flex;
+    gap: 0.1rem;
+    color: #f59e0b;
+    font-size: 1.125rem;
+}
+
+.reviewerInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #666);
+}
+
+.reviewerName {
+    font-weight: 600;
+    color: var(--color-text, #333);
+}
+
+.verifiedBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: var(--color-primary, #0891b2);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.625rem;
+}
+
+.reviewServiceInfo {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary, #666);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.reviewServiceInfo strong {
+    color: var(--color-text, #333);
+    font-weight: 600;
+}
+
+.reviewComment {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text, #333);
+    margin: 0;
+}
+
+/* Empty reviews state */
+.noReviews {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--color-text-secondary, #666);
+}
+
+.noReviews p {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
+/* Load more reviews button */
+.loadMoreReviews {
+    display: block;
+    width: 100%;
+    padding: 0.875rem;
+    margin-top: 1rem;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text, #333);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.loadMoreReviews:hover {
+    background: var(--color-surface-elevated, #f5f5f5);
+    border-color: var(--color-primary, #f51957);
+    color: var(--color-primary, #f51957);
+}
+
+@media (max-width: 768px) {
+    .reviewsHeader {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .ratingSummaryCard {
+        width: 100%;
+    }
+
+    .reviewCardHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .reviewerInfo {
+        order: -1;
+    }
+}

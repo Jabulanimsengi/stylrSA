@@ -1,0 +1,185 @@
+/* Salon Carousel Section - Reusable horizontal scrollable salon list */
+
+.section {
+    padding: 1.5rem 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 var(--page-inline-padding, 1rem);
+    margin-bottom: 1rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.title {
+    text-decoration: none;
+    color: var(--color-text-strong, #1a1a1a);
+    transition: color 0.2s;
+}
+
+.title:hover {
+    color: var(--color-primary, #f51957);
+}
+
+.title h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.viewAll {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-primary, #f51957);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.viewAll:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.container {
+    position: relative;
+    padding: 0 var(--page-inline-padding, 1rem);
+}
+
+/* Navigation Buttons */
+.navButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border, #e5e5e5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-strong, #1a1a1a);
+    transition: all 0.25s ease;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.navButton.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.navButton:hover {
+    background: var(--color-primary, #f51957);
+    color: white;
+    border-color: var(--color-primary, #f51957);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.navButton:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.navButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.prevButton {
+    left: 0;
+}
+
+.nextButton {
+    right: 0;
+}
+
+/* Skeleton loading states */
+.skeletonContainer {
+    display: flex;
+    gap: 16px;
+    padding: 0 var(--page-inline-padding, 1rem);
+    overflow: hidden;
+}
+
+.skeletonCard {
+    flex-shrink: 0;
+    width: calc((100% - 48px) / 4.1);
+    min-width: 200px;
+    height: 260px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 12px;
+}
+
+.titleSkeleton {
+    width: 150px;
+    height: 24px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .header {
+        padding: 0 1rem;
+    }
+
+    .container {
+        padding: 0;
+    }
+
+    .navButton {
+        display: none !important;
+    }
+
+    .skeletonCard {
+        width: calc(100% / 1.15);
+        min-width: unset;
+    }
+}
+
+/* Badge for section differentiation */
+.sectionBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--color-surface-elevated, #f5f5f5);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #666);
+    margin-left: 0.5rem;
+}
+
+.sectionBadge.mobile {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.sectionBadge.available {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}

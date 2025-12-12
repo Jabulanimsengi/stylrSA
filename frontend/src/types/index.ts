@@ -85,6 +85,7 @@ export interface Salon {
   planVerifiedAt?: string | null;
   distance?: number | null; // Distance in km from user (when sorted by proximity)
   bookingMessage?: string | null; // Optional booking message from salon owner
+  cancellationPolicy?: string | null; // Salon's cancellation policy text
 }
 
 export interface Service {
@@ -95,6 +96,8 @@ export interface Service {
   description: string;
   price: number;
   duration: number;
+  durationMin?: number | null;  // Minimum duration for variable services
+  durationMax?: number | null;  // Maximum duration for variable services
   pricingType?: 'PER_PERSON' | 'PER_COUPLE';
   category?: string;
   categoryId?: string;
@@ -109,6 +112,8 @@ export interface Service {
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
   likeCount?: number;
   isLikedByCurrentUser?: boolean;
+  isPopular?: boolean;     // Marked as popular service
+  isFeatured?: boolean;    // Featured/highlighted service
   salon?: {
     id: string;
     name: string;
@@ -145,14 +150,29 @@ export interface Booking {
   userId: string;
   salonId: string;
   serviceId: string;
+  teamMemberId?: string;
   bookingTime: string;
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'DECLINED';
   notes?: string;
+  clientNotes?: string;
   createdAt: string;
   updatedAt: string;
   user: User;
   salon: Salon;
   service: Service;
+  teamMember?: TeamMember;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio?: string;
+  image?: string;
+  specialties?: string[];
+  experience?: number;
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 export interface Notification {

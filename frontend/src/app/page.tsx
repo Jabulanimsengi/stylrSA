@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import HomePageClient from './HomePageClient';
-import { Service, Trend, TrendCategory } from '@/types';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
@@ -36,8 +35,6 @@ export const metadata: Metadata = {
   },
 };
 
-type ServiceWithSalon = Service & { salon: { id: string; name: string, city: string, province: string } };
-
 // Fetch initial data server-side
 async function getInitialData() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_ORIGIN || 'http://localhost:5000';
@@ -46,77 +43,63 @@ async function getInitialData() {
   // Only skip fetching during build time when API is localhost
   if (isBuildPhase && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
     return {
-      services: [] as ServiceWithSalon[],
-      trends: {} as Record<TrendCategory, Trend[]>,
       featuredSalons: [] as any[],
-      beforeAfterPhotos: [] as any[],
-      hasMore: false,
-      totalPages: 1,
+      allSalons: [] as any[],
+      availableNowSalons: [] as any[],
+      mobileSalons: [] as any[],
     };
   }
 
   try {
-    // Fetch all data in parallel for faster loading
-    const [servicesRes, trendsRes, featuredSalonsRes, beforeAfterRes] = await Promise.all([
-      // Fetch initial services - 1 hour revalidation
-      fetch(`${apiUrl}/api/services/approved?page=1&pageSize=24`, {
-        next: { revalidate: 3600 },
-      }),
-      // Fetch trends - 1 hour revalidation
-      fetch(`${apiUrl}/api/trends`, {
-        next: { revalidate: 3600 },
-      }),
-      // Fetch featured salons - 1 hour revalidation
+    // Fetch salon data in parallel for faster loading
+    const [featuredSalonsRes, allSalonsRes, availableNowRes, mobileSalonsRes] = await Promise.all([
+      // Fetch featured/recommended salons - 1 hour revalidation
       fetch(`${apiUrl}/api/salons/featured`, {
         next: { revalidate: 3600 },
       }),
-      // Fetch before/after photos - 1 hour revalidation
-      fetch(`${apiUrl}/api/before-after/approved?limit=20`, {
-        next: { revalidate: 3600 },
+      // Fetch all salons for Featured Salons section - 15 min revalidation
+      fetch(`${apiUrl}/api/salons/approved`, {
+        next: { revalidate: 900 },
+      }),
+      // Fetch available now salons - 5 min revalidation (more dynamic)
+      fetch(`${apiUrl}/api/salons/approved?openNow=true`, {
+        next: { revalidate: 300 },
+      }),
+      // Fetch mobile salons - 30 min revalidation
+      fetch(`${apiUrl}/api/salons/approved?offersMobile=true`, {
+        next: { revalidate: 1800 },
       }),
     ]);
-
-    const servicesData = servicesRes.ok
-      ? await servicesRes.json()
-      : { services: [], currentPage: 1, totalPages: 1 };
-
-    const trendsData = trendsRes.ok
-      ? await trendsRes.json()
-      : {} as Record<TrendCategory, Trend[]>;
 
     const featuredSalonsData = featuredSalonsRes.ok
       ? await featuredSalonsRes.json()
       : [];
 
-    const beforeAfterData = beforeAfterRes.ok
-      ? await beforeAfterRes.json()
-      : [];
+    const allSalonsData = allSalonsRes.ok
+      ? await allSalonsRes.json()
+      : { salons: [] };
 
-    // Sort trends by view count
-    const sortedTrends: Record<TrendCategory, Trend[]> = {} as Record<TrendCategory, Trend[]>;
-    Object.keys(trendsData).forEach((category) => {
-      const categoryKey = category as TrendCategory;
-      const trends = trendsData[categoryKey] as Trend[];
-      sortedTrends[categoryKey] = trends.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
-    });
+    const availableNowData = availableNowRes.ok
+      ? await availableNowRes.json()
+      : { salons: [] };
+
+    const mobileSalonsData = mobileSalonsRes.ok
+      ? await mobileSalonsRes.json()
+      : { salons: [] };
 
     return {
-      services: servicesData.services as ServiceWithSalon[],
-      trends: sortedTrends,
       featuredSalons: Array.isArray(featuredSalonsData) ? featuredSalonsData : [],
-      beforeAfterPhotos: Array.isArray(beforeAfterData) ? beforeAfterData : [],
-      hasMore: servicesData.currentPage < servicesData.totalPages,
-      totalPages: servicesData.totalPages,
+      allSalons: allSalonsData.salons || allSalonsData || [],
+      availableNowSalons: availableNowData.salons || availableNowData || [],
+      mobileSalons: mobileSalonsData.salons || mobileSalonsData || [],
     };
   } catch (error) {
     console.error('Failed to fetch initial data:', error);
     return {
-      services: [] as ServiceWithSalon[],
-      trends: {} as Record<TrendCategory, Trend[]>,
       featuredSalons: [] as any[],
-      beforeAfterPhotos: [] as any[],
-      hasMore: false,
-      totalPages: 1,
+      allSalons: [] as any[],
+      availableNowSalons: [] as any[],
+      mobileSalons: [] as any[],
     };
   }
 }
@@ -229,12 +212,10 @@ export default async function HomePage() {
 
       {/* Client Component with server-rendered initial data */}
       <HomePageClient
-        initialServices={initialData.services}
-        initialTrends={initialData.trends}
         initialFeaturedSalons={initialData.featuredSalons}
-        initialBeforeAfter={initialData.beforeAfterPhotos}
-        initialHasMore={initialData.hasMore}
-        initialTotalPages={initialData.totalPages}
+        initialAllSalons={initialData.allSalons}
+        initialAvailableNowSalons={initialData.availableNowSalons}
+        initialMobileSalons={initialData.mobileSalons}
       />
     </>
   );

@@ -713,6 +713,102 @@ export class MailService {
     }
   }
 
+  /**
+   * Send appointment reminder email (24 hours before)
+   */
+  async sendAppointmentReminder(
+    userEmail: string,
+    userName: string,
+    salonName: string,
+    serviceName: string,
+    date: string,
+    time: string,
+    salonAddress?: string,
+    professionalName?: string,
+  ) {
+    if (!this.isConfigured) {
+      console.log(`[DEV] Appointment reminder for ${userEmail}`);
+      return;
+    }
+
+    try {
+      const details = [
+        { label: 'Salon', value: salonName },
+        { label: 'Service', value: serviceName },
+        { label: 'Date', value: date },
+        { label: 'Time', value: time },
+      ];
+      if (professionalName) {
+        details.push({ label: 'Professional', value: professionalName });
+      }
+      if (salonAddress) {
+        details.push({ label: 'Address', value: salonAddress });
+      }
+
+      const msg = {
+        to: userEmail,
+        from: this.fromEmail,
+        subject: `⏰ Reminder: Appointment Tomorrow at ${salonName}`,
+        html: this.getSimpleEmailTemplate(
+          `Hi ${userName},`,
+          `This is a friendly reminder about your upcoming appointment tomorrow!`,
+          details,
+          `Please arrive 5-10 minutes before your appointment. If you need to reschedule, please contact the salon as soon as possible.`,
+          'View My Bookings',
+          'https://stylrsa.co.za/my-bookings',
+        ),
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Appointment reminder sent to ${userEmail}`);
+    } catch (error) {
+      console.error('[EMAIL] Failed to send appointment reminder:', error);
+    }
+  }
+
+  /**
+   * Send review request email (24 hours after appointment)
+   */
+  async sendReviewRequest(
+    userEmail: string,
+    userName: string,
+    salonName: string,
+    serviceName: string,
+    bookingId: string,
+    salonSlug?: string,
+  ) {
+    if (!this.isConfigured) {
+      console.log(`[DEV] Review request for ${userEmail}`);
+      return;
+    }
+
+    try {
+      const reviewUrl = salonSlug
+        ? `https://stylrsa.co.za/salons/${salonSlug}?review=true`
+        : `https://stylrsa.co.za/my-bookings?action=review&bookingId=${bookingId}`;
+
+      const msg = {
+        to: userEmail,
+        from: this.fromEmail,
+        subject: `⭐ How was your visit to ${salonName}?`,
+        html: this.getSimpleEmailTemplate(
+          `Hi ${userName},`,
+          `We hope you enjoyed your ${serviceName} at ${salonName}! Your feedback helps other customers find great services and helps salons improve.`,
+          [
+            { label: 'Salon', value: salonName },
+            { label: 'Service', value: serviceName },
+          ],
+          `Sharing your experience only takes a minute and makes a big difference!`,
+          'Leave a Review',
+          reviewUrl,
+        ),
+      };
+      await sgMail.send(msg);
+      console.log(`[EMAIL] Review request sent to ${userEmail}`);
+    } catch (error) {
+      console.error('[EMAIL] Failed to send review request:', error);
+    }
+  }
+
   private getSimpleEmailTemplate(
     greeting: string,
     message: string,

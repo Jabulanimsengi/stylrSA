@@ -38,6 +38,8 @@ import { CandidatesModule } from './candidates/candidates.module';
 import { TeamMembersModule } from './team-members/team-members.module';
 import { JobPostingsModule } from './job-postings/job-postings.module';
 import { Top10RequestsModule } from './top10-requests/top10-requests.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -94,6 +96,8 @@ import { Top10RequestsModule } from './top10-requests/top10-requests.module';
     TeamMembersModule,
     JobPostingsModule,
     Top10RequestsModule,
+    ScheduleModule.forRoot(),
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [

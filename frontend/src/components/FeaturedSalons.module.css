@@ -1,57 +1,45 @@
 .section {
-  padding: clamp(0.75rem, 2vw, 1.25rem) 0;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: left;
+  padding: 1.5rem 0;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
-  padding: 0 clamp(0.75rem, 3vw, 1.5rem);
+  padding: 0 var(--page-inline-padding, 1rem);
+  margin-bottom: 1rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .title {
-  font-size: clamp(0.95rem, 2vw, 1.4rem);
-  font-weight: 600;
-  margin: 0;
-  color: var(--color-text-strong);
   text-decoration: none;
-  cursor: pointer;
+  color: var(--color-text-strong, #1a1a1a);
   transition: color 0.2s;
 }
 
 .title:hover {
-  color: var(--primary-pink, #f51957);
+  color: var(--color-primary, #f51957);
 }
 
 .title h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
   margin: 0;
-  font-size: inherit;
-  font-weight: inherit;
-  color: inherit;
 }
 
 .viewAll {
-  color: var(--muted-teal);
+  font-size: 0.875rem;
   font-weight: 600;
+  color: var(--color-primary, #f51957);
   text-decoration: none;
-  font-size: 12px;
-  transition: color 0.2s;
+  transition: opacity 0.2s;
 }
 
 .viewAll:hover {
-  color: var(--primary-pink);
-}
-
-.viewAll:visited {
-  color: var(--muted-teal);
-}
-
-.viewAll:visited:hover {
-  color: var(--primary-pink);
+  opacity: 0.8;
+  text-decoration: underline;
 }
 
 .container {
@@ -66,88 +54,68 @@
   min-height: 280px;
 }
 
-/* Navigation buttons - visible on desktop only */
-.prevButton,
-.nextButton {
+/* Navigation buttons - visibility controlled by .visible class */
+.navButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: none;
-  display: none;
-  /* Hidden by default (mobile) */
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e5e5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--color-text-strong, #1a1a1a);
+  transition: all 0.25s ease;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.navButton.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.navButton:hover {
   background: var(--color-primary, #f51957);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(67, 65, 74, 0.15);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 20;
+  color: white;
+  border-color: var(--color-primary, #f51957);
+  transform: translateY(-50%) scale(1.05);
 }
 
-.prevButton:hover,
-.nextButton:hover {
-  background: var(--color-primary-dark, #d41245);
-  transform: translateY(-50%) scale(1.08);
-  box-shadow: 0 6px 16px rgba(67, 65, 74, 0.2);
-}
-
-.prevButton:active,
-.nextButton:active {
+.navButton:active {
   transform: translateY(-50%) scale(0.95);
+}
+
+.navButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .prevButton {
   left: 0;
-  /* Position at left edge */
 }
 
 .nextButton {
   right: 0;
-  /* Position at right edge */
 }
 
-.prevButton svg,
-.nextButton svg {
+.navButton svg {
   width: 24px;
   height: 24px;
 }
 
 /* Explicitly hide navigation on mobile */
 @media (max-width: 768px) {
-
-  .prevButton,
-  .nextButton {
+  .navButton {
     display: none !important;
-  }
-}
-
-/* Show navigation on desktop only */
-@media (min-width: 769px) {
-
-  .prevButton,
-  .nextButton {
-    display: flex !important;
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    /* Ensure buttons are clickable */
-  }
-
-  /* Ensure arrows are above other content */
-  .container {
-    position: relative;
-    z-index: 1;
-  }
-
-  .prevButton,
-  .nextButton {
-    position: absolute;
-    z-index: 999;
-    /* Higher z-index to be above all content */
   }
 }
 
@@ -288,17 +256,12 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .section {
-    padding-inline: 0.5rem;
-    padding-block: 1rem;
-  }
-
-  .title {
-    font-size: 0.95rem;
-  }
-
   .header {
-    margin-bottom: 0.625rem;
+    padding: 0 1rem;
+  }
+
+  .container {
+    padding: 0;
   }
 
   .skeletonContainer {

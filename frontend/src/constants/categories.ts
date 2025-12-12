@@ -62,6 +62,36 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     slug: 'wig-installations',
     description: 'Professional wig installation and styling',
   },
+  {
+    name: 'Natural Hair Specialists',
+    slug: 'natural-hair-specialists',
+    description: 'Specialized care for natural hair textures and styles',
+  },
+  {
+    name: 'Lashes & Brows',
+    slug: 'lashes-brows',
+    description: 'Eyelash extensions, tints, and brow shaping',
+  },
+  {
+    name: 'Aesthetics & Advanced Skin',
+    slug: 'aesthetics-advanced-skin',
+    description: 'Advanced skin treatments and aesthetic procedures',
+  },
+  {
+    name: 'Tattoos & Piercings',
+    slug: 'tattoos-piercings',
+    description: 'Professional tattooing and body piercing',
+  },
+  {
+    name: 'Wellness & Holistic Spa',
+    slug: 'wellness-holistic-spa',
+    description: 'Holistic wellness treatments and therapies',
+  },
+  {
+    name: 'Hair Color & Treatments',
+    slug: 'hair-color-treatments',
+    description: 'Professional hair coloring and conditioning treatments',
+  },
 ];
 
 // Quick access categories for hero section

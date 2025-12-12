@@ -38,10 +38,6 @@ import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { APP_PLANS, PLAN_BY_CODE } from '@/constants/plans';
 import ReviewsTab from '@/components/ReviewsTab/ReviewsTab';
 import OperatingHoursInput, { OperatingHours, initializeOperatingHours } from '@/components/OperatingHoursInput';
-import BeforeAfterUpload from '@/components/BeforeAfterUpload/BeforeAfterUpload';
-import MyBeforeAfter from '@/components/MyBeforeAfter/MyBeforeAfter';
-import VideoUpload from '@/components/VideoUpload/VideoUpload';
-import MyVideos from '@/components/MyVideos/MyVideos';
 import AvailabilityManager from '@/components/AvailabilityManager/AvailabilityManager';
 import JobPostingForm from '@/components/JobPostingForm/JobPostingForm';
 import TeamMembers from '@/components/TeamMembers/TeamMembers';
@@ -82,8 +78,6 @@ const NAV_SECTIONS = [
     label: 'Content',
     items: [
       { id: 'gallery', label: 'Gallery' },
-      { id: 'before-after', label: 'Before & After' },
-      { id: 'videos', label: 'Videos' },
       { id: 'reviews', label: 'Reviews' },
     ],
   },
@@ -103,7 +97,7 @@ const NAV_SECTIONS = [
   },
 ];
 
-type TabId = 'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'before-after' | 'videos' | 'booking-settings' | 'availability' | 'team' | 'jobs';
+type TabId = 'bookings' | 'services' | 'reviews' | 'gallery' | 'promotions' | 'booking-settings' | 'availability' | 'team' | 'jobs';
 
 function DashboardPageContent() {
   const [salon, setSalon] = useState<Salon | null | undefined>(undefined);
@@ -706,21 +700,7 @@ function DashboardPageContent() {
               </div>
             )}
 
-            {/* Before & After Tab */}
-            {activeMainTab === 'before-after' && salon && (
-              <div className={styles.contentCard}>
-                <BeforeAfterUpload salonId={salon.id} services={services as any} onUploadComplete={fetchDashboardData} />
-                <div style={{ marginTop: '2rem' }}><MyBeforeAfter /></div>
-              </div>
-            )}
 
-            {/* Videos Tab */}
-            {activeMainTab === 'videos' && salon && (
-              <div className={styles.contentCard}>
-                <VideoUpload salonId={salon.id} services={services as any} planCode={salon.planCode ?? null} onUploadComplete={fetchDashboardData} />
-                <div style={{ marginTop: '2rem' }}><MyVideos /></div>
-              </div>
-            )}
 
             {/* Availability Tab */}
             {activeMainTab === 'availability' && salon && (

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, FormEvent, useTransition } from 'react';
 import { createPortal } from 'react-dom';
-import { Salon, Service, Booking } from '@/types';
+import Image from 'next/image';
+import { Salon, Service, Booking, TeamMember } from '@/types';
 import styles from './BookingModal.module.css';
 import { toast } from 'react-toastify';
 import {
@@ -15,6 +16,9 @@ import {
   FaUser,
   FaMobile,
   FaMapMarkerAlt,
+  FaUsers,
+  FaExclamationTriangle,
+  FaInfoCircle,
 } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthModal } from '@/context/AuthModalContext';
@@ -36,9 +40,17 @@ interface TimeSlot {
   status: 'available' | 'busy' | 'unavailable';
 }
 
-type Step = 'service' | 'date' | 'time' | 'details' | 'confirm';
+type Step = 'service' | 'professional' | 'date' | 'time' | 'details' | 'confirm';
 
-const STEPS: Step[] = ['service', 'date', 'time', 'details', 'confirm'];
+const STEPS: Step[] = ['service', 'professional', 'date', 'time', 'details', 'confirm'];
+const STEP_LABELS: Record<Step, string> = {
+  service: 'Services',
+  professional: 'Professional',
+  date: 'Date',
+  time: 'Time',
+  details: 'Details',
+  confirm: 'Confirm',
+};
 
 export default function BookingModal({
   salon,
@@ -47,26 +59,58 @@ export default function BookingModal({
   onClose,
   onBookingSuccess,
 }: BookingModalProps) {
-  const [currentStep, setCurrentStep] = useState<Step>(initialService ? 'date' : 'service');
+  const [currentStep, setCurrentStep] = useState<Step>(initialService ? 'professional' : 'service');
   const [selectedService, setSelectedService] = useState<Service | null>(initialService || null);
+  const [selectedProfessional, setSelectedProfessional] = useState<TeamMember | null>(null);
+  const [useAnyProfessional, setUseAnyProfessional] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [clientPhone, setClientPhone] = useState('');
+  const [clientNotes, setClientNotes] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loadingTeam, setLoadingTeam] = useState(false);
 
   const { authStatus, user } = useAuth();
   const { openModal } = useAuthModal();
   const socket = useSocket();
 
+  // Fetch team members when component mounts
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      setLoadingTeam(true);
+      try {
+        const response = await fetch(`/api/team-members/salon/${salon.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setTeamMembers(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch team members:', error);
+      } finally {
+        setLoadingTeam(false);
+      }
+    };
+    fetchTeamMembers();
+  }, [salon.id]);
+
+  // Get visible steps based on whether initial service provided
+  const visibleSteps = useMemo(() => {
+    if (initialService) {
+      return STEPS.filter(s => s !== 'service');
+    }
+    return STEPS;
+  }, [initialService]);
+
   // Get current step index
-  const currentStepIndex = STEPS.indexOf(currentStep);
-  const stepNumber = initialService ? currentStepIndex : currentStepIndex + 1;
-  const totalSteps = initialService ? 4 : 5;
+  const currentStepIndex = visibleSteps.indexOf(currentStep);
+  const stepNumber = currentStepIndex + 1;
+  const totalSteps = visibleSteps.length;
 
   // Days in month for calendar
   const daysInMonth = useMemo(() => {
@@ -148,6 +192,8 @@ export default function BookingModal({
           bookingTime: selectedSlot,
           clientPhone,
           isMobile,
+          teamMemberId: useAnyProfessional ? null : selectedProfessional?.id,
+          clientNotes: clientNotes.trim() || null,
         }),
       });
 
@@ -176,7 +222,7 @@ export default function BookingModal({
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      } catch {}
+      } catch { }
 
       startTransition(() => {
         onBookingSuccess(newBooking);
@@ -189,25 +235,24 @@ export default function BookingModal({
   };
 
   const goToStep = (step: Step) => {
-    setCurrentStep(step);
+    // Only allow going to completed steps or current step
+    const targetIndex = visibleSteps.indexOf(step);
+    if (targetIndex <= currentStepIndex) {
+      setCurrentStep(step);
+    }
   };
 
   const goNext = () => {
     const nextIndex = currentStepIndex + 1;
-    if (nextIndex < STEPS.length) {
-      setCurrentStep(STEPS[nextIndex]);
+    if (nextIndex < visibleSteps.length) {
+      setCurrentStep(visibleSteps[nextIndex]);
     }
   };
 
   const goBack = () => {
     const prevIndex = currentStepIndex - 1;
     if (prevIndex >= 0) {
-      // Skip service step if initial service was provided
-      if (STEPS[prevIndex] === 'service' && initialService) {
-        onClose();
-        return;
-      }
-      setCurrentStep(STEPS[prevIndex]);
+      setCurrentStep(visibleSteps[prevIndex]);
     } else {
       onClose();
     }
@@ -217,6 +262,8 @@ export default function BookingModal({
     switch (currentStep) {
       case 'service':
         return !!selectedService;
+      case 'professional':
+        return true; // Always can proceed - "Any professional" is default
       case 'date':
         return !!selectedDate;
       case 'time':
@@ -235,6 +282,27 @@ export default function BookingModal({
       minute: '2-digit',
       hour12: true,
     });
+  };
+
+  const formatDuration = (mins: number, minDuration?: number | null, maxDuration?: number | null) => {
+    // If we have min/max duration range
+    if (minDuration && maxDuration && minDuration !== maxDuration) {
+      const formatMins = (m: number) => {
+        if (m < 60) return `${m} mins`;
+        const hours = Math.floor(m / 60);
+        const mins = m % 60;
+        if (mins === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+        return `${hours} hr${hours > 1 ? 's' : ''}, ${mins} mins`;
+      };
+      return `${formatMins(minDuration)} - ${formatMins(maxDuration)}`;
+    }
+
+    // Single duration
+    if (mins < 60) return `${mins} mins`;
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    if (minutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+    return `${hours} hr${hours > 1 ? 's' : ''}, ${minutes} mins`;
   };
 
   const isToday = (date: Date) => {
@@ -269,6 +337,28 @@ export default function BookingModal({
 
   const availableSlots = slots.filter((s) => s.available);
 
+  // Render breadcrumbs
+  const renderBreadcrumbs = () => (
+    <div className={styles.breadcrumbs}>
+      {visibleSteps.map((step, index) => {
+        const isCompleted = index < currentStepIndex;
+        const isActive = index === currentStepIndex;
+        return (
+          <span key={step}>
+            {index > 0 && <span className={styles.breadcrumbSeparator}>›</span>}
+            <span
+              className={`${styles.breadcrumbItem} ${isActive ? styles.active : ''} ${isCompleted ? styles.completed : ''}`}
+              onClick={() => goToStep(step)}
+            >
+              {isCompleted && <FaCheck />}
+              {STEP_LABELS[step]}
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
+
   const modalContent = (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -285,6 +375,9 @@ export default function BookingModal({
             <FaTimes />
           </button>
         </div>
+
+        {/* Breadcrumbs */}
+        {renderBreadcrumbs()}
 
         {/* Progress indicator */}
         <div className={styles.progress}>
@@ -315,7 +408,7 @@ export default function BookingModal({
                     <div className={styles.serviceInfo}>
                       <span className={styles.serviceName}>{svc.title || svc.name}</span>
                       <span className={styles.serviceDuration}>
-                        <FaClock /> {svc.duration} min
+                        <FaClock /> {formatDuration(svc.duration, (svc as any).durationMin, (svc as any).durationMax)}
                       </span>
                     </div>
                     <span className={styles.servicePrice}>R{svc.price}</span>
@@ -330,7 +423,89 @@ export default function BookingModal({
             </div>
           )}
 
-          {/* Step 2: Select Date */}
+          {/* Step 2: Select Professional */}
+          {currentStep === 'professional' && (
+            <div className={styles.stepContent}>
+              <h3 className={styles.stepTitle}>
+                <FaUsers /> Choose a Professional
+                <span className={styles.optionalBadge}>Optional</span>
+              </h3>
+
+              <div className={styles.professionalList}>
+                {/* "Any Professional" option */}
+                <button
+                  className={`${styles.anyProfessionalCard} ${useAnyProfessional ? styles.selected : ''}`}
+                  onClick={() => {
+                    setUseAnyProfessional(true);
+                    setSelectedProfessional(null);
+                  }}
+                >
+                  <div className={styles.anyProfessionalIcon}>
+                    <FaUsers />
+                  </div>
+                  <div className={styles.anyProfessionalInfo}>
+                    <h4>Any Professional</h4>
+                    <p>We'll assign the best available stylist</p>
+                  </div>
+                  {useAnyProfessional && (
+                    <span className={styles.checkmark}>
+                      <FaCheck />
+                    </span>
+                  )}
+                </button>
+
+                {/* Team Members */}
+                {loadingTeam ? (
+                  <div className={styles.loadingSlots}>
+                    <div className={styles.spinner} />
+                    <span>Loading team...</span>
+                  </div>
+                ) : (
+                  teamMembers.map((member) => (
+                    <button
+                      key={member.id}
+                      className={`${styles.professionalCard} ${!useAnyProfessional && selectedProfessional?.id === member.id ? styles.selected : ''}`}
+                      onClick={() => {
+                        setUseAnyProfessional(false);
+                        setSelectedProfessional(member);
+                      }}
+                    >
+                      <div className={styles.professionalAvatar}>
+                        {member.image ? (
+                          <Image
+                            src={member.image}
+                            alt={member.name}
+                            fill
+                            style={{ objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <FaUser />
+                        )}
+                      </div>
+                      <div className={styles.professionalInfo}>
+                        <h4 className={styles.professionalName}>{member.name}</h4>
+                        <p className={styles.professionalRole}>{member.role}</p>
+                        {member.specialties && member.specialties.length > 0 && (
+                          <div className={styles.professionalSpecialties}>
+                            {member.specialties.slice(0, 3).map((s, i) => (
+                              <span key={i} className={styles.specialtyTag}>{s}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {!useAnyProfessional && selectedProfessional?.id === member.id && (
+                        <span className={styles.checkmark}>
+                          <FaCheck />
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Select Date */}
           {currentStep === 'date' && (
             <div className={styles.stepContent}>
               <h3 className={styles.stepTitle}>
@@ -393,7 +568,7 @@ export default function BookingModal({
             </div>
           )}
 
-          {/* Step 3: Select Time */}
+          {/* Step 4: Select Time */}
           {currentStep === 'time' && (
             <div className={styles.stepContent}>
               <h3 className={styles.stepTitle}>
@@ -437,7 +612,7 @@ export default function BookingModal({
             </div>
           )}
 
-          {/* Step 4: Your Details */}
+          {/* Step 5: Your Details */}
           {currentStep === 'details' && (
             <div className={styles.stepContent}>
               <h3 className={styles.stepTitle}>
@@ -455,6 +630,18 @@ export default function BookingModal({
                   required
                 />
                 <span className={styles.hint}>We'll send booking confirmation to this number</span>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="notes">Notes for your appointment (optional)</label>
+                <textarea
+                  id="notes"
+                  value={clientNotes}
+                  onChange={(e) => setClientNotes(e.target.value)}
+                  placeholder="Any specific requests or preferences..."
+                  className={styles.textarea}
+                  rows={3}
+                />
               </div>
 
               {salon.bookingType !== 'ONSITE' && (
@@ -477,7 +664,7 @@ export default function BookingModal({
             </div>
           )}
 
-          {/* Step 5: Confirm */}
+          {/* Step 6: Confirm */}
           {currentStep === 'confirm' && selectedService && (
             <div className={styles.stepContent}>
               <h3 className={styles.stepTitle}>
@@ -487,6 +674,12 @@ export default function BookingModal({
                 <div className={styles.summaryItem}>
                   <span className={styles.summaryLabel}>Service</span>
                   <span className={styles.summaryValue}>{selectedService.title || selectedService.name}</span>
+                </div>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Professional</span>
+                  <span className={styles.summaryValue}>
+                    {useAnyProfessional ? 'Any available' : selectedProfessional?.name}
+                  </span>
                 </div>
                 <div className={styles.summaryItem}>
                   <span className={styles.summaryLabel}>Date</span>
@@ -504,7 +697,9 @@ export default function BookingModal({
                 </div>
                 <div className={styles.summaryItem}>
                   <span className={styles.summaryLabel}>Duration</span>
-                  <span className={styles.summaryValue}>{selectedService.duration} minutes</span>
+                  <span className={styles.summaryValue}>
+                    {formatDuration(selectedService.duration, (selectedService as any).durationMin, (selectedService as any).durationMax)}
+                  </span>
                 </div>
                 <div className={styles.summaryItem}>
                   <span className={styles.summaryLabel}>Location</span>
@@ -516,12 +711,30 @@ export default function BookingModal({
                   <span className={styles.summaryLabel}>Contact</span>
                   <span className={styles.summaryValue}>{clientPhone}</span>
                 </div>
+                {clientNotes && (
+                  <div className={styles.summaryItem}>
+                    <span className={styles.summaryLabel}>Notes</span>
+                    <span className={styles.summaryValue}>{clientNotes}</span>
+                  </div>
+                )}
                 <div className={styles.summaryDivider} />
                 <div className={styles.summaryTotal}>
                   <span>Total</span>
                   <span className={styles.totalPrice}>R{totalCost.toFixed(2)}</span>
                 </div>
               </div>
+
+              {/* Cancellation Policy */}
+              {(salon as any).cancellationPolicy && (
+                <div className={styles.cancellationPolicy}>
+                  <div className={styles.cancellationPolicyHeader}>
+                    <FaExclamationTriangle /> Cancellation Policy
+                  </div>
+                  <p className={styles.cancellationPolicyText}>
+                    {(salon as any).cancellationPolicy}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

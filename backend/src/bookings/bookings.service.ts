@@ -218,12 +218,15 @@ export class BookingsService {
         bookingTime: new Date(dto.bookingTime),
         isMobile: dto.isMobile,
         clientPhone: dto.clientPhone,
+        teamMemberId: dto.teamMemberId || null,
+        clientNotes: dto.clientNotes || null,
         status: 'PENDING',
         totalCost: service.price,
       },
       include: {
         service: true,
         user: true,
+        teamMember: true,
       },
     });
 

@@ -34,6 +34,8 @@ function FeaturedSalons({ initialSalons = [] }: FeaturedSalonsProps) {
     hasServerData ? 'done' : 'pending'
   );
   const [activeIndex, setActiveIndex] = useState(0);
+  const [showPrevArrow, setShowPrevArrow] = useState(false);
+  const swiperRef = useRef<SwiperType | null>(null);
   const [, startTransition] = useTransition();
   const { authStatus } = useAuth();
   const { openModal } = useAuthModal();
@@ -209,7 +211,14 @@ function FeaturedSalons({ initialSalons = [] }: FeaturedSalonsProps) {
             margin: '0 auto',
             minHeight: isMobile ? '260px' : '280px', // Min height to show full cards
           }}
-          onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
+          onSlideChange={(swiper: SwiperType) => {
+            setActiveIndex(swiper.activeIndex);
+            // Show prev arrow only after scrolling past the first slide
+            setShowPrevArrow(swiper.activeIndex > 0);
+          }}
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+          }}
           allowTouchMove={true}
           simulateTouch={true}
           touchRatio={1}
@@ -248,12 +257,22 @@ function FeaturedSalons({ initialSalons = [] }: FeaturedSalonsProps) {
         {/* Navigation buttons - hidden on mobile */}
         {!isMobile && (
           <>
-            <button ref={prevRef} className={styles.prevButton} aria-label="Previous">
+            {/* Left arrow - only visible after scrolling */}
+            <button
+              ref={prevRef}
+              className={`${styles.navButton} ${styles.prevButton} ${showPrevArrow ? styles.visible : ''}`}
+              aria-label="Previous"
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <button ref={nextRef} className={styles.nextButton} aria-label="Next">
+            {/* Right arrow - always visible */}
+            <button
+              ref={nextRef}
+              className={`${styles.navButton} ${styles.nextButton} ${styles.visible}`}
+              aria-label="Next"
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 18l6-6-6-6" />
               </svg>

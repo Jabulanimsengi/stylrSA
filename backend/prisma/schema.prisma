@@ -83,6 +83,7 @@ model Salon {
   operatingHours       Json?
   operatingDays        String[]
   bookingMessage       String?
+  cancellationPolicy   String?                       // Salon's cancellation policy text
   approvalStatus       ApprovalStatus                @default(PENDING)
   isVerified           Boolean                       @default(false)
   avgRating            Float                         @default(0)
@@ -147,12 +148,16 @@ model Service {
   description       String
   price             Float
   duration          Int
+  durationMin       Int?               // Minimum duration for variable services
+  durationMax       Int?               // Maximum duration for variable services
   pricingType       PricingType?
   images            String[]
   approvalStatus    ApprovalStatus     @default(PENDING)
   salonId           String
   categoryId        String?
   likeCount         Int                @default(0)
+  isPopular         Boolean            @default(false)
+  isFeatured        Boolean            @default(false)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   beforeAfterPhotos BeforeAfterPhoto[]
@@ -162,9 +167,12 @@ model Service {
   salon             Salon              @relation(fields: [salonId], references: [id])
   likes             ServiceLike[]
   serviceVideos     ServiceVideo[]
+  teamMembers       TeamMemberService[]
 
   @@index([salonId])
   @@index([approvalStatus])
+  @@index([isPopular])
+  @@index([isFeatured])
 }
 
 model Review {
@@ -197,16 +205,20 @@ model Booking {
   userId         String
   salonId        String
   serviceId      String
+  teamMemberId   String?       // Optional: selected professional/stylist
   clientPhone    String?
   referralSource String?
+  clientNotes    String?       // Notes about client preferences
   salon          Salon         @relation(fields: [salonId], references: [id])
   service        Service       @relation(fields: [serviceId], references: [id])
   user           User          @relation(fields: [userId], references: [id])
+  teamMember     TeamMember?   @relation(fields: [teamMemberId], references: [id])
   review         Review?
 
   @@index([userId])
   @@index([salonId])
   @@index([serviceId])
+  @@index([teamMemberId])
 }
 
 model Product {
@@ -771,7 +783,7 @@ enum CandidateProfession {
 }
 
 model TeamMember {
-  id          String   @id @default(uuid())
+  id          String              @id @default(uuid())
   salonId     String
   name        String
   role        String
@@ -779,14 +791,29 @@ model TeamMember {
   image       String?
   specialties String[]
   experience  Int?
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  salon       Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  isActive    Boolean             @default(true)
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  salon       Salon               @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+  services    TeamMemberService[]
 
   @@index([salonId])
   @@index([isActive])
+}
+
+// Junction table for team members and their services
+model TeamMemberService {
+  id           String     @id @default(uuid())
+  teamMemberId String
+  serviceId    String
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  service      Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([teamMemberId, serviceId])
+  @@index([teamMemberId])
+  @@index([serviceId])
 }
 
 model JobPosting {

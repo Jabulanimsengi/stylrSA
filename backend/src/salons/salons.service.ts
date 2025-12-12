@@ -445,6 +445,9 @@ export class SalonsService {
           orderBy: {
             createdAt: 'asc',
           },
+          include: {
+            category: true,
+          },
         },
         gallery: true,
         owner: {

@@ -46,9 +46,9 @@ export default function MyBookingsPage() {
       setBookings(data);
 
     } catch (error: any) {
-        toast.error(error.message);
+      toast.error(error.message);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -101,7 +101,7 @@ export default function MyBookingsPage() {
   };
 
   const getStatusClass = (status: PopulatedBooking['status']) => {
-    switch(status) {
+    switch (status) {
       case 'PENDING': return styles.statusPending;
       case 'CONFIRMED': return styles.statusConfirmed;
       case 'DECLINED': return styles.statusDeclined;
@@ -140,7 +140,7 @@ export default function MyBookingsPage() {
       </div>
     );
   }
-  
+
   if (authStatus === 'unauthenticated') return null;
 
   return (
@@ -181,7 +181,7 @@ export default function MyBookingsPage() {
                 <p>at <strong>{booking.salon.name}</strong></p>
                 <p>Date: {formatDate(booking.bookingTime)}</p>
                 <p>Cost: <strong>R{booking.totalCost.toFixed(2)}</strong></p>
-                
+
                 {booking.review ? (
                   <div className={styles.reviewSection}>
                     <div className={styles.reviewHeader}>
@@ -198,8 +198,8 @@ export default function MyBookingsPage() {
                     <p className={styles.reviewComment}>"{booking.review.comment}"</p>
                     {booking.review.approvalStatus === 'PENDING' && (
                       <div className={styles.reviewActions}>
-                        <button 
-                          onClick={() => handleEditReview(booking.review!, booking.id)} 
+                        <button
+                          onClick={() => handleEditReview(booking.review!, booking.id)}
                           className="btn btn-secondary"
                         >
                           Edit Review
@@ -208,9 +208,24 @@ export default function MyBookingsPage() {
                     )}
                   </div>
                 ) : booking.status === 'COMPLETED' ? (
-                  <div style={{ marginTop: '1rem' }}>
+                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <button onClick={() => setReviewingBookingId(booking.id)} className="btn btn-secondary">
                       Leave a Review
+                    </button>
+                    <button
+                      onClick={() => router.push(`/salons/${booking.salon.slug || booking.salonId}?serviceId=${booking.serviceId}`)}
+                      className="btn btn-primary"
+                    >
+                      Book Again
+                    </button>
+                  </div>
+                ) : booking.status === 'DECLINED' ? (
+                  <div style={{ marginTop: '1rem' }}>
+                    <button
+                      onClick={() => router.push(`/salons/${booking.salon.slug || booking.salonId}`)}
+                      className="btn btn-secondary"
+                    >
+                      Try Another Time
                     </button>
                   </div>
                 ) : null}
