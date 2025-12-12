@@ -4,6 +4,13 @@ import { useState, useRef } from 'react';
 import styles from './BeforeAfterUpload.module.css';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui';
 
 interface BeforeAfterUploadProps {
   salonId: string;
@@ -180,22 +187,25 @@ export default function BeforeAfterUpload({ salonId, services, onUploadComplete 
 
       <div className={styles.form}>
         <div className={styles.formGroup}>
-          <label htmlFor="service" className={styles.label}>
+          <label className={styles.label}>
             Link to Service (Optional)
           </label>
-          <select
-            id="service"
+          <Select
             value={serviceId}
-            onChange={(e) => setServiceId(e.target.value)}
-            className={styles.select}
+            onValueChange={(value) => setServiceId(value === '__none__' ? '' : value)}
           >
-            <option value="">No service selected</option>
-            {services.map((service) => (
-              <option key={service.id} value={service.id}>
-                {service.title}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={styles.select}>
+              <SelectValue placeholder="No service selected" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">No service selected</SelectItem>
+              {services.map((service) => (
+                <SelectItem key={service.id} value={service.id}>
+                  {service.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className={styles.formGroup}>

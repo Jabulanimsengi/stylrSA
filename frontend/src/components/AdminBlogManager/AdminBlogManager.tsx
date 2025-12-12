@@ -4,6 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { FaEdit, FaTrash, FaEye, FaPlus, FaTimes, FaCheck, FaTimes as FaClose } from 'react-icons/fa';
 import styles from './AdminBlogManager.module.css';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+} from '@/components/ui';
 
 interface BlogContentSection {
   heading: string;
@@ -392,17 +400,21 @@ export default function AdminBlogManager() {
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                   <label>Category *</label>
-                  <select
+                  <Select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    required
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
                   >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className={styles.formGroup}>
@@ -417,22 +429,18 @@ export default function AdminBlogManager() {
               </div>
 
               <div className={styles.formRow}>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={formData.featured}
-                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  />
-                  Featured
-                </label>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={formData.published}
-                    onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                  />
-                  Publish
-                </label>
+                <Checkbox
+                  id="featured"
+                  checked={formData.featured}
+                  onCheckedChange={(checked) => setFormData({ ...formData, featured: checked === true })}
+                  label="Featured"
+                />
+                <Checkbox
+                  id="published"
+                  checked={formData.published}
+                  onCheckedChange={(checked) => setFormData({ ...formData, published: checked === true })}
+                  label="Publish"
+                />
               </div>
 
               <div className={styles.formGroup}>

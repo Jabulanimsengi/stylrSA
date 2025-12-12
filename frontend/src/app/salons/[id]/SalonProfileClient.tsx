@@ -15,6 +15,7 @@ import {
   FaExternalLinkAlt,
   FaEnvelope,
   FaPlay,
+  FaPhone,
 } from 'react-icons/fa';
 import { Salon, Service, GalleryImage, Review } from '@/types';
 import BookingModal from '@/components/BookingModal/BookingModal';
@@ -697,6 +698,43 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                   </div>
                 </div>
               </div>
+              {(salon.phoneNumber || salon.whatsapp) && (
+                <div className={`${styles.infoCard} ${styles.infoContact}`}>
+                  <span className={styles.infoIcon} aria-hidden="true"><FaPhone /></span>
+                  <div className={styles.infoContent}>
+                    <p className={styles.infoLabel}>Contact</p>
+                    <p className={styles.infoValue}>Get in touch</p>
+                    <div className={styles.contactActions}>
+                      {salon.whatsapp && (
+                        <a
+                          href={`https://wa.me/${salon.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi! I found your salon on Stylr SA and I'd like to make a booking.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`${styles.contactBtn} ${styles.whatsappBtn}`}
+                          title="Chat on WhatsApp"
+                        >
+                          <FaWhatsapp /> WhatsApp
+                        </a>
+                      )}
+                      {salon.phoneNumber && (
+                        <a
+                          href={`tel:${salon.phoneNumber.replace(/[^0-9+]/g, '')}`}
+                          className={`${styles.contactBtn} ${styles.phoneBtn}`}
+                          title="Call salon"
+                        >
+                          <FaPhone /> Call
+                        </a>
+                      )}
+                    </div>
+                    {salon.whatsapp && (
+                      <p className={styles.infoDetail}>{salon.whatsapp}</p>
+                    )}
+                    {salon.phoneNumber && !salon.whatsapp && (
+                      <p className={styles.infoDetail}>{salon.phoneNumber}</p>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className={`${styles.infoCard} ${styles.infoAvailability}`} role="status" aria-live="polite">
                 <span className={styles.infoIcon} aria-hidden="true"><FaBolt /></span>
                 <div className={styles.infoContent}>

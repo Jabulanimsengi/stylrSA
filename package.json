@@ -13,6 +13,7 @@
     "lint": "npm run lint --prefix frontend"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
     "next": "15.5.7"
   }
 }

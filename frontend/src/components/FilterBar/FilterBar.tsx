@@ -9,6 +9,14 @@ import { getCategoriesCached, getLocationsCached } from '@/lib/resourceCache';
 import { apiJson } from '@/lib/api';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import RadiusSelector from '@/components/RadiusSelector';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+} from '@/components/ui';
 
 export interface FilterValues {
   province: string;
@@ -372,41 +380,47 @@ export default function FilterBar({
           } ${orientation === 'vertical' ? styles.vertical : ''}`}
       >
         <div className={styles.filterGroup}>
-          <label htmlFor="province">Province</label>
-          <select
-            id="province"
+          <label>Province</label>
+          <Select
             value={province}
-            onChange={(e) => {
-              setProvince(e.target.value);
+            onValueChange={(value) => {
+              setProvince(value === '__all__' ? '' : value);
               setCity('');
             }}
-            className={styles.filterSelect}
           >
-            <option value="">All Provinces</option>
-            {Object.keys(locations).map((prov) => (
-              <option key={prov} value={prov}>
-                {prov}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={styles.filterSelect}>
+              <SelectValue placeholder="All Provinces" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Provinces</SelectItem>
+              {Object.keys(locations).map((prov) => (
+                <SelectItem key={prov} value={prov}>
+                  {prov}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className={styles.filterGroup}>
-          <label htmlFor="city">Town/City</label>
-          <select
-            id="city"
+          <label>Town/City</label>
+          <Select
             value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className={styles.filterSelect}
+            onValueChange={(value) => setCity(value === '__all__' ? '' : value)}
             disabled={!province}
           >
-            <option value="">All Cities</option>
-            {province &&
-              locations[province]?.map((c: string, index: number) => (
-                <option key={`${c}-${index}`} value={c}>
-                  {c}
-                </option>
-              ))}
-          </select>
+            <SelectTrigger className={styles.filterSelect}>
+              <SelectValue placeholder="All Cities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Cities</SelectItem>
+              {province &&
+                locations[province]?.map((c: string, index: number) => (
+                  <SelectItem key={`${c}-${index}`} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className={styles.filterGroup}>
           <label htmlFor="service">Service</label>
@@ -464,68 +478,75 @@ export default function FilterBar({
           )}
         </div>
         <div className={styles.filterGroup}>
-          <label htmlFor="category">Category</label>
-          <select
-            id="category"
+          <label>Category</label>
+          <Select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={styles.filterSelect}
+            onValueChange={(value) => setCategory(value === '__all__' ? '' : value)}
           >
-            <option value="">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.name}>{cat.name}</option>
-            ))}
-          </select>
+            <SelectTrigger className={styles.filterSelect}>
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className={styles.filterGroup}>
-          <label htmlFor="sortBy">Sort By</label>
-          <select
-            id="sortBy"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className={styles.filterSelect}
+          <label>Sort By</label>
+          <Select
+            value={sortBy || '__default__'}
+            onValueChange={(value) => setSortBy(value === '__default__' ? '' : value)}
           >
-            <option value="">Default</option>
-            <option value="top_rated">Top Rated</option>
-            <option value="distance">Nearest</option>
-            <option value="price">Lowest Price</option>
-          </select>
+            <SelectTrigger className={styles.filterSelect}>
+              <SelectValue placeholder="Default" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__default__">Default</SelectItem>
+              <SelectItem value="top_rated">Top Rated</SelectItem>
+              <SelectItem value="distance">Nearest</SelectItem>
+              <SelectItem value="price">Lowest Price</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         {coordinates && (
           <div className={styles.filterGroup}>
-            <label htmlFor="radius">Within</label>
-            <select
-              id="radius"
-              value={radius ?? ''}
-              onChange={(e) => setRadius(e.target.value ? Number(e.target.value) : null)}
-              className={styles.filterSelect}
+            <label>Within</label>
+            <Select
+              value={radius?.toString() || '__any__'}
+              onValueChange={(value) => setRadius(value === '__any__' ? null : Number(value))}
             >
-              <option value="">Any distance</option>
-              <option value="5">5 km</option>
-              <option value="10">10 km</option>
-              <option value="25">25 km</option>
-              <option value="50">50 km</option>
-              <option value="100">100 km</option>
-            </select>
+              <SelectTrigger className={styles.filterSelect}>
+                <SelectValue placeholder="Any distance" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__any__">Any distance</SelectItem>
+                <SelectItem value="5">5 km</SelectItem>
+                <SelectItem value="10">10 km</SelectItem>
+                <SelectItem value="25">25 km</SelectItem>
+                <SelectItem value="50">50 km</SelectItem>
+                <SelectItem value="100">100 km</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
         <div className={styles.checkboxGroup}>
-          <input
+          <Checkbox
             id="openNow"
-            type="checkbox"
             checked={openNow}
-            onChange={(e) => setOpenNow(e.target.checked)}
+            onCheckedChange={(checked) => setOpenNow(checked === true)}
+            label="Open now"
           />
-          <label htmlFor="openNow">Open now</label>
         </div>
         <div className={styles.checkboxGroup}>
-          <input
+          <Checkbox
             id="offersMobile"
-            type="checkbox"
             checked={offersMobile}
-            onChange={(e) => setOffersMobile(e.target.checked)}
+            onCheckedChange={(checked) => setOffersMobile(checked === true)}
+            label="Offers Mobile Services"
           />
-          <label htmlFor="offersMobile">Offers Mobile Services</label>
         </div>
         <div className={styles.filterGroup}>
           <label>Price Range (R)</label>

@@ -7,6 +7,14 @@ import { FaEdit, FaTrash, FaEye, FaHeart, FaMousePointer, FaPlus, FaTimes } from
 import Image from 'next/image';
 import { transformCloudinary, uploadToCloudinary } from '@/utils/cloudinary';
 import styles from './AdminTrendsManager.module.css';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+} from '@/components/ui';
 
 interface TrendFormData {
   title: string;
@@ -214,7 +222,7 @@ export default function AdminTrendsManager() {
 
   const addImage = () => {
     if (!imageInput.trim()) return;
-    
+
     if (!imageInput.includes('cloudinary.com')) {
       toast.error('Please enter a valid Cloudinary URL');
       return;
@@ -320,22 +328,26 @@ export default function AdminTrendsManager() {
                 <label>
                   Category <span className={styles.required}>*</span>
                 </label>
-                <select
+                <Select
                   value={formData.category}
-                  onChange={(e) =>
+                  onValueChange={(value) =>
                     setFormData({
                       ...formData,
-                      category: e.target.value as TrendCategory,
+                      category: value as TrendCategory,
                     })
                   }
-                  required
                 >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className={styles.formGroup}>
@@ -360,7 +372,7 @@ export default function AdminTrendsManager() {
                 <label>
                   Images <span className={styles.required}>*</span>
                 </label>
-                
+
                 <div className={styles.uploadOptions}>
                   <div className={styles.fileUploadWrapper}>
                     <input
@@ -387,9 +399,9 @@ export default function AdminTrendsManager() {
                       placeholder="Paste Cloudinary URL"
                       disabled={uploadingImages}
                     />
-                    <button 
-                      type="button" 
-                      onClick={addImage} 
+                    <button
+                      type="button"
+                      onClick={addImage}
                       className={styles.addButton}
                       disabled={uploadingImages}
                     >
@@ -397,7 +409,7 @@ export default function AdminTrendsManager() {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className={styles.imageGrid}>
                   {formData.images.map((img, index) => (
                     <div key={index} className={styles.imagePreview}>
@@ -433,16 +445,14 @@ export default function AdminTrendsManager() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.checkbox}>
-                    <input
-                      type="checkbox"
-                      checked={formData.isActive}
-                      onChange={(e) =>
-                        setFormData({ ...formData, isActive: e.target.checked })
-                      }
-                    />
-                    Active (visible to users)
-                  </label>
+                  <Checkbox
+                    id="isActive"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, isActive: checked === true })
+                    }
+                    label="Active (visible to users)"
+                  />
                 </div>
               </div>
 

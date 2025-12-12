@@ -5,6 +5,14 @@ import styles from './MobileFilter.module.css';
 import { getLocationsCached } from '@/lib/resourceCache';
 import { FilterValues } from '@/components/FilterBar/FilterBar';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+} from '@/components/ui';
 
 interface MobileFilterProps {
   onSearch: (filters: FilterValues) => void;
@@ -111,42 +119,48 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
         </div>
         <div className={styles.content}>
           <div className={styles.filterGroup}>
-            <label htmlFor="mobile-province" className={styles.label}>Province</label>
-            <select
-              id="mobile-province"
+            <label className={styles.label}>Province</label>
+            <Select
               value={province}
-              onChange={(e) => {
-                setProvince(e.target.value);
+              onValueChange={(value) => {
+                setProvince(value === '__all__' ? '' : value);
                 setCity('');
               }}
-              className={styles.select}
             >
-              <option value="">All Provinces</option>
-              {Object.keys(locations).map((prov) => (
-                <option key={prov} value={prov}>
-                  {prov}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className={styles.select}>
+                <SelectValue placeholder="All Provinces" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All Provinces</SelectItem>
+                {Object.keys(locations).map((prov) => (
+                  <SelectItem key={prov} value={prov}>
+                    {prov}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className={styles.filterGroup}>
-            <label htmlFor="mobile-city" className={styles.label}>City</label>
-            <select
-              id="mobile-city"
+            <label className={styles.label}>City</label>
+            <Select
               value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className={styles.select}
+              onValueChange={(value) => setCity(value === '__all__' ? '' : value)}
               disabled={!province}
             >
-              <option value="">All Cities</option>
-              {province &&
-                locations[province]?.map((c: string, index: number) => (
-                  <option key={`${c}-${index}`} value={c}>
-                    {c}
-                  </option>
-                ))}
-            </select>
+              <SelectTrigger className={styles.select}>
+                <SelectValue placeholder="All Cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All Cities</SelectItem>
+                {province &&
+                  locations[province]?.map((c: string, index: number) => (
+                    <SelectItem key={`${c}-${index}`} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className={styles.filterGroup}>
@@ -162,16 +176,12 @@ export default function MobileFilter({ onSearch, onClose }: MobileFilterProps) {
           </div>
 
           <div className={styles.checkboxGroup}>
-            <input
+            <Checkbox
               id="mobile-offers"
-              type="checkbox"
               checked={offersMobile}
-              onChange={(e) => setOffersMobile(e.target.checked)}
-              className={styles.checkbox}
+              onCheckedChange={(checked) => setOffersMobile(checked === true)}
+              label="Offers Mobile Services"
             />
-            <label htmlFor="mobile-offers" className={styles.checkboxLabel}>
-              Offers Mobile Services
-            </label>
           </div>
         </div>
 

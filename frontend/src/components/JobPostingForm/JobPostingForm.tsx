@@ -5,6 +5,14 @@ import { FaBriefcase, FaMapMarkerAlt, FaMoneyBillWave, FaUsers } from 'react-ico
 import { toast } from 'react-toastify';
 import { apiJson, apiFetch } from '@/lib/api';
 import styles from './JobPostingForm.module.css';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+} from '@/components/ui';
 
 export interface JobPosting {
   id?: string;
@@ -84,14 +92,14 @@ export default function JobPostingForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.description) {
       toast.error('Please fill in all required fields');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const payload = {
         title: formData.title,
@@ -111,7 +119,7 @@ export default function JobPostingForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      
+
       toast.success('Job posted successfully!');
       setJobs([newJob, ...jobs]);
       setIsFormOpen(false);
@@ -125,7 +133,7 @@ export default function JobPostingForm({
 
   const handleDelete = async (jobId: string) => {
     if (!confirm('Are you sure you want to delete this job posting?')) return;
-    
+
     try {
       await apiFetch(`/api/jobs/${jobId}`, { method: 'DELETE' });
       setJobs(jobs.filter(j => j.id !== jobId));
@@ -192,14 +200,19 @@ export default function JobPostingForm({
             </div>
             <div className={styles.formGroup}>
               <label>Job Type *</label>
-              <select
+              <Select
                 value={formData.jobType}
-                onChange={(e) => setFormData({ ...formData, jobType: e.target.value as JobPosting['jobType'] })}
+                onValueChange={(value) => setFormData({ ...formData, jobType: value as JobPosting['jobType'] })}
               >
-                {JOB_TYPES.map(type => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {JOB_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -231,14 +244,19 @@ export default function JobPostingForm({
                   onChange={(e) => setFormData({ ...formData, salaryMax: Number(e.target.value) || undefined })}
                   placeholder="Max"
                 />
-                <select
+                <Select
                   value={formData.salaryPeriod}
-                  onChange={(e) => setFormData({ ...formData, salaryPeriod: e.target.value as JobPosting['salaryPeriod'] })}
+                  onValueChange={(value) => setFormData({ ...formData, salaryPeriod: value as JobPosting['salaryPeriod'] })}
                 >
-                  {SALARY_PERIODS.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger style={{ minWidth: '120px' }}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SALARY_PERIODS.map(type => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -246,26 +264,29 @@ export default function JobPostingForm({
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label>Experience Level</label>
-              <select
-                value={formData.experienceLevel || ''}
-                onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })}
+              <Select
+                value={formData.experienceLevel || '__none__'}
+                onValueChange={(value) => setFormData({ ...formData, experienceLevel: value === '__none__' ? '' : value })}
               >
-                <option value="">Select level</option>
-                <option value="Entry Level">Entry Level</option>
-                <option value="1-2 Years">1-2 Years</option>
-                <option value="3-5 Years">3-5 Years</option>
-                <option value="5+ Years">5+ Years</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Select level</SelectItem>
+                  <SelectItem value="Entry Level">Entry Level</SelectItem>
+                  <SelectItem value="1-2 Years">1-2 Years</SelectItem>
+                  <SelectItem value="3-5 Years">3-5 Years</SelectItem>
+                  <SelectItem value="5+ Years">5+ Years</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className={styles.formGroup}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <input
-                  type="checkbox"
-                  checked={formData.isRemote || false}
-                  onChange={(e) => setFormData({ ...formData, isRemote: e.target.checked })}
-                />
-                Remote work available
-              </label>
+              <Checkbox
+                id="isRemote"
+                checked={formData.isRemote || false}
+                onCheckedChange={(checked) => setFormData({ ...formData, isRemote: checked === true })}
+                label="Remote work available"
+              />
             </div>
           </div>
 

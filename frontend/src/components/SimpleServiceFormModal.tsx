@@ -1,12 +1,19 @@
 // frontend/src/components/SimpleServiceFormModal.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import styles from './ServiceFormModal.module.css'; // Reusing existing styles
 import { toast } from 'react-toastify';
 import { apiJson } from '@/lib/api';
 import { toFriendlyMessage } from '@/lib/errors';
 import { Service } from '@/types';
 import { getCategoriesCached } from '@/lib/resourceCache';
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectItem,
+    SelectValue,
+} from '@/components/ui';
 
 interface ServiceFormInputs {
     name: string;
@@ -39,6 +46,7 @@ const SimpleServiceFormModal: React.FC<SimpleServiceFormModalProps> = ({
         register,
         handleSubmit,
         reset,
+        control,
         formState: { errors, isSubmitting },
     } = useForm<ServiceFormInputs>({
         defaultValues: {
@@ -173,24 +181,34 @@ const SimpleServiceFormModal: React.FC<SimpleServiceFormModalProps> = ({
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label htmlFor="categoryId" className={styles.label}>Category</label>
-                                <select
-                                    id="categoryId"
-                                    {...register('categoryId', { required: 'Please select a category' })}
-                                    className={styles.select}
-                                    disabled={isLoadingCategories}
-                                >
-                                    {isLoadingCategories ? (
-                                        <option value="">Loading...</option>
-                                    ) : (
-                                        <>
-                                            <option value="">Select category...</option>
-                                            {categories.map(cat => (
-                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                            ))}
-                                        </>
+                                <label className={styles.label}>Category</label>
+                                <Controller
+                                    name="categoryId"
+                                    control={control}
+                                    rules={{ required: 'Please select a category' }}
+                                    render={({ field }) => (
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                            disabled={isLoadingCategories}
+                                        >
+                                            <SelectTrigger className={styles.select}>
+                                                <SelectValue
+                                                    placeholder={
+                                                        isLoadingCategories
+                                                            ? "Loading..."
+                                                            : "Select category..."
+                                                    }
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categories.map(cat => (
+                                                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     )}
-                                </select>
+                                />
                                 {errors.categoryId && <p className={styles.errorMessage}>{errors.categoryId.message}</p>}
                             </div>
                         </div>

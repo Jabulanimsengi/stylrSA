@@ -11,6 +11,13 @@ import { showError, toFriendlyMessage } from '@/lib/errors';
 import { FaTimes } from 'react-icons/fa';
 import { uploadToCloudinary, transformCloudinary } from '@/utils/cloudinary';
 import { SalonUpdateSchema } from '@/lib/validation/schemas';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui';
 
 interface EditSalonModalProps {
   salon: Salon;
@@ -43,10 +50,10 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [backgroundImagePreview, setBackgroundImagePreview] = useState<string | null>(null);
   const [heroImagesPreview, setHeroImagesPreview] = useState<string[]>([]);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  
+
   // Track original URLs (non-transformed) for submission
   const [originalHeroImages, setOriginalHeroImages] = useState<string[]>([]);
-  
+
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
@@ -59,7 +66,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
   const [fieldsLocked, setFieldsLocked] = useState(false);
   const suggestionsRef = useRef<HTMLUListElement>(null);
 
-  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const [hours, setHours] = useState<Record<string, { open: string; close: string; isOpen: boolean }>>(
     Object.fromEntries(days.map(d => [d, { open: '09:00', close: '17:00', isOpen: true }])) as Record<string, { open: string; close: string; isOpen: boolean }>
   );
@@ -85,12 +92,12 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       });
       // Optimize existing image previews with Cloudinary transformations
       setBackgroundImagePreview(
-        salon.backgroundImage 
+        salon.backgroundImage
           ? transformCloudinary(salon.backgroundImage, { width: 400, quality: 'auto', format: 'auto' })
           : null
       );
       setLogoPreview(
-        salon.logo 
+        salon.logo
           ? transformCloudinary(salon.logo, { width: 200, quality: 'auto', format: 'auto' })
           : null
       );
@@ -98,7 +105,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       setOriginalHeroImages(salon.heroImages || []);
       // Use transformed versions for preview only
       setHeroImagesPreview(
-        salon.heroImages?.map(img => 
+        salon.heroImages?.map(img =>
           transformCloudinary(img, { width: 400, quality: 'auto', format: 'auto' })
         ) || []
       );
@@ -106,7 +113,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       // Parse operating hours from salon data
       const rawHours = salon.operatingHours as unknown;
       const nextHours: Record<string, { open: string; close: string; isOpen: boolean }> = {} as any;
-      
+
       // Initialize all days as closed first
       days.forEach((d) => {
         nextHours[d] = { open: '09:00', close: '17:00', isOpen: false };
@@ -138,7 +145,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           }
         });
       }
-      
+
       setHours(nextHours);
     }
   }, [salon]);
@@ -195,14 +202,14 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       const url = URL.createObjectURL(file);
-      
+
       img.onload = () => {
         URL.revokeObjectURL(url);
-        
+
         // Calculate if image is too small (less than 75% of minimum)
         const absoluteMinWidth = Math.floor(minWidth * 0.75);
         const absoluteMinHeight = Math.floor(minHeight * 0.75);
-        
+
         if (img.width < absoluteMinWidth || img.height < absoluteMinHeight) {
           reject(new Error(
             `Image too small. Minimum: ${minWidth}x${minHeight}px recommended. Your image: ${img.width}x${img.height}px. Try using a larger image for better quality.`
@@ -217,12 +224,12 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           resolve();
         }
       };
-      
+
       img.onerror = () => {
         URL.revokeObjectURL(url);
         reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
       };
-      
+
       img.src = url;
     });
   };
@@ -237,7 +244,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
     try {
       if (name === 'backgroundImage' && files[0]) {
         const file = files[0];
-        
+
         // Validate file size early (10MB limit)
         const MAX_SIZE = 10 * 1024 * 1024;
         if (file.size > MAX_SIZE) {
@@ -260,7 +267,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         toast.success('Background image selected');
       } else if (name === 'logo' && files[0]) {
         const file = files[0];
-        
+
         // Validate file size early (10MB limit)
         const MAX_SIZE = 10 * 1024 * 1024;
         if (file.size > MAX_SIZE) {
@@ -283,7 +290,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         toast.success('Logo image selected (Recommended: 512x512px or larger for best quality)');
       } else if (name === 'heroImages') {
         const newFiles = Array.from(files);
-        
+
         // Validate each file size and dimensions
         const MAX_SIZE = 10 * 1024 * 1024;
         for (const file of newFiles) {
@@ -331,7 +338,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         const fileIndexToRemove = indexToRemove - existingImagesCount;
 
         if (fileIndexToRemove >= 0 && fileIndexToRemove < heroImageFiles.length) {
-            setHeroImageFiles(prevFiles => prevFiles.filter((_, i) => i !== fileIndexToRemove));
+          setHeroImageFiles(prevFiles => prevFiles.filter((_, i) => i !== fileIndexToRemove));
         }
       } else {
         // Remove from original hero images by finding the matching original URL
@@ -390,13 +397,13 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
 
       // Use original hero image URLs (not transformed previews)
       const existingHeroImageUrls = originalHeroImages;
-      
+
       // Upload new hero images with progress tracking
       if (heroImageFiles.length > 0) {
         toast.info(`Uploading ${heroImageFiles.length} hero image(s)...`);
       }
       const newHeroImageUrls = (
-        await Promise.all(heroImageFiles.map((file, index) => 
+        await Promise.all(heroImageFiles.map((file, index) =>
           uploadToCloudinary(file, {
             onProgress: (progress) => {
               setUploadProgress(prev => ({ ...prev, [`hero_${index}`]: progress }));
@@ -404,11 +411,11 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
           })
         ))
       ).map(r => r.secure_url);
-      
+
       if (heroImageFiles.length > 0) {
         toast.success(`${heroImageFiles.length} hero image(s) uploaded!`);
       }
-      
+
       const finalHeroImageUrls = [...existingHeroImageUrls, ...newHeroImageUrls];
 
       const isValidUrl = (value: string) => {
@@ -460,13 +467,13 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
         logo: finalLogoUrl,
         heroImages: finalHeroImageUrls.length + ' images'
       });
-      
+
       console.log('📤 Payload after validation (parsed.data):', {
         backgroundImage: parsed.data.backgroundImage,
         logo: parsed.data.logo,
         heroImages: parsed.data.heroImages?.length + ' images'
       });
-      
+
       console.log('🔍 Logo status:', {
         logoFileUploaded: !!logoFile,
         logoPreview: logoPreview?.substring(0, 50),
@@ -488,39 +495,39 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
 
       if (!res.ok) {
         let errData: any = null;
-        try { 
+        try {
           errData = await res.json();
           console.error('Backend error response:', errData);
-        } catch {}
-        
+        } catch { }
+
         // Show the actual error message from backend if available
         const errorMessage = errData?.message || errData?.error || `Failed to update salon (${res.status}: ${res.statusText})`;
         throw new Error(errorMessage);
       }
 
       const updatedSalon = await res.json();
-      
+
       // Verify logo was actually saved
       console.log('✅ Salon updated successfully! Logo URL:', updatedSalon.logo);
-      
+
       // Enhanced success notification with logo confirmation
-      const logoStatus = finalLogoUrl 
+      const logoStatus = finalLogoUrl
         ? (updatedSalon.logo ? '✅ Logo saved!' : '⚠️ Logo may not have saved')
         : '';
-      
+
       toast.success(
         `✅ Salon profile updated successfully!\n💼 Your changes have been saved and are now live.\n${logoStatus}`,
         { autoClose: 5000 }
       );
-      
+
       onSalonUpdate(updatedSalon);
       onClose();
-      
+
       // Force a small delay then trigger refetch in parent component
       setTimeout(() => {
         // This will help ensure cache is cleared
-        window.dispatchEvent(new CustomEvent('salon-updated', { 
-          detail: { salonId: salon.id, logo: updatedSalon.logo } 
+        window.dispatchEvent(new CustomEvent('salon-updated', {
+          detail: { salonId: salon.id, logo: updatedSalon.logo }
         }));
       }, 100);
 
@@ -539,11 +546,11 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
       <div className={styles.modalContent}>
         <h2 className={styles.title}>Edit Salon Profile</h2>
         <button onClick={onClose} className={styles.closeButton}><FaTimes /></button>
-        
+
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formScrollableContent}>
             {error && <p className={styles.errorMessage}>{error}</p>}
-            
+
             <div className={styles.fullWidth}>
               <label htmlFor="name" className={styles.label}>Salon Name</label>
               <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className={styles.input} />
@@ -558,30 +565,30 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <input type="text" id="address" name="address" value={formData.address} onChange={handleChange} className={styles.input} />
               </div>
               <div>
-                <label htmlFor="province" className={styles.label}>Province</label>
-                <select 
-                  id="province" 
-                  name="province" 
-                  value={formData.province} 
-                  onChange={(e) => {
-                    handleChange(e);
-                    // Reset city when province changes
-                    setFormData(prev => ({ ...prev, city: '', town: '' }));
+                <label className={styles.label}>Province</label>
+                <Select
+                  value={formData.province || '__none__'}
+                  onValueChange={(value) => {
+                    const newProvince = value === '__none__' ? '' : value;
+                    setFormData(prev => ({ ...prev, province: newProvince, city: '', town: '' }));
                   }}
                   disabled={fieldsLocked}
-                  className={styles.input}
-                  style={{ opacity: fieldsLocked ? 0.7 : 1 }}
                 >
-                  <option value="">Select a province</option>
-                  {Object.keys(locationsData).sort().map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className={styles.input} style={{ opacity: fieldsLocked ? 0.7 : 1 }}>
+                    <SelectValue placeholder="Select a province" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Select a province</SelectItem>
+                    {Object.keys(locationsData).sort().map(p => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <label htmlFor="city" className={styles.label}>City/Town</label>
+                <label className={styles.label}>City/Town</label>
                 {fieldsLocked ? (
-                  <input 
+                  <input
                     type="text"
                     value={formData.city}
                     readOnly
@@ -590,24 +597,28 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     style={{ opacity: 0.7 }}
                   />
                 ) : (
-                  <select 
-                    id="city" 
-                    name="city" 
-                    value={formData.city} 
-                    onChange={(e) => {
-                      const selectedCity = e.target.value;
+                  <Select
+                    value={formData.city || '__none__'}
+                    onValueChange={(value) => {
+                      const selectedCity = value === '__none__' ? '' : value;
                       setFormData(prev => ({ ...prev, city: selectedCity, town: selectedCity }));
                     }}
                     disabled={!formData.province}
-                    className={styles.input}
                   >
-                    <option value="">
-                      {!formData.province ? 'Select a province first' : 'Select a city/town'}
-                    </option>
-                    {availableCities.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className={styles.input}>
+                      <SelectValue
+                        placeholder={!formData.province ? 'Select a province first' : 'Select a city/town'}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">
+                        {!formData.province ? 'Select a province first' : 'Select a city/town'}
+                      </SelectItem>
+                      {availableCities.map(c => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
               {fieldsLocked && (
@@ -649,7 +660,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`)
                         .then((r) => (r.ok ? r.json() : []))
                         .then((data) => { setAddrSuggestions(data); setShowAddrSuggestions(true); })
-                        .catch(() => {});
+                        .catch(() => { });
                     } else {
                       setAddrSuggestions([]);
                       setShowAddrSuggestions(false);
@@ -659,51 +670,51 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                   className={styles.input}
                 />
                 {showAddrSuggestions && addrSuggestions.length > 0 && (
-                  <ul 
+                  <ul
                     ref={suggestionsRef}
                     style={{ position: 'absolute', zIndex: 10, background: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 6, marginTop: 4, width: 'min(520px, 95vw)', listStyle: 'none', padding: 0, maxHeight: '300px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                     {addrSuggestions.map((s: any) => (
                       <li key={s.place_id} style={{ padding: '8px 10px', cursor: 'pointer' }}
-                          onClick={() => {
-                            setFormData((prev: any) => ({ ...prev, address: s.display_name, latitude: s.lat, longitude: s.lon }));
-                            setAddrQuery(s.display_name);
-                            setShowAddrSuggestions(false);
-                            
-                            // Extract and auto-populate location fields from address details
-                            if (s.address) {
-                              const addr = s.address;
-                              const SA_PROVINCES = Object.keys(locationsData);
-                              
-                              // Extract province/state
-                              const provinceValue = addr.state || addr.province || '';
-                              if (provinceValue) {
-                                // Try to match with SA provinces
-                                const matchedProvince = SA_PROVINCES.find(p => 
-                                  provinceValue.toLowerCase().includes(p.toLowerCase()) || 
-                                  p.toLowerCase().includes(provinceValue.toLowerCase())
-                                );
-                                if (matchedProvince) {
-                                  setFormData((prev: any) => ({ ...prev, province: matchedProvince }));
-                                }
+                        onClick={() => {
+                          setFormData((prev: any) => ({ ...prev, address: s.display_name, latitude: s.lat, longitude: s.lon }));
+                          setAddrQuery(s.display_name);
+                          setShowAddrSuggestions(false);
+
+                          // Extract and auto-populate location fields from address details
+                          if (s.address) {
+                            const addr = s.address;
+                            const SA_PROVINCES = Object.keys(locationsData);
+
+                            // Extract province/state
+                            const provinceValue = addr.state || addr.province || '';
+                            if (provinceValue) {
+                              // Try to match with SA provinces
+                              const matchedProvince = SA_PROVINCES.find(p =>
+                                provinceValue.toLowerCase().includes(p.toLowerCase()) ||
+                                p.toLowerCase().includes(provinceValue.toLowerCase())
+                              );
+                              if (matchedProvince) {
+                                setFormData((prev: any) => ({ ...prev, province: matchedProvince }));
                               }
-                              
-                              // Extract city
-                              const cityValue = addr.city || addr.town || addr.municipality || addr.county || '';
-                              // Extract town/suburb - fallback to city if not available
-                              const townValue = addr.suburb || addr.neighbourhood || addr.village || cityValue || '';
-                              if (cityValue || townValue) {
-                                setFormData((prev: any) => ({ 
-                                  ...prev, 
-                                  city: cityValue || townValue, 
-                                  town: townValue || cityValue 
-                                }));
-                              }
-                              
-                              // Lock the fields after auto-population
-                              setFieldsLocked(true);
-                              toast.success('Location set successfully! 📍 Fields auto-populated.');
                             }
-                          }}>
+
+                            // Extract city
+                            const cityValue = addr.city || addr.town || addr.municipality || addr.county || '';
+                            // Extract town/suburb - fallback to city if not available
+                            const townValue = addr.suburb || addr.neighbourhood || addr.village || cityValue || '';
+                            if (cityValue || townValue) {
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                city: cityValue || townValue,
+                                town: townValue || cityValue
+                              }));
+                            }
+
+                            // Lock the fields after auto-population
+                            setFieldsLocked(true);
+                            toast.success('Location set successfully! 📍 Fields auto-populated.');
+                          }
+                        }}>
                         {s.display_name}
                       </li>
                     ))}
@@ -726,7 +737,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                       height="220"
                       style={{ border: 0 }}
                       loading="lazy"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number((formData as any).longitude)-0.01},${Number((formData as any).latitude)-0.01},${Number((formData as any).longitude)+0.01},${Number((formData as any).latitude)+0.01}&layer=mapnik&marker=${(formData as any).latitude},${(formData as any).longitude}`}
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number((formData as any).longitude) - 0.01},${Number((formData as any).latitude) - 0.01},${Number((formData as any).longitude) + 0.01},${Number((formData as any).latitude) + 0.01}&layer=mapnik&marker=${(formData as any).latitude},${(formData as any).longitude}`}
                     />
                   </div>
                 </div>
@@ -734,24 +745,24 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
             </div>
             <h3 className={styles.subheading}>Contact Information</h3>
             <div className={styles.grid}>
-                <div>
-                    <label htmlFor="phoneNumber" className={styles.label}>Phone Number</label>
-                    <input type="tel" id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className={styles.input} />
-                </div>
-                <div>
-                    <label htmlFor="contactEmail" className={styles.label}>Contact Email</label>
-                    <input type="email" id="contactEmail" name="contactEmail" value={formData.contactEmail} onChange={handleChange} className={styles.input} />
-                </div>
-                <div>
-                    <label htmlFor="website" className={styles.label}>Website</label>
-                    <input type="text" id="website" name="website" value={formData.website} onChange={handleChange} placeholder="https://example.com" className={styles.input} />
-                </div>
-                <div>
-                    <label htmlFor="whatsapp" className={styles.label}>WhatsApp Number</label>
-                    <input type="tel" id="whatsapp" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className={styles.input} />
-                </div>
+              <div>
+                <label htmlFor="phoneNumber" className={styles.label}>Phone Number</label>
+                <input type="tel" id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className={styles.input} />
+              </div>
+              <div>
+                <label htmlFor="contactEmail" className={styles.label}>Contact Email</label>
+                <input type="email" id="contactEmail" name="contactEmail" value={formData.contactEmail} onChange={handleChange} className={styles.input} />
+              </div>
+              <div>
+                <label htmlFor="website" className={styles.label}>Website</label>
+                <input type="text" id="website" name="website" value={formData.website} onChange={handleChange} placeholder="https://example.com" className={styles.input} />
+              </div>
+              <div>
+                <label htmlFor="whatsapp" className={styles.label}>WhatsApp Number</label>
+                <input type="tel" id="whatsapp" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className={styles.input} />
+              </div>
             </div>
-            
+
             <h3 className={styles.subheading}>Images</h3>
             {isProcessingFile && (
               <div style={{ padding: '12px', background: 'var(--color-surface-elevated)', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -759,7 +770,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 <span>Processing file...</span>
               </div>
             )}
-            
+
             {/* Upload Progress Indicators */}
             {Object.keys(uploadProgress).length > 0 && (
               <div style={{ padding: '12px', background: 'var(--color-surface-elevated)', borderRadius: '8px', marginBottom: '16px' }}>
@@ -774,7 +785,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     </div>
                   </div>
                 )}
-                
+
                 {uploadProgress.logo !== undefined && uploadProgress.logo < 100 && (
                   <div style={{ marginBottom: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -786,7 +797,7 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     </div>
                   </div>
                 )}
-                
+
                 {Object.keys(uploadProgress).filter(k => k.startsWith('hero_')).map(key => {
                   const progress = uploadProgress[key];
                   if (progress >= 100) return null;
@@ -813,11 +824,11 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     Recommended: 1200x600px or larger. Minimum: 600x300px (wide format)
                   </span>
                 </label>
-                <input 
-                  type="file" 
-                  name="backgroundImage" 
-                  className={styles.fileInput} 
-                  onChange={handleFileChange} 
+                <input
+                  type="file"
+                  name="backgroundImage"
+                  className={styles.fileInput}
+                  onChange={handleFileChange}
                   accept="image/*"
                   disabled={isProcessingFile || isUploading}
                 />
@@ -843,11 +854,11 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     Recommended: 512x512px or larger. Minimum: 150x150px (square format)
                   </span>
                 </label>
-                <input 
-                  type="file" 
-                  name="logo" 
-                  className={styles.fileInput} 
-                  onChange={handleFileChange} 
+                <input
+                  type="file"
+                  name="logo"
+                  className={styles.fileInput}
+                  onChange={handleFileChange}
                   accept="image/*"
                   disabled={isProcessingFile || isUploading}
                 />
@@ -873,12 +884,12 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                     Recommended: 1200x800px or larger. Minimum: 450x300px per image
                   </span>
                 </label>
-                <input 
-                  type="file" 
-                  name="heroImages" 
-                  multiple 
-                  className={styles.fileInput} 
-                  onChange={handleFileChange} 
+                <input
+                  type="file"
+                  name="heroImages"
+                  multiple
+                  className={styles.fileInput}
+                  onChange={handleFileChange}
                   accept="image/*"
                   disabled={isProcessingFile || isUploading}
                 />
@@ -898,58 +909,66 @@ export default function EditSalonModal({ salon, onClose, onSalonUpdate }: EditSa
                 </div>
               </div>
             </div>
-          <h3 className={styles.subheading}>Service Type</h3>
-          <div className={styles.grid}>
-            <div>
-              <label htmlFor="bookingType" className={styles.label}>Service Type</label>
-              <select id="bookingType" name="bookingType" value={formData.bookingType} onChange={handleChange} className={styles.input}>
-                <option value="ONSITE">On site</option>
-                <option value="MOBILE">Off site (mobile)</option>
-                <option value="BOTH">Both on site and off site</option>
-              </select>
-            </div>
-            {(formData.bookingType === 'MOBILE' || formData.bookingType === 'BOTH') && (
+            <h3 className={styles.subheading}>Service Type</h3>
+            <div className={styles.grid}>
               <div>
-                <label htmlFor="mobileFee" className={styles.label}>Mobile Fee (R)</label>
-                <input type="number" id="mobileFee" name="mobileFee" min={0} step="0.01" value={formData.mobileFee} onChange={handleChange} className={styles.input} />
+                <label className={styles.label}>Service Type</label>
+                <Select
+                  value={formData.bookingType}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, bookingType: value }))}
+                >
+                  <SelectTrigger className={styles.input}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ONSITE">On site</SelectItem>
+                    <SelectItem value="MOBILE">Off site (mobile)</SelectItem>
+                    <SelectItem value="BOTH">Both on site and off site</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-          </div>
+              {(formData.bookingType === 'MOBILE' || formData.bookingType === 'BOTH') && (
+                <div>
+                  <label htmlFor="mobileFee" className={styles.label}>Mobile Fee (R)</label>
+                  <input type="number" id="mobileFee" name="mobileFee" min={0} step="0.01" value={formData.mobileFee} onChange={handleChange} className={styles.input} />
+                </div>
+              )}
+            </div>
 
-          <h3 className={styles.subheading}>Operating Hours</h3>
-          <div className={styles.grid}>
-            <div className={styles.fullWidth}>
-              <div style={{display:'flex',gap:'0.5rem',alignItems:'center',marginBottom:8}}>
-                <span style={{minWidth:120,fontWeight:600}}>Apply to all</span>
-                <input type="time" value={hours['Monday'].open} onChange={(e)=>{
-                  const v=e.target.value; setHours(prev=>{ const next={...prev}; days.forEach(d=>next[d]={...next[d],open:v}); return next;});
-                }} className={styles.input} style={{maxWidth:160}} />
-                <span>to</span>
-                <input type="time" value={hours['Monday'].close} onChange={(e)=>{
-                  const v=e.target.value; setHours(prev=>{ const next={...prev}; days.forEach(d=>next[d]={...next[d],close:v}); return next;});
-                }} className={styles.input} style={{maxWidth:160}} />
-                <input type="checkbox" checked={Object.values(hours).every(h => h.isOpen)} onChange={(e) => {
-                  const isOpen = e.target.checked;
-                  setHours(prev => {
-                    const next = {...prev};
-                    days.forEach(d => next[d] = {...next[d], isOpen});
-                    return next;
-                  });
-                }} />
-              </div>
-              <div style={{display:'grid',gap:8}}>
-                {days.map((d)=> (
-                  <div key={d} style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
-                    <input type="checkbox" checked={hours[d].isOpen} onChange={(e) => setHours(prev => ({...prev, [d]: {...prev[d], isOpen: e.target.checked}}))} />
-                    <span style={{minWidth:120}}>{d}</span>
-                    <input type="time" value={hours[d].open} disabled={!hours[d].isOpen} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],open:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
-                    <span>to</span>
-                    <input type="time" value={hours[d].close} disabled={!hours[d].isOpen} onChange={(e)=> setHours(prev=> ({...prev,[d]:{...prev[d],close:e.target.value}}))} className={styles.input} style={{maxWidth:160}} />
-                  </div>
-                ))}
+            <h3 className={styles.subheading}>Operating Hours</h3>
+            <div className={styles.grid}>
+              <div className={styles.fullWidth}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ minWidth: 120, fontWeight: 600 }}>Apply to all</span>
+                  <input type="time" value={hours['Monday'].open} onChange={(e) => {
+                    const v = e.target.value; setHours(prev => { const next = { ...prev }; days.forEach(d => next[d] = { ...next[d], open: v }); return next; });
+                  }} className={styles.input} style={{ maxWidth: 160 }} />
+                  <span>to</span>
+                  <input type="time" value={hours['Monday'].close} onChange={(e) => {
+                    const v = e.target.value; setHours(prev => { const next = { ...prev }; days.forEach(d => next[d] = { ...next[d], close: v }); return next; });
+                  }} className={styles.input} style={{ maxWidth: 160 }} />
+                  <input type="checkbox" checked={Object.values(hours).every(h => h.isOpen)} onChange={(e) => {
+                    const isOpen = e.target.checked;
+                    setHours(prev => {
+                      const next = { ...prev };
+                      days.forEach(d => next[d] = { ...next[d], isOpen });
+                      return next;
+                    });
+                  }} />
+                </div>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {days.map((d) => (
+                    <div key={d} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input type="checkbox" checked={hours[d].isOpen} onChange={(e) => setHours(prev => ({ ...prev, [d]: { ...prev[d], isOpen: e.target.checked } }))} />
+                      <span style={{ minWidth: 120 }}>{d}</span>
+                      <input type="time" value={hours[d].open} disabled={!hours[d].isOpen} onChange={(e) => setHours(prev => ({ ...prev, [d]: { ...prev[d], open: e.target.value } }))} className={styles.input} style={{ maxWidth: 160 }} />
+                      <span>to</span>
+                      <input type="time" value={hours[d].close} disabled={!hours[d].isOpen} onChange={(e) => setHours(prev => ({ ...prev, [d]: { ...prev[d], close: e.target.value } }))} className={styles.input} style={{ maxWidth: 160 }} />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
           </div>
 
           <div className={styles.buttonContainer}>

@@ -5,6 +5,13 @@ import { toast } from 'react-toastify';
 import styles from './CreatePromotionModal.module.css';
 import { FaTimes } from 'react-icons/fa';
 import { toFriendlyMessage } from '@/lib/errors';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui';
 
 interface Service {
   id: string;
@@ -68,7 +75,7 @@ export default function CreatePromotionModal({
         `🎉 Promotion created successfully!\n⏳ Your promotion is pending admin approval and will be active once approved.`,
         { autoClose: 5000 }
       );
-      
+
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -128,25 +135,27 @@ export default function CreatePromotionModal({
           </div>
 
           <div className={styles.inputGroup}>
-            <label htmlFor="durationDays" className={styles.inputLabel}>
+            <label className={styles.inputLabel}>
               Promotion Duration
             </label>
-            <select
-              id="durationDays"
-              value={durationDays}
-              onChange={(e) => setDurationDays(Number(e.target.value))}
-              className={styles.select}
-              required
+            <Select
+              value={durationDays.toString()}
+              onValueChange={(value) => setDurationDays(Number(value))}
             >
-              <option value={1}>1 Day</option>
-              <option value={3}>3 Days</option>
-              <option value={7}>7 Days (1 Week)</option>
-              <option value={14}>14 Days (2 Weeks)</option>
-              <option value={21}>21 Days (3 Weeks)</option>
-              <option value={30}>30 Days (1 Month)</option>
-              <option value={60}>60 Days (2 Months)</option>
-              <option value={90}>90 Days (3 Months)</option>
-            </select>
+              <SelectTrigger className={styles.select}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Day</SelectItem>
+                <SelectItem value="3">3 Days</SelectItem>
+                <SelectItem value="7">7 Days (1 Week)</SelectItem>
+                <SelectItem value="14">14 Days (2 Weeks)</SelectItem>
+                <SelectItem value="21">21 Days (3 Weeks)</SelectItem>
+                <SelectItem value="30">30 Days (1 Month)</SelectItem>
+                <SelectItem value="60">60 Days (2 Months)</SelectItem>
+                <SelectItem value="90">90 Days (3 Months)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className={styles.infoBox}>

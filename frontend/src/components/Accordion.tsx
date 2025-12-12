@@ -1,6 +1,11 @@
+'use client';
+
 // frontend/src/components/Accordion.tsx
-import React, { useState } from 'react';
-import styles from './Accordion.module.css'; // We'll create this CSS next
+// Upgraded to Radix UI while maintaining backward compatibility
+import React from 'react';
+import * as AccordionPrimitive from '@radix-ui/react-accordion';
+import { FaChevronDown } from 'react-icons/fa';
+import styles from './Accordion.module.css';
 
 interface AccordionProps {
   title: string;
@@ -8,26 +13,34 @@ interface AccordionProps {
   initialOpen?: boolean;
 }
 
+// Single-item accordion wrapper for backward compatibility
 const Accordion: React.FC<AccordionProps> = ({ title, children, initialOpen = false }) => {
-  const [isOpen, setIsOpen] = useState(initialOpen);
-
-  const toggleAccordion = () => {
-    setIsOpen(!isOpen);
-  };
-
   return (
-    <div className={styles.accordionItem}>
-      <button className={styles.accordionHeader} onClick={toggleAccordion}>
-        <span>{title}</span>
-        <span className={`${styles.icon} ${isOpen ? styles.open : ''}`}>+</span>
-      </button>
-      {isOpen && (
-        <div className={styles.accordionContent}>
-          {children}
-        </div>
-      )}
-    </div>
+    <AccordionPrimitive.Root
+      type="single"
+      collapsible
+      defaultValue={initialOpen ? 'item-1' : undefined}
+    >
+      <AccordionPrimitive.Item value="item-1" className={styles.accordionItem}>
+        <AccordionPrimitive.Header className={styles.accordionHeaderWrapper}>
+          <AccordionPrimitive.Trigger className={styles.accordionHeader}>
+            <span>{title}</span>
+            <FaChevronDown className={styles.icon} aria-hidden />
+          </AccordionPrimitive.Trigger>
+        </AccordionPrimitive.Header>
+        <AccordionPrimitive.Content className={styles.accordionContentWrapper}>
+          <div className={styles.accordionContent}>
+            {children}
+          </div>
+        </AccordionPrimitive.Content>
+      </AccordionPrimitive.Item>
+    </AccordionPrimitive.Root>
   );
 };
 
 export default Accordion;
+
+// Also export the full Radix primitives for advanced usage
+export {
+  AccordionPrimitive as AccordionRoot,
+};

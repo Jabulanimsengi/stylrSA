@@ -519,6 +519,60 @@
   padding: 0.1rem 0;
 }
 
+/* Contact Info Card Styles */
+.infoContact {
+  background: color-mix(in srgb, var(--color-surface-elevated) 82%, #25D366 8%);
+  border-color: color-mix(in srgb, var(--color-border) 80%, #25D366 20%);
+}
+
+.contactActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.contactBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.contactBtn svg {
+  font-size: 1rem;
+}
+
+.whatsappBtn {
+  background: #25D366;
+  color: white;
+  border: 1px solid #20bd5a;
+}
+
+.whatsappBtn:hover {
+  background: #20bd5a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+}
+
+.phoneBtn {
+  background: var(--color-primary);
+  color: white;
+  border: 1px solid var(--color-primary);
+}
+
+.phoneBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 25, 87, 0.3);
+}
+
 .container {
   --page-inline-padding: clamp(1rem, 3vw, 2rem);
   max-width: 1280px;
@@ -670,6 +724,19 @@
     position: relative;
     z-index: 2;
     pointer-events: auto;
+  }
+
+  .contactActions {
+    gap: 0.4rem;
+  }
+
+  .contactBtn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .contactBtn svg {
+    font-size: 0.9rem;
   }
 
   .heroMeta {

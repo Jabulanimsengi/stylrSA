@@ -1,4 +1,11 @@
 import React, { useState } from 'react';
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectItem,
+    SelectValue,
+} from '@/components/ui';
 
 interface Question {
     id: string;
@@ -13,9 +20,9 @@ interface Section {
     questions: Question[];
 }
 
-type Profession = 
-    | 'HAIRDRESSER' 
-    | 'NAIL_TECH' 
+type Profession =
+    | 'HAIRDRESSER'
+    | 'NAIL_TECH'
     | 'MASSAGE_THERAPIST'
     | 'MAKEUP_ARTIST'
     | 'BARBER'
@@ -226,16 +233,20 @@ export default function CandidateQuestionnaire({ profession, onComplete }: Candi
                         )}
 
                         {question.type === 'select' && question.options && (
-                            <select
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                            <Select
                                 value={answers[question.id] || ''}
-                                onChange={(e) => handleInputChange(question.id, e.target.value)}
+                                onValueChange={(value) => handleInputChange(question.id, value === '__none__' ? '' : value)}
                             >
-                                <option value="">Select an option</option>
-                                {question.options.map(opt => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                            </select>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select an option" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__none__">Select an option</SelectItem>
+                                    {question.options.map(opt => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
                     </div>
                 ))}
@@ -246,8 +257,8 @@ export default function CandidateQuestionnaire({ profession, onComplete }: Candi
                     onClick={handleBack}
                     disabled={currentSection === 0}
                     className={`px-6 py-2 rounded-lg font-medium ${currentSection === 0
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Back

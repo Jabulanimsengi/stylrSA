@@ -1,0 +1,95 @@
+.list {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--color-surface-subtle);
+    border-radius: var(--radius-lg, 0.75rem);
+}
+
+.trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md, 0.5rem);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.trigger:hover {
+    color: var(--color-text);
+    background: var(--color-surface);
+}
+
+.trigger:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.trigger[data-state='active'] {
+    color: var(--color-text-strong);
+    background: var(--color-surface-elevated);
+    box-shadow: var(--shadow-sm);
+}
+
+.trigger:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.content {
+    margin-top: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.content:focus-visible {
+    outline: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Variant: Underline style */
+.listUnderline {
+    background: transparent;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    padding: 0;
+    gap: 0;
+}
+
+.listUnderline .trigger {
+    border-radius: 0;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+}
+
+.listUnderline .trigger[data-state='active'] {
+    background: transparent;
+    box-shadow: none;
+    border-bottom-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+/* Dark mode */
+[data-theme='dark'] .trigger[data-state='active'] {
+    background: var(--color-surface-elevated);
+}

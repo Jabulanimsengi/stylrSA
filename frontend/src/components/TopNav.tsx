@@ -37,6 +37,13 @@ import { useSocket } from '@/context/SocketContext';
 import { Notification, PaginatedNotifications } from '@/types';
 import { createPortal } from 'react-dom';
 import RequestTop10Button from './RequestTop10/RequestTop10Button';
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from '@/components/ui';
 
 // Notification constants
 const NOTIFICATIONS_CACHE_KEY = 'nav-notifications-cache';
@@ -338,21 +345,52 @@ export default function TopNav() {
 
                     <ul className={styles.navLinks}>
                         <li className={styles.navItem}>
-                            <button
-                                className={`${styles.navButton} ${activeDropdown === 'discover' ? styles.activeButton : ''}`}
-                                onClick={() => toggleDropdown('discover')}
-                            >
-                                Discover
-                                <FaChevronDown className={`${styles.chevron} ${activeDropdown === 'discover' ? styles.rotateChevron : ''}`} />
-                            </button>
-                            <div className={`${styles.dropdown} ${activeDropdown === 'discover' ? styles.dropdownVisible : ''}`}>
-                                {renderDropdownItem('/', 'Home Feed', FaHome)}
-                                {renderDropdownItem('/salons', 'Salons', FaCut)}
-                                {renderDropdownItem('/services', 'Services', FaMagic)}
-                                {renderDropdownItem('/products', 'Products', FaBoxOpen)}
-                                {renderDropdownItem('/promotions', 'Promotions', FaMagic)}
-                                {renderDropdownItem('/candidates', 'Find Talent', FaUser)}
-                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className={styles.navButton}>
+                                        Discover
+                                        <FaChevronDown className={styles.chevron} />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" sideOffset={8}>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaHome /></span>
+                                            <span>Home Feed</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/salons" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaCut /></span>
+                                            <span>Salons</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/services" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaMagic /></span>
+                                            <span>Services</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/products" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaBoxOpen /></span>
+                                            <span>Products</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/promotions" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaMagic /></span>
+                                            <span>Promotions</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/candidates" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaUser /></span>
+                                            <span>Find Talent</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </li>
 
 
@@ -408,40 +446,74 @@ export default function TopNav() {
                                 {unreadCountState > 0 && <span className={styles.badge}>{unreadCountState}</span>}
                             </button>
 
-                            <div className={styles.userMenu}>
-                                <button
-                                    className={styles.userButton}
-                                    onClick={() => toggleDropdown('user')}
-                                >
-                                    <div className={styles.avatarPlaceholder}>
-                                        {user?.firstName?.[0] || <FaUser />}
-                                    </div>
-                                    <span className={styles.userName}>{user?.firstName || 'User'}</span>
-                                    <FaChevronDown className={`${styles.chevron} ${activeDropdown === 'user' ? styles.rotateChevron : ''}`} />
-                                </button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className={styles.userButton}>
+                                        <div className={styles.avatarPlaceholder}>
+                                            {user?.firstName?.[0] || <FaUser />}
+                                        </div>
+                                        <span className={styles.userName}>{user?.firstName || 'User'}</span>
+                                        <FaChevronDown className={styles.chevron} />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" sideOffset={8}>
+                                    {user?.role === 'SALON_OWNER' && (
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/dashboard" className={styles.dropdownItemLink}>
+                                                <span className={styles.dropdownIcon}><FaChartLine /></span>
+                                                <span>Salon Dashboard</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )}
+                                    {user?.role === 'PRODUCT_SELLER' && (
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/product-dashboard" className={styles.dropdownItemLink}>
+                                                <span className={styles.dropdownIcon}><FaStore /></span>
+                                                <span>Product Dashboard</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )}
+                                    {user?.role === 'ADMIN' && (
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/admin" className={styles.dropdownItemLink}>
+                                                <span className={styles.dropdownIcon}><FaShieldAlt /></span>
+                                                <span>Admin Console</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )}
 
-                                <div className={`${styles.dropdown} ${styles.userDropdown} ${activeDropdown === 'user' ? styles.dropdownVisible : ''}`}>
-                                    {user?.role === 'SALON_OWNER' && renderDropdownItem('/dashboard', 'Salon Dashboard', FaChartLine)}
-                                    {user?.role === 'PRODUCT_SELLER' && renderDropdownItem('/product-dashboard', 'Product Dashboard', FaStore)}
-                                    {user?.role === 'ADMIN' && renderDropdownItem('/admin', 'Admin Console', FaShieldAlt)}
+                                    <DropdownMenuSeparator />
 
-                                    <div className={styles.divider} />
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/my-profile" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaUser /></span>
+                                            <span>My Profile</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/my-bookings" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaCalendarCheck /></span>
+                                            <span>My Bookings</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/my-favorites" className={styles.dropdownItemLink}>
+                                            <span className={styles.dropdownIcon}><FaHeart /></span>
+                                            <span>Saved Salons</span>
+                                        </Link>
+                                    </DropdownMenuItem>
 
-                                    {renderDropdownItem('/my-profile', 'My Profile', FaUser)}
-                                    {renderDropdownItem('/my-bookings', 'My Bookings', FaCalendarCheck)}
-                                    {renderDropdownItem('/my-favorites', 'Saved Salons', FaHeart)}
+                                    <DropdownMenuSeparator />
 
-                                    <div className={styles.divider} />
-
-                                    <button
-                                        className={`${styles.dropdownItem} ${styles.signOutButton}`}
+                                    <DropdownMenuItem
+                                        className={styles.signOutButton}
                                         onClick={() => setIsLogoutModalOpen(true)}
                                     >
                                         <span className={styles.dropdownIcon}><FaSignOutAlt /></span>
                                         <span>Sign Out</span>
-                                    </button>
-                                </div>
-                            </div>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </>
                     ) : (
                         <div className={styles.authButtons}>

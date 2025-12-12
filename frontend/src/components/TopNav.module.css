@@ -143,12 +143,23 @@
     color: var(--color-primary);
 }
 
+/* Radix dropdown menu links */
+.dropdownItemLink {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    color: inherit;
+    text-decoration: none;
+    width: 100%;
+}
+
 /* Right Section */
 .rightSection {
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    min-width: 200px; /* Prevent CLS when auth state changes */
+    min-width: 200px;
+    /* Prevent CLS when auth state changes */
     justify-content: flex-end;
 }
 

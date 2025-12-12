@@ -2,6 +2,14 @@
 
 import { useMemo, useState } from 'react';
 import styles from './ProductFilter.module.css';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+} from '@/components/ui';
 
 export interface ProductFilterValues {
   search: string;
@@ -73,18 +81,21 @@ export default function ProductFilter({
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="product-category" className={styles.label}>Category</label>
-        <select
-          id="product-category"
-          className={styles.select}
+        <label className={styles.label}>Category</label>
+        <Select
           value={values.category}
-          onChange={(event) => emitChange({ category: event.target.value })}
+          onValueChange={(value) => emitChange({ category: value === '__all__' ? '' : value })}
         >
-          <option value="">All categories</option>
-          {categoryOptions.map((category) => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
+          <SelectTrigger className={styles.select}>
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">All categories</SelectItem>
+            {categoryOptions.map((category) => (
+              <SelectItem key={category} value={category}>{category}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className={styles.field}>
@@ -112,13 +123,12 @@ export default function ProductFilter({
       <div className={styles.field}>
         <label className={styles.label}>Availability</label>
         <div className={styles.toggleRow}>
-          <input
-            type="checkbox"
+          <Checkbox
             id="product-instock"
             checked={values.inStock}
-            onChange={(event) => emitChange({ inStock: event.target.checked })}
+            onCheckedChange={(checked) => emitChange({ inStock: checked === true })}
+            label="Only show in-stock items"
           />
-          <label htmlFor="product-instock">Only show in-stock items</label>
         </div>
       </div>
 

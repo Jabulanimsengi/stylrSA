@@ -4,6 +4,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { FaChevronLeft, FaChevronRight, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import styles from './CalendarSchedule.module.css';
 import { Salon, Service } from '@/types';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui';
 
 interface CalendarScheduleProps {
   salon: Salon;
@@ -76,7 +83,7 @@ export default function CalendarSchedule({
       setLoading(true);
       try {
         const dateString = selectedDate.toISOString().split('T')[0];
-        
+
         // Fetch both booking availability and custom availability
         const [bookingResponse, customAvailabilityResponse] = await Promise.all([
           fetch(`/api/bookings/availability/${selectedService.id}?date=${dateString}`),
@@ -88,11 +95,11 @@ export default function CalendarSchedule({
         }
 
         const bookingData = await bookingResponse.json();
-        
+
         // Merge with custom availability if available
         if (customAvailabilityResponse.ok) {
           const customAvailability = await customAvailabilityResponse.json();
-          
+
           // Override booking availability with custom availability
           if (customAvailability.slots && bookingData.slots) {
             bookingData.slots = bookingData.slots.map((slot: TimeSlot) => {
@@ -102,7 +109,7 @@ export default function CalendarSchedule({
               const slotDate = new Date(slot.time);
               const hour = slotDate.getHours();
               const customSlot = customAvailability.slots.find((s: any) => s.hour === hour);
-              
+
               // If provider marked this hour as unavailable, override it
               if (customSlot && !customSlot.isAvailable) {
                 return {
@@ -111,12 +118,12 @@ export default function CalendarSchedule({
                   available: false,
                 };
               }
-              
+
               return slot;
             });
           }
         }
-        
+
         setAvailability(bookingData);
       } catch (error) {
         console.error('Error fetching availability:', error);
@@ -133,7 +140,7 @@ export default function CalendarSchedule({
   useEffect(() => {
     const handleAvailabilityUpdate = (event: any) => {
       const { salonId: updatedSalonId } = event.detail;
-      
+
       // If this salon's availability was updated, refetch
       if (updatedSalonId === salon.id && selectedService && selectedDate) {
         console.log('Availability updated, refetching...');
@@ -145,9 +152,9 @@ export default function CalendarSchedule({
         }, 500);
       }
     };
-    
+
     window.addEventListener('availability-updated', handleAvailabilityUpdate);
-    
+
     return () => {
       window.removeEventListener('availability-updated', handleAvailabilityUpdate);
     };
@@ -228,23 +235,27 @@ export default function CalendarSchedule({
           <FaCalendarAlt /> Schedule & Availability
         </h3>
         {services.length > 1 && (
-          <select
+          <Select
             value={selectedService?.id || ''}
-            onChange={(e) => {
-              const service = services.find(s => s.id === e.target.value);
+            onValueChange={(value) => {
+              const service = services.find(s => s.id === value);
               if (service) {
                 setSelectedService(service);
                 onServiceSelect?.(service);
               }
             }}
-            className={styles.serviceSelect}
           >
-            {services.map(service => (
-              <option key={service.id} value={service.id}>
-                {service.title || service.name} - R{service.price}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={styles.serviceSelect}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {services.map(service => (
+                <SelectItem key={service.id} value={service.id}>
+                  {service.title || service.name} - R{service.price}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
       </div>
 
@@ -311,10 +322,10 @@ export default function CalendarSchedule({
             <span>
               {selectedDate
                 ? selectedDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  })
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                })
                 : 'Select a date'}
             </span>
           </div>

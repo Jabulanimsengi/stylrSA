@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, ReactNode } from 'react';
+import { ReactNode } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { FaTimes } from 'react-icons/fa';
 import styles from './Modal.module.css';
 
@@ -31,111 +32,64 @@ export default function Modal({
   header,
   footer
 }: ModalProps) {
-  // Handle ESC key
-  useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, closeOnEscape, onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+  // Handle open state change from Radix
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
     }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  // Focus trap
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const modal = document.querySelector(`.${styles.modal}`);
-    if (!modal) return;
-
-    const focusableElements = modal.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-
-    const handleTab = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement?.focus();
-        }
-      } else {
-        if (document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement?.focus();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleTab);
-    firstElement?.focus();
-
-    return () => {
-      document.removeEventListener('keydown', handleTab);
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  };
 
   return (
-    <div 
-      className={styles.overlay}
-      onClick={closeOnBackdrop ? onClose : undefined}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
-    >
-      <div 
-        className={`${styles.modal} ${styles[size]} ${className}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {(title || header || showCloseButton) && (
-          <div className={styles.header}>
-            {header || (title && <h2 id="modal-title" className={styles.title}>{title}</h2>)}
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                className={styles.closeButton}
-                aria-label="Close modal"
-              >
-                <FaTimes />
-              </button>
-            )}
-          </div>
-        )}
+    <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          className={styles.overlay}
+          onClick={closeOnBackdrop ? undefined : (e) => e.stopPropagation()}
+        />
+        <Dialog.Content
+          className={`${styles.modal} ${styles[size]} ${className}`}
+          onEscapeKeyDown={closeOnEscape ? undefined : (e) => e.preventDefault()}
+          onPointerDownOutside={closeOnBackdrop ? undefined : (e) => e.preventDefault()}
+          onInteractOutside={closeOnBackdrop ? undefined : (e) => e.preventDefault()}
+        >
+          {(title || header || showCloseButton) && (
+            <div className={styles.header}>
+              {header || (title && (
+                <Dialog.Title className={styles.title}>
+                  {title}
+                </Dialog.Title>
+              ))}
+              {showCloseButton && (
+                <Dialog.Close asChild>
+                  <button
+                    className={styles.closeButton}
+                    aria-label="Close modal"
+                  >
+                    <FaTimes />
+                  </button>
+                </Dialog.Close>
+              )}
+            </div>
+          )}
 
-        <div className={styles.content}>
-          {children}
-        </div>
+          {/* Hidden description for accessibility if no visible title */}
+          {!title && !header && (
+            <Dialog.Description className="sr-only">
+              Modal dialog
+            </Dialog.Description>
+          )}
 
-        {footer && (
-          <div className={styles.footer}>
-            {footer}
+          <div className={styles.content}>
+            {children}
           </div>
-        )}
-      </div>
-    </div>
+
+          {footer && (
+            <div className={styles.footer}>
+              {footer}
+            </div>
+          )}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
-

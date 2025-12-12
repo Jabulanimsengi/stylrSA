@@ -1,6 +1,6 @@
 // frontend/src/components/ServiceFormModal.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import styles from './ServiceFormModal.module.css';
 import { toast } from 'react-toastify';
 import { apiJson } from '@/lib/api';
@@ -9,6 +9,13 @@ import Image from 'next/image';
 import { uploadToCloudinary } from '@/utils/cloudinary';
 import { Service } from '@/types';
 import { getCategoriesCached } from '@/lib/resourceCache';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui';
 
 interface ServiceFormInputs {
   name: string;
@@ -55,6 +62,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
     reset,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ServiceFormInputs>({
     defaultValues: {
@@ -146,19 +154,19 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
       setImagePreviews(prev => [...prev, ...newImagePreviews]);
     }
   };
-  
+
   const handleRemoveImage = (index: number) => {
     if (index < existingImages.length) {
-        const updatedImages = existingImages.filter((_, i) => i !== index);
-        setValue('images', updatedImages);
-        setImagePreviews(updatedImages);
+      const updatedImages = existingImages.filter((_, i) => i !== index);
+      setValue('images', updatedImages);
+      setImagePreviews(updatedImages);
     } else {
-        const fileIndex = index - existingImages.length;
-        const updatedFiles = imageFiles.filter((_, i) => i !== fileIndex);
-        setImageFiles(updatedFiles);
+      const fileIndex = index - existingImages.length;
+      const updatedFiles = imageFiles.filter((_, i) => i !== fileIndex);
+      setImageFiles(updatedFiles);
 
-        const updatedPreviews = updatedFiles.map(file => URL.createObjectURL(file));
-        setImagePreviews([...existingImages, ...updatedPreviews]);
+      const updatedPreviews = updatedFiles.map(file => URL.createObjectURL(file));
+      setImagePreviews([...existingImages, ...updatedPreviews]);
     }
   };
 
@@ -167,14 +175,14 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
     setErrorMessage(null);
     try {
       let uploadedImageUrls = [...(data.images || [])];
-      
+
       if (imageFiles.length > 0) {
         const uploadPromises = imageFiles.map(file => uploadToCloudinary(file));
         const responses = await Promise.all(uploadPromises);
         const newUrls = responses.map(res => res.secure_url); // This now works correctly
         uploadedImageUrls.push(...newUrls);
       }
-      
+
       const serviceData: any = {
         // Backend expects 'title'
         title: data.name,
@@ -197,7 +205,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceData),
       });
-      
+
       // Enhanced toast notification with clear messaging
       if (initialService) {
         toast.success(
@@ -210,7 +218,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
           { autoClose: 5000 }
         );
       }
-      
+
       // Fire any provided callback name for backwards compatibility
       onServiceAddedOrUpdated?.(savedService);
       (typeof (onServiceSaved) === 'function') && onServiceSaved(savedService);
@@ -241,131 +249,141 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeButton} onClick={handleClose} disabled={isSubmitting || isUploading}>&times;</button>
         <h2 className={styles.title}>{serviceToEdit ? 'Edit Service' : 'Add a New Service'}</h2>
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className={styles.form} noValidate>
           <div className={styles.formScrollableContent}>
             {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
-            
-            <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="name" className={styles.label}>Service Name</label>
-                    <input
-                        id="name"
-                        type="text"
-                        {...register('name', { required: 'Service name is required' })}
-                        className={styles.input}
-                        placeholder="e.g., Classic Manicure"
-                    />
-                    {errors.name && <p className={styles.errorMessage}>{errors.name.message}</p>}
-                </div>
 
-                <div className={styles.formGroup}>
-                    <label htmlFor="categoryId" className={styles.label}>Category</label>
-                    <select
-                        id="categoryId"
-                        {...register('categoryId', { required: 'Please select a category' })}
-                        className={styles.select}
-                        disabled={isLoadingCategories}
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label htmlFor="name" className={styles.label}>Service Name</label>
+                <input
+                  id="name"
+                  type="text"
+                  {...register('name', { required: 'Service name is required' })}
+                  className={styles.input}
+                  placeholder="e.g., Classic Manicure"
+                />
+                {errors.name && <p className={styles.errorMessage}>{errors.name.message}</p>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Category</label>
+                <Controller
+                  name="categoryId"
+                  control={control}
+                  rules={{ required: 'Please select a category' }}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isLoadingCategories}
                     >
-                        {isLoadingCategories ? (
-                          <option value="">Loading categories...</option>
-                        ) : categories.length === 0 ? (
-                          <option value="">No categories available</option>
-                        ) : (
-                          <>
-                            <option value="">Select a category...</option>
-                            {categories.map(cat => (
-                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                            ))}
-                          </>
-                        )}
-                    </select>
-                    {errors.categoryId && <p className={styles.errorMessage}>{errors.categoryId.message}</p>}
-                    {!isLoadingCategories && categories.length === 0 && (
-                      <p className={styles.errorMessage} style={{ marginTop: '0.5rem' }}>
-                        No categories found. Please run database seeding or contact support.
-                      </p>
-                    )}
-                </div>
+                      <SelectTrigger className={styles.select}>
+                        <SelectValue
+                          placeholder={
+                            isLoadingCategories
+                              ? "Loading categories..."
+                              : categories.length === 0
+                                ? "No categories available"
+                                : "Select a category..."
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.categoryId && <p className={styles.errorMessage}>{errors.categoryId.message}</p>}
+                {!isLoadingCategories && categories.length === 0 && (
+                  <p className={styles.errorMessage} style={{ marginTop: '0.5rem' }}>
+                    No categories found. Please run database seeding or contact support.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-                <label htmlFor="description" className={styles.label}>Description</label>
-                <textarea
-                    id="description"
-                    {...register('description', { required: 'Description is required' })}
-                    className={styles.textarea}
-                    placeholder="Describe the service in detail"
-                />
-                {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
+              <label htmlFor="description" className={styles.label}>Description</label>
+              <textarea
+                id="description"
+                {...register('description', { required: 'Description is required' })}
+                className={styles.textarea}
+                placeholder="Describe the service in detail"
+              />
+              {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
             </div>
-            
+
             <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="price" className={styles.label}>Price (R)</label>
-                    <input
-                        id="price"
-                        type="number"
-                        {...register('price', { 
-                            required: 'Price is required',
-                            valueAsNumber: true,
-                            min: { value: 0, message: 'Price cannot be negative' } 
-                        })}
-                        className={styles.input}
-                        placeholder="e.g., 250"
-                    />
-                    {errors.price && <p className={styles.errorMessage}>{errors.price.message}</p>}
-                </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="price" className={styles.label}>Price (R)</label>
+                <input
+                  id="price"
+                  type="number"
+                  {...register('price', {
+                    required: 'Price is required',
+                    valueAsNumber: true,
+                    min: { value: 0, message: 'Price cannot be negative' }
+                  })}
+                  className={styles.input}
+                  placeholder="e.g., 250"
+                />
+                {errors.price && <p className={styles.errorMessage}>{errors.price.message}</p>}
+              </div>
 
-                <div className={styles.formGroup}>
-                    <label className={styles.label}>Pricing Type (Optional)</label>
-                    <div className={styles.checkboxGroup}>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="radio"
-                                value="PER_PERSON"
-                                {...register('pricingType')}
-                                className={styles.radio}
-                            />
-                            <span>Per Person</span>
-                        </label>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="radio"
-                                value="PER_COUPLE"
-                                {...register('pricingType')}
-                                className={styles.radio}
-                            />
-                            <span>Per Couple</span>
-                        </label>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="radio"
-                                value=""
-                                {...register('pricingType')}
-                                className={styles.radio}
-                            />
-                            <span>Not specified</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="duration" className={styles.label}>Duration (minutes)</label>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Pricing Type (Optional)</label>
+                <div className={styles.checkboxGroup}>
+                  <label className={styles.checkboxLabel}>
                     <input
-                        id="duration"
-                        type="number"
-                        {...register('duration', { 
-                            required: 'Duration is required',
-                            valueAsNumber: true,
-                            min: { value: 5, message: 'Duration must be at least 5 minutes' }
-                        })}
-                        className={styles.input}
-                        step="5"
-                        placeholder="e.g., 60"
+                      type="radio"
+                      value="PER_PERSON"
+                      {...register('pricingType')}
+                      className={styles.radio}
                     />
-                    {errors.duration && <p className={styles.errorMessage}>{errors.duration.message}</p>}
+                    <span>Per Person</span>
+                  </label>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="radio"
+                      value="PER_COUPLE"
+                      {...register('pricingType')}
+                      className={styles.radio}
+                    />
+                    <span>Per Couple</span>
+                  </label>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="radio"
+                      value=""
+                      {...register('pricingType')}
+                      className={styles.radio}
+                    />
+                    <span>Not specified</span>
+                  </label>
                 </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="duration" className={styles.label}>Duration (minutes)</label>
+                <input
+                  id="duration"
+                  type="number"
+                  {...register('duration', {
+                    required: 'Duration is required',
+                    valueAsNumber: true,
+                    min: { value: 5, message: 'Duration must be at least 5 minutes' }
+                  })}
+                  className={styles.input}
+                  step="5"
+                  placeholder="e.g., 60"
+                />
+                {errors.duration && <p className={styles.errorMessage}>{errors.duration.message}</p>}
+              </div>
             </div>
 
             <div className={`${styles.formGroup} ${styles.fullWidth}`}>
@@ -389,7 +407,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className={styles.buttonContainer}>
             <button type="button" onClick={handleClose} className={styles.cancelButton} disabled={isSubmitting || isUploading}>
               Cancel
