@@ -251,6 +251,27 @@ function DashboardPageContent() {
     return () => { socket.off('visibility:updated', handler); };
   }, [socket, salon?.id, fetchDashboardData]);
 
+  // Mobile nav: Escape key to close & body scroll lock
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileNavOpen) {
+        setMobileNavOpen(false);
+      }
+    };
+
+    if (mobileNavOpen) {
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleEscape);
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [mobileNavOpen]);
+
   const handleServiceSaved = (savedService: Service) => {
     if (editingService) setServices(services.map(s => s.id === savedService.id ? savedService : s));
     else setServices([...services, savedService]);
@@ -557,13 +578,50 @@ function DashboardPageContent() {
 
         {/* Main Layout with Sidebar */}
         <div className={styles.dashboardLayout}>
-          {/* Mobile Nav Toggle */}
-          <button className={styles.mobileNavToggle} onClick={() => setMobileNavOpen(!mobileNavOpen)}>
-            {mobileNavOpen ? 'Close Menu' : 'Menu'}
-          </button>
+          {/* Mobile Nav Header with Hamburger */}
+          <div className={styles.mobileNavHeader}>
+            <div className={styles.mobileNavHeaderContent}>
+              <button
+                className={`${styles.mobileNavToggle} ${mobileNavOpen ? styles.hamburgerOpen : ''}`}
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                aria-label={mobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={mobileNavOpen}
+              >
+                <span className={styles.hamburgerIcon}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <span>Menu</span>
+              </button>
+              <span className={styles.currentTabLabel}>
+                {NAV_SECTIONS.flatMap(s => s.items).find(i => i.id === activeMainTab)?.label || 'Dashboard'}
+              </span>
+            </div>
+          </div>
 
-          {/* Sidebar Navigation */}
-          <aside className={`${styles.sidebar} ${mobileNavOpen ? styles.sidebarOpen : ''}`}>
+          {/* Backdrop for mobile sidebar */}
+          <div
+            className={`${styles.sidebarBackdrop} ${mobileNavOpen ? styles.sidebarBackdropVisible : ''}`}
+            onClick={() => setMobileNavOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Sidebar Navigation - Slide-in Drawer */}
+          <aside
+            className={`${styles.sidebar} ${mobileNavOpen ? styles.sidebarOpen : ''}`}
+            role="navigation"
+            aria-label="Dashboard navigation"
+          >
+            {/* Close button for mobile */}
+            <button
+              className={styles.sidebarCloseBtn}
+              onClick={() => setMobileNavOpen(false)}
+              aria-label="Close navigation menu"
+            >
+              ✕
+            </button>
+
             {NAV_SECTIONS.map((section) => (
               <div key={section.label} className={styles.navSection}>
                 <h3 className={styles.navSectionTitle}>{section.label}</h3>
