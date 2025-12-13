@@ -546,16 +546,17 @@
 .desktopButton {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .desktopButton:hover {

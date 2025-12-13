@@ -24,19 +24,19 @@ type Props = {
 
 async function fetchSalon(id: string) {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_PATH;
-  
+
   // Skip during build if no API URL configured
   if (!baseUrl) {
     return null;
   }
-  
+
   const url = `${baseUrl.replace(/\/$/, '')}/api/salons/${id}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout for layout
-  
+
   try {
-    const res = await fetch(url, { 
-      next: { revalidate: 3600 },
+    const res = await fetch(url, {
+      next: { revalidate: 21600 }, // 6 hours - reduced ISR frequency
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
@@ -63,15 +63,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = `${salon.name} - ${salon.city}, ${salon.province} | Stylr SA`;
-  const description = salon.description 
+  const description = salon.description
     ? `${salon.description.substring(0, 155)}...`
     : `Book appointments at ${salon.name} in ${salon.city}, ${salon.province}. Find professional beauty services including hair styling, nails, and more.`;
 
   const images = salon.heroImages && salon.heroImages.length > 0
     ? salon.heroImages.slice(0, 3)
     : salon.backgroundImage
-    ? [salon.backgroundImage]
-    : [`${siteUrl}/logo-transparent.png`];
+      ? [salon.backgroundImage]
+      : [`${siteUrl}/logo-transparent.png`];
 
   return {
     title,
@@ -159,96 +159,96 @@ export default async function SalonLayout({ children, params }: Props) {
 
   const aggregateRating = reviewCount > 0 && computedAvgRating
     ? {
-        '@type': 'AggregateRating',
-        '@id': `${businessId}#aggregateRating`,
-        ratingValue: Number(computedAvgRating.toFixed(1)),
-        reviewCount,
-        bestRating: 5,
-        worstRating: 1,
-        itemReviewed: {
-          '@id': businessId,
-          '@type': 'LocalBusiness',
-          name: salon?.name,
-        },
-      }
+      '@type': 'AggregateRating',
+      '@id': `${businessId}#aggregateRating`,
+      ratingValue: Number(computedAvgRating.toFixed(1)),
+      reviewCount,
+      bestRating: 5,
+      worstRating: 1,
+      itemReviewed: {
+        '@id': businessId,
+        '@type': 'LocalBusiness',
+        name: salon?.name,
+      },
+    }
     : undefined;
 
   const reviewEntities = reviewCount > 0
     ? reviews
-        .filter((review) => typeof review.rating === 'number' && review.rating > 0)
-        .slice(0, 10)
-        .map((review) => {
-          const authorFirst = normalizeText(review.author?.firstName);
-          const authorLastInitial = normalizeText(review.author?.lastName)?.charAt(0) || '';
-          const authorName = normalizeText(
-            [authorFirst, authorLastInitial ? `${authorLastInitial}.` : undefined]
-              .filter(Boolean)
-              .join(' ')
-          ) || 'Verified Customer';
+      .filter((review) => typeof review.rating === 'number' && review.rating > 0)
+      .slice(0, 10)
+      .map((review) => {
+        const authorFirst = normalizeText(review.author?.firstName);
+        const authorLastInitial = normalizeText(review.author?.lastName)?.charAt(0) || '';
+        const authorName = normalizeText(
+          [authorFirst, authorLastInitial ? `${authorLastInitial}.` : undefined]
+            .filter(Boolean)
+            .join(' ')
+        ) || 'Verified Customer';
 
-          const reviewBody = normalizeText(review.comment);
+        const reviewBody = normalizeText(review.comment);
 
-          return {
-            '@type': 'Review',
-            '@id': `${businessId}-review-${review.id}`,
-            datePublished: review.createdAt,
-            ...(reviewBody ? { reviewBody } : {}),
-            itemReviewed: {
-              '@id': businessId,
-              '@type': 'LocalBusiness',
-            },
-            author: {
-              '@type': 'Person',
-              name: authorName,
-            },
-            reviewRating: {
-              '@type': 'Rating',
-              ratingValue: review.rating,
-              bestRating: 5,
-              worstRating: 1,
-            },
-          };
-        })
+        return {
+          '@type': 'Review',
+          '@id': `${businessId}-review-${review.id}`,
+          datePublished: review.createdAt,
+          ...(reviewBody ? { reviewBody } : {}),
+          itemReviewed: {
+            '@id': businessId,
+            '@type': 'LocalBusiness',
+          },
+          author: {
+            '@type': 'Person',
+            name: authorName,
+          },
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: review.rating,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        };
+      })
     : [];
 
   const normalizedImages = salon?.heroImages && Array.isArray(salon.heroImages) && salon.heroImages.length > 0
     ? (salon.heroImages as string[])
-        .map((img: string) => ensureAbsoluteUrl(siteUrl, img))
-        .filter((img): img is string => Boolean(img))
+      .map((img: string) => ensureAbsoluteUrl(siteUrl, img))
+      .filter((img): img is string => Boolean(img))
     : salon?.backgroundImage
-    ? [ensureAbsoluteUrl(siteUrl, salon.backgroundImage)].filter((img): img is string => Boolean(img))
-    : undefined;
+      ? [ensureAbsoluteUrl(siteUrl, salon.backgroundImage)].filter((img): img is string => Boolean(img))
+      : undefined;
 
   const jsonLd = salon
     ? {
-        '@context': 'https://schema.org',
-        '@type': 'LocalBusiness',
-        '@id': businessId,
-        name: salon.name,
-        description: salon.description || undefined,
-        image: normalizedImages,
-        url: `${siteUrl}/salons/${salon.slug || salon.id}`,
-        telephone: salon.phoneNumber || undefined,
-        email: salon.contactEmail || undefined,
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: salon.city,
-          addressRegion: salon.province,
-          streetAddress: salon.address || `${salon.town || ''}`.trim(),
-          addressCountry: 'ZA',
-        },
-        geo:
-          salon.latitude && salon.longitude
-            ? {
-                '@type': 'GeoCoordinates',
-                latitude: salon.latitude,
-                longitude: salon.longitude,
-              }
-            : undefined,
-        aggregateRating,
-        review: reviewEntities.length > 0 ? reviewEntities : undefined,
-        priceRange: '$$',
-      }
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      '@id': businessId,
+      name: salon.name,
+      description: salon.description || undefined,
+      image: normalizedImages,
+      url: `${siteUrl}/salons/${salon.slug || salon.id}`,
+      telephone: salon.phoneNumber || undefined,
+      email: salon.contactEmail || undefined,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: salon.city,
+        addressRegion: salon.province,
+        streetAddress: salon.address || `${salon.town || ''}`.trim(),
+        addressCountry: 'ZA',
+      },
+      geo:
+        salon.latitude && salon.longitude
+          ? {
+            '@type': 'GeoCoordinates',
+            latitude: salon.latitude,
+            longitude: salon.longitude,
+          }
+          : undefined,
+      aggregateRating,
+      review: reviewEntities.length > 0 ? reviewEntities : undefined,
+      priceRange: '$$',
+    }
     : null;
 
   return (

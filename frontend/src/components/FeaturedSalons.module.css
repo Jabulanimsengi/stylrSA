@@ -1,14 +1,16 @@
+/* Featured Salons Section - Enhanced Premium Design */
+
 .section {
-  padding: 0.75rem 0;
+  padding: 1rem 0;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 var(--page-inline-padding, 1rem);
-  margin-bottom: 0.5rem;
-  max-width: 1200px;
+  padding: 0 var(--page-inline-padding, 1.5rem);
+  margin-bottom: 0.875rem;
+  max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -20,58 +22,62 @@
 }
 
 .title:hover {
-  color: var(--color-primary, #f51957);
+  color: var(--color-primary, #00bcd4);
 }
 
 .title h2 {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .viewAll {
-  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-primary, #f51957);
+  color: var(--color-primary, #00bcd4);
   text-decoration: none;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: rgba(0, 188, 212, 0.08);
 }
 
 .viewAll:hover {
-  opacity: 0.8;
-  text-decoration: underline;
+  background: rgba(0, 188, 212, 0.15);
+  transform: translateX(2px);
 }
 
 .container {
   width: 100%;
   position: relative;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   overflow: hidden;
-  /* Prevent content overflow during Swiper init */
   isolation: isolate;
-  /* Create new stacking context */
-  /* Min height to prevent CLS during Swiper initialization */
-  min-height: 280px;
+  min-height: 300px;
 }
 
-/* Navigation buttons - visibility controlled by .visible class */
+/* Navigation buttons - Premium styling */
 .navButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-border, #e5e5e5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text-strong, #1a1a1a);
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -84,10 +90,11 @@
 }
 
 .navButton:hover {
-  background: var(--color-primary, #f51957);
+  background: var(--color-text-strong, #1a1a1a);
   color: white;
-  border-color: var(--color-primary, #f51957);
-  transform: translateY(-50%) scale(1.05);
+  border-color: var(--color-text-strong, #1a1a1a);
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
 }
 
 .navButton:active {
@@ -128,14 +135,16 @@
 
 .prevButton:disabled:hover,
 .nextButton:disabled:hover {
-  background: var(--color-primary, #f51957);
+  background: var(--color-surface, #fff);
   transform: translateY(-50%);
+  color: var(--color-text-strong);
 }
 
+/* Skeleton Loading - Premium animation */
 .skeletonContainer {
   display: flex;
-  gap: 16px;
-  padding: 0 1rem;
+  gap: 20px;
+  padding: 0 1.5rem;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -147,22 +156,21 @@
 
 .skeletonCard {
   flex: none;
-  /* Match SalonCard compact dimensions */
-  width: calc((100% - 48px) / 4.1);
-  min-width: 220px;
-  height: 240px;
-  border-radius: var(--radius-sm, 0.5rem);
-  background: var(--color-surface-elevated, #fffaf5);
-  border: 1px solid var(--color-border, #cdbfb3);
+  width: calc((100% - 60px) / 4);
+  min-width: 240px;
+  height: 280px;
+  border-radius: 16px;
+  background: var(--color-surface-elevated, #f8f9fa);
+  border: 1px solid var(--color-border, #e5e5e5);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .skeletonCard::before {
   content: '';
-  /* Image placeholder - matches .imageWrapper height: 160px */
-  height: 160px;
+  height: 180px;
   background: linear-gradient(90deg,
       rgba(200, 200, 200, 0.3) 0%,
       rgba(180, 180, 180, 0.5) 50%,
@@ -174,14 +182,14 @@
 .skeletonCard::after {
   content: '';
   flex: 1;
-  margin: 0.5rem 0.625rem;
+  margin: 0.75rem;
   background: linear-gradient(90deg,
       rgba(200, 200, 200, 0.2) 0%,
       rgba(180, 180, 180, 0.35) 50%,
       rgba(200, 200, 200, 0.2) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 @keyframes shimmer {
@@ -197,129 +205,101 @@
 /* Mobile scroll indicators - hidden */
 .scrollIndicators {
   display: none;
-  /* Hide scroll indicators on all screen sizes */
-  justify-content: space-between;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
-  pointer-events: none;
-  padding: 0 0.5rem;
-  z-index: 5;
 }
 
-.scrollIndicatorLeft,
-.scrollIndicatorRight {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(245, 25, 87, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.scrollIndicatorLeft {
-  animation-delay: 0s;
-}
-
-.scrollIndicatorRight {
-  animation-delay: 1s;
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 0.7;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-}
-
-/* Keep scroll indicators hidden on all screen sizes */
-
-/* Slide counter - bottom left corner - HIDDEN */
 .slideCounter {
   display: none;
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
+  .section {
+    padding: 0.75rem 0;
+  }
+
   .header {
     padding: 0 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .title h2 {
+    font-size: 1.2rem;
+  }
+
+  .viewAll {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
   }
 
   .container {
     padding: 0;
+    min-height: 260px;
   }
 
   .skeletonContainer {
     gap: 12px;
-    padding: 0 0.5rem;
+    padding: 0 1rem;
   }
 
   .skeletonCard {
-    /* Match mobile SalonCard compact: height: 200px */
     width: calc(100% / 1.15 - 12px);
     min-width: 280px;
-    height: 200px;
+    height: 220px;
   }
 
   .skeletonCard::before {
-    /* Match mobile .imageWrapper height: 130px */
-    height: 130px;
-  }
-
-  /* Adjust container height for mobile */
-  .container {
-    min-height: 260px;
-    /* Match mobile SalonCard compact height */
+    height: 140px;
   }
 }
 
 @media (max-width: 480px) {
+  .header {
+    padding: 0 0.75rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .title h2 {
+    font-size: 1.1rem;
+  }
+
+  .viewAll {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+  }
+
   .skeletonCard {
-    /* Match small mobile SalonCard compact: height: 180px */
     min-width: 260px;
-    height: 180px;
+    height: 200px;
   }
 
   .skeletonCard::before {
-    /* Match small mobile .imageWrapper height: 115px */
-    height: 115px;
+    height: 125px;
   }
 
   .container {
     min-height: 240px;
-    /* Match small mobile SalonCard compact height */
   }
 }
 
 @media (max-width: 400px) {
+  .header {
+    padding: 0 0.625rem;
+  }
+
+  .title h2 {
+    font-size: 1rem;
+  }
+
   .skeletonCard {
-    /* Match extra small mobile SalonCard compact: height: 165px */
     min-width: 240px;
-    height: 165px;
+    height: 180px;
   }
 
   .skeletonCard::before {
-    /* Match extra small mobile .imageWrapper height: 105px */
-    height: 105px;
+    height: 110px;
   }
 
   .container {
     min-height: 220px;
-    /* Match extra small mobile SalonCard compact height */
   }
 }

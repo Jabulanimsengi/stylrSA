@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_ORIGIN || process.env.BACKEND_UR
 export async function GET() {
   try {
     const response = await fetch(`${BACKEND_URL}/seo/sitemap-services`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 86400 }, // Cache for 1 hour
     });
 
     if (!response.ok) {

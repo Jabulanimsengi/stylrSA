@@ -32,7 +32,7 @@ export async function GET(
         // Based on user request, this seems to mirror the SEO sitemap logic)
         const response = await fetch(
             `${BACKEND_URL}/seo/sitemap-seo-${segment}`,
-            { next: { revalidate: 3600 } }
+            { next: { revalidate: 86400 } }
         );
 
         if (!response.ok) {

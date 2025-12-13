@@ -1,119 +1,106 @@
+/* Salon Card - Enhanced Premium Fresha-style Design */
+
 .salonCard {
   position: relative;
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e0e0e0);
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
   width: 100%;
   display: flex;
   flex-direction: column;
 }
 
-/* Subtle gradient overlay on cards */
-.salonCard::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    transparent 70%,
-    rgba(245, 25, 87, 0.03) 100%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
+.salonCard:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, 0.12),
+    0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 188, 212, 0.3);
 }
 
-.salonCard:hover::before {
-  opacity: 1;
-}
-
+/* Compact variant for carousels */
 .salonCard.compact {
-  background-color: var(--color-surface-elevated, #fffaf5);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border, #cdbfb3);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 240px;
+  background-color: var(--color-surface, #fff);
+  border-radius: 16px;
+  border: 1px solid var(--color-border, #e5e5e5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 280px;
   display: flex;
   flex-direction: column;
 }
 
 .salonCard.compact:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(245, 25, 87, 0.1),
-              0 4px 8px rgba(0, 0, 0, 0.06);
-  border-color: rgba(245, 25, 87, 0.2);
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, 0.12),
+    0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 188, 212, 0.3);
 }
 
-.salonCard:hover {
-  transform: translateY(-5px) scale(1.01);
-  box-shadow: 0 12px 24px rgba(245, 25, 87, 0.12),
-              0 6px 12px rgba(0, 0, 0, 0.06);
-  border-color: rgba(245, 25, 87, 0.25);
-}
-
+/* Favorite Button */
 .favoriteButton {
   position: absolute;
-  top: clamp(0.6rem, 2vw, 0.8rem);
-  right: clamp(0.6rem, 2vw, 0.85rem);
-  background: rgba(255, 255, 255, 0.9);
+  top: clamp(0.75rem, 2vw, 1rem);
+  right: clamp(0.75rem, 2vw, 1rem);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   color: #999;
-  font-size: 20px;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .salonCard.compact .favoriteButton {
-  top: clamp(0.45rem, 1.5vw, 0.65rem);
-  right: clamp(0.55rem, 2.5vw, 0.85rem);
+  top: 12px;
+  right: 12px;
   background-color: transparent;
-  color: rgba(255, 255, 255, 0.8);
-  width: 44px;
-  height: 44px;
-  font-size: 1.4rem;
-  filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.7));
+  color: rgba(255, 255, 255, 0.9);
+  width: 36px;
+  height: 36px;
+  font-size: 1.25rem;
+  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.5));
   padding: 0;
+  box-shadow: none;
 }
 
 .salonCard.compact .favoriteButton:hover {
-  transform: scale(1.08);
-  color: var(--text-inverse, #ffffff);
-  background-color: transparent;
+  transform: scale(1.15);
+  color: #fff;
 }
 
 .salonCard.compact .favoriteButton.favorited {
-  color: var(--primary-pink, #f51957);
-  filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.4));
-  background-color: transparent;
+  color: #ef4444;
+  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .favoriteButton svg {
   width: 1em;
   height: 1em;
   display: block;
-  fill: currentColor; /* make sure the heart uses the button color */
+  fill: currentColor;
 }
 
 .favoriteButton:hover {
   background: rgba(255, 255, 255, 1);
-  transform: scale(1.05);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .favoriteButton.favorited {
-  color: #f51957;
+  color: #ef4444;
   background: rgba(255, 255, 255, 1);
 }
 
@@ -125,27 +112,29 @@
   height: 100%;
 }
 
+/* Image Wrapper */
 .imageWrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4; /* portrait: height > width */
+  aspect-ratio: 3 / 4;
   flex-shrink: 0;
-  background: var(--skeleton-bg, #f0f0f0);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
   overflow: hidden;
   cursor: pointer;
   pointer-events: auto;
 }
 
+/* Gradient overlay for text readability */
 .imageWrapper::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 35%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.35s ease;
   pointer-events: none;
   z-index: 1;
 }
@@ -154,98 +143,93 @@
   opacity: 1;
 }
 
+/* Rating Badge - Premium styling */
 .ratingBadge {
   position: absolute;
-  top: 3.5rem;
-  left: 0.5rem;
+  top: 12px;
+  left: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.4rem 0.6rem;
+  padding: 8px 12px;
   background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  border-radius: 0.375rem;
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
   z-index: 2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  gap: 0.15rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  gap: 2px;
   pointer-events: none;
 }
 
 .verificationOverlay {
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
+  top: 12px;
+  left: 12px;
   z-index: 4;
   pointer-events: none;
 }
 
 .statusOverlay {
   position: absolute;
-  bottom: 0.75rem;
-  right: 0.75rem;
+  bottom: 12px;
+  right: 12px;
   z-index: 3;
   pointer-events: none;
 }
 
 .salonCard.compact .statusOverlay {
-  bottom: 0.5rem;
-  right: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .statusOverlay {
-    bottom: 0.5rem;
-    right: 0.5rem;
-  }
+  bottom: 10px;
+  right: 10px;
 }
 
 .ratingValue {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--accent-gold, #FFD700);
+  color: #fbbf24;
   display: flex;
   align-items: center;
-  gap: 0.15rem;
+  gap: 4px;
   line-height: 1;
 }
 
 .reviewCount {
   font-size: 0.7rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1;
   white-space: nowrap;
 }
 
 .salonCard.compact .imageWrapper {
   aspect-ratio: auto;
-  height: 160px;
+  height: 180px;
 }
 
 .cardImage {
   object-fit: cover;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 
 .salonCard:hover .cardImage {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .salonCard.compact .cardImage {
-  object-fit: contain;
-  background: var(--skeleton-bg, #f0f0f0);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  object-fit: cover;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 
 .salonCard.compact:hover .cardImage {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
+/* Card Content */
 .salonCard.compact .cardContent {
-  padding: 0.5rem 0.625rem 0.625rem;
-  gap: 0.25rem;
+  padding: 12px 14px 14px;
+  gap: 4px;
   text-align: center;
   flex-grow: 1;
   display: flex;
@@ -253,11 +237,12 @@
 }
 
 .salonCard.compact .cardTitle {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -265,25 +250,16 @@
   flex-grow: 1;
   text-decoration: none;
   transition: color 0.2s ease;
+  color: var(--color-text-strong, #1a1a1a);
 }
 
 .salonCard.compact .cardTitle:hover {
-  color: var(--color-primary, #f51957);
-  text-decoration: underline;
-}
-
-.salonCard.compact .cardTitle:visited {
-  color: var(--text-primary, #1c1c1e);
-}
-
-.salonCard.compact .cardTitle:visited:hover {
-  color: var(--color-primary, #f51957);
-  text-decoration: underline;
+  color: var(--color-primary, #00bcd4);
 }
 
 .salonCard.compact .cardLocation {
-  font-size: 0.7rem;
-  color: var(--text-muted, #666);
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #888);
   margin: 0;
   text-align: center;
   justify-content: center;
@@ -291,10 +267,10 @@
 }
 
 .salonCard.compact .cardMeta {
-  font-size: 0.65rem;
-  color: var(--text-muted, #666);
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #888);
   margin: 0;
-  margin-top: 0.15rem;
+  margin-top: 4px;
   padding-top: 0;
   border-top: none;
   text-align: center;
@@ -302,7 +278,7 @@
 
 .cardStats {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   align-items: center;
   justify-content: center;
   margin-top: auto;
@@ -311,38 +287,38 @@
 .cardStat {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.65rem;
-  color: var(--text-muted, #666);
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #888);
   font-weight: 600;
 }
 
 .cardStat svg {
-  font-size: 0.75rem;
-  color: var(--text-muted, #666);
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #888);
 }
 
 .cardContent {
-  padding: 8px 6px;
+  padding: 10px 8px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .cardTitle {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   margin: 0;
-  color: var(--text-primary, #1c1c1e);
+  color: var(--color-text-strong, #1a1a1a);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -353,13 +329,12 @@
 }
 
 .cardTitle:hover {
-  color: var(--color-primary, #f51957);
-  text-decoration: underline;
+  color: var(--color-primary, #00bcd4);
 }
 
 .cardLocation {
-  font-size: 0.8rem;
-  color: var(--text-secondary, #666);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #666);
   margin: 0;
   display: flex;
   align-items: center;
@@ -369,14 +344,14 @@
 .distanceBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: var(--color-secondary-soft, rgba(58, 183, 165, 0.1));
-  color: var(--color-secondary, #3ab7a5);
-  border-radius: 12px;
-  font-size: 0.7rem;
+  gap: 4px;
+  padding: 5px 10px;
+  background: rgba(0, 188, 212, 0.1);
+  color: var(--color-primary, #00bcd4);
+  border-radius: 16px;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-top: 0.25rem;
+  margin-top: 4px;
   width: fit-content;
 }
 
@@ -385,55 +360,158 @@
 }
 
 .salonCard.compact .distanceBadge {
-  font-size: 0.65rem;
-  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  padding: 4px 8px;
 }
 
 .directionsLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
+  gap: 4px;
+  padding: 5px 10px;
   background: transparent;
-  color: var(--color-primary, #f51957);
-  font-size: 0.7rem;
+  color: var(--color-primary, #00bcd4);
+  font-size: 0.75rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid var(--color-primary, #f51957);
-  border-radius: 12px;
-  margin-top: 0.25rem;
+  border: 1.5px solid var(--color-primary, #00bcd4);
+  border-radius: 16px;
+  margin-top: 4px;
   transition: all 0.2s ease;
   width: fit-content;
 }
 
 .directionsLink:hover {
-  background: var(--color-primary, #f51957);
+  background: var(--color-primary, #00bcd4);
   color: white;
 }
 
 .salonCard.compact .directionsLink {
-  font-size: 0.65rem;
-  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  padding: 4px 8px;
 }
 
 .cardMeta {
-  font-size: 0.7rem;
-  color: var(--text-tertiary, #999);
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary, #999);
   margin: 0;
   margin-top: auto;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-color, #f0f0f0);
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border, #f0f0f0);
 }
 
-
+/* Tablet Responsive */
 @media (max-width: 768px) {
+
+  .salonCard,
+  .salonCard.compact {
+    border-radius: 12px;
+  }
+
+  .cardContent {
+    padding: 8px 6px;
+  }
+
+  .cardTitle {
+    font-size: 0.8rem;
+  }
+
+  .cardLocation {
+    font-size: 0.7rem;
+  }
+
+  .cardMeta {
+    font-size: 0.65rem;
+    padding-top: 4px;
+  }
+
+  .favoriteButton {
+    width: 32px;
+    height: 32px;
+    top: 8px;
+    right: 8px;
+    font-size: 14px;
+  }
+
+  .salonCard.compact {
+    height: 240px;
+  }
+
+  .salonCard.compact .imageWrapper {
+    height: 150px;
+  }
+
+  .salonCard.compact .cardContent {
+    padding: 10px 12px;
+  }
+
+  .salonCard.compact .cardTitle {
+    font-size: 0.85rem;
+  }
+
+  .salonCard.compact .cardLocation {
+    font-size: 0.7rem;
+    justify-content: center;
+  }
+
+  .salonCard.compact .cardMeta {
+    font-size: 0.65rem;
+    margin-top: 2px;
+  }
+
+  .cardStats {
+    margin-top: 2px;
+  }
+
+  .cardStat {
+    font-size: 0.65rem;
+  }
+
+  .salonCard.compact .favoriteButton {
+    top: 8px;
+    right: 8px;
+    font-size: 1.1rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .ratingBadge {
+    top: 8px;
+    left: 8px;
+    padding: 6px 10px;
+    gap: 2px;
+  }
+
+  .ratingValue {
+    font-size: 0.85rem;
+  }
+
+  .reviewCount {
+    font-size: 0.6rem;
+  }
+
+  .statusOverlay {
+    bottom: 8px;
+    right: 8px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+
+  .salonCard,
+  .salonCard.compact {
+    border-radius: 10px;
+  }
 
   .cardContent {
     padding: 6px 5px;
+    gap: 2px;
   }
 
   .cardTitle {
     font-size: 0.75rem;
+    line-height: 1.2;
   }
 
   .cardLocation {
@@ -446,15 +524,13 @@
   }
 
   .favoriteButton {
-    width: 32px;
-    height: 32px;
-    top: 6px;
-    right: 6px;
-    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
   }
 
   .salonCard.compact {
-    height: 200px;
+    height: 210px;
   }
 
   .salonCard.compact .imageWrapper {
@@ -462,25 +538,27 @@
   }
 
   .salonCard.compact .cardContent {
-    padding: 0.4rem 0.5rem;
+    padding: 8px 10px;
   }
 
   .salonCard.compact .cardTitle {
     font-size: 0.75rem;
+    line-height: 1.2;
   }
 
   .salonCard.compact .cardLocation {
     font-size: 0.6rem;
+    margin-top: 2px;
     justify-content: center;
   }
 
   .salonCard.compact .cardMeta {
     font-size: 0.55rem;
-    margin-top: 0.15rem;
+    margin-top: 2px;
   }
 
   .cardStats {
-    margin-top: 0.15rem;
+    margin-top: 2px;
   }
 
   .cardStat {
@@ -488,22 +566,23 @@
   }
 
   .salonCard.compact .favoriteButton {
-    top: 0.35rem;
-    right: 0.35rem;
-    font-size: 1.1rem;
-    width: 36px;
-    height: 36px;
+    top: 6px;
+    right: 6px;
+    font-size: 1rem;
+    width: 28px;
+    height: 28px;
   }
 
   .ratingBadge {
-    top: 0.35rem;
-    left: 0.35rem;
-    padding: 0.25rem 0.4rem;
-    gap: 0.1rem;
+    top: 6px;
+    left: 6px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    gap: 1px;
   }
 
   .ratingValue {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 
   .reviewCount {
@@ -511,38 +590,10 @@
   }
 }
 
-@media (max-width: 480px) {
-  .salonCard {
-    border-radius: 6px;
-  }
-
-  .cardContent {
-    padding: 5px 4px;
-    gap: 1px;
-  }
-
-  .cardTitle {
-    font-size: 0.7rem;
-    line-height: 1.15;
-  }
-
-  .cardLocation {
-    font-size: 0.6rem;
-  }
-
-  .cardMeta {
-    font-size: 0.55rem;
-    padding-top: 2px;
-  }
-
-  .favoriteButton {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
+/* Extra Small Mobile */
+@media (max-width: 400px) {
   .salonCard.compact {
-    height: 180px;
+    height: 190px;
   }
 
   .salonCard.compact .imageWrapper {
@@ -550,129 +601,82 @@
   }
 
   .salonCard.compact .cardContent {
-    padding: 0.35rem 0.4rem;
+    padding: 6px 8px;
   }
 
   .salonCard.compact .cardTitle {
     font-size: 0.7rem;
-    line-height: 1.15;
   }
 
   .salonCard.compact .cardLocation {
     font-size: 0.55rem;
-    margin-top: 0.15rem;
-    justify-content: center;
-  }
-
-  .salonCard.compact .cardMeta {
-    font-size: 0.5rem;
-    margin-top: 0.15rem;
-  }
-
-  .cardStats {
-    margin-top: 0.15rem;
-  }
-
-  .cardStat {
-    font-size: 0.5rem;
-  }
-
-  .salonCard.compact .favoriteButton {
-    top: 0.35rem;
-    right: 0.35rem;
-    font-size: 1rem;
-    width: 28px;
-    height: 28px;
-  }
-
-  .ratingBadge {
-    top: 0.3rem;
-    left: 0.3rem;
-    padding: 0.2rem 0.35rem;
-    gap: 0.08rem;
-  }
-
-  .ratingValue {
-    font-size: 0.65rem;
-  }
-
-  .reviewCount {
-    font-size: 0.5rem;
   }
 }
 
-/* Logo overlay styles - Fixed positioning and sizing */
+/* Logo overlay styles */
 .logoOverlay {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
+  bottom: 10px;
+  left: 10px;
   z-index: 10;
   pointer-events: none;
 }
 
 .salonLogo {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   object-fit: contain;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.95);
   background: rgba(255, 255, 255, 0.95);
   padding: 3px;
 }
 
 .logoPlaceholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--color-primary, #f51957), rgba(245, 25, 87, 0.7));
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--color-primary, #00bcd4), #0097a7);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.95);
 }
 
 /* Mobile responsive logo sizing */
 @media (max-width: 768px) {
+
   .salonLogo,
   .logoPlaceholder {
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
   }
-  
+
   .logoOverlay {
-    bottom: 6px;
-    left: 6px;
+    bottom: 8px;
+    left: 8px;
   }
 }
 
 @media (max-width: 480px) {
+
   .salonLogo,
   .logoPlaceholder {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 0.85rem;
   }
-  
+
   .logoOverlay {
-    bottom: 5px;
-    left: 5px;
-  }
-}
-
-@media (max-width: 400px) {
-  .salonCard.compact {
-    height: 165px;
-  }
-
-  .salonCard.compact .imageWrapper {
-    height: 105px;
+    bottom: 6px;
+    left: 6px;
   }
 }
 

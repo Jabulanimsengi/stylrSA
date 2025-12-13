@@ -50,8 +50,8 @@
 .checkboxItem[data-highlighted],
 .radioItem[data-highlighted],
 .subTrigger[data-highlighted] {
-    background: var(--color-primary);
-    color: white;
+    background: rgba(245, 25, 87, 0.08);
+    color: var(--color-primary);
 }
 
 .item[data-disabled],

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
     FaStar,
@@ -10,10 +10,19 @@ import {
     FaDirections,
     FaBolt,
     FaChevronRight,
+    FaChevronLeft,
     FaCheck,
     FaPlus,
     FaClock,
     FaImages,
+    FaHeart,
+    FaRegHeart,
+    FaShare,
+    FaCopy,
+    FaCheckCircle,
+    FaRegClock,
+    FaAward,
+    FaTimes,
 } from 'react-icons/fa';
 import { Salon, Service, GalleryImage, Review } from '@/types';
 import { transformCloudinary } from '@/utils/cloudinary';
@@ -21,7 +30,7 @@ import VerificationBadge from '@/components/VerificationBadge/VerificationBadge'
 import { SERVICE_CATEGORIES } from '@/constants/categories';
 import styles from './MobileSalonProfile.module.css';
 
-type TabType = 'services' | 'details' | 'reviews';
+type TabType = 'photos' | 'services' | 'details' | 'reviews';
 
 interface MobileSalonProfileProps {
     salon: Salon;
@@ -81,6 +90,50 @@ const CATEGORY_ALIASES: Record<string, string> = {
     'beauty': 'Makeup & Beauty'
 };
 
+// Helper to check if salon is currently open
+function getOpenStatus(hoursRecord: Record<string, string> | null, todayLabel: string): { isOpen: boolean; statusText: string } {
+    if (!hoursRecord) return { isOpen: false, statusText: 'Hours not available' };
+
+    const todayHours = hoursRecord[todayLabel];
+    if (!todayHours || todayHours.toLowerCase() === 'closed') {
+        // Find next open day
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const todayIndex = days.indexOf(todayLabel);
+        for (let i = 1; i <= 7; i++) {
+            const nextDay = days[(todayIndex + i) % 7];
+            const nextHours = hoursRecord[nextDay];
+            if (nextHours && nextHours.toLowerCase() !== 'closed') {
+                return { isOpen: false, statusText: `Opens ${nextDay} at ${nextHours.split('-')[0]?.trim() || '09:00'}` };
+            }
+        }
+        return { isOpen: false, statusText: 'Closed' };
+    }
+
+    // Parse hours (e.g., "09:00 - 18:00")
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
+
+    const [openTime, closeTime] = todayHours.split('-').map(t => t.trim());
+    if (openTime && closeTime) {
+        const [openH, openM] = openTime.split(':').map(Number);
+        const [closeH, closeM] = closeTime.split(':').map(Number);
+        const openMinutes = (openH || 0) * 60 + (openM || 0);
+        const closeMinutes = (closeH || 0) * 60 + (closeM || 0);
+
+        if (currentTime >= openMinutes && currentTime < closeMinutes) {
+            return { isOpen: true, statusText: `Open until ${closeTime}` };
+        } else if (currentTime < openMinutes) {
+            return { isOpen: false, statusText: `Opens at ${openTime}` };
+        } else {
+            return { isOpen: false, statusText: `Closed · Opens tomorrow` };
+        }
+    }
+
+    return { isOpen: false, statusText: todayHours };
+}
+
 export default function MobileSalonProfile({
     salon,
     services,
@@ -97,7 +150,16 @@ export default function MobileSalonProfile({
 }: MobileSalonProfileProps) {
     const [activeTab, setActiveTab] = useState<TabType>('services');
     const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [showCopied, setShowCopied] = useState(false);
+    const [activeCategory, setActiveCategory] = useState<string>('all');
     const tabsRef = useRef<HTMLDivElement>(null);
+    const carouselRef = useRef<HTMLDivElement>(null);
+    const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+    // Get open status
+    const { isOpen, statusText } = getOpenStatus(hoursRecord, todayLabel);
 
     // Get all gallery images
     const allImages = useMemo(() => {
@@ -118,16 +180,23 @@ export default function MobileSalonProfile({
         const groups: Record<string, Service[]> = {};
 
         services.forEach(service => {
+            // Get category name from service
             const categoryName = (service as any).category?.name || '';
             const categorySlug = (service as any).category?.slug || (service as any).categoryId || '';
 
+            // Determine the valid category name
             let validCategoryName = '';
 
+            // 1. Direct match
             if (VALID_CATEGORY_NAMES.has(categoryName)) {
                 validCategoryName = categoryName;
-            } else if (categorySlug && CATEGORY_NAME_BY_SLUG.has(categorySlug)) {
+            }
+            // 2. Slug match
+            else if (categorySlug && CATEGORY_NAME_BY_SLUG.has(categorySlug)) {
                 validCategoryName = CATEGORY_NAME_BY_SLUG.get(categorySlug)!;
-            } else if (categoryName) {
+            }
+            // 3. Alias match
+            else if (categoryName) {
                 const lowerName = categoryName.toLowerCase();
                 for (const [alias, target] of Object.entries(CATEGORY_ALIASES)) {
                     if (lowerName === alias || lowerName.includes(alias)) {
@@ -137,8 +206,10 @@ export default function MobileSalonProfile({
                 }
             }
 
-            // Default to "Other Services" if no match
-            if (!validCategoryName) validCategoryName = 'Other Services';
+            // Fallback to "Other Services" if no valid category found
+            if (!validCategoryName) {
+                validCategoryName = 'Other Services';
+            }
 
             if (!groups[validCategoryName]) {
                 groups[validCategoryName] = [];
@@ -146,7 +217,7 @@ export default function MobileSalonProfile({
             groups[validCategoryName].push(service);
         });
 
-        // Sort categories - put known categories first, "Other Services" last
+        // Sort categories based on the order in SERVICE_CATEGORIES
         const categoryOrder = new Map(SERVICE_CATEGORIES.map((cat, index) => [cat.name, index]));
 
         return Object.entries(groups)
@@ -155,13 +226,27 @@ export default function MobileSalonProfile({
                 services: categoryServices
             }))
             .sort((a, b) => {
-                if (a.categoryName === 'Other Services') return 1;
-                if (b.categoryName === 'Other Services') return -1;
-                const orderA = categoryOrder.get(a.categoryName) ?? 998;
-                const orderB = categoryOrder.get(b.categoryName) ?? 998;
+                const orderA = categoryOrder.get(a.categoryName) ?? 999;
+                const orderB = categoryOrder.get(b.categoryName) ?? 999;
                 return orderA - orderB;
             });
     }, [services]);
+
+    // Get unique categories for filter pills
+    const categories = useMemo(() => {
+        return [
+            { id: 'all', name: 'All Services' },
+            ...groupedServices.map(g => ({ id: g.categoryName, name: g.categoryName }))
+        ];
+    }, [groupedServices]);
+
+    // Filter services based on active category
+    const filteredGroups = useMemo(() => {
+        if (activeCategory === 'all') {
+            return groupedServices;
+        }
+        return groupedServices.filter(g => g.categoryName === activeCategory);
+    }, [groupedServices, activeCategory]);
 
     // Toggle service selection
     const toggleService = (service: Service) => {
@@ -194,10 +279,59 @@ export default function MobileSalonProfile({
     // Handle continue booking
     const handleContinue = () => {
         if (selectedServices.length > 0) {
-            // Book selected services
             selectedServices.forEach(service => onBookService(service));
         } else {
             onBookNow();
+        }
+    };
+
+    // Handle carousel swipe
+    const handleSwipe = useCallback((direction: 'left' | 'right') => {
+        if (direction === 'left' && currentImageIndex < allImages.length - 1) {
+            setCurrentImageIndex(prev => prev + 1);
+        } else if (direction === 'right' && currentImageIndex > 0) {
+            setCurrentImageIndex(prev => prev - 1);
+        }
+    }, [currentImageIndex, allImages.length]);
+
+    // Touch handling for carousel
+    const touchStartX = useRef(0);
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+    };
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX.current - touchEndX;
+        if (Math.abs(diff) > 50) {
+            handleSwipe(diff > 0 ? 'left' : 'right');
+        }
+    };
+
+    // Copy address to clipboard
+    const handleCopyAddress = async () => {
+        const addressText = salon.address || [salon.town, salon.city, salon.province].filter(Boolean).join(', ');
+        await navigator.clipboard.writeText(addressText);
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2000);
+    };
+
+    // Share salon
+    const handleShare = async () => {
+        const url = typeof window !== 'undefined' ? window.location.href : '';
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: salon.name,
+                    text: `Check out ${salon.name} on Stylr SA!`,
+                    url,
+                });
+            } catch (err) {
+                // User cancelled or error
+            }
+        } else {
+            await navigator.clipboard.writeText(url);
+            setShowCopied(true);
+            setTimeout(() => setShowCopied(false), 2000);
         }
     };
 
@@ -206,56 +340,78 @@ export default function MobileSalonProfile({
     return (
         <>
             <div className={styles.mobileProfile}>
-                {/* Hero Gallery Section */}
-                <div className={styles.heroGallery} onClick={() => allImages.length > 0 && onOpenLightbox(allImages, 0)}>
+                {/* Hero Carousel Section */}
+                <div
+                    className={styles.heroCarousel}
+                    ref={carouselRef}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                >
                     {allImages.length > 0 ? (
                         <>
-                            <Image
-                                src={transformCloudinary(allImages[0], { width: 800, quality: 'auto', format: 'auto', crop: 'fill' })}
-                                alt={salon.name}
-                                fill
-                                sizes="100vw"
-                                priority
-                                className={styles.heroImage}
-                            />
+                            <div
+                                className={styles.carouselTrack}
+                                style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+                            >
+                                {allImages.map((img, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={styles.carouselSlide}
+                                        onClick={() => onOpenLightbox(allImages, idx)}
+                                    >
+                                        <Image
+                                            src={transformCloudinary(img, { width: 800, quality: 'auto', format: 'auto', crop: 'fill' })}
+                                            alt={`${salon.name} photo ${idx + 1}`}
+                                            fill
+                                            sizes="100vw"
+                                            priority={idx === 0}
+                                            className={styles.heroImage}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Carousel Indicators */}
                             {allImages.length > 1 && (
-                                <button className={styles.viewPhotosBtn}>
-                                    <FaImages /> {allImages.length} photos
-                                </button>
+                                <div className={styles.carouselIndicators}>
+                                    {allImages.map((_, idx) => (
+                                        <button
+                                            key={idx}
+                                            className={`${styles.indicator} ${idx === currentImageIndex ? styles.active : ''}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCurrentImageIndex(idx);
+                                            }}
+                                            aria-label={`Go to photo ${idx + 1}`}
+                                        />
+                                    ))}
+                                </div>
                             )}
+
+                            {/* Photo count badge */}
+                            <div className={styles.photoCountBadge}>
+                                <FaImages /> {currentImageIndex + 1}/{allImages.length}
+                            </div>
                         </>
                     ) : (
                         <div className={styles.noImage}>
                             <span>{salon.name.charAt(0)}</span>
                         </div>
                     )}
-                </div>
 
-                {/* Gallery Thumbnails */}
-                {allImages.length > 1 && (
-                    <div className={styles.thumbnailRow}>
-                        {allImages.slice(1, 5).map((img, idx) => (
-                            <div
-                                key={idx}
-                                className={styles.thumbnail}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onOpenLightbox(allImages, idx + 1);
-                                }}
-                            >
-                                <Image
-                                    src={transformCloudinary(img, { width: 200, quality: 'auto', format: 'auto', crop: 'fill' })}
-                                    alt={`${salon.name} photo ${idx + 2}`}
-                                    fill
-                                    sizes="100px"
-                                />
-                                {idx === 3 && allImages.length > 5 && (
-                                    <div className={styles.moreOverlay}>+{allImages.length - 5}</div>
-                                )}
-                            </div>
-                        ))}
+                    {/* Header Actions - Share & Favorite */}
+                    <div className={styles.headerActions}>
+                        <button className={styles.actionBtn} onClick={handleShare}>
+                            <FaShare />
+                        </button>
+                        <button
+                            className={`${styles.actionBtn} ${isFavorited ? styles.favorited : ''}`}
+                            onClick={() => setIsFavorited(!isFavorited)}
+                        >
+                            {isFavorited ? <FaHeart /> : <FaRegHeart />}
+                        </button>
                     </div>
-                )}
+                </div>
 
                 {/* Salon Header */}
                 <div className={styles.salonHeader}>
@@ -264,31 +420,60 @@ export default function MobileSalonProfile({
                         {salon.isVerified && <VerificationBadge size="small" />}
                     </h1>
 
-                    <div className={styles.locationRow}>
-                        <FaMapMarkerAlt />
-                        <span>{addressText}</span>
-                    </div>
-
-                    {/* Rating & Badges Row */}
-                    <div className={styles.metaRow}>
+                    {/* Rating Row */}
+                    <div className={styles.ratingRow}>
                         {salon.avgRating && salon.avgRating > 0 && (
                             <button
                                 className={styles.ratingPill}
                                 onClick={() => setActiveTab('reviews')}
                             >
                                 <FaStar />
-                                <span>{salon.avgRating.toFixed(1)}</span>
+                                <span className={styles.ratingValue}>{salon.avgRating.toFixed(1)}</span>
                                 <span className={styles.reviewCount}>({reviews.length})</span>
                             </button>
+                        )}
+                        {salon.isFeatured && (
+                            <span className={styles.featuredBadge}>
+                                <FaAward /> Featured
+                            </span>
                         )}
                         {(salon.bookingType === 'MOBILE' || salon.bookingType === 'BOTH') && (
                             <span className={styles.mobileBadge}>Mobile Service</span>
                         )}
                     </div>
+
+                    {/* Open/Closed Status */}
+                    <div className={`${styles.statusRow} ${isOpen ? styles.open : styles.closed}`}>
+                        <FaRegClock />
+                        <span className={styles.statusDot} />
+                        <span className={styles.statusText}>
+                            {isOpen ? 'Open' : 'Closed'} · {statusText}
+                        </span>
+                    </div>
+
+                    {/* Location */}
+                    <div className={styles.locationRow}>
+                        <FaMapMarkerAlt />
+                        <span>{addressText}</span>
+                    </div>
+
+                    {/* Feature badges */}
+                    <div className={styles.featureBadges}>
+                        <span className={styles.featureBadge}>
+                            <FaCheckCircle /> Instant confirmation
+                        </span>
+                    </div>
                 </div>
 
                 {/* Tab Navigation - Fresha Style */}
                 <div className={styles.tabNav} ref={tabsRef}>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'photos' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('photos')}
+                    >
+                        Photos
+                        {allImages.length > 0 && <span className={styles.tabBadge}>{allImages.length}</span>}
+                    </button>
                     <button
                         className={`${styles.tabButton} ${activeTab === 'services' ? styles.active : ''}`}
                         onClick={() => setActiveTab('services')}
@@ -299,7 +484,7 @@ export default function MobileSalonProfile({
                         className={`${styles.tabButton} ${activeTab === 'details' ? styles.active : ''}`}
                         onClick={() => setActiveTab('details')}
                     >
-                        Details
+                        About
                     </button>
                     <button
                         className={`${styles.tabButton} ${activeTab === 'reviews' ? styles.active : ''}`}
@@ -311,17 +496,59 @@ export default function MobileSalonProfile({
 
                 {/* Tab Content */}
                 <div className={styles.tabContent}>
+                    {/* Photos Tab */}
+                    {activeTab === 'photos' && (
+                        <div className={styles.photosTab}>
+                            <div className={styles.photosGrid}>
+                                {allImages.map((img, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={styles.photoItem}
+                                        onClick={() => onOpenLightbox(allImages, idx)}
+                                    >
+                                        <Image
+                                            src={transformCloudinary(img, { width: 400, quality: 'auto', format: 'auto', crop: 'fill' })}
+                                            alt={`${salon.name} photo ${idx + 1}`}
+                                            fill
+                                            sizes="(max-width: 768px) 50vw, 33vw"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                            {allImages.length === 0 && (
+                                <div className={styles.emptyState}>
+                                    <FaImages className={styles.emptyIcon} />
+                                    <p>No photos available yet</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Services Tab - Fresha Style */}
                     {activeTab === 'services' && (
                         <div className={styles.servicesTab}>
-                            {groupedServices.map(group => (
+                            {/* Category Filter Pills */}
+                            <div className={styles.categoryFilter} ref={categoryScrollRef}>
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat.id}
+                                        className={`${styles.categoryPill} ${activeCategory === cat.id ? styles.active : ''}`}
+                                        onClick={() => setActiveCategory(cat.id)}
+                                    >
+                                        {cat.name}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {filteredGroups.map(group => (
                                 <div key={group.categoryName} className={styles.categorySection}>
                                     <h3 className={styles.categoryTitle}>{group.categoryName}</h3>
                                     <div className={styles.servicesList}>
-                                        {group.services.map(service => {
+                                        {group.services.map((service, idx) => {
                                             const isSelected = isServiceSelected(service.id);
                                             const serviceName = service.title || service.name || 'Service';
                                             const hasImages = service.images && service.images.length > 0;
+                                            const isPopular = idx === 0 && group.services.length > 3;
 
                                             return (
                                                 <div
@@ -329,31 +556,42 @@ export default function MobileSalonProfile({
                                                     className={`${styles.serviceCard} ${isSelected ? styles.selected : ''}`}
                                                     onClick={() => toggleService(service)}
                                                 >
+                                                    {/* Service Image Thumbnail */}
+                                                    {hasImages && (
+                                                        <div
+                                                            className={styles.serviceThumb}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onOpenLightbox(service.images, 0);
+                                                            }}
+                                                        >
+                                                            <Image
+                                                                src={transformCloudinary(service.images[0], { width: 200, quality: 'auto', format: 'auto', crop: 'fill' })}
+                                                                alt={serviceName}
+                                                                fill
+                                                                sizes="80px"
+                                                            />
+                                                        </div>
+                                                    )}
                                                     <div className={styles.serviceMain}>
-                                                        <h4 className={styles.serviceName}>{serviceName}</h4>
+                                                        <div className={styles.serviceNameRow}>
+                                                            <h4 className={styles.serviceName}>{serviceName}</h4>
+                                                            {isPopular && (
+                                                                <span className={styles.popularBadge}>Popular</span>
+                                                            )}
+                                                        </div>
                                                         {service.description && (
                                                             <p className={styles.serviceDesc}>{service.description}</p>
                                                         )}
                                                         <div className={styles.serviceMeta}>
                                                             <span className={styles.serviceDuration}>
-                                                                {formatDuration(service.duration)}
+                                                                <FaClock /> {formatDuration(service.duration)}
                                                             </span>
-                                                            {hasImages && (
-                                                                <button
-                                                                    className={styles.viewImagesBtn}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        onOpenLightbox(service.images, 0);
-                                                                    }}
-                                                                >
-                                                                    <FaImages /> View
-                                                                </button>
-                                                            )}
                                                         </div>
                                                     </div>
                                                     <div className={styles.serviceRight}>
                                                         <span className={styles.servicePrice}>
-                                                            R{service.price.toFixed(0)}
+                                                            from R{service.price.toFixed(0)}
                                                         </span>
                                                         <button
                                                             className={`${styles.addBtn} ${isSelected ? styles.added : ''}`}
@@ -373,7 +611,7 @@ export default function MobileSalonProfile({
                                 </div>
                             ))}
 
-                            {groupedServices.length === 0 && (
+                            {filteredGroups.length === 0 && (
                                 <div className={styles.emptyState}>
                                     <p>No services available yet</p>
                                 </div>
@@ -387,7 +625,7 @@ export default function MobileSalonProfile({
                             {/* About Section */}
                             {salon.description && (
                                 <section className={styles.detailSection}>
-                                    <h3 className={styles.sectionTitle}>About Us</h3>
+                                    <h3 className={styles.sectionTitle}>About</h3>
                                     <div className={styles.sectionCard}>
                                         <p className={styles.aboutText}>{salon.description}</p>
                                     </div>
@@ -401,6 +639,12 @@ export default function MobileSalonProfile({
                                     <div className={styles.addressRow}>
                                         <FaMapMarkerAlt />
                                         <span>{addressText}</span>
+                                        <button
+                                            className={styles.copyBtn}
+                                            onClick={handleCopyAddress}
+                                        >
+                                            {showCopied ? <FaCheck /> : <FaCopy />}
+                                        </button>
                                     </div>
                                     {mapSrc && (
                                         <div className={styles.mapWrapper}>
@@ -426,7 +670,7 @@ export default function MobileSalonProfile({
                             {/* Business Hours */}
                             {hoursRecord && (
                                 <section className={styles.detailSection}>
-                                    <h3 className={styles.sectionTitle}>Business Hours</h3>
+                                    <h3 className={styles.sectionTitle}>Opening times</h3>
                                     <div className={styles.sectionCard}>
                                         <div className={styles.hoursList}>
                                             {orderedOperatingDays.map(day => {
@@ -439,6 +683,7 @@ export default function MobileSalonProfile({
                                                         key={day}
                                                         className={`${styles.hoursRow} ${isToday ? styles.today : ''}`}
                                                     >
+                                                        <span className={`${styles.dayDot} ${isClosed ? styles.closedDot : styles.openDot}`} />
                                                         <span className={styles.dayName}>{day}</span>
                                                         <span className={`${styles.hoursValue} ${isClosed ? styles.closed : ''}`}>
                                                             {hours || 'Closed'}
@@ -450,6 +695,23 @@ export default function MobileSalonProfile({
                                     </div>
                                 </section>
                             )}
+
+                            {/* Additional Information */}
+                            <section className={styles.detailSection}>
+                                <h3 className={styles.sectionTitle}>Additional information</h3>
+                                <div className={styles.sectionCard}>
+                                    <div className={styles.infoRow}>
+                                        <FaCheckCircle className={styles.infoIcon} />
+                                        <span>Instant Confirmation</span>
+                                    </div>
+                                    {salon.isVerified && (
+                                        <div className={styles.infoRow}>
+                                            <FaCheckCircle className={styles.infoIcon} />
+                                            <span>Verified Business</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
 
                             {/* Contact */}
                             <section className={styles.detailSection}>
@@ -504,18 +766,29 @@ export default function MobileSalonProfile({
                 </div>
             </div>
 
-            {/* Mobile Sticky Book Bar */}
-            <div className={styles.mobileBookBar}>
+            {/* Mobile Sticky Book Bar - Enhanced */}
+            <div className={`${styles.mobileBookBar} ${selectedServices.length > 0 ? styles.expanded : ''}`}>
                 {selectedServices.length > 0 ? (
                     <>
-                        <div className={styles.bookBarInfo}>
-                            <span className={styles.bookBarCount}>
-                                {selectedServices.length} service{selectedServices.length > 1 ? 's' : ''} • {formatDuration(totalDuration)}
-                            </span>
+                        <div className={styles.bookBarSummary}>
+                            <div className={styles.bookBarInfo}>
+                                <span className={styles.bookBarCount}>
+                                    {selectedServices.length} service{selectedServices.length > 1 ? 's' : ''}
+                                </span>
+                                <span className={styles.bookBarDuration}>
+                                    <FaClock /> {formatDuration(totalDuration)}
+                                </span>
+                            </div>
                             <span className={styles.bookBarPrice}>R{totalPrice.toFixed(0)}</span>
                         </div>
                         <button className={styles.bookBarButton} onClick={handleContinue}>
                             Continue
+                        </button>
+                        <button
+                            className={styles.clearBtn}
+                            onClick={() => setSelectedServices([])}
+                        >
+                            <FaTimes />
                         </button>
                     </>
                 ) : (
@@ -550,6 +823,7 @@ function MobileReviewsContent({
     avgRating: number;
 }) {
     const [visibleCount, setVisibleCount] = useState(5);
+    const [sortBy, setSortBy] = useState<'recent' | 'helpful'>('recent');
 
     // Calculate rating distribution
     const ratingCounts = [0, 0, 0, 0, 0];
@@ -560,7 +834,18 @@ function MobileReviewsContent({
     });
 
     const maxCount = Math.max(...ratingCounts, 1);
-    const displayedReviews = reviews.slice(0, visibleCount);
+
+    // Sort reviews
+    const sortedReviews = useMemo(() => {
+        const sorted = [...reviews];
+        if (sortBy === 'recent') {
+            sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        }
+        // 'helpful' would sort by a helpfulCount field if available
+        return sorted;
+    }, [reviews, sortBy]);
+
+    const displayedReviews = sortedReviews.slice(0, visibleCount);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -574,6 +859,7 @@ function MobileReviewsContent({
     if (reviews.length === 0) {
         return (
             <div className={styles.emptyState}>
+                <FaStar className={styles.emptyIcon} />
                 <p>No reviews yet. Be the first to leave a review!</p>
             </div>
         );
@@ -611,6 +897,22 @@ function MobileReviewsContent({
                 </div>
             </div>
 
+            {/* Sort Options */}
+            <div className={styles.sortOptions}>
+                <button
+                    className={`${styles.sortBtn} ${sortBy === 'recent' ? styles.active : ''}`}
+                    onClick={() => setSortBy('recent')}
+                >
+                    Most recent
+                </button>
+                <button
+                    className={`${styles.sortBtn} ${sortBy === 'helpful' ? styles.active : ''}`}
+                    onClick={() => setSortBy('helpful')}
+                >
+                    Most helpful
+                </button>
+            </div>
+
             {/* Reviews List */}
             <div className={styles.reviewsList}>
                 {displayedReviews.map(review => (
@@ -641,7 +943,9 @@ function MobileReviewsContent({
                                 <span className={styles.reviewDate}>{formatDate(review.createdAt)}</span>
                             </div>
                         </div>
-                        <p className={styles.reviewText}>{review.comment}</p>
+                        {review.comment && (
+                            <p className={styles.reviewText}>{review.comment}</p>
+                        )}
                     </div>
                 ))}
             </div>

@@ -30,7 +30,7 @@ export async function GET(
     // Fetch from backend
     const response = await fetch(
       `${BACKEND_URL}/seo/sitemap-seo-${segment}`,
-      { next: { revalidate: 3600 } }  // Cache for 1 hour
+      { next: { revalidate: 86400 } }  // Cache for 1 hour
     );
 
     if (!response.ok) {

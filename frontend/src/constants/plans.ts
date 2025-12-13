@@ -15,6 +15,9 @@ export interface AppPlan {
   code: PlanCode | LegacyPlanCode;
   name: string;
   price: string;
+  originalPrice?: string; // Original price before special
+  specialPrice?: string; // Special promotional price
+  specialEnds?: string; // When the special ends (ISO date string)
   priceCents: number;
   maxListings: number | 'Unlimited';
   visibilityWeight: number;
@@ -45,8 +48,11 @@ export const APP_PLANS: AppPlan[] = [
   {
     code: 'STARTER',
     name: 'Starter',
-    price: 'R229/month',
-    priceCents: 22900,
+    price: 'R99/month',
+    originalPrice: 'R229/month',
+    specialPrice: 'R99/month',
+    specialEnds: '2025-06-13',
+    priceCents: 9900,
     maxListings: 10,
     visibilityWeight: 2,
     description: 'Perfect for small salons or solo stylists getting started.',
@@ -61,8 +67,11 @@ export const APP_PLANS: AppPlan[] = [
   {
     code: 'PRO',
     name: 'Pro',
-    price: 'R329/month',
-    priceCents: 32900,
+    price: 'R199/month',
+    originalPrice: 'R329/month',
+    specialPrice: 'R199/month',
+    specialEnds: '2025-06-13',
+    priceCents: 19900,
     maxListings: 25,
     visibilityWeight: 3,
     description: 'For growing salons ready for more clients and higher visibility.',
@@ -82,8 +91,11 @@ export const APP_PLANS: AppPlan[] = [
   {
     code: 'ELITE',
     name: 'Elite',
-    price: 'R499/month',
-    priceCents: 49900,
+    price: 'R299/month',
+    originalPrice: 'R499/month',
+    specialPrice: 'R299/month',
+    specialEnds: '2025-06-13',
+    priceCents: 29900,
     maxListings: 'Unlimited',
     visibilityWeight: 5,
     description: 'For established salons, franchises, and premium brands.',

@@ -12,7 +12,7 @@ export async function GET() {
   // Try backend first - it has 550K+ URLs from the database
   try {
     const response = await fetch(`${BACKEND_URL}/seo/sitemap-index`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 86400 }, // Cache for 24 hours
     });
 
     if (response.ok) {
@@ -21,7 +21,7 @@ export async function GET() {
         status: 200,
         headers: {
           'Content-Type': 'application/xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400',
           'X-Source': 'backend',
         },
       });
@@ -98,7 +98,7 @@ ${sitemaps.join('')}
       status: 200,
       headers: {
         'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
         'X-Source': 'local-fallback',
       },
     });

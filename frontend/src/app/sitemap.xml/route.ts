@@ -6,7 +6,7 @@ export async function GET() {
   try {
     // Fetch sitemap index from backend
     const response = await fetch(`${BACKEND_URL}/seo/sitemap-index`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 86400 }, // Cache for 1 hour
     });
 
     if (!response.ok) {
@@ -19,12 +19,12 @@ export async function GET() {
       status: 200,
       headers: {
         'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
       },
     });
   } catch (error) {
     console.error('Error generating sitemap:', error);
-    
+
     // Return a minimal valid sitemap when backend is unavailable
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
     const fallbackSitemap = `<?xml version="1.0" encoding="UTF-8"?>

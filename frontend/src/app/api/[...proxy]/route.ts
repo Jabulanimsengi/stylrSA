@@ -51,12 +51,18 @@ async function proxyToBackend(request: NextRequest) {
     headers.delete('x-middleware-prefetch');
     headers.delete('x-middleware-subrequest');
 
-    // For GET/HEAD requests, no body; for others, use the raw body
+    // For GET/HEAD requests, no body; for others, stream the body
     let body: BodyInit | undefined = undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      // Use arrayBuffer to preserve binary data for multipart/form-data
-      const buffer = await request.arrayBuffer();
-      body = Buffer.from(buffer);
+      // For multipart/form-data, we need to read the whole body
+      // For other types, we can be more memory efficient
+      if (contentType.includes('multipart/form-data')) {
+        const buffer = await request.arrayBuffer();
+        body = Buffer.from(buffer);
+      } else {
+        // Stream the body directly for non-multipart requests
+        body = request.body as ReadableStream<Uint8Array> | null || undefined;
+      }
     }
 
     // Forward the request to the backend
@@ -64,29 +70,28 @@ async function proxyToBackend(request: NextRequest) {
       method: request.method,
       headers: headers,
       body: body,
-      // Don't cache API responses
       cache: 'no-store',
     });
 
-    // Forward the response back to the client
-    const data = await response.text();
-
-    // Build headers object, including Set-Cookie if present
-    const responseHeaders: HeadersInit = {
-      'Content-Type': response.headers.get('Content-Type') || 'application/json',
-    };
+    // Build response headers
+    const responseHeaders = new Headers();
+    responseHeaders.set('Content-Type', response.headers.get('Content-Type') || 'application/json');
 
     // Forward CORS headers if present
-    if (response.headers.get('Access-Control-Allow-Origin')) {
-      responseHeaders['Access-Control-Allow-Origin'] = response.headers.get('Access-Control-Allow-Origin')!;
+    const corsHeader = response.headers.get('Access-Control-Allow-Origin');
+    if (corsHeader) {
+      responseHeaders.set('Access-Control-Allow-Origin', corsHeader);
     }
 
     // CRITICAL: Forward Set-Cookie header for authentication
-    if (response.headers.get('Set-Cookie')) {
-      responseHeaders['Set-Cookie'] = response.headers.get('Set-Cookie')!;
+    const setCookie = response.headers.get('Set-Cookie');
+    if (setCookie) {
+      responseHeaders.set('Set-Cookie', setCookie);
     }
 
-    return new NextResponse(data, {
+    // Stream the response back instead of loading into memory
+    // This reduces memory usage significantly for large responses
+    return new NextResponse(response.body, {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,

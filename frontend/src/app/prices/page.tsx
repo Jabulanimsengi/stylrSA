@@ -8,7 +8,7 @@ import styles from './prices.module.css';
 
 export default function PricingPage() {
   const [authOpen, setAuthOpen] = useState(false);
-  
+
   const renderFeatureValue = (value: string | boolean) => {
     if (value === true) return <span className={styles.checkIcon}>✓</span>;
     if (value === false) return <span className={styles.crossIcon}>—</span>;
@@ -18,8 +18,11 @@ export default function PricingPage() {
   return (
     <div className={styles.container}>
       <PageNav />
-      
+
       <div className={styles.header}>
+        <div className={styles.specialBanner}>
+          🔥 6-Month Launch Special — Save up to 40%!
+        </div>
         <h1 className={styles.title}>Simple, Transparent Pricing</h1>
         <p className={styles.subtitle}>Choose a plan that fits your growth stage. Upgrade anytime.</p>
       </div>
@@ -35,13 +38,25 @@ export default function PricingPage() {
               </div>
             )}
             <h3 className={styles.planName}>{plan.name}</h3>
-            <div className={styles.price}>
-              {plan.price.replace('/month', '')}
-              <span className={styles.perMonth}>/month</span>
+            <div className={styles.priceContainer}>
+              {plan.originalPrice && (
+                <span className={styles.originalPrice}>
+                  {plan.originalPrice.replace('/month', '')}
+                </span>
+              )}
+              <div className={styles.price}>
+                {plan.price.replace('/month', '')}
+                <span className={styles.perMonth}>/month</span>
+              </div>
+              {plan.originalPrice && (
+                <span className={styles.saveBadge}>
+                  Save {Math.round((1 - parseInt(plan.price.replace(/\D/g, '')) / parseInt(plan.originalPrice.replace(/\D/g, ''))) * 100)}%
+                </span>
+              )}
             </div>
             <p className={styles.description}>{plan.description}</p>
-            <button 
-              className={`${styles.cta} ${plan.popular ? styles.ctaPopular : ''}`} 
+            <button
+              className={`${styles.cta} ${plan.popular ? styles.ctaPopular : ''}`}
               onClick={() => setAuthOpen(true)}
             >
               Get Started

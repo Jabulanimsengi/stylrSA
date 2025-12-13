@@ -49,7 +49,7 @@ import SocialShare from '@/components/SocialShare/SocialShare';
 import VerificationBadge from '@/components/VerificationBadge/VerificationBadge';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import TeamMembers from '@/components/TeamMembers/TeamMembers';
-import BooksySidebar, { HeroGallery, SalonInfoHeader, BooksyReviewsSection } from './BooksyComponents';
+import BooksySidebar, { HeroGallery, SalonInfoHeader, BooksyReviewsSection, StickyTabNavigation, AboutSection } from './BooksyComponents';
 import MobileSalonProfile from './MobileSalonProfile';
 import mobileStyles from './MobileSalonProfile.module.css';
 
@@ -105,6 +105,7 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
   const serviceLoadRef = useRef<HTMLDivElement | null>(null);
   const reviewLoadRef = useRef<HTMLDivElement | null>(null);
   const [logoError, setLogoError] = useState(false);
+  const [activeSection, setActiveSection] = useState('services-section');
 
   const reviews = salon?.reviews ?? EMPTY_REVIEWS;
 
@@ -695,12 +696,16 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 <span>{salon.name.charAt(0).toUpperCase()}</span>
               </div>
             )}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <h1 className={styles.title}>{salon.name}</h1>
-                {salon.isVerified && <VerificationBadge size="medium" showLabel={true} />}
-              </div>
-              <TrustBadges salon={salon} showAll={true} />
+            <div className={styles.headerSalonInfo}>
+              <h1 className={styles.headerSalonName}>
+                {salon.name}
+                {salon.isVerified && <VerificationBadge size="small" />}
+              </h1>
+              {salon.city && (
+                <span className={styles.headerSalonLocation}>
+                  <FaMapMarkerAlt /> {salon.city}, {salon.province}
+                </span>
+              )}
             </div>
           </div>
           <div className={styles.headerSpacer}>
@@ -724,17 +729,38 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
             <Breadcrumbs items={breadcrumbItems} />
           )}
 
+          {/* Sticky Tab Navigation */}
+          <StickyTabNavigation
+            activeSection={activeSection}
+            onTabClick={(sectionId) => {
+              setActiveSection(sectionId);
+              const el = document.getElementById(sectionId);
+              if (el) {
+                const offset = 80; // Account for sticky nav height
+                const elementPosition = el.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+              }
+            }}
+            hasPhotos={galleryImages.length > 0}
+            hasTeam={true}
+            reviewsCount={reviews.length}
+          />
+
           {/* Booksy-style Two-Column Layout */}
           <div className={booksyStyles.booksyLayout}>
             {/* Left Column - Main Content */}
             <div className={booksyStyles.booksyMain}>
-              {/* Hero Photo Gallery */}
-              <HeroGallery
-                salon={salon}
-                galleryImages={galleryImages}
-                onShowAllPhotos={() => openLightbox(galleryImageUrls, 0)}
-                onOpenLightbox={openLightbox}
-              />
+              {/* Photos Section */}
+              <section id="photos-section">
+                {/* Hero Photo Gallery */}
+                <HeroGallery
+                  salon={salon}
+                  galleryImages={galleryImages}
+                  onShowAllPhotos={() => openLightbox(galleryImageUrls, 0)}
+                  onOpenLightbox={openLightbox}
+                />
+              </section>
 
               {/* Salon Info Header */}
               <SalonInfoHeader
@@ -744,16 +770,13 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                   const el = document.getElementById('reviews-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
+                hoursRecord={hoursRecord}
+                todayLabel={todayLabel}
               />
-
-              {/* Trust Badges */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <TrustBadges salon={salon} showAll={true} />
-              </div>
 
               {/* Services Section */}
               <section id="services-section">
-                <h2 className={styles.sectionTitle}>Services</h2>
+                <h2 className={booksyStyles.sectionTitle}>Services</h2>
 
                 {/* Fresha-style Service List with Categories and Cart */}
                 <FreshaServiceList
@@ -817,6 +840,16 @@ export default function SalonProfileClient({ initialSalon, salonId, breadcrumbIt
                 avgRating={salon.avgRating || 0}
                 galleryImages={galleryImages}
                 onOpenLightbox={openLightbox}
+              />
+
+              {/* About Section */}
+              <AboutSection
+                salon={salon}
+                mapSrc={mapSrc}
+                mapsHref={mapsHref}
+                hoursRecord={hoursRecord}
+                todayLabel={todayLabel}
+                orderedOperatingDays={orderedOperatingDays}
               />
             </div>
 

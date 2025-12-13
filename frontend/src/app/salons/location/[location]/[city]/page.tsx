@@ -20,7 +20,7 @@ async function getInitialSalons(cityName: string) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stylrsa.co.za';
     try {
         const res = await fetch(`${apiUrl}/api/salons/approved?city=${encodeURIComponent(cityName)}&limit=12`, {
-            next: { revalidate: 3600 },
+            next: { revalidate: 21600 }, // 6 hours
         });
         if (!res.ok) return [];
         return res.json();

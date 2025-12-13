@@ -346,12 +346,6 @@ export default function TopNav() {
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
-                                        <Link href="/services" className={styles.dropdownItemLink}>
-                                            <span className={styles.dropdownIcon}><FaMagic /></span>
-                                            <span>Services</span>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
                                         <Link href="/products" className={styles.dropdownItemLink}>
                                             <span className={styles.dropdownIcon}><FaBoxOpen /></span>
                                             <span>Products</span>
