@@ -1,4 +1,4 @@
-/* TopNav - Enhanced Premium Desktop Navigation */
+/* TopNav - Fresha-style Clean Navigation */
 
 .topNav {
     position: fixed;
@@ -6,29 +6,27 @@
     left: 0;
     right: 0;
     height: 72px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: #fff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     z-index: 50;
     display: flex;
     align-items: center;
     padding: 0 2rem;
     justify-content: space-between;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
 }
 
 /* Scrolled state - applied via JS class */
 .topNavScrolled {
     height: 64px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme='dark'] .topNav {
-    background: rgba(26, 26, 36, 0.95);
+    background: #1a1a24;
     border-bottom-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* Left Section */
@@ -52,7 +50,7 @@
 .brandName {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--color-text-strong, #1a1a1a);
+    color: var(--fresha-dark, #1a1a1a);
     margin-left: 0.5rem;
     letter-spacing: -0.02em;
 }
@@ -71,40 +69,41 @@
     position: relative;
 }
 
-/* Nav Button - Enhanced with underline animation */
+/* Nav Button - Fresha-style with teal underline */
 .navButton {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.5rem 0.65rem;
-    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
     border: none;
     background: transparent;
-    color: var(--color-text-strong, #1a1a1a);
-    font-weight: 600;
-    font-size: 0.8rem;
+    color: var(--fresha-dark, #1a1a1a);
+    font-weight: 500;
+    font-size: 0.875rem;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     position: relative;
     white-space: nowrap;
+    text-decoration: none;
 }
 
 .navButton::after {
     content: '';
     position: absolute;
-    bottom: 4px;
+    bottom: 2px;
     left: 50%;
     width: 0;
     height: 2px;
-    background: var(--color-primary, #00bcd4);
+    background: var(--color-primary, #F51957);
     border-radius: 2px;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     transform: translateX(-50%);
 }
 
 .navButton:hover,
 .navButton:focus-visible {
-    color: var(--color-primary, #00bcd4);
+    color: var(--color-primary, #F51957);
 }
 
 .navButton:hover::after,
@@ -135,18 +134,16 @@
     transform: rotate(180deg);
 }
 
-/* Dropdown Menus - Enhanced */
+/* Dropdown Menus - Fresha-style */
 .dropdown {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
     min-width: 240px;
-    background: var(--color-surface, #fff);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
-    box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.12),
-        0 4px 12px rgba(0, 0, 0, 0.06);
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     padding: 0.5rem;
     display: flex;
     flex-direction: column;
@@ -154,7 +151,7 @@
     opacity: 0;
     transform: translateY(-8px);
     pointer-events: none;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     z-index: 100;
 }
 
@@ -183,9 +180,8 @@
 }
 
 .dropdownItem:hover {
-    background: rgba(0, 188, 212, 0.08);
-    color: var(--color-primary, #00bcd4);
-    transform: translateX(4px);
+    background: rgba(245, 25, 87, 0.06);
+    color: var(--color-primary, #F51957);
 }
 
 [data-theme='dark'] .dropdownItem {
@@ -193,8 +189,8 @@
 }
 
 [data-theme='dark'] .dropdownItem:hover {
-    background: rgba(0, 188, 212, 0.12);
-    color: #4dd0e1;
+    background: rgba(245, 25, 87, 0.12);
+    color: var(--color-primary-hover, #ff2d6f);
 }
 
 .dropdownIcon {
@@ -202,8 +198,8 @@
     height: 32px;
     display: grid;
     place-items: center;
-    border-radius: 10px;
-    background: rgba(0, 188, 212, 0.08);
+    border-radius: 8px;
+    background: rgba(245, 25, 87, 0.08);
     color: var(--color-text-secondary, #666);
     font-size: 1rem;
     transition: all 0.2s ease;
@@ -211,9 +207,8 @@
 }
 
 .dropdownItem:hover .dropdownIcon {
-    background: rgba(0, 188, 212, 0.15);
-    color: var(--color-primary, #00bcd4);
-    transform: scale(1.05);
+    background: rgba(245, 25, 87, 0.12);
+    color: var(--color-primary, #F51957);
 }
 
 [data-theme='dark'] .dropdownIcon {
@@ -240,26 +235,25 @@
     justify-content: flex-end;
 }
 
-/* Icon Button - Enhanced */
+/* Icon Button - Fresha-style */
 .iconButton {
     position: relative;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
     border: none;
-    background: rgba(0, 0, 0, 0.04);
-    color: var(--color-text-secondary, #666);
+    background: transparent;
+    color: var(--fresha-dark, #1a1a1a);
     display: grid;
     place-items: center;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
 }
 
 .iconButton:hover {
-    background: rgba(0, 188, 212, 0.1);
-    color: var(--color-primary, #00bcd4);
-    transform: translateY(-2px);
+    background: rgba(245, 25, 87, 0.08);
+    color: var(--color-primary, #F51957);
 }
 
 .iconButton:active {
@@ -267,13 +261,13 @@
 }
 
 [data-theme='dark'] .iconButton {
-    background: rgba(255, 255, 255, 0.08);
+    background: transparent;
     color: rgba(255, 255, 255, 0.8);
 }
 
 [data-theme='dark'] .iconButton:hover {
-    background: rgba(0, 188, 212, 0.15);
-    color: #4dd0e1;
+    background: rgba(245, 25, 87, 0.15);
+    color: var(--color-primary-hover, #ff2d6f);
 }
 
 /* Badge - Enhanced with pulse */

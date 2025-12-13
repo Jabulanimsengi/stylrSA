@@ -1,8 +1,8 @@
-/* Service Category Circles - Enhanced Premium Design */
+/* Service Category Circles - Fresha-style Clean Design */
 
 /* Section styling */
 .section {
-    padding: 0.75rem 0 1.25rem;
+    padding: 1rem 0 1.5rem;
     background: var(--color-surface);
     position: relative;
 }
@@ -16,12 +16,12 @@
 }
 
 .sectionTitle {
-    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
     font-weight: 700;
     margin: 0;
-    color: var(--color-text-strong);
+    color: var(--color-text-strong, #1a1a1a);
     text-align: left;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
 }
 
 /* Scroll wrapper with arrows */
@@ -31,7 +31,7 @@
     align-items: center;
 }
 
-/* Navigation arrows - Premium styling */
+/* Navigation arrows - Fresha-style */
 .scrollArrow {
     display: none;
     position: absolute;
@@ -40,13 +40,13 @@
     height: 44px;
     border-radius: 50%;
     background: white;
-    border: 1px solid var(--color-border, #e0e0e0);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    border: none;
+    box-shadow: var(--fresha-card-shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
     cursor: pointer;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    color: var(--color-text-strong, #333);
+    transition: all 0.25s ease;
+    color: var(--fresha-dark, #1a1a1a);
     top: 50%;
     transform: translateY(-50%);
 }
@@ -140,11 +140,10 @@
 }
 
 .categoryItem:hover .categoryCircle {
-    transform: scale(1.08);
+    transform: scale(1.05);
     box-shadow:
-        0 8px 28px rgba(0, 0, 0, 0.18),
-        0 0 0 3px rgba(245, 25, 87, 0.25),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+        0 6px 20px rgba(245, 25, 87, 0.2),
+        0 0 0 3px rgba(245, 25, 87, 0.15);
 }
 
 .categoryIcon {

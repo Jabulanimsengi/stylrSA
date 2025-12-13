@@ -1,7 +1,7 @@
-/* Salon Carousel Section - Reusable horizontal scrollable salon list - Enhanced Premium Design */
+/* Salon Carousel Section - Fresha-style Clean Design */
 
 .section {
-    padding: 1rem 0;
+    padding: 1.5rem 0;
 }
 
 .header {
@@ -9,7 +9,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0 var(--page-inline-padding, 1.5rem);
-    margin-bottom: 0.875rem;
+    margin-bottom: 1rem;
     max-width: 1280px;
     margin-left: auto;
     margin-right: auto;
@@ -24,14 +24,14 @@
 }
 
 .title:hover {
-    color: var(--color-primary, #00bcd4);
+    color: var(--color-primary, #F51957);
 }
 
 .title h2 {
-    font-size: 1.35rem;
+    font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
 }
 
 .viewAll {
@@ -40,17 +40,17 @@
     gap: 4px;
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--color-primary, #00bcd4);
+    color: var(--color-primary, #F51957);
     text-decoration: none;
     transition: all 0.2s;
     padding: 0.5rem 1rem;
     border-radius: 20px;
-    background: rgba(0, 188, 212, 0.08);
+    background: rgba(245, 25, 87, 0.08);
 }
 
 .viewAll:hover {
-    background: rgba(0, 188, 212, 0.15);
-    transform: translateX(2px);
+    background: rgba(245, 25, 87, 0.15);
+    color: var(--color-primary-hover, #ff2d6f);
 }
 
 .container {
@@ -58,24 +58,24 @@
     padding: 0 var(--page-inline-padding, 1.5rem);
 }
 
-/* Navigation Buttons - Premium styling */
+/* Navigation Buttons - Fresha-style */
 .navButton {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: var(--color-surface, #fff);
-    border: 1px solid var(--color-border, #e5e5e5);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    background: #fff;
+    border: none;
+    box-shadow: var(--fresha-card-shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
     cursor: pointer;
     z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-text-strong, #1a1a1a);
-    transition: all 0.3s ease;
+    color: var(--fresha-dark, #1a1a1a);
+    transition: all 0.2s ease;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -88,11 +88,9 @@
 }
 
 .navButton:hover {
-    background: var(--color-text-strong, #1a1a1a);
+    background: var(--color-primary, #F51957);
     color: white;
-    border-color: var(--color-text-strong, #1a1a1a);
-    transform: translateY(-50%) scale(1.08);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 16px rgba(245, 25, 87, 0.25);
 }
 
 .navButton:active {

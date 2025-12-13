@@ -1,9 +1,10 @@
+/* Footer - Fresha-style Clean Design */
 .footer {
-  background-color: var(--color-surface-subtle);
-  color: var(--color-text-strong);
-  padding: 2.5rem 1.5rem 1.5rem;
-  margin-top: auto; /* Pushes footer to the bottom */
-  border-top: 1px solid var(--color-border);
+  background-color: #fafafa;
+  color: var(--fresha-dark, #1a1a1a);
+  padding: 3rem 1.5rem 1.5rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* Dark mode footer adjustments */
@@ -26,18 +27,18 @@
 }
 
 [data-theme='dark'] .links a:hover {
-  color: var(--color-primary);
+  color: var(--color-primary, #F51957);
 }
 
 /* Removed dark mode styles for social links and newsletter */
 
 [data-theme='dark'] .mobileAppAnnouncement {
-  background: linear-gradient(135deg, rgba(58, 183, 165, 0.12) 0%, rgba(255, 92, 136, 0.12) 100%);
+  background: linear-gradient(135deg, rgba(0, 165, 150, 0.12) 0%, rgba(255, 127, 110, 0.12) 100%);
   border-color: var(--color-border);
 }
 
 [data-theme='dark'] .mobileAppAnnouncement::before {
-  background: linear-gradient(135deg, rgba(58, 183, 165, 0.08) 0%, rgba(255, 92, 136, 0.08) 100%);
+  background: linear-gradient(135deg, rgba(0, 165, 150, 0.08) 0%, rgba(255, 127, 110, 0.08) 100%);
 }
 
 [data-theme='dark'] .announcementTitle {
@@ -126,10 +127,9 @@
 }
 
 .featuredLink:hover {
-  color: var(--color-primary);
-  background: var(--color-surface-elevated);
-  border-color: var(--color-primary);
-  transform: translateY(-1px);
+  color: var(--color-primary, #F51957);
+  background: rgba(245, 25, 87, 0.06);
+  border-color: var(--color-primary, #F51957);
 }
 
 /* Contact and business info styling */
@@ -153,14 +153,14 @@
 }
 
 .contactLink {
-  color: var(--color-primary);
+  color: var(--color-primary, #F51957);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .contactLink:hover {
-  color: var(--color-primary-hover);
+  color: var(--color-primary-hover, #ff2d6f);
   text-decoration: underline;
 }
 
@@ -237,18 +237,17 @@
 }
 
 .links a:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
+  color: var(--fresha-teal, #00A596);
 }
 
 /* Removed social links and newsletter form styles */
 
 .mobileAppAnnouncement {
   max-width: 1280px;
-  margin: 1.25rem auto 0;
+  margin: 1.5rem auto 0;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, rgba(58, 183, 165, 0.08) 0%, rgba(245, 25, 87, 0.08) 100%);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(135deg, rgba(0, 165, 150, 0.06) 0%, rgba(255, 127, 110, 0.06) 100%);
+  border: 1px solid rgba(0, 165, 150, 0.15);
   border-radius: 12px;
   position: relative;
   overflow: hidden;
@@ -287,9 +286,12 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.08);
   }
@@ -343,8 +345,7 @@
 }
 
 .legalLinks a:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
+  color: var(--color-primary, #F51957);
 }
 
 @media (max-width: 1200px) {
@@ -365,73 +366,86 @@
   .footer {
     padding: 1.75rem 0.75rem 1rem;
   }
+
   .seoFooterContent {
     grid-template-columns: repeat(2, 1fr);
     text-align: left;
     gap: 1rem 0.75rem;
     padding-bottom: 1rem;
   }
+
   .footerSection:first-child {
     grid-column: 1 / -1;
     text-align: center;
   }
-  
+
   .featuredArticlesBar {
     padding: 0.75rem 0.75rem 1rem;
     margin: 0 auto 1rem;
   }
-  
+
   .featuredLinks {
     gap: 0.5rem;
   }
-  
+
   .featuredLink {
     font-size: 0.65rem;
     padding: 0.2rem 0.4rem;
   }
-  
+
   .trustBadges {
     justify-content: center;
     gap: 0.35rem;
   }
-  
+
   .trustBadge {
     font-size: 0.6rem;
   }
+
   .footerSection {
     align-items: flex-start;
   }
+
   .footerSection:first-child {
     align-items: center;
   }
+
   .logo {
     font-size: 1.2rem;
   }
+
   .description {
     font-size: 0.7rem;
   }
+
   .sectionTitle {
     font-size: 0.85rem;
   }
+
   .mobileAppAnnouncement {
     padding: 0.875rem 0.75rem;
     margin: 1rem auto 0;
   }
+
   .announcementContent {
     flex-direction: column;
     text-align: center;
     gap: 0.625rem;
   }
+
   .announcementIcon {
     font-size: 1.75rem;
   }
+
   .announcementTitle {
     font-size: 0.9rem;
     justify-content: center;
   }
+
   .announcementDescription {
     font-size: 0.7rem;
   }
+
   .footerBottom {
     flex-direction: column;
     text-align: center;
@@ -439,6 +453,7 @@
     margin-top: 1rem;
     gap: 0.5rem;
   }
+
   .legalLinks {
     gap: 0.75rem;
   }
@@ -448,46 +463,58 @@
   .footer {
     padding: 2rem 0.75rem 1.25rem;
   }
+
   .footerContent {
     gap: 1.25rem;
     padding-bottom: 1.25rem;
   }
+
   .logo {
     font-size: 1.35rem;
   }
+
   .description {
     font-size: 0.8rem;
   }
+
   .sectionTitle {
     font-size: 0.9rem;
   }
+
   .links {
     gap: 0.5rem;
     font-size: 0.85rem;
   }
+
   .mobileAppAnnouncement {
     padding: 1rem 0.75rem;
     margin: 1.25rem auto 0;
     border-radius: 8px;
   }
+
   .announcementContent {
     gap: 0.75rem;
   }
+
   .announcementIcon {
     font-size: 2rem;
   }
+
   .announcementTitle {
     font-size: 1rem;
   }
+
   .announcementDescription {
     font-size: 0.8125rem;
     line-height: 1.4;
   }
+
   .footerBottom {
     font-size: 0.75rem;
     margin-top: 1.25rem;
     gap: 0.625rem;
   }
+
   .legalLinks {
     gap: 0.75rem;
     font-size: 0.75rem;
@@ -499,47 +526,59 @@
   .footer {
     padding: 1.75rem 0.625rem 1.125rem;
   }
+
   .footerContent {
     gap: 1.125rem;
     padding-bottom: 1.125rem;
   }
+
   .logo {
     font-size: 1.25rem;
   }
+
   .description {
     font-size: 0.75rem;
     line-height: 1.5;
   }
+
   .sectionTitle {
     font-size: 0.875rem;
   }
+
   .links {
     gap: 0.4375rem;
     font-size: 0.8125rem;
   }
+
   .mobileAppAnnouncement {
     padding: 0.875rem 0.625rem;
     margin: 1.125rem auto 0;
     border-radius: 8px;
   }
+
   .announcementContent {
     gap: 0.625rem;
   }
+
   .announcementIcon {
     font-size: 1.875rem;
   }
+
   .announcementTitle {
     font-size: 0.9375rem;
   }
+
   .announcementDescription {
     font-size: 0.75rem;
     line-height: 1.4;
   }
+
   .footerBottom {
     font-size: 0.6875rem;
     margin-top: 1.125rem;
     gap: 0.5rem;
   }
+
   .legalLinks {
     gap: 0.625rem;
     font-size: 0.6875rem;
@@ -551,47 +590,59 @@
   .footer {
     padding: 1.5rem 0.5rem 1rem;
   }
+
   .footerContent {
     gap: 1rem;
     padding-bottom: 1rem;
   }
+
   .logo {
     font-size: 1.125rem;
   }
+
   .description {
     font-size: 0.6875rem;
     line-height: 1.45;
   }
+
   .sectionTitle {
     font-size: 0.8125rem;
   }
+
   .links {
     gap: 0.375rem;
     font-size: 0.75rem;
   }
+
   .mobileAppAnnouncement {
     padding: 0.75rem 0.5rem;
     margin: 1rem auto 0;
     border-radius: 6px;
   }
+
   .announcementContent {
     gap: 0.5rem;
   }
+
   .announcementIcon {
     font-size: 1.75rem;
   }
+
   .announcementTitle {
     font-size: 0.875rem;
   }
+
   .announcementDescription {
     font-size: 0.6875rem;
     line-height: 1.35;
   }
+
   .footerBottom {
     font-size: 0.625rem;
     margin-top: 1rem;
     gap: 0.4375rem;
   }
+
   .legalLinks {
     gap: 0.5rem;
     font-size: 0.625rem;

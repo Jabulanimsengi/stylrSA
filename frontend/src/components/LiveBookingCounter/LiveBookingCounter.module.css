@@ -1,0 +1,56 @@
+/* Live Booking Counter - Fresha-style social proof */
+
+.counterContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin-top: 0.5rem;
+}
+
+.counterNumber {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.02em;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.counterNumber.pulse {
+    transform: scale(1.05);
+    color: var(--color-primary, #F51957);
+}
+
+.counterLabel {
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: lowercase;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .counterContainer {
+        padding: 0.5rem 1rem;
+        gap: 0.15rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .counterContainer {
+        padding: 0.4rem 0.85rem;
+    }
+
+    .counterNumber {
+        font-size: 1rem;
+    }
+
+    .counterLabel {
+        font-size: 0.7rem;
+    }
+}

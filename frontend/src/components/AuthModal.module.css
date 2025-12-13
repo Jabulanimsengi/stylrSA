@@ -1,9 +1,9 @@
-/* AuthModal.module.css - Compact Design */
+/* AuthModal.module.css - Fresha-style Clean Design */
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.65);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,21 +13,21 @@
 
 .modalContent {
   position: relative;
-  background-color: var(--color-surface-elevated);
-  border-radius: 0.35rem;
-  padding: clamp(0.75rem, 2vw, 1rem);
-  width: min(100%, 320px);
-  max-height: min(90vh, 480px);
+  background-color: #fff;
+  border-radius: 16px;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  width: min(100%, 380px);
+  max-height: min(90vh, 520px);
   overflow-y: auto;
-  color: var(--color-text-strong);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  /* Hide scrollbar but keep functionality */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  color: var(--fresha-dark, #1a1a1a);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .modalContent::-webkit-scrollbar {
-  display: none; /* Chrome/Safari/Opera */
+  display: none;
+  /* Chrome/Safari/Opera */
 }
 
 /* Fade gradient at bottom to indicate scrollable content */
@@ -78,42 +78,48 @@
 }
 
 .tab:hover {
-  color: var(--color-primary);
+  color: var(--color-primary, #F51957);
 }
 
 .tab.active {
-  color: var(--color-primary);
-  border-bottom: 2px solid var(--color-primary);
-  font-weight: bold;
+  color: var(--color-primary, #F51957);
+  border-bottom: 2px solid var(--color-primary, #F51957);
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {
   .modalOverlay {
     padding: 0.5rem;
   }
+
   .modalContent {
     border-radius: 0.3rem;
     padding: 0.75rem;
     max-height: 85vh;
     width: min(100%, 300px);
   }
+
   .closeButton {
     font-size: 0.9rem;
     top: 0.3rem;
     right: 0.3rem;
   }
+
   .tabs {
     margin-bottom: 0.5rem;
   }
+
   .tab {
     padding: 0.3rem;
     font-size: 0.7rem;
   }
+
   .modalContent input {
     padding: 0.4rem;
     font-size: 0.75rem;
     margin-bottom: 0.5rem;
   }
+
   .modalContent .button {
     padding: 0.4rem;
     font-size: 0.75rem;
@@ -125,7 +131,7 @@
     padding: 0.35rem;
     align-items: center;
   }
-  
+
   .modalContent {
     max-width: 92%;
     max-height: 80vh;
@@ -133,7 +139,7 @@
     padding: 0.75rem;
     overflow-y: auto;
   }
-  
+
   .tabs {
     margin-bottom: 0.5rem;
   }
@@ -143,12 +149,14 @@
   .modalOverlay {
     padding: 0.25rem;
   }
+
   .modalContent {
     border-radius: 0.25rem;
     padding: 0.625rem;
     max-height: 85vh;
     width: 95%;
   }
+
   .closeButton {
     font-size: 0.85rem;
     top: 0.25rem;
@@ -157,22 +165,28 @@
     padding: 0.15rem;
     border-radius: 50%;
   }
+
   .tabs {
     margin-bottom: 0.4rem;
   }
+
   .tab {
     padding: 0.25rem;
     font-size: 0.65rem;
   }
+
   .modalContent input {
     padding: 0.4rem;
-    font-size: 16px; /* Prevents iOS zoom */
+    font-size: 16px;
+    /* Prevents iOS zoom */
     margin-bottom: 0.4rem;
   }
+
   .modalContent .button {
     padding: 0.4rem;
     font-size: 0.7rem;
   }
+
   .errorMessage {
     font-size: 0.65rem;
     margin-bottom: 0.4rem;
@@ -247,8 +261,9 @@
 
 /* Links within modal */
 .modalContent a {
-  font-size: 0.7rem;
-  color: var(--color-primary);
+  font-size: 0.75rem;
+  color: var(--color-primary, #F51957);
+  font-weight: 500;
 }
 
 /* Form helper text */

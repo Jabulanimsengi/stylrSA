@@ -1,7 +1,7 @@
-/* Featured Salons Section - Enhanced Premium Design */
+/* Featured Salons Section - Fresha-style Clean Design */
 
 .section {
-  padding: 1rem 0;
+  padding: 1.5rem 0;
 }
 
 .header {
@@ -9,7 +9,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 var(--page-inline-padding, 1.5rem);
-  margin-bottom: 0.875rem;
+  margin-bottom: 1rem;
   max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
@@ -22,14 +22,14 @@
 }
 
 .title:hover {
-  color: var(--color-primary, #00bcd4);
+  color: var(--color-primary, #F51957);
 }
 
 .title h2 {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .viewAll {
@@ -38,17 +38,17 @@
   gap: 4px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-primary, #00bcd4);
+  color: var(--color-primary, #F51957);
   text-decoration: none;
   transition: all 0.2s;
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  background: rgba(0, 188, 212, 0.08);
+  background: rgba(245, 25, 87, 0.08);
 }
 
 .viewAll:hover {
-  background: rgba(0, 188, 212, 0.15);
-  transform: translateX(2px);
+  background: rgba(245, 25, 87, 0.15);
+  color: var(--color-primary-hover, #ff2d6f);
 }
 
 .container {

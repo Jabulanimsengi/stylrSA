@@ -173,14 +173,23 @@ export default function HomePageClient({
         <div className={styles.heroGradient} />
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle} id="hero-title">
-            Find Your Perfect Salon in South Africa
+            Book local beauty & wellness
           </h1>
+          <p className={styles.heroSubtitle}>
+            Discover and book top-rated salons, spas & beauty professionals near you
+          </p>
 
           <div className={styles.heroSearchContainer}>
             <div className={styles.heroSearchBox} ref={heroSearchRef}>
+              <div className={styles.searchIconWrapper}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </div>
               <input
                 type="text"
-                placeholder="Search for a service or location..."
+                placeholder="All treatments and venues"
                 className={styles.heroSearchInput}
                 value={heroSearchQuery}
                 onChange={(e) => setHeroSearchQuery(e.target.value)}
@@ -242,10 +251,10 @@ export default function HomePageClient({
                 </ul>
               )}
             </div>
-
           </div>
         </div>
       </section>
+
 
       {/* Service Category Circles - Quick navigation */}
       <ServiceCategoryCircles />

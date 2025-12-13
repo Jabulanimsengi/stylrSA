@@ -76,16 +76,27 @@
   text-align: center;
 }
 
-/* Hero Title - Bold with subtle gradient */
+/* Hero Title - Fresha style: clean, bold */
 .heroTitle {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(1.75rem, 5vw, 3rem);
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.1;
   margin: 0;
   color: #fff;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   text-align: center;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+}
+
+/* Hero Subtitle - Fresha style */
+.heroSubtitle {
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  margin: 0.25rem 0 0 0;
+  max-width: 480px;
+  line-height: 1.4;
 }
 
 /* Hero Search Container */
@@ -97,20 +108,21 @@
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  margin-top: 1rem;
 }
 
-/* Glassmorphism Search Box */
+/* Fresha-style Search Box - Clean white pill */
 .heroSearchBox {
   position: relative;
   width: 100%;
-  max-width: 560px;
+  max-width: 520px;
   display: flex;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
+  align-items: center;
+  background: #fff;
   border-radius: 50px;
   overflow: visible;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.2),
+    0 4px 20px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(255, 255, 255, 0.1);
   z-index: 1;
   transition: all 0.3s ease;
@@ -118,14 +130,27 @@
 
 .heroSearchBox:focus-within {
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.25),
-    0 0 0 2px var(--color-primary);
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    0 0 0 2px var(--color-primary, #F51957);
   transform: translateY(-2px);
+}
+
+/* Search Icon */
+.searchIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.searchIconWrapper svg {
+  flex-shrink: 0;
 }
 
 .heroSearchInput {
   flex: 1;
-  padding: 1rem 1.5rem;
+  padding: 1rem 0.75rem;
   border: none;
   background: transparent;
   font-size: 1rem;
@@ -140,24 +165,26 @@
   color: var(--color-text-muted);
 }
 
+/* Fresha-style Search Button - Pink accent */
 .heroSearchButton {
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #d1165a 100%);
+  padding: 0.875rem 1.75rem;
+  background: var(--color-primary, #F51957);
   color: #fff;
   border: none;
-  border-radius: 0 50px 50px 0;
-  font-weight: 700;
+  border-radius: 50px;
+  font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  margin: 0.375rem;
+  white-space: nowrap;
 }
 
 .heroSearchButton:hover {
-  background: linear-gradient(135deg, #e01963 0%, #b8104d 100%);
+  background: var(--color-primary-hover, #ff2d6f);
   transform: scale(1.02);
 }
+
 
 /* Hero Search Autocomplete Dropdown */
 .heroSuggestionsList {
@@ -409,23 +436,38 @@
   }
 
   .heroTitle {
-    font-size: clamp(1.25rem, 5vw, 1.75rem);
+    font-size: clamp(1.4rem, 5vw, 1.75rem);
+  }
+
+  .heroSubtitle {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
   }
 
   .heroSearchContainer {
     width: 100%;
     gap: 0.5rem;
+    margin-top: 0.75rem;
   }
 
   .heroSearchBox {
     max-width: 100%;
-    border-radius: 32px;
+    border-radius: 50px;
     flex-wrap: nowrap;
     overflow: visible;
   }
 
+  .searchIconWrapper {
+    padding-left: 1rem;
+  }
+
+  .searchIconWrapper svg {
+    width: 18px;
+    height: 18px;
+  }
+
   .heroSearchInput {
-    padding: 0.85rem 1rem;
+    padding: 0.85rem 0.5rem;
     font-size: 0.9rem;
     min-width: 0;
     flex: 1;
@@ -435,11 +477,11 @@
   }
 
   .heroSearchButton {
-    padding: 0.85rem 1.25rem;
+    padding: 0.75rem 1rem;
     font-size: 0.8rem;
     flex-shrink: 0;
     white-space: nowrap;
-    border-radius: 0 32px 32px 0;
+    margin: 0.25rem;
   }
 
   .quickCategories {
