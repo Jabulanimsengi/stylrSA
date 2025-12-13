@@ -6,28 +6,45 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_ORIGIN || process.env.BACKEND_UR
 
 /**
  * Sitemap Index - Lists all available sitemaps
- * PRIORITY: Backend first (550K+ URLs), local fallback (~25K URLs)
+ * PRIORITY: Backend first (1.2M+ URLs), local fallback (~25K URLs)
  */
 export async function GET() {
-  // Try backend first - it has 550K+ URLs from the database
+  // Try backend first - it has 1.2M+ URLs from the database
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     const response = await fetch(`${BACKEND_URL}/seo/sitemap-index`, {
+      signal: controller.signal,
       next: { revalidate: 86400 }, // Cache for 24 hours
     });
+    clearTimeout(timeoutId);
 
     if (response.ok) {
       const xml = await response.text();
-      return new NextResponse(xml, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=86400, s-maxage=86400',
-          'X-Source': 'backend',
-        },
-      });
+
+      // Validate it's actually XML and doesn't contain JS code
+      const isValidXml = xml.includes('<?xml') && xml.includes('<sitemapindex');
+      const hasJsPattern = xml.includes(';// ') ||
+        xml.includes('function(') ||
+        xml.includes('<!DOCTYPE html') ||
+        xml.includes('<script') ||
+        xml.includes('webpack');
+
+      if (isValidXml && !hasJsPattern) {
+        return new NextResponse(xml, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+            'X-Source': 'backend',
+          },
+        });
+      }
+      console.error('Backend returned invalid sitemap index XML');
     }
-  } catch (error) {
-    console.warn('Backend sitemap unavailable, using local fallback:', error);
+  } catch (error: any) {
+    console.warn('Backend sitemap unavailable, using local fallback:', error.message);
   }
 
   // Fallback to local generation (~25K URLs from locationData.ts)

@@ -1,47 +1,124 @@
 import { NextResponse } from 'next/server';
+import { getSitemapStats } from '@/lib/sitemap-generator';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_ORIGIN || process.env.BACKEND_URL || 'http://localhost:5000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
 
 export async function GET() {
+  // Try backend first with timeout
   try {
-    // Fetch sitemap index from backend
-    const response = await fetch(`${BACKEND_URL}/seo/sitemap-index`, {
-      next: { revalidate: 86400 }, // Cache for 1 hour
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch sitemap index');
+    const response = await fetch(`${BACKEND_URL}/seo/sitemap-index`, {
+      signal: controller.signal,
+      next: { revalidate: 86400 }, // Cache for 24 hours
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const xml = await response.text();
+
+      // Validate it's actually XML and doesn't contain JS code
+      const isValidXml = xml.includes('<?xml') && xml.includes('<sitemapindex');
+      const hasJsPattern = xml.includes(';// ') ||
+        xml.includes('function(') ||
+        xml.includes('<!DOCTYPE html') ||
+        xml.includes('<script') ||
+        xml.includes('webpack');
+
+      if (isValidXml && !hasJsPattern) {
+        return new NextResponse(xml, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+            'X-Source': 'backend',
+          },
+        });
+      }
+      console.error('Backend returned invalid sitemap XML');
+    }
+  } catch (error: any) {
+    console.warn('Backend sitemap unavailable:', error.message);
+  }
+
+  // Fallback to local sitemap index
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const stats = getSitemapStats();
+    const seoSitemapCount = Math.ceil(stats.seoPages / 45000);
+
+    const sitemaps: string[] = [];
+
+    // Static pages
+    sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/sitemap-static.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`);
+
+    // SEO sitemaps
+    for (let i = 0; i < seoSitemapCount; i++) {
+      sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/sitemap-seo-${i}.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`);
     }
 
-    const xml = await response.text();
+    // Salons
+    sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/sitemap-salons.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`);
+
+    // Services
+    sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/sitemap-services.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`);
+
+    // Jobs
+    sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/sitemap-jobs.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`);
+
+    // Trends
+    sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/sitemap-trends.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`);
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemaps.join('\n')}
+</sitemapindex>`;
 
     return new NextResponse(xml, {
       status: 200,
       headers: {
-        'Content-Type': 'application/xml',
+        'Content-Type': 'application/xml; charset=utf-8',
         'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+        'X-Source': 'local-fallback',
       },
     });
   } catch (error) {
     console.error('Error generating sitemap:', error);
 
-    // Return a minimal valid sitemap when backend is unavailable
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.stylrsa.co.za';
+    // Return a minimal valid sitemap index
     const fallbackSitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${siteUrl}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>`;
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${SITE_URL}/sitemap-static.xml</loc>
+  </sitemap>
+</sitemapindex>`;
 
     return new NextResponse(fallbackSitemap, {
       status: 200,
       headers: {
-        'Content-Type': 'application/xml',
+        'Content-Type': 'application/xml; charset=utf-8',
         'Cache-Control': 'public, max-age=300, s-maxage=300',
+        'X-Source': 'error-fallback',
       },
     });
   }

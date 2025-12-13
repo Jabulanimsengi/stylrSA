@@ -1,94 +1,123 @@
 import { NextResponse } from 'next/server';
+import { generateSeoKeywordUrls, generateSitemapXml, splitIntoSitemaps } from '@/lib/sitemap-generator';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_ORIGIN || 
-                    process.env.BACKEND_URL || 
-                    'http://localhost:5000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_ORIGIN ||
+  process.env.BACKEND_URL ||
+  'http://localhost:5000';
+
+// Cache for local fallback sitemaps
+let localSitemapsCache: { sitemaps: string[]; timestamp: number } | null = null;
+const LOCAL_CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
+function getLocalSitemaps(): string[] {
+  if (localSitemapsCache && Date.now() - localSitemapsCache.timestamp < LOCAL_CACHE_TTL) {
+    return localSitemapsCache.sitemaps;
+  }
+
+  // Generate from local data
+  const urls = generateSeoKeywordUrls();
+  const sitemapChunks = splitIntoSitemaps(urls);
+  const sitemaps = sitemapChunks.map(chunk => generateSitemapXml(chunk));
+
+  localSitemapsCache = { sitemaps, timestamp: Date.now() };
+  return sitemaps;
+}
 
 /**
  * Dynamic SEO sitemap route - paginated keyword×location combinations
  * Supports: /sitemap-seo-0.xml, /sitemap-seo-1.xml, /sitemap-seo-2.xml, etc.
- * NO DATABASE STORAGE - Uses backend on-demand generation
+ * PRIORITY: Backend first, then local fallback
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ segment: string }> }
 ) {
-  try {
-    const { segment } = await params;
+  const { segment } = await params;
+  const segmentNum = parseInt(segment, 10);
 
-    // Validate segment is a number
-    if (!segment || !/^\d+$/.test(segment)) {
-      const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-</urlset>`;
-      return new NextResponse(emptyXml, {
-        status: 200,
-        headers: { 'Content-Type': 'application/xml; charset=utf-8' },
-      });
-    }
-
-    // Fetch from backend
-    const response = await fetch(
-      `${BACKEND_URL}/seo/sitemap-seo-${segment}`,
-      { next: { revalidate: 86400 } }  // Cache for 1 hour
-    );
-
-    if (!response.ok) {
-      console.error(
-        `SEO sitemap-seo-${segment} error: ${response.status} ${response.statusText}`
-      );
-
-      // Return empty sitemap on error (don't 404)
-      const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-</urlset>`;
-
-      return new NextResponse(emptyXml, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=300',
-        },
-      });
-    }
-
-    const xml = await response.text();
-
-    // Validate it's actually XML
-    if (!xml.includes('<?xml') || !xml.includes('<urlset')) {
-      console.error('Backend returned invalid XML');
-      
-      const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-</urlset>`;
-
-      return new NextResponse(emptyXml, {
-        status: 200,
-        headers: { 'Content-Type': 'application/xml; charset=utf-8' },
-      });
-    }
-
-    return new NextResponse(xml, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-        'X-Generated': 'on-demand',
-      },
-    });
-  } catch (error) {
-    console.error(`Sitemap generation error:`, error);
-    
-    // Return empty sitemap instead of error
+  // Validate segment is a number
+  if (!segment || !/^\d+$/.test(segment) || isNaN(segmentNum) || segmentNum < 0) {
     const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </urlset>`;
-
     return new NextResponse(emptyXml, {
       status: 200,
-      headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
-      },
+      headers: { 'Content-Type': 'application/xml; charset=utf-8' },
     });
   }
+
+  // Try backend first with timeout
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+    const response = await fetch(
+      `${BACKEND_URL}/seo/sitemap-seo-${segment}`,
+      {
+        signal: controller.signal,
+        next: { revalidate: 86400 }  // Cache for 24 hours
+      }
+    );
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const xml = await response.text();
+
+      // Validate it's actually XML and doesn't contain JS code
+      const isValidXml = xml.includes('<?xml') && xml.includes('<urlset');
+      const hasJsPattern = xml.includes(';// ') ||
+        xml.includes('function(') ||
+        xml.includes('<!DOCTYPE html') ||
+        xml.includes('<script') ||
+        xml.includes('webpack');
+
+      if (isValidXml && !hasJsPattern) {
+        return new NextResponse(xml, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+            'X-Source': 'backend',
+          },
+        });
+      }
+      console.error(`Backend returned invalid XML for segment ${segment}`);
+    } else {
+      console.error(`Backend error for segment ${segment}: ${response.status}`);
+    }
+  } catch (error: any) {
+    console.warn(`Backend sitemap-seo-${segment} unavailable:`, error.message);
+  }
+
+  // Fallback to local generation
+  try {
+    const localSitemaps = getLocalSitemaps();
+
+    if (segmentNum < localSitemaps.length) {
+      const xml = localSitemaps[segmentNum];
+      return new NextResponse(xml, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+          'X-Source': 'local-fallback',
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Local sitemap generation failed:', error);
+  }
+
+  // Last resort: return empty but valid XML
+  const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+</urlset>`;
+
+  return new NextResponse(emptyXml, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'X-Source': 'empty-fallback',
+    },
+  });
 }
