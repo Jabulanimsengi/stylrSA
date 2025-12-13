@@ -20,10 +20,10 @@
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .title {
@@ -67,7 +67,8 @@
   font-size: 0.9rem;
 }
 
-.input, .textarea {
+.input,
+.textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--input-border);
@@ -76,10 +77,12 @@
   font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.input:focus, .textarea:focus {
-    outline: none;
-    border-color: var(--input-border-strong);
-    box-shadow: 0 0 0 2px var(--input-border-focus);
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--input-border-strong);
+  box-shadow: 0 0 0 2px var(--input-border-focus);
 }
 
 .textarea {
@@ -174,4 +177,120 @@
   margin-top: 1.5rem;
   border-top: 1px solid var(--color-border);
   padding-top: 1.5rem;
+}
+
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .modalContent {
+    padding: 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .closeButton {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .form {
+    gap: 1rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .input,
+  .textarea {
+    font-size: 16px;
+    /* Prevents iOS zoom */
+    padding: 0.65rem;
+  }
+
+  .fileInputLabel {
+    padding: 0.875rem 1rem;
+    min-height: 48px;
+  }
+
+  .imageWrapper {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .buttonContainer {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .buttonContainer button {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding: 0.25rem;
+    padding-top: 1rem;
+  }
+
+  .modalContent {
+    padding: 1rem;
+    max-height: 95vh;
+    border-radius: 10px;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .label {
+    font-size: 0.85rem;
+  }
+
+  .imageWrapper {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .removeImageButton {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .modalContent {
+    padding: 0.875rem;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .imageWrapper {
+    width: 4rem;
+    height: 4rem;
+  }
 }

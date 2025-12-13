@@ -146,6 +146,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
+    padding: 0.875rem;
   }
 
   .dayCheckbox {
@@ -159,10 +160,66 @@
   .timeInput {
     flex: 1;
     max-width: 120px;
+    min-height: 44px;
+    /* Touch target */
   }
 
   .closedLabel {
     margin-left: 0;
     text-align: center;
+  }
+
+  .bulkButton {
+    min-height: 44px;
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .applyAllSection {
+    padding: 0.75rem;
+  }
+
+  .dayRow {
+    padding: 0.75rem;
+  }
+
+  .dayName {
+    font-size: 0.9rem;
+  }
+
+  .timeInput {
+    max-width: 100px;
+    font-size: 0.9rem;
+    padding: 0.4rem;
+  }
+
+  .separator {
+    font-size: 0.75rem;
+  }
+
+  .bulkButton {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .dayCheckbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 375px) {
+  .timeInput {
+    max-width: 85px;
+    font-size: 0.85rem;
+  }
+
+  .bulkActions {
+    flex-direction: column;
+  }
+
+  .bulkButton {
+    width: 100%;
   }
 }

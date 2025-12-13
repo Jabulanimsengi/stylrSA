@@ -26,10 +26,10 @@
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .title {
@@ -70,7 +70,8 @@
   color: var(--color-text-strong);
 }
 
-.input, .textarea {
+.input,
+.textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--input-border);
@@ -81,7 +82,8 @@
   color: var(--color-text-strong);
 }
 
-.input:focus, .textarea:focus {
+.input:focus,
+.textarea:focus {
   outline: none;
   border-color: var(--input-border-strong);
   box-shadow: 0 0 0 2px var(--input-border-focus);
@@ -89,8 +91,8 @@
 }
 
 .textarea {
-    min-height: 80px;
-    resize: vertical;
+  min-height: 80px;
+  resize: vertical;
 }
 
 .fileInputLabel {
@@ -153,7 +155,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .errorMessage {
@@ -171,37 +173,38 @@
   padding-top: 1.5rem;
 }
 
-.saveButton, .cancelButton {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease;
+.saveButton,
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
 }
 
 .saveButton {
-    background-color: var(--color-primary);
-    color: var(--color-text-inverse);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
 }
 
 .saveButton:hover {
-    background-color: var(--color-primary-hover);
+  background-color: var(--color-primary-hover);
 }
 
 .saveButton:disabled {
-    background-color: var(--color-primary-soft);
-    cursor: not-allowed;
+  background-color: var(--color-primary-soft);
+  cursor: not-allowed;
 }
 
 .cancelButton {
-    background-color: var(--light-grey);
-    color: var(--color-text-strong);
+  background-color: var(--light-grey);
+  color: var(--color-text-strong);
 }
 
 .cancelButton:hover {
-    background-color: color-mix(in srgb, var(--light-grey) 80%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--light-grey) 80%, var(--color-surface));
 }
 
 /* Spinner animation */
@@ -209,7 +212,140 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .modalContent {
+    padding: 1.5rem;
+    max-height: 90vh;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .closeButton {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .form {
+    gap: 1rem;
+  }
+
+  .input,
+  .textarea {
+    padding: 0.65rem;
+    font-size: 16px;
+    /* Prevents iOS zoom */
+  }
+
+  .fileInputLabel {
+    padding: 1.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .imagePreviewContainer {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .imageWrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .buttonContainer {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .saveButton,
+  .cancelButton {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding: 0.25rem;
+    padding-top: 1rem;
+  }
+
+  .modalContent {
+    padding: 1rem;
+    max-height: 95vh;
+    border-radius: 10px;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .fileInputLabel {
+    padding: 1.25rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .imagePreviewContainer {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+
+  .imageWrapper {
+    width: 70px;
+    height: 70px;
+  }
+
+  .removeImageButton {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+
+  .label {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .modalContent {
+    padding: 0.875rem;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .saveButton,
+  .cancelButton {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .imageWrapper {
+    width: 60px;
+    height: 60px;
   }
 }

@@ -46,3 +46,60 @@
   gap: 1rem;
   margin-top: 1.5rem;
 }
+
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .modalContent {
+    padding: 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 95%;
+  }
+
+  .inputGroup input,
+  .inputGroup textarea {
+    font-size: 16px;
+    /* Prevents iOS zoom */
+    padding: 0.625rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .buttonGroup button {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding: 0.25rem;
+    padding-top: 1rem;
+  }
+
+  .modalContent {
+    padding: 1rem;
+    max-height: 95vh;
+    border-radius: 10px;
+    width: 98%;
+  }
+
+  .inputGroup label {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .modalContent {
+    padding: 0.875rem;
+  }
+}

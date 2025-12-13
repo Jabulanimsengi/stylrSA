@@ -273,7 +273,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading p {
@@ -361,7 +363,7 @@
   }
 
   .header h2 {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 
   .stats {
@@ -369,25 +371,99 @@
   }
 
   .reviewCard {
-    padding: 0.75rem;
+    padding: 0.875rem;
   }
 
+  /* Horizontal scrolling tabs instead of stacking */
   .tabs {
-    flex-direction: column;
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .tabButton {
-    width: 100%;
-    font-size: 0.7rem;
-    padding: 0.3rem 0.5rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.875rem;
+    min-height: 40px;
   }
 
   .reviewHeader {
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
 
   .rating {
+    font-size: 0.9rem;
+  }
+
+  .comment {
     font-size: 0.85rem;
+    padding: 0.75rem;
+  }
+
+  .responseActions {
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .respondButton {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .header h2 {
+    font-size: 1rem;
+  }
+
+  .tabButton {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.625rem;
+    min-height: 36px;
+  }
+
+  .reviewCard {
+    padding: 0.75rem;
+  }
+
+  .authorInfo strong {
+    font-size: 0.8rem;
+  }
+
+  .service {
+    font-size: 0.65rem;
+  }
+
+  .comment {
+    font-size: 0.8rem;
+    padding: 0.625rem;
+  }
+
+  .date {
+    font-size: 0.65rem;
+  }
+
+  .status {
+    font-size: 0.55rem;
+    padding: 0.125rem 0.4rem;
   }
 }
