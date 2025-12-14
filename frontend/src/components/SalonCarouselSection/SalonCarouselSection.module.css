@@ -187,9 +187,9 @@
     }
 
     .skeletonCard {
-        width: calc(100% / 1.15);
+        width: calc(100% / 1.35 - 10px);
         min-width: unset;
-        height: 220px;
+        height: 240px;
     }
 }
 
@@ -209,7 +209,7 @@
     }
 
     .skeletonCard {
-        height: 200px;
+        height: 220px;
     }
 }
 
@@ -223,7 +223,7 @@
     }
 
     .skeletonCard {
-        height: 180px;
+        height: 200px;
     }
 }
 

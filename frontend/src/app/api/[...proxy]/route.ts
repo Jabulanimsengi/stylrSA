@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 // Configure for large file uploads
 export const runtime = 'nodejs';
@@ -50,6 +51,19 @@ async function proxyToBackend(request: NextRequest) {
     const headers = new Headers(request.headers);
     headers.delete('x-middleware-prefetch');
     headers.delete('x-middleware-subrequest');
+
+    // Explicitly read and forward cookies from Next.js cookie store
+    // This is needed because App Router may not include cookies in request.headers automatically
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('access_token')?.value;
+    if (accessToken) {
+      // Append/replace Cookie header to ensure access_token is forwarded
+      const existingCookie = headers.get('Cookie') || '';
+      const hasAccessToken = existingCookie.includes('access_token=');
+      if (!hasAccessToken) {
+        headers.set('Cookie', existingCookie ? `${existingCookie}; access_token=${accessToken}` : `access_token=${accessToken}`);
+      }
+    }
 
     // For GET/HEAD requests, no body; for others, stream the body
     let body: BodyInit | undefined = undefined;

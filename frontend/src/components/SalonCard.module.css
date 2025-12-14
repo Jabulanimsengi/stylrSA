@@ -433,7 +433,7 @@
   }
 
   .salonCard.compact .imageWrapper {
-    height: 150px;
+    height: 155px;
   }
 
   .salonCard.compact .cardContent {
@@ -445,7 +445,7 @@
   }
 
   .salonCard.compact .cardLocation {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     justify-content: center;
   }
 
@@ -525,11 +525,11 @@
   }
 
   .salonCard.compact {
-    height: 210px;
+    height: 220px;
   }
 
   .salonCard.compact .imageWrapper {
-    height: 130px;
+    height: 140px;
   }
 
   .salonCard.compact .cardContent {
@@ -537,18 +537,18 @@
   }
 
   .salonCard.compact .cardTitle {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     line-height: 1.2;
   }
 
   .salonCard.compact .cardLocation {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     margin-top: 2px;
     justify-content: center;
   }
 
   .salonCard.compact .cardMeta {
-    font-size: 0.55rem;
+    font-size: 0.58rem;
     margin-top: 2px;
   }
 
@@ -588,11 +588,11 @@
 /* Extra Small Mobile */
 @media (max-width: 400px) {
   .salonCard.compact {
-    height: 190px;
+    height: 200px;
   }
 
   .salonCard.compact .imageWrapper {
-    height: 115px;
+    height: 125px;
   }
 
   .salonCard.compact .cardContent {
@@ -600,11 +600,11 @@
   }
 
   .salonCard.compact .cardTitle {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 
   .salonCard.compact .cardLocation {
-    font-size: 0.55rem;
+    font-size: 0.6rem;
   }
 }
 

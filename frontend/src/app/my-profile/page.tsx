@@ -22,7 +22,7 @@ export default function MyProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const { authStatus } = useAuth();
   const router = useRouter();
- 
+
 
   useEffect(() => {
     // Don't redirect if still loading auth status
@@ -42,13 +42,18 @@ export default function MyProfilePage() {
         try {
           const res = await fetch(`/api/users/me`, { credentials: 'include' });
           if (!res.ok) {
+            const errorText = await res.text();
+            console.error('[MyProfile] Failed to fetch profile:', res.status, errorText);
             throw new Error('Failed to fetch profile');
           }
           const data = await res.json();
+          console.log('[MyProfile] Loaded profile data:', data);
           setProfile(data);
-          setFirstName(data.firstName);
-          setLastName(data.lastName);
+          // Handle null/undefined values from backend
+          setFirstName(data.firstName || '');
+          setLastName(data.lastName || '');
         } catch (error) {
+          console.error('[MyProfile] Error loading profile:', error);
           toast.error('Could not load your profile.');
         } finally {
           setIsLoading(false);
@@ -70,18 +75,25 @@ export default function MyProfilePage() {
       });
 
       if (!res.ok) {
-        throw new Error('Failed to update profile');
+        const errorText = await res.text();
+        console.error('[MyProfile] Failed to update profile:', res.status, errorText);
+        throw new Error(`Failed to update profile: ${res.status}`);
       }
 
       const updatedData = await res.json();
+      console.log('[MyProfile] Profile updated:', updatedData);
       setProfile(updatedData);
-      
+      // Also update the state values
+      setFirstName(updatedData.firstName || '');
+      setLastName(updatedData.lastName || '');
+
       // Enhanced success notification
       toast.success(
         `✅ Profile updated successfully!\n👤 Your changes have been saved.`,
         { autoClose: 4000 }
       );
     } catch (error) {
+      console.error('[MyProfile] Error updating profile:', error);
       toast.error('❌ Failed to update profile. Please try again.');
     } finally {
       setIsSaving(false);

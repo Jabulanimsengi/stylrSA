@@ -10,7 +10,7 @@ import { useEffect, useRef, useCallback } from 'react';
  * @param onTracked - Optional callback fired when impression is successfully tracked
  */
 export function useSalonImpression(
-  salonId: string | undefined, 
+  salonId: string | undefined,
   enabled: boolean = true,
   onTracked?: () => void
 ) {
@@ -21,31 +21,32 @@ export function useSalonImpression(
 
     const trackImpression = async () => {
       if (hasTrackedRef.current) return;
-      
+
       try {
         hasTrackedRef.current = true;
         const response = await fetch(`/api/salons/${salonId}/impression`, {
           method: 'POST',
           credentials: 'include',
         });
-        
+
         if (response.ok) {
           // Call the callback if provided
           onTracked?.();
         } else if (response.status === 404) {
-          // Endpoint not found - log but don't retry (likely backend not running or route not configured)
-          console.warn(`Impression tracking endpoint not found for salon ${salonId}`);
+          // Endpoint not found - backend route not configured, fail silently
           // Don't reset flag for 404s - endpoint likely doesn't exist
+        } else if (response.status >= 500) {
+          // Server errors (502, 503, etc.) - fail silently, don't retry
+          // These are often temporary gateway issues or backend restarts
+          // Don't reset flag to avoid retrying on every scroll
         } else {
-          // Other errors - reset flag so it can retry
+          // Other client errors (4xx except 404) - reset flag so it can retry
           hasTrackedRef.current = false;
-          console.error(`Failed to track impression: ${response.status} ${response.statusText}`);
         }
-      } catch (error) {
-        // Network errors - reset flag so it can retry
+      } catch {
+        // Network errors - fail silently
+        // Impression tracking should not disrupt UX
         hasTrackedRef.current = false;
-        // Silently fail - impression tracking should not disrupt UX
-        console.error('Failed to track salon impression:', error);
       }
     };
 

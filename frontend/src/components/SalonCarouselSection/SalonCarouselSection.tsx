@@ -176,7 +176,7 @@ function SalonCarouselSection({
                         width: '100%',
                         maxWidth: '1200px',
                         margin: '0 auto',
-                        minHeight: isMobile ? '260px' : '280px',
+                        minHeight: isMobile ? '240px' : '280px',
                     }}
                     onSlideChange={handleSlideChange}
                     allowTouchMove={true}
@@ -186,7 +186,12 @@ function SalonCarouselSection({
                     longSwipesRatio={0.5}
                     breakpoints={{
                         320: {
-                            slidesPerView: 1.15,
+                            slidesPerView: 1.35,
+                            spaceBetween: 12,
+                        },
+                        480: {
+                            slidesPerView: 1.4,
+                            spaceBetween: 14,
                         },
                         769: {
                             slidesPerView: 4.1,
@@ -197,8 +202,8 @@ function SalonCarouselSection({
                         <SwiperSlide
                             key={salon.id}
                             style={{
-                                width: isMobile ? 'calc(100% / 1.15)' : 'calc((100% - 48px) / 4.1)',
-                                minHeight: isMobile ? '260px' : '280px',
+                                width: isMobile ? 'calc(100% / 1.35 - 10px)' : 'calc((100% - 48px) / 4.1)',
+                                minHeight: isMobile ? '240px' : '280px',
                                 flexShrink: 0,
                             }}
                         >
